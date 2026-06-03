@@ -137,7 +137,7 @@ export function SpaceDesktopExperience({
     <>
       <Toast message={toast} onDone={() => setToast(null)} />
       {hud}
-      <PlaybackBar />
+      <PlaybackBar elevated={!!focused} />
       {webgpuReady === null ? (
         <div
           style={{

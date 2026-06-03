@@ -143,6 +143,46 @@ button {
   color: rgba(255, 255, 255, 0.68);
 }
 
+.playback-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  width: min(680px, 86vw);
+  z-index: 80;
+  font-family: system-ui, sans-serif;
+  color: rgba(255, 255, 255, 0.75);
+  user-select: none;
+}
+
+/* 与 .focus-layout 中间栏水平居中一致（非整页 50%） */
+.playback-bar--focus-center {
+  bottom: 48px;
+  left: calc(max(240px, 28vw) + (100vw - max(240px, 28vw) - max(280px, 32vw)) / 2);
+}
+
+.playback-bar__times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.playback-bar__track {
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.playback-bar__fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7);
+}
+
 .crosshair {
   position: fixed;
   left: 50%;
