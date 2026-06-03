@@ -1,0 +1,1 @@
+展品准星瞄准+左键进 Focus（mousedown、父级冒泡 exhibitId、退出吞首击）；主场景 Focus 时禁用底层指针；Focus 300ms 虚化加深+150ms 内容淡入；纯白 2s 线性入口 splash；WebGPU Neutral exposure 1.15、Bloom+Vignette 无 AO；pivot 优先旋转中心；按钮 hover/billboard 已回退待新方案。

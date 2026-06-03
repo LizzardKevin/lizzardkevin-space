@@ -1,0 +1,16 @@
+{
+  "name": "lizzardkevins-space",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "studio"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web",
+    "preview": "npm run preview -w apps/web",
+    "lint": "npm run lint -w apps/web",
+    "deploy:pages": "npm run build -w apps/web && echo \"Deploy via Cloudflare Pages: set build output to apps/web/dist\"",
+    "package:test": "node scripts/package-test-build.mjs"
+  }
+}

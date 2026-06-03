@@ -1,0 +1,4 @@
+asset_key,path,exists,status,notes
+gallery_main,models/gallery_main.glb,Y,已入库,"2026-06-02 更新：+COL_sidetable_1；spawn XZ≈(5.034,-0.865)；17 mesh；可见≈17.7k tris"
+bgm_architecture,audio/bgm_architecture.mp3,N,待制作,进入 SPACE 后 architecture 分区 BGM
+wall_art,media/art_01.jpg,N,可选,北墙代码画框贴图（ENABLE_GALLERY_WALL_ART=false）

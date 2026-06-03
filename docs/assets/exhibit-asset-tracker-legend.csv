@@ -1,0 +1,13 @@
+字段/值,说明
+status: 待制作,尚未开始建模或导出
+status: 制作中,DCC 进行中或待入库
+status: 已入库,文件已放入 public 对应路径
+status: 需调整,已入库但命名/尺度/manifest 需改
+status: 已验收,联调通过
+Y / N,文件或绑定是否就绪；入库后改为 Y
+exhibitId,与 manifest.json 的 exhibitId 一致
+sceneObjectName,gallery_main 内 hit mesh，规则 exhibit_<exhibitId>
+focus_glb_file,位于 folder_path 下，建议 focus_<exhibitId>.glb
+in_manifest,manifest.json 是否已有该条目（代码可先配好为 Y）
+维护顺序,新增行 → 建目录 → 做 glb/媒体 → 更新 manifest → 改 Y
+对照文档,docs/gallery-mesh-naming.md / docs/asset-manifest.md / exhibit-asset-tracker-gallery_nodes.csv

@@ -1,0 +1,453 @@
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, useGLTF } from "@react-three/drei";
+import {
+  Component,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import type { ExhibitManifestItem } from "./manifest";
+import type { ExhibitButtonAction } from "./manifest";
+import { usePlayback } from "../media/usePlayback";
+import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
+import { runExhibitButtonAction } from "./runExhibitButtonAction";
+import { loadExhibitContent, formatExhibitIdFallback, type ExhibitContent } from "./exhibitContent";
+import { FOCUS_TURNTABLE_RAD_PER_SEC, SHOW_FOCUS_BLANK_DEBUG } from "./focusConfig";
+import { FocusOverviewPanel, FocusSideColumn, FocusStoryPanel } from "./FocusContentPanels";
+import { FocusExhibitTitle } from "./FocusExhibitTitle";
+import { FocusDoubleClickExit } from "./FocusCanvasInput";
+import { useFocusDoubleClickHandler } from "./focusDoubleClick";
+import * as THREE from "three";
+import type { ThreeEvent } from "@react-three/fiber";
+
+function FocusBlank({
+  className,
+  onBlankClick,
+}: {
+  className: string;
+  onBlankClick: () => void;
+}) {
+  return (
+    <div
+      className={className}
+      data-focus-blank="true"
+      onClick={onBlankClick}
+      aria-hidden
+    />
+  );
+}
+
+/** 世界空间固定灯光，不随相机/展品旋转。 */
+function FocusLighting() {
+  return (
+    <>
+      <ambientLight intensity={0.32} />
+      <directionalLight position={[5, 9, 6]} intensity={1.35} color="#fff8f0" />
+      <directionalLight position={[-5, 2.5, -4]} intensity={0.3} color="#c8d8f0" />
+    </>
+  );
+}
+
+/** 展台自转：只转展品，相机与灯光固定。 */
+function FocusTurntable({
+  active,
+  target,
+}: {
+  active: boolean;
+  target: RefObject<THREE.Group | null>;
+}) {
+  useFrame((_, delta) => {
+    if (!active) return;
+    const root = target.current;
+    if (root) root.rotation.y += delta * FOCUS_TURNTABLE_RAD_PER_SEC;
+  });
+  return null;
+}
+
+function FocusOrbitControls({
+  enabled,
+  enableRotate,
+  onUserInteract,
+}: {
+  enabled: boolean;
+  enableRotate: boolean;
+  onUserInteract: () => void;
+}) {
+  return (
+    <OrbitControls
+      enabled={enabled}
+      enableRotate={enableRotate}
+      enableZoom={enabled}
+      autoRotate={false}
+      onStart={onUserInteract}
+      enablePan={false}
+      enableDamping
+      dampingFactor={0.12}
+      makeDefault
+    />
+  );
+}
+
+function FocusModel({
+  url,
+  buttons,
+  onButtonAction,
+}: {
+  url: string;
+  buttons: ExhibitManifestItem["buttons"] | undefined;
+  onButtonAction: (action: ExhibitButtonAction) => void;
+}) {
+  const gltf = useGLTF(url);
+  const scene = useRef<THREE.Object3D | null>(null);
+
+  if (!scene.current) {
+    scene.current = gltf.scene.clone(true);
+  }
+
+  useEffect(() => {
+    if (!scene.current) return;
+
+    const root = scene.current;
+    root.position.set(0, 0, 0);
+    root.rotation.set(0, 0, 0);
+    root.scale.set(1, 1, 1);
+
+    const box = new THREE.Box3().setFromObject(root);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+
+    const maxDim = Math.max(size.x, size.y, size.z);
+    if (Number.isFinite(maxDim) && maxDim > 0) {
+      const targetSize = 1.8;
+      const scale = THREE.MathUtils.clamp(targetSize / maxDim, 0.05, 8);
+      root.scale.setScalar(scale);
+    }
+
+    let pivot: THREE.Object3D | null = null;
+    root.traverse((obj) => {
+      if (pivot) return;
+      const name = String(obj.name ?? "");
+      if (!name) return;
+      const lower = name.toLowerCase();
+      if (lower === "pivot" || lower.endsWith("_pivot") || lower.startsWith("pivot_") || lower.includes("pivot")) {
+        pivot = obj as THREE.Object3D;
+      }
+    });
+
+    const anchor = new THREE.Vector3();
+    if (pivot) {
+      (pivot as THREE.Object3D).getWorldPosition(anchor);
+    } else {
+      const box2 = new THREE.Box3().setFromObject(root);
+      box2.getCenter(anchor);
+    }
+    root.position.sub(anchor);
+
+    root.traverse((obj) => {
+      if (!(obj as THREE.Mesh).isMesh) return;
+      const action = buttons?.[obj.name];
+      if (action) obj.userData.focusButtonAction = action;
+      else delete obj.userData.focusButtonAction;
+    });
+  }, [buttons]);
+
+  const handlePointerDown = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      let obj: THREE.Object3D | null = e.object;
+      while (obj) {
+        const action = obj.userData?.focusButtonAction as ExhibitButtonAction | undefined;
+        if (action) {
+          e.stopPropagation();
+          onButtonAction(action);
+          return;
+        }
+        obj = obj.parent;
+      }
+    },
+    [onButtonAction],
+  );
+
+  return (
+    <group onPointerDown={handlePointerDown}>
+      {scene.current ? <primitive object={scene.current} /> : null}
+    </group>
+  );
+}
+
+function FocusScene({
+  exhibit,
+  onButtonAction,
+  orbitEnabled,
+  meshHovered,
+  onMeshHoverChange,
+  onBlankDoubleClick,
+}: {
+  exhibit: ExhibitManifestItem;
+  onButtonAction: (action: ExhibitButtonAction) => void;
+  orbitEnabled: boolean;
+  meshHovered: boolean;
+  onMeshHoverChange: (hovered: boolean) => void;
+  onBlankDoubleClick: () => void;
+}) {
+  const hitRootRef = useRef<THREE.Group>(null);
+  const hoverDepthRef = useRef(0);
+  const [turntableSpin, setTurntableSpin] = useState(true);
+
+  useEffect(() => {
+    setTurntableSpin(true);
+    if (hitRootRef.current) hitRootRef.current.rotation.y = 0;
+  }, [exhibit.exhibitId]);
+
+  const handlePointerOver = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      hoverDepthRef.current += 1;
+      onMeshHoverChange(true);
+    },
+    [onMeshHoverChange],
+  );
+
+  const handlePointerOut = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      e.stopPropagation();
+      hoverDepthRef.current = Math.max(0, hoverDepthRef.current - 1);
+      if (hoverDepthRef.current === 0) onMeshHoverChange(false);
+    },
+    [onMeshHoverChange],
+  );
+
+  return (
+    <>
+      <group
+        ref={hitRootRef}
+        position={[0, -0.6, 0]}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+      >
+        <FocusModel url={exhibit.focusGlbUrl} buttons={exhibit.buttons} onButtonAction={onButtonAction} />
+      </group>
+      <FocusLighting />
+      <FocusTurntable active={orbitEnabled && turntableSpin} target={hitRootRef} />
+      <FocusOrbitControls
+        enabled={orbitEnabled}
+        enableRotate={meshHovered}
+        onUserInteract={() => setTurntableSpin(false)}
+      />
+      <FocusDoubleClickExit
+        hitRoot={hitRootRef}
+        enabled={orbitEnabled}
+        onBlankDoubleClick={onBlankDoubleClick}
+      />
+    </>
+  );
+}
+
+function FocusLoading() {
+  return (
+    <div className="focus-loading" aria-hidden>
+      加载展品…
+    </div>
+  );
+}
+
+type ErrorBoundaryProps = { children: ReactNode; url: string };
+type ErrorBoundaryState = { error: Error | null };
+
+class FocusModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { error };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="focus-error">
+          Focus 模型加载失败
+          <br />
+          <span>{this.props.url}</span>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export function FocusOverlay({
+  exhibit,
+  onClose,
+}: {
+  exhibit: ExhibitManifestItem;
+  onClose: () => void;
+}) {
+  const playback = usePlayback();
+  const [blurOn, setBlurOn] = useState(false);
+  const [dimOn, setDimOn] = useState(false);
+  const [contentVisible, setContentVisible] = useState(false);
+  const [content, setContent] = useState<ExhibitContent | null>(null);
+  const [contentLoading, setContentLoading] = useState(true);
+  const closingRef = useRef(false);
+  const [meshHovered, setMeshHovered] = useState(false);
+
+  const displayTitle = content?.title ?? formatExhibitIdFallback(exhibit.exhibitId);
+  const videoUrl = exhibit.media?.videoUrl;
+
+  useEffect(() => {
+    useGLTF.preload(exhibit.focusGlbUrl);
+  }, [exhibit.focusGlbUrl]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setContentLoading(true);
+    loadExhibitContent(exhibit.exhibitId).then((c) => {
+      if (!cancelled) {
+        setContent(c);
+        setContentLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [exhibit.exhibitId]);
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      setBlurOn(true);
+      setDimOn(true);
+    });
+    const showTimer = window.setTimeout(() => setContentVisible(true), 300);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(showTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      playback.stop();
+      playback.attachVideoElement(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cleanup on unmount only
+  }, []);
+
+  const onButtonAction = useCallback(
+    (action: ExhibitButtonAction) => {
+      runExhibitButtonAction(action, playback, exhibit.media, exhibit.type);
+    },
+    [playback, exhibit.media, exhibit.type],
+  );
+
+  const requestClose = useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    playback.stop();
+    setContentVisible(false);
+    window.setTimeout(() => {
+      setBlurOn(false);
+      setDimOn(false);
+    }, 150);
+    window.setTimeout(() => onClose(), 450);
+  }, [onClose, playback]);
+
+  const handleBlankDoubleClick = useCallback(() => {
+    if (!contentVisible || closingRef.current) return;
+    requestClose();
+  }, [contentVisible, requestClose]);
+
+  const handleBlankClick = useFocusDoubleClickHandler(handleBlankDoubleClick);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") requestClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [requestClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-describedby="focus-exit-hint"
+      className={`focus-overlay${dimOn ? " focus-overlay--dim" : ""}${blurOn ? " focus-overlay--blur" : ""}`}
+    >
+      {videoUrl ? (
+        <video
+          ref={(el) => playback.attachVideoElement(el)}
+          className={`focus-video${exhibit.type === "video" ? " focus-video--visible" : ""}`}
+          playsInline
+          preload="metadata"
+          src={videoUrl}
+        />
+      ) : null}
+
+      <div className="focus-layout">
+        <FocusSideColumn side="left" onBlankClick={handleBlankClick}>
+          <FocusOverviewPanel
+            overview={content?.overview ?? null}
+            loading={contentLoading}
+            visible={contentVisible}
+          />
+        </FocusSideColumn>
+
+        <div className="focus-layout__center">
+          <FocusExhibitTitle title={displayTitle} visible={contentVisible} />
+
+          <FocusBlank
+            className={`focus-blank--fill${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-center" : ""}`}
+            onBlankClick={handleBlankClick}
+          />
+
+          <p
+            id="focus-exit-hint"
+            className={`focus-exit-hint${contentVisible ? " focus-exit-hint--visible" : ""}`}
+          >
+            双击空白区域以退出
+          </p>
+
+          <FocusModelErrorBoundary url={exhibit.focusGlbUrl}>
+            <Suspense fallback={<FocusLoading />}>
+              <Canvas
+                id="focus-canvas"
+                className={`focus-canvas${contentVisible ? " focus-canvas--visible" : ""}`}
+                gl={(props) =>
+                  createWebGPURenderer({
+                    canvas: props.canvas as HTMLCanvasElement,
+                    antialias: props.antialias,
+                    alpha: true,
+                  })
+                }
+                camera={{ fov: 45, near: 0.01, far: 200, position: [0, 1.2, 3.6] }}
+                onCreated={({ gl }) => {
+                  gl.domElement.id = "focus-canvas";
+                }}
+              >
+                <FocusScene
+                  exhibit={exhibit}
+                  onButtonAction={onButtonAction}
+                  orbitEnabled={contentVisible}
+                  meshHovered={meshHovered}
+                  onMeshHoverChange={setMeshHovered}
+                  onBlankDoubleClick={handleBlankDoubleClick}
+                />
+              </Canvas>
+            </Suspense>
+          </FocusModelErrorBoundary>
+        </div>
+
+        <FocusSideColumn side="right" onBlankClick={handleBlankClick}>
+          <FocusStoryPanel
+            storyHtml={content?.storyHtml ?? null}
+            loading={contentLoading}
+            visible={contentVisible}
+          />
+        </FocusSideColumn>
+      </div>
+    </div>
+  );
+}

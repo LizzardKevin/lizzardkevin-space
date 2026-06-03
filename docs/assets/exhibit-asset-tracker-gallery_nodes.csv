@@ -1,0 +1,18 @@
+node_name,node_type,y_range,code_binding,notes
+COL_ground,mesh,-0.99~0.00,GalleryFloorCollider + walkable spawn,地板碰撞（优先读取此名）
+COL_inner_1,mesh,2.00~4.00,ColColliders cuboid,内墙碰撞
+COL_inner_2,mesh,0.00~1.00,ColColliders cuboid,内墙碰撞
+COL_inner_3,mesh,0.00~4.00,ColColliders cuboid,内墙碰撞
+COL_outer_1,mesh,0.00~4.00,ColColliders trimesh (double-sided),外墙碰撞
+COL_platform_1,mesh,0.00~0.50,ColColliders trimesh + GalleryFloorCollider cutout,平台含台阶
+COL_sidetable_1,mesh,0.00~0.77,ColColliders trimesh,边桌碰撞（新增 2026-06-02）
+spawn_player_main,empty,,resolveGallerySpawn,"出生 Empty XZ≈(5.034,-0.865)；Y 由脚下地面算 bodyY≈0.92"
+exhibit_demo_box,mesh,0.77~0.98,bindExhibitIds → demo_box,交互 hit mesh
+prop_sidetable_1,mesh,0.00~0.77,视觉 only,装饰道具，无碰撞
+struct_ground,mesh,-0.99~0.00,视觉,地面对应 struct_ground
+struct_inner_1,mesh,2.00~4.00,视觉,内墙视觉
+struct_inner_2,mesh,0.00~1.00,视觉,内墙视觉
+struct_inner_3,mesh,0.00~4.00,视觉,内墙视觉
+struct_outer_1,mesh,0.00~4.00,视觉,外墙视觉
+struct_ceiling_1,mesh,4.00~4.00,视觉,天花
+struct_platform_1,mesh,0.00~0.50,视觉,平台视觉
