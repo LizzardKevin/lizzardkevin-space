@@ -15,7 +15,7 @@ npm run package:test # 本地试玩 zip → release/
 
 ## 部署
 
-1. 推送到 GitHub（见下方仓库说明）
+1. [GitHub 首次推送](docs/github-first-push.md) — `gh auth login` 后执行 `npm run github:push`
 2. [Cloudflare Pages 部署指引](docs/deploy-cloudflare-pages.md) — 免费静态托管，`*.pages.dev` 分享给测试者
 
 ## 仓库结构
