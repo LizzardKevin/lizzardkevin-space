@@ -103,7 +103,7 @@ ENABLE_GALLERY_RUNTIME_SHADOWS = false
 3. **部署**：构建并上传完整 `apps/web/dist/`；确认 CDN 对 `index.html` 短缓存、`assets/*` 长缓存。
 4. **FocusOverlay**：同步 Toon/雾/Bloom 策略；`useMemo` 副作用已改 `useEffect`。
 5. **音频 zone**：按空间位置切换 BGM（当前仍 hardcode `"architecture"`）。
-6. **Sanity / DevStories 内容**：Node 20 LTS 后再启 Studio。
+6. **DevStories 内容**：对接 `docs/devlog/` 本地 Markdown。
 
 ## 相关文件索引
 

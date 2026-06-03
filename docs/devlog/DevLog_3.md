@@ -102,7 +102,7 @@ WebGPURenderer: NeutralToneMapping, exposure 1.15
 2. **补媒体资源**：`public/media/demo.mp3`；focus GLB 缓存版本（`?v=` 或 revision bump）。
 3. **展厅材质**：若仍随视角明暗跳变，在 Blender 去重面或保留烘焙 AO，而非再叠加强制纯色 Toon。
 4. **部署验证**：`npm run build` 后完整上传 `dist/`（含 `assets/`）。
-5. **DevStories**：开发日志列表页对接 `docs/devlog/` 或 Sanity（Node 20 LTS）。
+5. **DevStories**：开发日志列表页对接 `docs/devlog/` 本地 Markdown。
 
 ## 相关文件索引
 

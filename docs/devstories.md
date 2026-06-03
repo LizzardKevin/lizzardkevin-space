@@ -1,16 +1,15 @@
 # DevStories（开发日志）内容入口
 
-目前 `DevStories` 页面是占位。后续会按两种方式之一实现内容：
+目前 `DevStories` 页面是占位。内容在本地维护，构建后随静态站部署到 Cloudflare Pages。
 
-## 方式 A：用 Sanity（推荐）
+## 本地 Markdown（推荐）
 
-- 使用 `devLogPost` schema
-- 页面拉取列表与详情（可用 GROQ + 预构建 `content.json`）
+- 在 [`docs/devlog/`](devlog/) 编写开发日志（如 `DevLog_1.md`）
+- 后续可在 `apps/web` 增加列表/详情页，从 Markdown 或构建时生成的 JSON 读取
 
-## 方式 B：本地 MDX（轻量）
+## 可选：应用内 MDX
 
 - 在 `apps/web/src/content/dev-stories/*.mdx` 放文章
-- Vite 构建时用内容层（Contentlayer / mdx-bundler）生成列表与详情
+- Vite 构建时用 mdx-bundler 或 Contentlayer 生成列表与详情
 
-本文件先作为“入口说明”，避免你忘记该内容从哪里维护。
-
+本文件作为维护入口说明，避免忘记内容来源。

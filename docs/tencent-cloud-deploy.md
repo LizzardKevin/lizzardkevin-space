@@ -72,7 +72,7 @@ npm run build
 
 只有在你需要以下功能时才考虑 ECS/Serverless：
 
-- 自建 CMS（不用 Sanity）
+- 自建 CMS 或后台（当前以本地 JSON / Markdown 为主）
 - 上传/鉴权
 - 数据库（收藏、登录、留言）
 

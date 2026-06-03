@@ -24,6 +24,9 @@ npm run package:test # 本地试玩 zip → release/
 |------|------|
 | `apps/web/` | Vite 前端 |
 | `apps/web/public/models/` | 主场景 GLB |
-| `apps/web/public/exhibits/` | 展品 Focus 模型与 `content.json` |
-| `docs/` | 命名规范、部署、DevLog |
-| `studio/` | Sanity Studio（可选） |
+| `apps/web/public/exhibits/` | 展品 `manifest.json`、Focus 模型与 `content.json` |
+| `docs/` | 命名规范、部署、DevLog（[`docs/devlog/`](docs/devlog/)） |
+
+## 内容维护（本地）
+
+改 GLB / JSON / Markdown 后执行 `npm run build`，`git push` 到 `main` 即可由 Cloudflare Pages 自动重新部署。详见 [`docs/devstories.md`](docs/devstories.md)。

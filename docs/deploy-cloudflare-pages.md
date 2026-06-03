@@ -45,9 +45,9 @@ Pages 会在根目录 `npm install`（workspaces），并构建 `apps/web`。
 
 本地 `npm run build` 后，Pages → **Upload assets**，上传 `apps/web/dist` 内全部文件。
 
-## 5. Sanity webhook（后续）
+## 5. 内容更新后重新发布
 
-启用 Sanity 后，可配置 webhook 触发 Pages Build hook，实现内容更新自动发布。
+修改展品、文案或 `docs/devlog/` 后，在仓库根目录执行 `npm run build` 并 `git push` 到 `main`，Pages 会自动触发新构建。
 
 ## 6. 可选：Wrangler CLI 部署
 

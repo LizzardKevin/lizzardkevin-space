@@ -2,8 +2,7 @@
   "name": "lizzardkevins-space",
   "private": true,
   "workspaces": [
-    "apps/web",
-    "studio"
+    "apps/web"
   ],
   "scripts": {
     "dev": "npm run dev -w apps/web",

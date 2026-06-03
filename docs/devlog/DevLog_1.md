@@ -69,9 +69,6 @@
 ## 遇到的问题与处理
 
 - **Pointer Lock 系统提示框**：Chrome 会在进入/退出鼠标锁定时显示系统级提示，这是浏览器安全机制，网页无法隐藏；因此以交互设计减少频繁切换为主（保留现状）。
-- **Sanity Studio 与 Node v26 兼容**：Sanity CLI 在 Node v26 下触发依赖链 ESM/CJS 问题，已记录说明：
-  - `docs/sanity-note.md`（建议切 Node 20 LTS 再启用 Studio）
-
 ## 下一步计划（简要）
 
-1. **真正启用 `gallery_main.glb`**：放入 `apps/web/public/models/gallery_main.glb`，并打开 `SpaceScene.tsx` 的加载开关；验证 `COL_` 碰撞网格是否工作。\n2. **展品按钮映射**：按 manifest 规则实现“点击 Focus glb 上的按钮 mesh → play/pause/seek”完整链路（替换当前临时播放按钮）。\n3. **视频通道**：接入 `videoUrl`（HTMLVideoElement + 进度同步到 `PlaybackBar`），并支持按钮控制。\n4. **脚步声与地面材质映射**：基于 `FOOT_*` 或 zone 规则切换脚步样本，并做基础音量 UI。\n5. **视觉打磨**：Firewatch-ish 的雾、颜色层级、Bloom 阈值与亮度；之后再讨论阴影策略（AO/lightmap vs 局部实时阴影）。\n6. **内容接入**：等你决定 Node 版本后再启用 Sanity Studio，或先用本地 JSON/MDX 作为内容源。\n
+1. **真正启用 `gallery_main.glb`**：放入 `apps/web/public/models/gallery_main.glb`，并打开 `SpaceScene.tsx` 的加载开关；验证 `COL_` 碰撞网格是否工作。\n2. **展品按钮映射**：按 manifest 规则实现“点击 Focus glb 上的按钮 mesh → play/pause/seek”完整链路（替换当前临时播放按钮）。\n3. **视频通道**：接入 `videoUrl`（HTMLVideoElement + 进度同步到 `PlaybackBar`），并支持按钮控制。\n4. **脚步声与地面材质映射**：基于 `FOOT_*` 或 zone 规则切换脚步样本，并做基础音量 UI。\n5. **视觉打磨**：Firewatch-ish 的雾、颜色层级、Bloom 阈值与亮度；之后再讨论阴影策略（AO/lightmap vs 局部实时阴影）。\n6. **内容接入**：本地 JSON / Markdown（`manifest.json`、`content.json`、`docs/devlog/`）。\n
