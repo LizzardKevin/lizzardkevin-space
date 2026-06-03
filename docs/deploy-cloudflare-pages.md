@@ -49,7 +49,18 @@ Pages 会在根目录 `npm install`（workspaces），并构建 `apps/web`。
 
 启用 Sanity 后，可配置 webhook 触发 Pages Build hook，实现内容更新自动发布。
 
-## 6. 测试注意
+## 6. 可选：Wrangler CLI 部署
+
+仓库根目录有 [`wrangler.toml`](../wrangler.toml)。在已 `gh auth login` 且已推送 GitHub 后，也可（需 Cloudflare 账号登录）：
+
+```bash
+npm run build
+npx wrangler pages deploy apps/web/dist --project-name=lizzardkevin-space
+```
+
+与 Dashboard「Connect to Git」二选一即可。
+
+## 7. 测试注意
 
 - 访问需 **Chrome/Edge + WebGPU**
 - 分享部署 URL（`https://<项目名>.pages.dev`）即可，无需发 zip

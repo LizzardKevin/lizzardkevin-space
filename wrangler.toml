@@ -1,0 +1,4 @@
+# Cloudflare Pages（可选：wrangler pages deploy apps/web/dist）
+name = "lizzardkevin-space"
+compatibility_date = "2024-06-01"
+pages_build_output_dir = "apps/web/dist"
