@@ -11,6 +11,7 @@
     "preview": "npm run preview -w apps/web",
     "lint": "npm run lint -w apps/web",
     "deploy:pages": "npm run build -w apps/web && echo \"Deploy via Cloudflare Pages: set build output to apps/web/dist\"",
-    "package:test": "node scripts/package-test-build.mjs"
+    "package:test": "node scripts/package-test-build.mjs",
+    "github:push": "bash scripts/github-bootstrap.sh"
   }
 }
