@@ -272,6 +272,10 @@ button {
 /* --- Focus overlay --- */
 
 .focus-overlay {
+  --focus-top-safe: 36px;
+  --focus-bottom-safe: 96px;
+  /* 进度条 bottom:48 + 约 27px 内容高；仅用于退出提示居中，不改条本身位置 */
+  --focus-playback-top: 75px;
   position: fixed;
   inset: 0;
   z-index: 60;
@@ -322,13 +326,9 @@ button {
   transform: translateY(0);
 }
 
-.focus-exit-hint {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  z-index: 4;
+/* 与 Focus「双击空白区域以退出」同字号/字距/颜色 */
+.ui-hint-micro {
   margin: 0;
-  transform: translateX(-50%) translateY(6px);
   font-family: system-ui, inherit;
   font-size: 11px;
   letter-spacing: 0.06em;
@@ -336,13 +336,21 @@ button {
   user-select: none;
   pointer-events: none;
   cursor: default;
+  white-space: nowrap;
+}
+
+.focus-exit-hint {
+  position: absolute;
+  bottom: calc((var(--focus-bottom-safe, 96px) + var(--focus-playback-top, 75px)) / 2);
+  left: 50%;
+  z-index: 4;
+  transform: translateX(-50%) translateY(50%);
   opacity: 0;
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity 150ms ease;
 }
 
 .focus-exit-hint--visible {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
 }
 
 .focus-layout {
@@ -460,13 +468,16 @@ button {
   position: relative;
   min-height: 0;
   overflow: hidden;
-  padding-top: 36px;
+  padding-bottom: var(--focus-bottom-safe, 96px);
   box-sizing: border-box;
 }
 
 .focus-blank--fill {
   position: absolute;
-  inset: 0;
+  top: var(--focus-top-safe, 36px);
+  left: 0;
+  right: 0;
+  bottom: var(--focus-bottom-safe, 96px);
   z-index: 1;
   pointer-events: none;
 }
@@ -484,9 +495,12 @@ button {
 
 .focus-canvas {
   position: absolute !important;
-  inset: 0 !important;
+  top: var(--focus-top-safe, 36px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: var(--focus-bottom-safe, 96px) !important;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
   touch-action: none;
   opacity: 0;
   transform: scale(0.985);

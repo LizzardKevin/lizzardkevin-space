@@ -1,4 +1,4 @@
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import {
   Component,
@@ -16,7 +16,12 @@ import { usePlayback } from "../media/usePlayback";
 import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
 import { loadExhibitContent, formatExhibitIdFallback, type ExhibitContent } from "./exhibitContent";
-import { FOCUS_TURNTABLE_RAD_PER_SEC, SHOW_FOCUS_BLANK_DEBUG } from "./focusConfig";
+import { FOCUS_FRAME, FOCUS_TURNTABLE_RAD_PER_SEC, SHOW_FOCUS_BLANK_DEBUG } from "./focusConfig";
+import {
+  bindFocusButtonActions,
+  fitFocusModelToFrame,
+  type FocusFrameResult,
+} from "./focusModelFrame";
 import { FocusOverviewPanel, FocusSideColumn, FocusStoryPanel } from "./FocusContentPanels";
 import { FocusExhibitTitle } from "./FocusExhibitTitle";
 import { FocusDoubleClickExit } from "./FocusCanvasInput";
@@ -68,15 +73,35 @@ function FocusTurntable({
   return null;
 }
 
+function FocusCameraRig({ frame }: { frame: FocusFrameResult | null }) {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    if (!frame) return;
+    camera.position.set(...frame.cameraPosition);
+    camera.lookAt(frame.orbitTarget[0], frame.orbitTarget[1], frame.orbitTarget[2]);
+    if ("fov" in camera && typeof camera.fov === "number") {
+      camera.fov = FOCUS_FRAME.cameraFov;
+      camera.updateProjectionMatrix();
+    }
+  }, [camera, frame]);
+
+  return null;
+}
+
 function FocusOrbitControls({
   enabled,
   enableRotate,
+  frame,
   onUserInteract,
 }: {
   enabled: boolean;
   enableRotate: boolean;
+  frame: FocusFrameResult | null;
   onUserInteract: () => void;
 }) {
+  const target = frame?.orbitTarget ?? [0, FOCUS_FRAME.orbitTargetY, 0];
+
   return (
     <OrbitControls
       enabled={enabled}
@@ -88,6 +113,9 @@ function FocusOrbitControls({
       enableDamping
       dampingFactor={0.12}
       makeDefault
+      target={target}
+      minDistance={frame?.minDistance ?? FOCUS_FRAME.minCameraDistance * FOCUS_FRAME.minZoomFactor}
+      maxDistance={frame?.maxDistance ?? FOCUS_FRAME.minCameraDistance * FOCUS_FRAME.maxZoomFactor}
     />
   );
 }
@@ -96,63 +124,28 @@ function FocusModel({
   url,
   buttons,
   onButtonAction,
+  onFrameComputed,
 }: {
   url: string;
   buttons: ExhibitManifestItem["buttons"] | undefined;
   onButtonAction: (action: ExhibitButtonAction) => void;
+  onFrameComputed: (frame: FocusFrameResult) => void;
 }) {
   const gltf = useGLTF(url);
   const scene = useRef<THREE.Object3D | null>(null);
 
-  if (!scene.current) {
+  useEffect(() => {
     scene.current = gltf.scene.clone(true);
-  }
+    const frame = fitFocusModelToFrame(scene.current);
+    onFrameComputed(frame);
+    return () => {
+      scene.current = null;
+    };
+  }, [gltf.scene, url, onFrameComputed]);
 
   useEffect(() => {
     if (!scene.current) return;
-
-    const root = scene.current;
-    root.position.set(0, 0, 0);
-    root.rotation.set(0, 0, 0);
-    root.scale.set(1, 1, 1);
-
-    const box = new THREE.Box3().setFromObject(root);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-
-    const maxDim = Math.max(size.x, size.y, size.z);
-    if (Number.isFinite(maxDim) && maxDim > 0) {
-      const targetSize = 1.8;
-      const scale = THREE.MathUtils.clamp(targetSize / maxDim, 0.05, 8);
-      root.scale.setScalar(scale);
-    }
-
-    let pivot: THREE.Object3D | null = null;
-    root.traverse((obj) => {
-      if (pivot) return;
-      const name = String(obj.name ?? "");
-      if (!name) return;
-      const lower = name.toLowerCase();
-      if (lower === "pivot" || lower.endsWith("_pivot") || lower.startsWith("pivot_") || lower.includes("pivot")) {
-        pivot = obj as THREE.Object3D;
-      }
-    });
-
-    const anchor = new THREE.Vector3();
-    if (pivot) {
-      (pivot as THREE.Object3D).getWorldPosition(anchor);
-    } else {
-      const box2 = new THREE.Box3().setFromObject(root);
-      box2.getCenter(anchor);
-    }
-    root.position.sub(anchor);
-
-    root.traverse((obj) => {
-      if (!(obj as THREE.Mesh).isMesh) return;
-      const action = buttons?.[obj.name];
-      if (action) obj.userData.focusButtonAction = action;
-      else delete obj.userData.focusButtonAction;
-    });
+    bindFocusButtonActions(scene.current, buttons);
   }, [buttons]);
 
   const handlePointerDown = useCallback(
@@ -196,9 +189,11 @@ function FocusScene({
   const hitRootRef = useRef<THREE.Group>(null);
   const hoverDepthRef = useRef(0);
   const [turntableSpin, setTurntableSpin] = useState(true);
+  const [frame, setFrame] = useState<FocusFrameResult | null>(null);
 
   useEffect(() => {
     setTurntableSpin(true);
+    setFrame(null);
     if (hitRootRef.current) hitRootRef.current.rotation.y = 0;
   }, [exhibit.exhibitId]);
 
@@ -228,13 +223,21 @@ function FocusScene({
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
       >
-        <FocusModel url={exhibit.focusGlbUrl} buttons={exhibit.buttons} onButtonAction={onButtonAction} />
+        <FocusModel
+          key={exhibit.focusGlbUrl}
+          url={exhibit.focusGlbUrl}
+          buttons={exhibit.buttons}
+          onButtonAction={onButtonAction}
+          onFrameComputed={setFrame}
+        />
       </group>
       <FocusLighting />
+      <FocusCameraRig frame={frame} />
       <FocusTurntable active={orbitEnabled && turntableSpin} target={hitRootRef} />
       <FocusOrbitControls
         enabled={orbitEnabled}
         enableRotate={meshHovered}
+        frame={frame}
         onUserInteract={() => setTurntableSpin(false)}
       />
       <FocusDoubleClickExit
@@ -405,7 +408,7 @@ export function FocusOverlay({
 
           <p
             id="focus-exit-hint"
-            className={`focus-exit-hint${contentVisible ? " focus-exit-hint--visible" : ""}`}
+            className={`ui-hint-micro focus-exit-hint${contentVisible ? " focus-exit-hint--visible" : ""}`}
           >
             双击空白区域以退出
           </p>
@@ -422,7 +425,12 @@ export function FocusOverlay({
                     alpha: true,
                   })
                 }
-                camera={{ fov: 45, near: 0.01, far: 200, position: [0, 1.2, 3.6] }}
+                camera={{
+                fov: FOCUS_FRAME.cameraFov,
+                near: 0.01,
+                far: 200,
+                position: [0, FOCUS_FRAME.orbitTargetY + FOCUS_FRAME.cameraHeightOffset, 3.6],
+              }}
                 onCreated={({ gl }) => {
                   gl.domElement.id = "focus-canvas";
                 }}

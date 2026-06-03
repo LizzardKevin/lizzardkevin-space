@@ -1,4 +1,5 @@
 import { SpacePage } from "./pages/SpacePage";
+import { requestSpacePointerLock } from "./space/requestSpacePointerLock";
 import { TopBar } from "./components/TopBar";
 import { OverlayLayer } from "./overlay/OverlayLayer";
 import type { OverlayTab } from "./overlay/OverlayState";
@@ -20,8 +21,7 @@ export default function App() {
   }, [isDesktop, isOverlayOpen]);
 
   const enterSpaceFps = () => {
-    const canvas = document.getElementById("space-canvas") as HTMLCanvasElement | null;
-    canvas?.requestPointerLock?.();
+    requestSpacePointerLock();
   };
 
   return (

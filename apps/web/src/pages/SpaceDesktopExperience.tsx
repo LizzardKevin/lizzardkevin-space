@@ -26,12 +26,7 @@ import { GalleryAtmosphere } from "../scenes/gallery/GalleryAtmosphere";
 import { spawnToCameraPosition } from "../scenes/gallery/resolveGallerySpawn";
 import { useTranslation } from "react-i18next";
 
-export function requestSpacePointerLock() {
-  requestAnimationFrame(() => {
-    const canvas = document.getElementById("space-canvas") as HTMLCanvasElement | null;
-    canvas?.requestPointerLock?.();
-  });
-}
+import { requestSpacePointerLock } from "../space/requestSpacePointerLock";
 
 export function SpaceDesktopExperience({
   entry,
@@ -164,6 +159,7 @@ export function SpaceDesktopExperience({
             className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${focused ? " space-canvasWrap--disabled" : ""}`}
           >
             <Canvas
+              id="space-canvas"
               style={{ position: "absolute", inset: 0 }}
               gl={(props) =>
                 createWebGPURenderer({
