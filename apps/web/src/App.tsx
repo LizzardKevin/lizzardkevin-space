@@ -2,9 +2,12 @@ import { SpacePage } from "./pages/SpacePage";
 import { TopBar } from "./components/TopBar";
 import { OverlayLayer } from "./overlay/OverlayLayer";
 import type { OverlayTab } from "./overlay/OverlayState";
+import { useClientPlatform } from "./platform/useClientPlatform";
 import { useEffect, useMemo, useState } from "react";
 
 export default function App() {
+  const platform = useClientPlatform();
+  const isDesktop = platform === "desktop";
   const [tab, setTab] = useState<OverlayTab>(null);
   const [closing, setClosing] = useState(false);
 
@@ -12,10 +15,9 @@ export default function App() {
   const appOverlayContext = useMemo(() => ({ isOverlayOpen }), [isOverlayOpen]);
 
   useEffect(() => {
-    if (!isOverlayOpen) return;
-    // 打开 overlay 时释放 pointer lock，唤出鼠标
+    if (!isDesktop || !isOverlayOpen) return;
     if (document.pointerLockElement) document.exitPointerLock();
-  }, [isOverlayOpen]);
+  }, [isDesktop, isOverlayOpen]);
 
   const enterSpaceFps = () => {
     const canvas = document.getElementById("space-canvas") as HTMLCanvasElement | null;
@@ -24,30 +26,34 @@ export default function App() {
 
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
-      <TopBar
-        onOpenTab={(t) => {
-          setClosing(false);
-          setTab(t);
-        }}
-        onCloseTab={() => {
-          if (!tab) return;
-          setClosing(true);
-          enterSpaceFps();
-        }}
-      />
+      {isDesktop && (
+        <TopBar
+          onOpenTab={(t) => {
+            setClosing(false);
+            setTab(t);
+          }}
+          onCloseTab={() => {
+            if (!tab) return;
+            setClosing(true);
+            enterSpaceFps();
+          }}
+        />
+      )}
       <SpacePage overlay={appOverlayContext} />
-      <OverlayLayer
-        tab={tab}
-        closing={closing}
-        onRequestClose={() => {
-          setClosing(true);
-          enterSpaceFps();
-        }}
-        onClosed={() => {
-          setClosing(false);
-          setTab(null);
-        }}
-      />
+      {isDesktop && (
+        <OverlayLayer
+          tab={tab}
+          closing={closing}
+          onRequestClose={() => {
+            setClosing(true);
+            enterSpaceFps();
+          }}
+          onClosed={() => {
+            setClosing(false);
+            setTab(null);
+          }}
+        />
+      )}
     </div>
   );
 }
