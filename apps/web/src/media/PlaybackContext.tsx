@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Howl } from "howler";
 import { useAudioDirector } from "../audio/useAudioDirector";
 import { PLAYBACK_BAR_REVEAL_MS } from "./playbackBarTiming";
 import type { PlaybackState } from "./PlaybackState";
@@ -7,11 +6,10 @@ import { PlaybackContext, type PlaybackApi } from "./PlaybackContextValue";
 
 export function PlaybackProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<PlaybackState | null>(null);
-  const howlRef = useRef<Howl | null>(null);
-  const howlUrlRef = useRef<string | null>(null);
+  const exhibitAudioRef = useRef<HTMLAudioElement | null>(null);
+  const exhibitUrlRef = useRef<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audio = useAudioDirector();
-  /** 进度条已完成首次渐入，暂停/继续不再延迟。 */
   const barRevealedRef = useRef(false);
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -23,10 +21,14 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const stopAudio = useCallback(() => {
-    howlRef.current?.stop();
-    howlRef.current?.unload();
-    howlRef.current = null;
-    howlUrlRef.current = null;
+    const a = exhibitAudioRef.current;
+    if (a) {
+      a.pause();
+      a.removeAttribute("src");
+      a.load();
+    }
+    exhibitAudioRef.current = null;
+    exhibitUrlRef.current = null;
   }, []);
 
   const stopVideo = useCallback(() => {
@@ -44,97 +46,69 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
   const api = useMemo<PlaybackApi>(() => {
     const exhibitVolume = () => audio.channelVolume("exhibit");
 
-    const getAudioTime = () => {
-      const h = howlRef.current;
-      if (!h) return 0;
-      const v = h.seek();
-      return typeof v === "number" ? v : 0;
-    };
-
-    const patchAudioState = (
-      url: string,
-      patch: Partial<PlaybackState> & { playing?: boolean },
-    ) => {
-      setState((s) => {
-        if (!s || s.kind !== "audio" || s.url !== url) return s;
-        const h = howlRef.current;
-        const duration = h && h.duration() > 0 ? h.duration() : s.duration;
-        return {
-          ...s,
-          duration,
-          currentTime: patch.currentTime ?? getAudioTime(),
-          ...patch,
-        };
-      });
-    };
-
-    const ensureHowl = (url: string) => {
-      if (howlRef.current && howlUrlRef.current === url) {
-        howlRef.current.volume(exhibitVolume());
-        return howlRef.current;
+    const getExhibitAudio = (url: string) => {
+      if (exhibitAudioRef.current && exhibitUrlRef.current === url) {
+        exhibitAudioRef.current.volume = exhibitVolume();
+        return exhibitAudioRef.current;
       }
-      stopVideo();
-      howlRef.current?.unload();
-      howlUrlRef.current = url;
-      howlRef.current = new Howl({
-        src: [url],
-        html5: true,
-        volume: exhibitVolume(),
-        onload: () => patchAudioState(url, {}),
-        onloaderror: (_id, err) => {
-          console.warn("[playback] exhibit audio failed to load:", url, err);
-          clearRevealTimer();
-          barRevealedRef.current = false;
-          stopAudio();
-          setState(null);
-        },
-        onend: () => {
-          setState((s) =>
-            s?.kind === "audio" && s.url === url
-              ? { ...s, playing: false, currentTime: s.duration }
-              : s,
-          );
-        },
+      stopAudio();
+      const el = new Audio(url);
+      el.preload = "auto";
+      el.volume = exhibitVolume();
+      exhibitUrlRef.current = url;
+      exhibitAudioRef.current = el;
+
+      el.addEventListener("loadedmetadata", () => {
+        setState((s) =>
+          s?.kind === "audio" && s.url === url
+            ? { ...s, duration: Number.isFinite(el.duration) ? el.duration : s.duration }
+            : s,
+        );
       });
-      return howlRef.current;
+      el.addEventListener("ended", () => {
+        setState((s) =>
+          s?.kind === "audio" && s.url === url
+            ? { ...s, playing: false, currentTime: Number.isFinite(el.duration) ? el.duration : s.currentTime }
+            : s,
+        );
+      });
+
+      return el;
     };
 
-    const playHowlWhenReady = (url: string) => {
-      const h = ensureHowl(url);
-      const begin = () => {
-        h.play();
-        const d = h.duration() || 0;
+    const playExhibitAudioNow = (url: string) => {
+      const el = getExhibitAudio(url);
+      void el.play().then(() => {
         setState({
           kind: "audio",
           url,
           playing: true,
-          duration: d,
-          currentTime: getAudioTime(),
+          duration: Number.isFinite(el.duration) ? el.duration : 0,
+          currentTime: el.currentTime,
         });
-      };
-      if (h.state() === "loaded") {
-        begin();
-        return;
-      }
-      h.once("load", begin);
-      if (h.state() === "unloaded") h.load();
+      }).catch((err) => {
+        console.warn("[playback] exhibit audio failed to play:", url, err);
+        clearRevealTimer();
+        barRevealedRef.current = false;
+        stopAudio();
+        setState(null);
+      });
     };
 
-    const preloadHowl = (url: string) => {
-      const h = ensureHowl(url);
-      if (h.state() === "unloaded") h.load();
+    const preloadExhibitAudio = (url: string) => {
+      const el = getExhibitAudio(url);
+      el.load();
     };
 
-    /** 首次唤出进度条：先展示并等渐入结束，再播放。 */
     const playAudioWithBarReveal = (url: string) => {
       stopVideo();
-      preloadHowl(url);
+      preloadExhibitAudio(url);
       setState({ kind: "audio", url, playing: false, duration: 0, currentTime: 0 });
       clearRevealTimer();
       revealTimerRef.current = window.setTimeout(() => {
         revealTimerRef.current = null;
         barRevealedRef.current = true;
-        playHowlWhenReady(url);
+        playExhibitAudioNow(url);
       }, PLAYBACK_BAR_REVEAL_MS);
     };
 
@@ -167,12 +141,18 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
       v.onended = () => syncVideoState(false);
     };
 
+    const exhibitDuration = (s: PlaybackState, el: HTMLAudioElement | null) => {
+      if (Number.isFinite(el?.duration) && (el?.duration ?? 0) > 0) return el!.duration;
+      return s.duration;
+    };
+
     return {
       state,
       attachVideoElement,
       playAudio: (url) => {
         if (barRevealedRef.current) {
-          playHowlWhenReady(url);
+          stopVideo();
+          playExhibitAudioNow(url);
           return;
         }
         playAudioWithBarReveal(url);
@@ -206,8 +186,12 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
             videoRef.current?.pause();
             return { ...s, playing: false, currentTime: videoRef.current?.currentTime ?? s.currentTime };
           }
-          howlRef.current?.pause();
-          return { ...s, playing: false, currentTime: getAudioTime() };
+          exhibitAudioRef.current?.pause();
+          return {
+            ...s,
+            playing: false,
+            currentTime: exhibitAudioRef.current?.currentTime ?? s.currentTime,
+          };
         });
       },
       stop: () => {
@@ -227,20 +211,17 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
             else void v.play();
             return { ...s, playing: !s.playing, currentTime: v.currentTime, duration: v.duration || s.duration };
           }
-          const h = ensureHowl(s.url);
-          if (s.playing) h.pause();
-          else {
-            if (h.state() === "loaded") h.play();
-            else {
-              h.once("load", () => h.play());
-              if (h.state() === "unloaded") h.load();
-            }
+          const el = getExhibitAudio(s.url);
+          if (s.playing) {
+            el.pause();
+            return { ...s, playing: false, currentTime: el.currentTime };
           }
+          void el.play();
           return {
             ...s,
-            playing: !s.playing,
-            currentTime: getAudioTime(),
-            duration: h.duration() || s.duration,
+            playing: true,
+            currentTime: el.currentTime,
+            duration: exhibitDuration(s, el),
           };
         });
       },
@@ -250,13 +231,23 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
           if (s.kind === "video") {
             const v = videoRef.current;
             if (!v) return s;
-            v.currentTime = Math.max(0, seconds);
-            return { ...s, currentTime: v.currentTime, duration: v.duration || s.duration };
+            const duration = Number.isFinite(v.duration) && v.duration > 0 ? v.duration : s.duration;
+            const target = Math.max(0, Math.min(seconds, duration || seconds));
+            v.currentTime = target;
+            return { ...s, currentTime: v.currentTime, duration: duration || s.duration };
           }
-          const h = howlRef.current;
-          if (!h) return s;
-          h.seek(Math.max(0, seconds));
-          return { ...s, currentTime: getAudioTime(), duration: h.duration() || s.duration };
+          const el = exhibitAudioRef.current;
+          if (!el || exhibitUrlRef.current !== s.url) return s;
+          const duration = exhibitDuration(s, el);
+          const target = Math.max(0, Math.min(seconds, duration > 0 ? duration : seconds));
+          el.currentTime = target;
+          if (s.playing) void el.play();
+          return {
+            ...s,
+            currentTime: target,
+            duration: duration || s.duration,
+            playing: s.playing,
+          };
         });
       },
       seekBy: (seconds) => {
@@ -265,14 +256,26 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
           if (s.kind === "video") {
             const v = videoRef.current;
             if (!v) return s;
-            v.currentTime = Math.max(0, v.currentTime + seconds);
-            return { ...s, currentTime: v.currentTime, duration: v.duration || s.duration };
+            const duration = Number.isFinite(v.duration) && v.duration > 0 ? v.duration : s.duration;
+            const target = Math.max(0, Math.min(v.currentTime + seconds, duration || Infinity));
+            v.currentTime = target;
+            return { ...s, currentTime: v.currentTime, duration: duration || s.duration };
           }
-          const h = howlRef.current;
-          if (!h) return s;
-          const t = getAudioTime();
-          h.seek(Math.max(0, t + seconds));
-          return { ...s, currentTime: getAudioTime(), duration: h.duration() || s.duration };
+          const el = exhibitAudioRef.current;
+          if (!el || exhibitUrlRef.current !== s.url) return s;
+          const duration = exhibitDuration(s, el);
+          const target = Math.max(
+            0,
+            Math.min(el.currentTime + seconds, duration > 0 ? duration : el.currentTime + seconds),
+          );
+          el.currentTime = target;
+          if (s.playing) void el.play();
+          return {
+            ...s,
+            currentTime: target,
+            duration: duration || s.duration,
+            playing: s.playing,
+          };
         });
       },
     };
@@ -288,14 +291,16 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
     if (!state) return;
     const id = window.setInterval(() => {
       if (state.kind === "audio") {
-        const h = howlRef.current;
-        if (!h || howlUrlRef.current !== state.url) return;
-        const v = h.seek();
-        const now = typeof v === "number" ? v : 0;
-        const d = h.duration() || 0;
+        const el = exhibitAudioRef.current;
+        if (!el || exhibitUrlRef.current !== state.url) return;
         setState((s) =>
           s?.kind === "audio" && s.url === state.url
-            ? { ...s, currentTime: now, duration: d > 0 ? d : s.duration }
+            ? {
+                ...s,
+                currentTime: el.currentTime,
+                duration:
+                  Number.isFinite(el.duration) && el.duration > 0 ? el.duration : s.duration,
+              }
             : s,
         );
         return;
