@@ -33,7 +33,11 @@
 - 主场景：`apps/web/public/models/gallery_main.glb`（默认**不**覆盖 Blender 材质；见 `galleryConfig.ts` 中 `ENABLE_GALLERY_OVERRIDE_MATERIALS`）
 - Focus 特写：`apps/web/public/exhibits/<exhibitId>/focus_<exhibitId>.glb`（例：`exhibits/demo_box/focus_demo_box.glb`）
 - Focus 文案：`apps/web/public/exhibits/<exhibitId>/content.json`（`title` / `overview` / `storyHtml`，每件展品独立）
-- 可选媒资：在 `manifest.json` 为该展品配置 `media.audioUrl`（mp3）和/或 `media.videoUrl`（mp4）；无媒资则可省略 `media` 与 `buttons`
+- 展品音/视频（按 **exhibitId** 命名，放在 `apps/web/public/media/`）：
+  - 音频：`{exhibitId}.mp3`（例：`demo_box.mp3` → 运行时 `/media/demo_box.mp3`）
+  - 视频：`{exhibitId}.mp4`
+  - `manifest.json` 中 `type: "audio"` / `"video"` 时会自动解析上述路径；仅当文件名或格式不同时才写 `media.audioUrl` / `media.videoUrl` 覆盖
+  - 无媒资则可省略 `media` 与 `buttons`
 - 其他道具：`apps/web/public/models/*.glb`
 
 

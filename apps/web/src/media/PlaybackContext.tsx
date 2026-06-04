@@ -1,19 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Howl } from "howler";
 import { useAudioDirector } from "../audio/useAudioDirector";
+import { PLAYBACK_BAR_REVEAL_MS } from "./playbackBarTiming";
 import type { PlaybackState } from "./PlaybackState";
 import { PlaybackContext, type PlaybackApi } from "./PlaybackContextValue";
 
 export function PlaybackProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<PlaybackState | null>(null);
   const howlRef = useRef<Howl | null>(null);
+  const howlUrlRef = useRef<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audio = useAudioDirector();
+  /** 进度条已完成首次渐入，暂停/继续不再延迟。 */
+  const barRevealedRef = useRef(false);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearRevealTimer = useCallback(() => {
+    if (revealTimerRef.current !== null) {
+      window.clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+  }, []);
 
   const stopAudio = useCallback(() => {
     howlRef.current?.stop();
     howlRef.current?.unload();
     howlRef.current = null;
+    howlUrlRef.current = null;
   }, []);
 
   const stopVideo = useCallback(() => {
@@ -29,28 +42,100 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const api = useMemo<PlaybackApi>(() => {
-    const ensureHowl = (url: string) => {
-      if (howlRef.current && (howlRef.current as unknown as { _src?: string })._src === url) {
-        return howlRef.current;
-      }
-      stopVideo();
-      howlRef.current?.unload();
-      howlRef.current = new Howl({
-        src: [url],
-        html5: true,
-        volume: 0.9,
-        onend: () => {
-          setState((s) => (s ? { ...s, playing: false, currentTime: s.duration } : s));
-        },
-      });
-      return howlRef.current;
-    };
+    const exhibitVolume = () => audio.channelVolume("exhibit");
 
     const getAudioTime = () => {
       const h = howlRef.current;
       if (!h) return 0;
       const v = h.seek();
       return typeof v === "number" ? v : 0;
+    };
+
+    const patchAudioState = (
+      url: string,
+      patch: Partial<PlaybackState> & { playing?: boolean },
+    ) => {
+      setState((s) => {
+        if (!s || s.kind !== "audio" || s.url !== url) return s;
+        const h = howlRef.current;
+        const duration = h && h.duration() > 0 ? h.duration() : s.duration;
+        return {
+          ...s,
+          duration,
+          currentTime: patch.currentTime ?? getAudioTime(),
+          ...patch,
+        };
+      });
+    };
+
+    const ensureHowl = (url: string) => {
+      if (howlRef.current && howlUrlRef.current === url) {
+        howlRef.current.volume(exhibitVolume());
+        return howlRef.current;
+      }
+      stopVideo();
+      howlRef.current?.unload();
+      howlUrlRef.current = url;
+      howlRef.current = new Howl({
+        src: [url],
+        html5: true,
+        volume: exhibitVolume(),
+        onload: () => patchAudioState(url, {}),
+        onloaderror: (_id, err) => {
+          console.warn("[playback] exhibit audio failed to load:", url, err);
+          clearRevealTimer();
+          barRevealedRef.current = false;
+          stopAudio();
+          setState(null);
+        },
+        onend: () => {
+          setState((s) =>
+            s?.kind === "audio" && s.url === url
+              ? { ...s, playing: false, currentTime: s.duration }
+              : s,
+          );
+        },
+      });
+      return howlRef.current;
+    };
+
+    const playHowlWhenReady = (url: string) => {
+      const h = ensureHowl(url);
+      const begin = () => {
+        h.play();
+        const d = h.duration() || 0;
+        setState({
+          kind: "audio",
+          url,
+          playing: true,
+          duration: d,
+          currentTime: getAudioTime(),
+        });
+      };
+      if (h.state() === "loaded") {
+        begin();
+        return;
+      }
+      h.once("load", begin);
+      if (h.state() === "unloaded") h.load();
+    };
+
+    const preloadHowl = (url: string) => {
+      const h = ensureHowl(url);
+      if (h.state() === "unloaded") h.load();
+    };
+
+    /** 首次唤出进度条：先展示并等渐入结束，再播放。 */
+    const playAudioWithBarReveal = (url: string) => {
+      stopVideo();
+      preloadHowl(url);
+      setState({ kind: "audio", url, playing: false, duration: 0, currentTime: 0 });
+      clearRevealTimer();
+      revealTimerRef.current = window.setTimeout(() => {
+        revealTimerRef.current = null;
+        barRevealedRef.current = true;
+        playHowlWhenReady(url);
+      }, PLAYBACK_BAR_REVEAL_MS);
     };
 
     const syncVideoState = (playing: boolean) => {
@@ -65,24 +150,54 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
       });
     };
 
+    const playVideoNow = (url: string) => {
+      const v = videoRef.current;
+      if (!v) return;
+      const current = v.getAttribute("src") ?? "";
+      if (current !== url) v.src = url;
+      const onMeta = () => syncVideoState(true);
+      if (Number.isFinite(v.duration) && v.duration > 0) {
+        void v.play().then(() => syncVideoState(true));
+      } else {
+        v.addEventListener("loadedmetadata", onMeta, { once: true });
+        void v.play().then(() => {
+          if (Number.isFinite(v.duration) && v.duration > 0) syncVideoState(true);
+        });
+      }
+      v.onended = () => syncVideoState(false);
+    };
+
     return {
       state,
       attachVideoElement,
       playAudio: (url) => {
-        stopVideo();
-        const h = ensureHowl(url);
-        h.play();
-        const d = h.duration() || 0;
-        setState({ kind: "audio", url, playing: true, duration: d, currentTime: getAudioTime() });
+        if (barRevealedRef.current) {
+          playHowlWhenReady(url);
+          return;
+        }
+        playAudioWithBarReveal(url);
       },
       playVideo: (url) => {
         stopAudio();
         const v = videoRef.current;
         if (!v) return;
-        const current = v.getAttribute("src") ?? "";
-        if (current !== url) v.src = url;
-        void v.play().then(() => syncVideoState(true));
-        v.onended = () => syncVideoState(false);
+        if (barRevealedRef.current) {
+          playVideoNow(url);
+          return;
+        }
+        setState({
+          kind: "video",
+          url,
+          playing: false,
+          duration: 0,
+          currentTime: 0,
+        });
+        clearRevealTimer();
+        revealTimerRef.current = window.setTimeout(() => {
+          revealTimerRef.current = null;
+          barRevealedRef.current = true;
+          playVideoNow(url);
+        }, PLAYBACK_BAR_REVEAL_MS);
       },
       pause: () => {
         setState((s) => {
@@ -96,6 +211,8 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
         });
       },
       stop: () => {
+        clearRevealTimer();
+        barRevealedRef.current = false;
         stopAudio();
         stopVideo();
         setState(null);
@@ -112,8 +229,19 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
           }
           const h = ensureHowl(s.url);
           if (s.playing) h.pause();
-          else h.play();
-          return { ...s, playing: !s.playing, currentTime: getAudioTime(), duration: h.duration() || s.duration };
+          else {
+            if (h.state() === "loaded") h.play();
+            else {
+              h.once("load", () => h.play());
+              if (h.state() === "unloaded") h.load();
+            }
+          }
+          return {
+            ...s,
+            playing: !s.playing,
+            currentTime: getAudioTime(),
+            duration: h.duration() || s.duration,
+          };
         });
       },
       seekTo: (seconds) => {
@@ -148,24 +276,31 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
         });
       },
     };
-  }, [state, attachVideoElement, stopAudio, stopVideo]);
+  }, [state, attachVideoElement, stopAudio, stopVideo, audio, clearRevealTimer]);
 
   useEffect(() => {
-    audio.duckBgm(!!state?.playing);
+    const duck = !!state?.playing;
+    audio.duckBgm(duck);
+    audio.duckAmbient(duck);
   }, [audio, state?.playing]);
 
   useEffect(() => {
-    if (!state?.playing) return;
+    if (!state) return;
     const id = window.setInterval(() => {
       if (state.kind === "audio") {
         const h = howlRef.current;
-        if (!h) return;
+        if (!h || howlUrlRef.current !== state.url) return;
         const v = h.seek();
         const now = typeof v === "number" ? v : 0;
         const d = h.duration() || 0;
-        setState((s) => (s ? { ...s, currentTime: now, duration: d } : s));
+        setState((s) =>
+          s?.kind === "audio" && s.url === state.url
+            ? { ...s, currentTime: now, duration: d > 0 ? d : s.duration }
+            : s,
+        );
         return;
       }
+      if (!state.playing) return;
       const v = videoRef.current;
       if (!v) return;
       setState((s) =>
@@ -179,7 +314,9 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
       );
     }, 200);
     return () => window.clearInterval(id);
-  }, [state?.playing, state?.kind]);
+  }, [state]);
+
+  useEffect(() => () => clearRevealTimer(), [clearRevealTimer]);
 
   return <PlaybackContext.Provider value={api}>{children}</PlaybackContext.Provider>;
 }

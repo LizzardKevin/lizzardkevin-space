@@ -4,9 +4,6 @@
       "exhibitId": "demo_box",
       "focusGlbUrl": "/exhibits/demo_box/focus_demo_box.glb",
       "type": "audio",
-      "media": {
-        "audioUrl": "/media/demo.mp3"
-      },
       "buttons": {
         "btn_play": { "action": "play" },
         "btn_pause": { "action": "pause" },

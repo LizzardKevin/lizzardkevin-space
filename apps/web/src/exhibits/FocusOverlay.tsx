@@ -15,7 +15,8 @@ import type { ExhibitButtonAction } from "./manifest";
 import { usePlayback } from "../media/usePlayback";
 import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
-import { loadExhibitContent, formatExhibitIdFallback, type ExhibitContent } from "./exhibitContent";
+import { loadExhibitContent, type ExhibitContent } from "./exhibitContent";
+import { formatExhibitLabel } from "./exhibitTarget";
 import { FOCUS_FRAME, FOCUS_TURNTABLE_RAD_PER_SEC, SHOW_FOCUS_BLANK_DEBUG } from "./focusConfig";
 import {
   bindFocusButtonActions,
@@ -283,9 +284,12 @@ class FocusModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundar
 
 export function FocusOverlay({
   exhibit,
+  onBeginDismiss,
   onClose,
 }: {
   exhibit: ExhibitManifestItem;
+  /** ESC / 双击退出时同步调用：锁定鼠标并恢复 SPACE 控制（须在用户手势内）。 */
+  onBeginDismiss: () => void;
   onClose: () => void;
 }) {
   const playback = usePlayback();
@@ -297,7 +301,7 @@ export function FocusOverlay({
   const closingRef = useRef(false);
   const [meshHovered, setMeshHovered] = useState(false);
 
-  const displayTitle = content?.title ?? formatExhibitIdFallback(exhibit.exhibitId);
+  const displayTitle = formatExhibitLabel(exhibit.exhibitId);
   const videoUrl = exhibit.media?.videoUrl;
 
   useEffect(() => {
@@ -348,6 +352,7 @@ export function FocusOverlay({
   const requestClose = useCallback(() => {
     if (closingRef.current) return;
     closingRef.current = true;
+    onBeginDismiss();
     playback.stop();
     setContentVisible(false);
     window.setTimeout(() => {
@@ -355,7 +360,7 @@ export function FocusOverlay({
       setDimOn(false);
     }, 150);
     window.setTimeout(() => onClose(), 450);
-  }, [onClose, playback]);
+  }, [onBeginDismiss, onClose, playback]);
 
   const handleBlankDoubleClick = useCallback(() => {
     if (!contentVisible || closingRef.current) return;

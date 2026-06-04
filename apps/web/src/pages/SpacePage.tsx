@@ -37,6 +37,7 @@ export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) 
     entry.freezeButtonFloat();
     audio.unlock();
     if (isDesktop) {
+      requestSpacePointerLock();
       void audio.setZone("architecture");
       entry.startFade();
       return;

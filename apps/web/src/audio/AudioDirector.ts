@@ -1,10 +1,17 @@
 import { Howl, Howler } from "howler";
+import { AUDIO_PATHS } from "./audioConfig";
+import {
+  playProceduralFootstep,
+  startProceduralAmbient,
+  type ProceduralAmbientHandle,
+} from "./proceduralAudio";
 
 export type VolumeKey = "master" | "bgm" | "ambient" | "sfx" | "exhibit";
 
 export type AudioDirectorConfig = {
   zoneBgmUrls: Partial<Record<string, string>>;
   zoneAmbientUrls: Partial<Record<string, string>>;
+  footstepUrls?: readonly string[];
   defaultVolumes?: Partial<Record<VolumeKey, number>>;
 };
 
@@ -19,12 +26,17 @@ export class AudioDirector {
   private volumes: Record<VolumeKey, number>;
   private zoneBgmUrls: Partial<Record<string, string>>;
   private zoneAmbientUrls: Partial<Record<string, string>>;
+  private footstepUrls: readonly string[];
   private bgm: Playing = null;
   private ambient: Playing = null;
+  private proceduralAmbient: ProceduralAmbientHandle | null = null;
+  private footstepIndex = 0;
+  private useProceduralFootsteps = false;
 
   constructor(config: AudioDirectorConfig) {
     this.zoneBgmUrls = config.zoneBgmUrls;
     this.zoneAmbientUrls = config.zoneAmbientUrls;
+    this.footstepUrls = config.footstepUrls ?? AUDIO_PATHS.footstepUrls;
     this.volumes = {
       master: 0.9,
       bgm: 0.6,
@@ -34,6 +46,7 @@ export class AudioDirector {
       ...config.defaultVolumes,
     };
     Howler.volume(this.volumes.master);
+    if (this.footstepUrls.length === 0) this.useProceduralFootsteps = true;
   }
 
   isUnlocked() {
@@ -42,12 +55,15 @@ export class AudioDirector {
 
   unlock() {
     if (this.unlocked) return;
-    // Howler will resume audio context lazily, but we gate our own start.
     this.unlocked = true;
   }
 
   getVolume(key: VolumeKey) {
     return this.volumes[key];
+  }
+
+  channelVolume(key: Exclude<VolumeKey, "master">) {
+    return this.volumes.master * this.volumes[key];
   }
 
   setVolume(key: VolumeKey, value: number) {
@@ -71,6 +87,56 @@ export class AudioDirector {
     this.bgm.howl.fade(this.bgm.howl.volume(), target, 180);
   }
 
+  duckAmbient(duck: boolean) {
+    const target = duck ? this.volumes.ambient * 0.35 : this.volumes.ambient;
+    if (this.ambient) {
+      this.ambient.howl.fade(this.ambient.howl.volume(), target, 220);
+    }
+  }
+
+  playFootstep() {
+    if (!this.unlocked) return;
+    const vol = this.channelVolume("sfx");
+    if (this.useProceduralFootsteps || this.footstepUrls.length === 0) {
+      playProceduralFootstep(vol);
+      return;
+    }
+    const url = this.footstepUrls[this.footstepIndex % this.footstepUrls.length];
+    this.footstepIndex += 1;
+    this.playSfx(url, { volume: vol });
+  }
+
+  playSfx(url: string, opts?: { volume?: number }) {
+    if (!this.unlocked) return;
+    const vol = opts?.volume ?? this.channelVolume("sfx");
+    const howl = new Howl({
+      src: [url],
+      volume: vol,
+      html5: false,
+      onloaderror: () => {
+        howl.unload();
+        if (this.footstepUrls.includes(url)) {
+          this.useProceduralFootsteps = true;
+          playProceduralFootstep(vol);
+        }
+      },
+    });
+    howl.once("play", () => {
+      howl.once("end", () => howl.unload());
+    });
+    howl.play();
+  }
+
+  private stopProceduralAmbient() {
+    this.proceduralAmbient?.stop();
+    this.proceduralAmbient = null;
+  }
+
+  private startProceduralAmbientFallback() {
+    if (this.proceduralAmbient || this.ambient) return;
+    this.proceduralAmbient = startProceduralAmbient(this.channelVolume("ambient"));
+  }
+
   private async swapLoop(
     kind: "bgm" | "ambient",
     zone: string,
@@ -80,8 +146,9 @@ export class AudioDirector {
     const current = kind === "bgm" ? this.bgm : this.ambient;
     if (current?.zone === zone) return;
 
+    if (kind === "ambient") this.stopProceduralAmbient();
+
     if (!url) {
-      // No audio for this zone yet; fade out any current loop.
       if (current) {
         current.howl.fade(current.howl.volume(), 0, 450);
         setTimeout(() => current.howl.unload(), 500);
@@ -98,6 +165,16 @@ export class AudioDirector {
       html5: true,
     });
 
+    next.once("loaderror", () => {
+      next.unload();
+      if (kind === "ambient") {
+        this.ambient = null;
+        this.startProceduralAmbientFallback();
+      } else {
+        this.bgm = null;
+      }
+    });
+
     next.play();
     next.fade(0, volume, 650);
 
@@ -108,7 +185,9 @@ export class AudioDirector {
 
     const playing: Playing = { zone, howl: next };
     if (kind === "bgm") this.bgm = playing;
-    else this.ambient = playing;
+    else {
+      this.ambient = playing;
+      this.stopProceduralAmbient();
+    }
   }
 }
-

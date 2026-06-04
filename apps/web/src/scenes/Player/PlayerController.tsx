@@ -9,6 +9,7 @@ import {
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useKeyboard } from "../controls/useKeyboard";
+import { useFootsteps, SPRINT_SPEED as FOOTSTEP_SPRINT_SPEED } from "./useFootsteps";
 import {
   EYE_OFFSET,
   PLAYER_CAPSULE_HALF_HEIGHT,
@@ -18,7 +19,7 @@ import {
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
 const WALK_SPEED = 2.45;
-const SPRINT_SPEED = 3.85;
+const SPRINT_SPEED = FOOTSTEP_SPRINT_SPEED;
 /** Higher = reaches target speed faster when starting / changing direction. */
 const MOVE_ACCEL = 11;
 /** Higher = stops faster when keys are released. */
@@ -40,6 +41,7 @@ export function PlayerController({
   const { camera } = useThree();
   const keys = useKeyboard();
   const { world } = useRapier();
+  const { onPhysicsStep: onFootstepPhysics } = useFootsteps();
 
   const rb = useRef<RigidBodyRef>(null);
   const colliderRef = useRef<RapierCollider>(null);
@@ -60,6 +62,7 @@ export function PlayerController({
       up: new THREE.Vector3(0, 1, 0),
       targetVel: new THREE.Vector3(),
       step: new THREE.Vector3(),
+      foot: new THREE.Vector3(),
     }),
     [],
   );
@@ -195,6 +198,14 @@ export function PlayerController({
     } else {
       idleRef.current = THREE.MathUtils.lerp(idleRef.current, 0, blend);
     }
+
+    const sprinting = keys.ShiftLeft || keys.ShiftRight;
+    tmp.foot.set(t.x + m.x, t.y + m.y, t.z + m.z);
+    onFootstepPhysics(tmp.foot, {
+      grounded: grounded.current,
+      horizontalSpeed: actualSpeed,
+      sprinting,
+    });
   });
 
   return (

@@ -153,6 +153,20 @@ button {
   font-family: system-ui, sans-serif;
   color: rgba(255, 255, 255, 0.75);
   user-select: none;
+  opacity: 0;
+  transition-property: opacity;
+  transition-timing-function: ease;
+  pointer-events: none;
+}
+
+.playback-bar--in {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.playback-bar--out {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* 与 .focus-layout 中间栏水平居中一致（非整页 50%） */
@@ -312,7 +326,8 @@ button {
   font-family: system-ui, inherit;
   font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.88);
   user-select: none;
   pointer-events: none;

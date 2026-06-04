@@ -1,2 +1,2 @@
 exhibitId,sceneObjectName,type,zone,status,in_gallery_main,folder_path,focus_glb_file,focus_glb_exists,audio_file,audio_exists,video_file,video_exists,image_file,image_exists,in_manifest,manifest_buttons,focusGlbUrl,notes,last_updated,owner
-demo_box,exhibit_demo_box,audio,architecture,制作中,Y,exhibits/demo_box/,focus_demo_box.glb,Y,demo.mp3,N,,,,,Y,"btn_play, btn_pause, btn_end",/exhibits/demo_box/focus_demo_box.glb,gallery_main 已同步 2026-06-01 覆写,2026-06-01,
+demo_box,exhibit_demo_box,audio,architecture,制作中,Y,exhibits/demo_box/,focus_demo_box.glb,Y,demo_box.mp3,N,,,,,Y,"btn_play, btn_pause, btn_end",/exhibits/demo_box/focus_demo_box.glb,gallery_main 已同步 2026-06-01 覆写,2026-06-01,

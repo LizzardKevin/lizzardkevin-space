@@ -44,7 +44,7 @@ EXHIBITS_ROWS = [
         "exhibits/demo_box/",
         "focus_demo_box.glb",
         "N",
-        "demo.mp3",
+        "demo_box.mp3",
         "N",
         "",
         "",

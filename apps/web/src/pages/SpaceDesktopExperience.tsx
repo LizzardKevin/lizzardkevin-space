@@ -26,7 +26,7 @@ import { GalleryAtmosphere } from "../scenes/gallery/GalleryAtmosphere";
 import { spawnToCameraPosition } from "../scenes/gallery/resolveGallerySpawn";
 import { useTranslation } from "react-i18next";
 
-import { requestSpacePointerLock } from "../space/requestSpacePointerLock";
+import { engageSpaceFirstPerson } from "../space/requestSpacePointerLock";
 
 export function SpaceDesktopExperience({
   entry,
@@ -40,6 +40,8 @@ export function SpaceDesktopExperience({
   const { t } = useTranslation();
   const [manifest, setManifest] = useState<ExhibitManifestItem[] | null>(null);
   const [focused, setFocused] = useState<ExhibitManifestItem | null>(null);
+  /** 退出动效期间仍挂载 Focus，但已恢复 SPACE 第一人称控制 */
+  const [focusClosing, setFocusClosing] = useState<ExhibitManifestItem | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [crosshairPulseNonce, setCrosshairPulseNonce] = useState(0);
   const [suppressNextExhibitClick, setSuppressNextExhibitClick] = useState(false);
@@ -70,13 +72,20 @@ export function SpaceDesktopExperience({
     };
   }, []);
 
-  const handleCloseFocus = useCallback(() => {
-    setFocused(null);
+  const handleBeginDismissFocus = useCallback(() => {
     setSuppressNextExhibitClick(true);
-    if (entered && !overlay.isOverlayOpen) {
-      requestSpacePointerLock();
-    }
+    setFocused((current) => {
+      if (current) setFocusClosing(current);
+      return null;
+    });
+    engageSpaceFirstPerson({ entered, overlayOpen: overlay.isOverlayOpen });
   }, [entered, overlay.isOverlayOpen]);
+
+  const handleFinishDismissFocus = useCallback(() => {
+    setFocusClosing(null);
+  }, []);
+
+  const focusOverlayExhibit = focused ?? focusClosing;
 
   const handleFocusExhibit = useCallback(
     (id: string) => {
@@ -132,7 +141,7 @@ export function SpaceDesktopExperience({
     <>
       <Toast message={toast} onDone={() => setToast(null)} />
       {hud}
-      <PlaybackBar elevated={!!focused} />
+      <PlaybackBar elevated={!!focusOverlayExhibit} />
       {webgpuReady === null ? (
         <div
           style={{
@@ -152,7 +161,13 @@ export function SpaceDesktopExperience({
         </div>
       ) : null}
       {webgpuReady === false ? <WebGPUUnavailable /> : null}
-      {focused ? <FocusOverlay exhibit={focused} onClose={handleCloseFocus} /> : null}
+      {focusOverlayExhibit ? (
+        <FocusOverlay
+          exhibit={focusOverlayExhibit}
+          onBeginDismiss={handleBeginDismissFocus}
+          onClose={handleFinishDismissFocus}
+        />
+      ) : null}
       {canRender3d ? (
         <WebGPUErrorBoundary>
           <div
