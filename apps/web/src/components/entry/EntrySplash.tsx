@@ -19,9 +19,11 @@ export function EntrySplash({
         ref={entry.enterWrapRef}
         className={`space-enterButtonWrap${entry.hideButton ? " space-enterButtonWrap--hide" : ""}`}
       >
-        <button type="button" onClick={onEnter} className="space-enterButton">
-          {t("space.enter")}
-        </button>
+        <div className="space-enterButtonFloat">
+          <button type="button" onClick={onEnter} className="space-enterButton">
+            {t("space.enter")}
+          </button>
+        </div>
       </div>
     </div>
   );

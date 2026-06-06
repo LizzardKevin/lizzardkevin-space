@@ -25,6 +25,7 @@
 | glb mesh name | exhibit slug | 类型 | 说明 |
 |---|---|---|---|
 | exhibit_demo_box | demo_box | audio | 测试盒 + Focus 音频 |
+| exhibit_demo_bass | demo_bass | model3d | 演示贝司 + Focus 特写 |
 | exhibit_band_bass | band-bass | model3d | 墙上的贝司 |
 | exhibit_band_tv | band-tv | video | 电视屏幕视频 |
 

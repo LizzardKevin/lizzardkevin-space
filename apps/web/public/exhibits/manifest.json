@@ -9,6 +9,11 @@
         "btn_pause": { "action": "pause" },
         "btn_end": { "action": "end" }
       }
+    },
+    {
+      "exhibitId": "demo_bass",
+      "focusGlbUrl": "/exhibits/demo_bass/focus_demo_bass.glb",
+      "type": "model3d"
     }
   ]
 }

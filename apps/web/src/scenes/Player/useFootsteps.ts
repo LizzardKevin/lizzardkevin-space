@@ -6,7 +6,7 @@ import {
   FOOTSTEP_INTERVAL_WALK,
 } from "../../audio/audioConfig";
 
-const SPRINT_SPEED = 3.85;
+const SPRINT_SPEED = 2.5;
 
 /**
  * 根据水平位移在落地行走时触发脚步声。
@@ -33,7 +33,7 @@ export function useFootsteps() {
     const dz = position.z - lastPos.current.z;
     lastPos.current.copy(position);
 
-    if (!opts.grounded || opts.horizontalSpeed < 0.08) {
+    if (!opts.grounded || opts.horizontalSpeed < 0.04) {
       distSinceStep.current = 0;
       return;
     }

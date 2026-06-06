@@ -92,12 +92,10 @@ function FocusCameraRig({ frame }: { frame: FocusFrameResult | null }) {
 
 function FocusOrbitControls({
   enabled,
-  enableRotate,
   frame,
   onUserInteract,
 }: {
   enabled: boolean;
-  enableRotate: boolean;
   frame: FocusFrameResult | null;
   onUserInteract: () => void;
 }) {
@@ -106,7 +104,7 @@ function FocusOrbitControls({
   return (
     <OrbitControls
       enabled={enabled}
-      enableRotate={enableRotate}
+      enableRotate={enabled}
       enableZoom={enabled}
       autoRotate={false}
       onStart={onUserInteract}
@@ -176,19 +174,14 @@ function FocusScene({
   exhibit,
   onButtonAction,
   orbitEnabled,
-  meshHovered,
-  onMeshHoverChange,
   onBlankDoubleClick,
 }: {
   exhibit: ExhibitManifestItem;
   onButtonAction: (action: ExhibitButtonAction) => void;
   orbitEnabled: boolean;
-  meshHovered: boolean;
-  onMeshHoverChange: (hovered: boolean) => void;
   onBlankDoubleClick: () => void;
 }) {
   const hitRootRef = useRef<THREE.Group>(null);
-  const hoverDepthRef = useRef(0);
   const [turntableSpin, setTurntableSpin] = useState(true);
   const [frame, setFrame] = useState<FocusFrameResult | null>(null);
 
@@ -198,32 +191,9 @@ function FocusScene({
     if (hitRootRef.current) hitRootRef.current.rotation.y = 0;
   }, [exhibit.exhibitId]);
 
-  const handlePointerOver = useCallback(
-    (e: ThreeEvent<PointerEvent>) => {
-      e.stopPropagation();
-      hoverDepthRef.current += 1;
-      onMeshHoverChange(true);
-    },
-    [onMeshHoverChange],
-  );
-
-  const handlePointerOut = useCallback(
-    (e: ThreeEvent<PointerEvent>) => {
-      e.stopPropagation();
-      hoverDepthRef.current = Math.max(0, hoverDepthRef.current - 1);
-      if (hoverDepthRef.current === 0) onMeshHoverChange(false);
-    },
-    [onMeshHoverChange],
-  );
-
   return (
     <>
-      <group
-        ref={hitRootRef}
-        position={[0, -0.6, 0]}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-      >
+      <group ref={hitRootRef} position={[0, -0.6, 0]}>
         <FocusModel
           key={exhibit.focusGlbUrl}
           url={exhibit.focusGlbUrl}
@@ -237,7 +207,6 @@ function FocusScene({
       <FocusTurntable active={orbitEnabled && turntableSpin} target={hitRootRef} />
       <FocusOrbitControls
         enabled={orbitEnabled}
-        enableRotate={meshHovered}
         frame={frame}
         onUserInteract={() => setTurntableSpin(false)}
       />
@@ -288,8 +257,8 @@ export function FocusOverlay({
   onClose,
 }: {
   exhibit: ExhibitManifestItem;
-  /** ESC / 双击退出时同步调用：锁定鼠标并恢复 SPACE 控制（须在用户手势内）。 */
-  onBeginDismiss: () => void;
+  /** 退出时同步恢复 SPACE 控制；fromEscape 时延后到 keyup 再锁定鼠标。 */
+  onBeginDismiss: (opts?: { fromEscape?: boolean }) => void;
   onClose: () => void;
 }) {
   const playback = usePlayback();
@@ -299,8 +268,6 @@ export function FocusOverlay({
   const [content, setContent] = useState<ExhibitContent | null>(null);
   const [contentLoading, setContentLoading] = useState(true);
   const closingRef = useRef(false);
-  const [meshHovered, setMeshHovered] = useState(false);
-
   const displayTitle = formatExhibitLabel(exhibit.exhibitId);
   const videoUrl = exhibit.media?.videoUrl;
 
@@ -349,18 +316,21 @@ export function FocusOverlay({
     [playback, exhibit.media, exhibit.type],
   );
 
-  const requestClose = useCallback(() => {
-    if (closingRef.current) return;
-    closingRef.current = true;
-    onBeginDismiss();
-    playback.stop();
-    setContentVisible(false);
-    window.setTimeout(() => {
-      setBlurOn(false);
-      setDimOn(false);
-    }, 150);
-    window.setTimeout(() => onClose(), 450);
-  }, [onBeginDismiss, onClose, playback]);
+  const requestClose = useCallback(
+    (opts?: { fromEscape?: boolean }) => {
+      if (closingRef.current) return;
+      closingRef.current = true;
+      onBeginDismiss(opts);
+      playback.stop();
+      setContentVisible(false);
+      window.setTimeout(() => {
+        setBlurOn(false);
+        setDimOn(false);
+      }, 150);
+      window.setTimeout(() => onClose(), 450);
+    },
+    [onBeginDismiss, onClose, playback],
+  );
 
   const handleBlankDoubleClick = useCallback(() => {
     if (!contentVisible || closingRef.current) return;
@@ -371,7 +341,7 @@ export function FocusOverlay({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") requestClose();
+      if (e.key === "Escape") requestClose({ fromEscape: true });
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -444,8 +414,6 @@ export function FocusOverlay({
                   exhibit={exhibit}
                   onButtonAction={onButtonAction}
                   orbitEnabled={contentVisible}
-                  meshHovered={meshHovered}
-                  onMeshHoverChange={setMeshHovered}
                   onBlankDoubleClick={handleBlankDoubleClick}
                 />
               </Canvas>

@@ -1,5 +1,6 @@
 import { Howl, Howler } from "howler";
 import { AUDIO_PATHS } from "./audioConfig";
+import { playFootstepClip, preloadFootstepClips } from "./footstepPlayer";
 import {
   playProceduralFootstep,
   startProceduralAmbient,
@@ -32,6 +33,7 @@ export class AudioDirector {
   private proceduralAmbient: ProceduralAmbientHandle | null = null;
   private footstepIndex = 0;
   private useProceduralFootsteps = false;
+  private footstepClipsReady = false;
 
   constructor(config: AudioDirectorConfig) {
     this.zoneBgmUrls = config.zoneBgmUrls;
@@ -56,6 +58,10 @@ export class AudioDirector {
   unlock() {
     if (this.unlocked) return;
     this.unlocked = true;
+    if (!this.footstepClipsReady && this.footstepUrls.length > 0) {
+      preloadFootstepClips(this.footstepUrls);
+      this.footstepClipsReady = true;
+    }
   }
 
   getVolume(key: VolumeKey) {
@@ -103,28 +109,7 @@ export class AudioDirector {
     }
     const url = this.footstepUrls[this.footstepIndex % this.footstepUrls.length];
     this.footstepIndex += 1;
-    this.playSfx(url, { volume: vol });
-  }
-
-  playSfx(url: string, opts?: { volume?: number }) {
-    if (!this.unlocked) return;
-    const vol = opts?.volume ?? this.channelVolume("sfx");
-    const howl = new Howl({
-      src: [url],
-      volume: vol,
-      html5: false,
-      onloaderror: () => {
-        howl.unload();
-        if (this.footstepUrls.includes(url)) {
-          this.useProceduralFootsteps = true;
-          playProceduralFootstep(vol);
-        }
-      },
-    });
-    howl.once("play", () => {
-      howl.once("end", () => howl.unload());
-    });
-    howl.play();
+    playFootstepClip(url, vol);
   }
 
   private stopProceduralAmbient() {

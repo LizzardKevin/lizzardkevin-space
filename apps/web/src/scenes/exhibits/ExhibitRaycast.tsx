@@ -2,6 +2,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { buildExhibitTarget, isExhibitWithinRange, type ExhibitTarget } from "../../exhibits/exhibitTarget";
+import { resumeSpaceFirstPersonOnGestureIfPending } from "../../space/requestSpacePointerLock";
 
 export function ExhibitRaycast({
   onTargetChange,
@@ -74,26 +75,51 @@ export function ExhibitRaycast({
   });
 
   useEffect(() => {
+    const canvas = gl.domElement;
+    const eventRoot = canvas.parentElement ?? canvas;
+
+    /** Pointer lock 可能落在 R3F 事件根节点（父 div）而非 canvas 本身。 */
+    const isSpaceCanvasInput = (e: PointerEvent) => {
+      const lockEl = document.pointerLockElement;
+      if (lockEl) {
+        return (
+          lockEl === canvas ||
+          lockEl === eventRoot ||
+          lockEl.contains(canvas) ||
+          eventRoot.contains(lockEl)
+        );
+      }
+      const target = e.target;
+      return (
+        (target instanceof Node && (canvas.contains(target) || eventRoot.contains(target))) ||
+        target === canvas ||
+        target === eventRoot
+      );
+    };
+
     const tryFocus = () => {
       if (!enabled) return;
-      if (suppressNextClickRef.current) {
-        onConsumeSuppressedClickRef.current();
-        return;
-      }
       const id = lastFocused.current;
+      if (suppressNextClickRef.current) {
+        suppressNextClickRef.current = false;
+        onConsumeSuppressedClickRef.current();
+        if (!id) return;
+      }
       if (id) onFocusExhibitRef.current(id);
       else onEmptyClickRef.current();
     };
 
-    const onMouseDown = (e: MouseEvent) => {
+    const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      if (!isSpaceCanvasInput(e)) return;
+      resumeSpaceFirstPersonOnGestureIfPending();
       tryFocus();
     };
 
-    // PointerLockControls 可能在冒泡阶段吞事件，这里用 capture 确保能收到输入。
-    window.addEventListener("mousedown", onMouseDown, true);
+    // capture + pointerdown：与 pointer lock 用户手势同帧，且早于 PointerLockControls 的 document click。
+    window.addEventListener("pointerdown", onPointerDown, true);
     return () => {
-      window.removeEventListener("mousedown", onMouseDown, true);
+      window.removeEventListener("pointerdown", onPointerDown, true);
     };
   }, [enabled, gl.domElement]);
 

@@ -7,7 +7,7 @@ export const ENABLE_GALLERY_WALL_ART = false;
 export const GALLERY_SPAWN: [number, number, number] = [5.034, 0.92, -0.865];
 
 /** Bump when replacing gallery_main.glb so dev/browser reloads geometry. */
-export const GALLERY_GLB_REVISION = "20260602";
+export const GALLERY_GLB_REVISION = "20260607";
 
 export const GALLERY_GLB_URL = `/models/gallery_main.glb?v=${GALLERY_GLB_REVISION}`;
 

@@ -56,20 +56,25 @@ export function startProceduralAmbient(gain: number): ProceduralAmbientHandle {
 
 export function playProceduralFootstep(gain: number) {
   const ctx = getCtx();
-  const len = Math.floor(ctx.sampleRate * 0.055);
-  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const sr = ctx.sampleRate;
+  const len = Math.floor(sr * 0.16);
+  const buf = ctx.createBuffer(1, len, sr);
   const data = buf.getChannelData(0);
+  let brown = 0;
+  const thumpHz = 90 + Math.random() * 18;
   for (let i = 0; i < len; i++) {
-    const t = i / len;
-    const env = Math.sin(Math.PI * t) ** 2;
-    data[i] = (Math.random() * 2 - 1) * env * 0.9;
+    const t = i / sr;
+    const env = (1 - Math.exp(-t * 140)) * Math.exp(-t * 22);
+    const white = Math.random() * 2 - 1;
+    brown = (brown + 0.012 * white) / 1.012;
+    const thump = Math.sin(2 * Math.PI * thumpHz * t) * Math.exp(-t * 30);
+    data[i] = (thump * 0.28 + brown * 0.06) * env * 0.65;
   }
   const src = ctx.createBufferSource();
   src.buffer = buf;
   const filter = ctx.createBiquadFilter();
-  filter.type = "bandpass";
-  filter.frequency.value = 280 + Math.random() * 120;
-  filter.Q.value = 0.9;
+  filter.type = "lowpass";
+  filter.frequency.value = 520;
   const g = ctx.createGain();
   g.gain.value = gain;
   src.connect(filter);

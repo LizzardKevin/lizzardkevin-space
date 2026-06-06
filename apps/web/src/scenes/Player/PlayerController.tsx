@@ -18,7 +18,7 @@ import {
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
-const WALK_SPEED = 2.45;
+const WALK_SPEED = 1.5;
 const SPRINT_SPEED = FOOTSTEP_SPRINT_SPEED;
 /** Higher = reaches target speed faster when starting / changing direction. */
 const MOVE_ACCEL = 11;

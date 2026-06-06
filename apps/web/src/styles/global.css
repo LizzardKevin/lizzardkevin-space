@@ -69,19 +69,39 @@ button {
 }
 
 .space-enterButtonWrap {
-  animation: spaceEnterFloat 4.5s ease-in-out infinite;
+  will-change: transform, filter;
+  transition:
+    transform 300ms cubic-bezier(0.34, 1.2, 0.64, 1),
+    filter 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.space-enterButtonFloat {
+  animation: spaceEnterFloatY 4.5s ease-in-out infinite;
   will-change: transform;
 }
 
-/* 点击进入：按钮在冻结浮动 Y 的基础上放大消散（--enter-exit-scale，默认 6 倍） */
+.space-enterButtonWrap:hover {
+  transform: scale(1.06);
+  filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.1));
+}
+
+.space-enterButtonWrap:hover .space-enterButtonFloat {
+  animation-play-state: paused;
+}
+
+/* 点击进入：内层保留冻结 Y，外层放大消散（--enter-exit-scale，默认 6 倍） */
 .space-enterButtonWrap--hide {
   opacity: 0;
-  transform: translateY(var(--enter-float-y, 0px)) scale(var(--enter-exit-scale, 6));
+  transform: scale(var(--enter-exit-scale, 6));
   filter: blur(18px) brightness(1.15);
   transition:
     transform 900ms cubic-bezier(0.16, 0, 0.2, 1),
     opacity 900ms cubic-bezier(0.16, 0, 0.2, 1),
     filter 900ms cubic-bezier(0.16, 0, 0.2, 1);
+}
+
+.space-enterButtonWrap--hide .space-enterButtonFloat {
+  transform: translateY(var(--enter-float-y, 0px));
 }
 
 .space-enterButton {
@@ -95,23 +115,26 @@ button {
   text-transform: uppercase;
   font-size: 14px;
   color: rgba(0, 0, 0, 0.68);
-  transition: color 320ms ease, filter 320ms ease;
+  text-shadow: 0 0 0 transparent;
+  transition:
+    color 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .space-enterButtonWrap:hover .space-enterButton {
-  color: rgba(0, 0, 0, 0.84);
-  filter: brightness(1.05);
+  color: rgba(0, 0, 0, 0.86);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
 }
 
-@keyframes spaceEnterFloat {
+@keyframes spaceEnterFloatY {
   0% {
-    transform: translateY(0px) scale(1);
+    transform: translateY(0px);
   }
   50% {
-    transform: translateY(-9px) scale(1);
+    transform: translateY(-18px);
   }
   100% {
-    transform: translateY(0px) scale(1);
+    transform: translateY(0px);
   }
 }
 

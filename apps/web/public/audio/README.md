@@ -6,8 +6,8 @@
 
 | 文件 | 用途 |
 |------|------|
-| `ambient_architecture.wav` | 环境底噪（音量约 11%） |
-| `footstep_01.wav` / `footstep_02.wav` | 脚步声 |
+| `ambient_architecture.mp3` | 环境底噪（音量约 11%；WAV 亦可，改 `audioConfig.ts` 路径） |
+| `footstep_01.wav` ~ `footstep_03.wav` | 室内脚步声（柔和、偏小） |
 
 占位生成：`node apps/web/scripts/generate-placeholder-audio.mjs`（仅生成 `audio/` 下文件）。
 

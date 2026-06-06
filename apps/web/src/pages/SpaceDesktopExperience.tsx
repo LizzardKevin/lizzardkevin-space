@@ -1,6 +1,7 @@
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { flushSync } from "react-dom";
 import { Crosshair } from "../components/Crosshair";
 import { Toast } from "../components/Toast";
 import type { EntryTransition } from "../entry/entryTypes";
@@ -26,7 +27,11 @@ import { GalleryAtmosphere } from "../scenes/gallery/GalleryAtmosphere";
 import { spawnToCameraPosition } from "../scenes/gallery/resolveGallerySpawn";
 import { useTranslation } from "react-i18next";
 
-import { engageSpaceFirstPerson } from "../space/requestSpacePointerLock";
+import {
+  engageSpaceFirstPerson,
+  resumeSpaceFirstPerson,
+  resumeSpaceFirstPersonAfterEscape,
+} from "../space/requestSpacePointerLock";
 
 export function SpaceDesktopExperience({
   entry,
@@ -72,14 +77,27 @@ export function SpaceDesktopExperience({
     };
   }, []);
 
-  const handleBeginDismissFocus = useCallback(() => {
-    setSuppressNextExhibitClick(true);
-    setFocused((current) => {
-      if (current) setFocusClosing(current);
-      return null;
-    });
-    engageSpaceFirstPerson({ entered, overlayOpen: overlay.isOverlayOpen });
-  }, [entered, overlay.isOverlayOpen]);
+  const handleBeginDismissFocus = useCallback(
+    (opts?: { fromEscape?: boolean }) => {
+      flushSync(() => {
+        if (!opts?.fromEscape) {
+          setSuppressNextExhibitClick(true);
+        }
+        setFocused((current) => {
+          if (current) setFocusClosing(current);
+          return null;
+        });
+      });
+      if (overlay.isOverlayOpen) return;
+      if (opts?.fromEscape) {
+        resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: overlay.isOverlayOpen });
+        return;
+      }
+      if (entered) resumeSpaceFirstPerson();
+      else engageSpaceFirstPerson({ entered, overlayOpen: false });
+    },
+    [entered, overlay.isOverlayOpen],
+  );
 
   const handleFinishDismissFocus = useCallback(() => {
     setFocusClosing(null);
@@ -98,11 +116,13 @@ export function SpaceDesktopExperience({
         setToast(`manifest 无此展品: ${id}`);
         return;
       }
+      flushSync(() => {
+        setExhibitTarget(null);
+        setFocused(found);
+      });
       if (document.pointerLockElement) {
         document.exitPointerLock();
       }
-      setExhibitTarget(null);
-      setFocused(found);
     },
     [manifest],
   );
@@ -113,13 +133,11 @@ export function SpaceDesktopExperience({
 
   const handleEmptyClick = useCallback(() => {
     if (!controlsEnabled) return;
-    if (suppressNextExhibitClick) {
-      setSuppressNextExhibitClick(false);
-      return;
-    }
-    if (!document.pointerLockElement) return;
     setCrosshairPulseNonce((n) => n + 1);
-  }, [controlsEnabled, suppressNextExhibitClick]);
+    if (!document.pointerLockElement) {
+      resumeSpaceFirstPerson();
+    }
+  }, [controlsEnabled]);
 
   const handleConsumeSuppressedClick = useCallback(() => {
     if (suppressNextExhibitClick) setSuppressNextExhibitClick(false);

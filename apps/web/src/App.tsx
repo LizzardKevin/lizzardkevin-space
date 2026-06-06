@@ -1,10 +1,16 @@
 import { SpacePage } from "./pages/SpacePage";
-import { requestSpacePointerLock } from "./space/requestSpacePointerLock";
+import {
+  releaseSpacePointerLock,
+  resumeSpaceFirstPerson,
+  resumeSpaceFirstPersonAfterEscape,
+} from "./space/requestSpacePointerLock";
+import { useSpacePointerLockGuard } from "./space/useSpacePointerLockGuard";
 import { TopBar } from "./components/TopBar";
 import { OverlayLayer } from "./overlay/OverlayLayer";
 import type { OverlayTab } from "./overlay/OverlayState";
 import { useClientPlatform } from "./platform/useClientPlatform";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { flushSync } from "react-dom";
 
 export default function App() {
   const platform = useClientPlatform();
@@ -12,31 +18,38 @@ export default function App() {
   const [tab, setTab] = useState<OverlayTab>(null);
   const [closing, setClosing] = useState(false);
 
-  const isOverlayOpen = tab !== null;
-  const appOverlayContext = useMemo(() => ({ isOverlayOpen }), [isOverlayOpen]);
+  /** 关闭动效期间不再阻挡 SPACE 控制，以便同步恢复 pointer lock。 */
+  const spaceOverlayBlocking = tab !== null && !closing;
+  const appOverlayContext = useMemo(
+    () => ({ isOverlayOpen: spaceOverlayBlocking }),
+    [spaceOverlayBlocking],
+  );
 
-  useEffect(() => {
-    if (!isDesktop || !isOverlayOpen) return;
-    if (document.pointerLockElement) document.exitPointerLock();
-  }, [isDesktop, isOverlayOpen]);
+  useSpacePointerLockGuard(isDesktop && spaceOverlayBlocking);
 
-  const enterSpaceFps = () => {
-    requestSpacePointerLock();
+  const openOverlayTab = (next: Exclude<OverlayTab, null>) => {
+    releaseSpacePointerLock();
+    flushSync(() => {
+      setClosing(false);
+      setTab(next);
+    });
+  };
+
+  const closeOverlayToSpace = (opts?: { fromEscape?: boolean }) => {
+    flushSync(() => setClosing(true));
+    if (opts?.fromEscape) {
+      resumeSpaceFirstPersonAfterEscape({ entered: true, overlayOpen: false });
+      return;
+    }
+    resumeSpaceFirstPerson();
   };
 
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
-      {isDesktop && (
+      {isDesktop && tab === null && (
         <TopBar
-          onOpenTab={(t) => {
-            setClosing(false);
-            setTab(t);
-          }}
-          onCloseTab={() => {
-            if (!tab) return;
-            setClosing(true);
-            enterSpaceFps();
-          }}
+          onOpenTab={openOverlayTab}
+          onCloseTab={() => resumeSpaceFirstPerson()}
         />
       )}
       <SpacePage overlay={appOverlayContext} />
@@ -44,10 +57,7 @@ export default function App() {
         <OverlayLayer
           tab={tab}
           closing={closing}
-          onRequestClose={() => {
-            setClosing(true);
-            enterSpaceFps();
-          }}
+          onRequestClose={closeOverlayToSpace}
           onClosed={() => {
             setClosing(false);
             setTab(null);

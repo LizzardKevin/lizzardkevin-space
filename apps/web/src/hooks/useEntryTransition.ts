@@ -10,13 +10,15 @@ export function useEntryTransition(): EntryTransition {
   const freezeButtonFloat = useCallback(() => {
     const wrap = enterWrapRef.current;
     if (!wrap) return;
-    const tr = getComputedStyle(wrap).transform;
+    const floatEl = wrap.querySelector<HTMLElement>(".space-enterButtonFloat");
+    if (!floatEl) return;
+    const tr = getComputedStyle(floatEl).transform;
     if (tr && tr !== "none") {
       const y = new DOMMatrix(tr).m42;
       wrap.style.setProperty("--enter-float-y", `${y}px`);
-      wrap.style.transform = `translateY(${y}px)`;
+      floatEl.style.transform = `translateY(${y}px)`;
     }
-    wrap.style.animation = "none";
+    floatEl.style.animation = "none";
   }, []);
 
   const startFade = useCallback(() => {

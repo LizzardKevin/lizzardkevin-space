@@ -3,6 +3,7 @@ import type { OverlayTab } from "./OverlayState";
 import { LizzardKevinPage } from "../pages/LizzardKevinPage";
 import { DevStoriesPage } from "../pages/DevStoriesPage";
 import { useFocusDoubleClickHandler } from "../exhibits/focusDoubleClick";
+import { releaseSpacePointerLock } from "../space/requestSpacePointerLock";
 
 export function OverlayLayer({
   tab,
@@ -12,10 +13,15 @@ export function OverlayLayer({
 }: {
   tab: OverlayTab;
   closing: boolean;
-  onRequestClose: () => void;
+  onRequestClose: (opts?: { fromEscape?: boolean }) => void;
   onClosed: () => void;
 }) {
   const handleBlankDoubleClick = useFocusDoubleClickHandler(onRequestClose);
+
+  useEffect(() => {
+    if (!tab || closing) return;
+    releaseSpacePointerLock();
+  }, [tab, closing]);
 
   useEffect(() => {
     if (!tab) return;
@@ -27,7 +33,7 @@ export function OverlayLayer({
   useEffect(() => {
     if (!tab) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onRequestClose();
+      if (e.key === "Escape") onRequestClose({ fromEscape: true });
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);

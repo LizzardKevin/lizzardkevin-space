@@ -4,7 +4,7 @@ import { EntrySplash } from "../components/entry/EntrySplash";
 import { useEntryTransition } from "../hooks/useEntryTransition";
 import { useClientPlatform } from "../platform/useClientPlatform";
 import { isWebGPUSupported } from "../rendering/webgpuSupport";
-import { requestSpacePointerLock } from "../space/requestSpacePointerLock";
+import { resumeSpaceFirstPerson } from "../space/requestSpacePointerLock";
 import { SpaceDesktopExperience } from "./SpaceDesktopExperience";
 import { MobileExperience } from "./MobileExperience";
 
@@ -31,16 +31,11 @@ export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) 
   const showSplash = entry.showSplash && (isDesktop ? canRender3d : true);
 
   const handleEnter = useCallback(() => {
-    if (isDesktop) {
-      requestSpacePointerLock();
-    }
     entry.freezeButtonFloat();
     audio.unlock();
     if (isDesktop) {
-      requestSpacePointerLock();
+      resumeSpaceFirstPerson();
       void audio.setZone("architecture");
-      entry.startFade();
-      return;
     }
     entry.startFade();
   }, [audio, entry, isDesktop]);
