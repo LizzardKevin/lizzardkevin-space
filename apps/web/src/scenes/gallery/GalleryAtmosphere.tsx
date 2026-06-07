@@ -11,6 +11,7 @@ export function GalleryAtmosphere() {
     const prevBackground = scene.background;
     const prevFog = scene.fog;
 
+    // eslint-disable-next-line react-hooks/immutability -- R3F scene background is imperative Three.js state.
     scene.background = new THREE.Color(GALLERY_TOON.background);
     scene.fog = GALLERY_TOON.useExponentialFog
       ? new THREE.FogExp2(GALLERY_TOON.fogColor, GALLERY_TOON.fogDensity)

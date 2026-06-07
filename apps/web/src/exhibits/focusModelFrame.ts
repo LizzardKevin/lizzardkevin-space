@@ -16,7 +16,12 @@ function findPivot(root: THREE.Object3D): THREE.Object3D | null {
     const name = String(obj.name ?? "");
     if (!name) return;
     const lower = name.toLowerCase();
-    if (lower === "pivot" || lower.endsWith("_pivot") || lower.startsWith("pivot_") || lower.includes("pivot")) {
+    if (
+      lower === "focus_pivot" ||
+      lower === "turntable_pivot" ||
+      lower.endsWith("_focus_pivot") ||
+      lower.endsWith("_turntable_pivot")
+    ) {
       pivot = obj;
     }
   });

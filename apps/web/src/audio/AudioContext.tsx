@@ -10,6 +10,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         zoneBgmUrls: AUDIO_PATHS.zoneBgmUrls,
         zoneAmbientUrls: AUDIO_PATHS.zoneAmbientUrls,
         footstepUrls: [...AUDIO_PATHS.footstepUrls],
+        jumpStartUrl: AUDIO_PATHS.jumpStartUrl,
+        jumpLandUrl: AUDIO_PATHS.jumpLandUrl,
         defaultVolumes: { ...DEFAULT_VOLUMES },
       }),
     [],

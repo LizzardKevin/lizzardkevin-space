@@ -41,14 +41,16 @@ export function ExhibitHoverHighlight({ target }: { target: ExhibitTarget | null
   const meshesRef = useRef<THREE.Mesh[]>([]);
 
   useEffect(() => {
+    const snapshots = snapshotsRef.current;
+
     for (const mesh of meshesRef.current) {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       for (const mat of mats) {
-        const snap = snapshotsRef.current.get(mat.uuid);
+        const snap = snapshots.get(mat.uuid);
         if (snap) restoreMaterial(mat, snap);
       }
     }
-    snapshotsRef.current.clear();
+    snapshots.clear();
     meshesRef.current = [];
 
     if (!target) return;
@@ -59,24 +61,24 @@ export function ExhibitHoverHighlight({ target }: { target: ExhibitTarget | null
       meshes.push(obj);
       const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
       for (const mat of mats) {
-        if (snapshotsRef.current.has(mat.uuid)) continue;
+        if (snapshots.has(mat.uuid)) continue;
         const snap = snapshotMaterial(mat);
         if (!snap) continue;
-        snapshotsRef.current.set(mat.uuid, snap);
+        snapshots.set(mat.uuid, snap);
         applyHover(mat);
       }
     });
     meshesRef.current = meshes;
 
     return () => {
-      for (const mesh of meshesRef.current) {
+      for (const mesh of meshes) {
         const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
         for (const mat of mats) {
-          const snap = snapshotsRef.current.get(mat.uuid);
+          const snap = snapshots.get(mat.uuid);
           if (snap) restoreMaterial(mat, snap);
         }
       }
-      snapshotsRef.current.clear();
+      snapshots.clear();
       meshesRef.current = [];
     };
   }, [target]);

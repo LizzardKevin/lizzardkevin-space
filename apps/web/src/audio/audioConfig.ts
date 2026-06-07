@@ -10,6 +10,8 @@ export const AUDIO_PATHS = {
     "/audio/footstep_02.wav",
     "/audio/footstep_03.wav",
   ],
+  jumpStartUrl: "/audio/jump_start.wav",
+  jumpLandUrl: "/audio/jump_land.wav",
 } as const;
 
 export const DEFAULT_VOLUMES = {

@@ -7,7 +7,8 @@ import { ExhibitRaycast } from "./exhibits/ExhibitRaycast";
 import { PlayerController } from "./Player/PlayerController";
 import { ENABLE_GALLERY_GLB, ENABLE_GALLERY_WALL_ART, GALLERY_WALL_ART } from "./gallery/galleryConfig";
 import { GalleryModel } from "./gallery/GalleryModel";
-import { GallerySpawnProvider, useGallerySpawn } from "./gallery/GallerySpawnContext";
+import { GallerySpawnProvider } from "./gallery/GallerySpawnProvider";
+import { useGallerySpawn } from "./gallery/useGallerySpawn";
 import { SafetyGround } from "./gallery/SafetyGround";
 import { WallPicture } from "./gallery/WallPicture";
 
@@ -19,6 +20,7 @@ function SpaceSceneContent({
   onEmptyClick,
   suppressNextClick,
   onConsumeSuppressedClick,
+  onJumpNotice,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -27,6 +29,7 @@ function SpaceSceneContent({
   onEmptyClick: () => void;
   suppressNextClick: boolean;
   onConsumeSuppressedClick: () => void;
+  onJumpNotice: (message: string) => void;
 }) {
   const { spawn, safetyGroundY, safetyCenterX, safetyCenterZ } = useGallerySpawn();
 
@@ -74,7 +77,11 @@ function SpaceSceneContent({
         />
       ) : null}
 
-      <PlayerController enabled={controlsEnabled} spawn={ENABLE_GALLERY_GLB ? spawn : undefined} />
+      <PlayerController
+        enabled={controlsEnabled}
+        spawn={ENABLE_GALLERY_GLB ? spawn : undefined}
+        onJumpNotice={onJumpNotice}
+      />
 
       <ExhibitTargetLabel target={controlsEnabled ? exhibitTarget : null} />
       <ExhibitHoverHighlight target={controlsEnabled ? exhibitTarget : null} />
@@ -98,6 +105,7 @@ export function SpaceScene({
   onEmptyClick,
   suppressNextClick,
   onConsumeSuppressedClick,
+  onJumpNotice,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -106,6 +114,7 @@ export function SpaceScene({
   onEmptyClick: () => void;
   suppressNextClick: boolean;
   onConsumeSuppressedClick: () => void;
+  onJumpNotice: (message: string) => void;
 }) {
   if (ENABLE_GALLERY_GLB) {
     return (
@@ -118,6 +127,7 @@ export function SpaceScene({
           onEmptyClick={onEmptyClick}
           suppressNextClick={suppressNextClick}
           onConsumeSuppressedClick={onConsumeSuppressedClick}
+          onJumpNotice={onJumpNotice}
         />
       </GallerySpawnProvider>
     );
@@ -132,6 +142,7 @@ export function SpaceScene({
       onEmptyClick={onEmptyClick}
       suppressNextClick={suppressNextClick}
       onConsumeSuppressedClick={onConsumeSuppressedClick}
+      onJumpNotice={onJumpNotice}
     />
   );
 }

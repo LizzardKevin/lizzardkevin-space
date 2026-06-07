@@ -11,6 +11,9 @@ export const GALLERY_GLB_REVISION = "20260609";
 
 export const GALLERY_GLB_URL = `/models/gallery_main.glb?v=${GALLERY_GLB_REVISION}`;
 
+/** Local Draco decoder path for compressed GLB files; avoids runtime fetches to gstatic. */
+export const GLTF_DRACO_DECODER_PATH = "/draco/";
+
 /** Temporary: spawn outside COL_outer and drop onto the floor. */
 export const USE_OUTSIDE_GALLERY_SPAWN = false;
 

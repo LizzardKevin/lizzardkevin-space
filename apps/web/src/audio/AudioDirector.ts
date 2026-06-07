@@ -13,6 +13,8 @@ export type AudioDirectorConfig = {
   zoneBgmUrls: Partial<Record<string, string>>;
   zoneAmbientUrls: Partial<Record<string, string>>;
   footstepUrls?: readonly string[];
+  jumpStartUrl?: string;
+  jumpLandUrl?: string;
   defaultVolumes?: Partial<Record<VolumeKey, number>>;
 };
 
@@ -28,6 +30,8 @@ export class AudioDirector {
   private zoneBgmUrls: Partial<Record<string, string>>;
   private zoneAmbientUrls: Partial<Record<string, string>>;
   private footstepUrls: readonly string[];
+  private jumpStartUrl: string | undefined;
+  private jumpLandUrl: string | undefined;
   private bgm: Playing = null;
   private ambient: Playing = null;
   private proceduralAmbient: ProceduralAmbientHandle | null = null;
@@ -39,6 +43,8 @@ export class AudioDirector {
     this.zoneBgmUrls = config.zoneBgmUrls;
     this.zoneAmbientUrls = config.zoneAmbientUrls;
     this.footstepUrls = config.footstepUrls ?? AUDIO_PATHS.footstepUrls;
+    this.jumpStartUrl = config.jumpStartUrl ?? AUDIO_PATHS.jumpStartUrl;
+    this.jumpLandUrl = config.jumpLandUrl ?? AUDIO_PATHS.jumpLandUrl;
     this.volumes = {
       master: 0.9,
       bgm: 0.6,
@@ -59,7 +65,11 @@ export class AudioDirector {
     if (this.unlocked) return;
     this.unlocked = true;
     if (!this.footstepClipsReady && this.footstepUrls.length > 0) {
-      preloadFootstepClips(this.footstepUrls);
+      preloadFootstepClips([
+        ...this.footstepUrls,
+        ...(this.jumpStartUrl ? [this.jumpStartUrl] : []),
+        ...(this.jumpLandUrl ? [this.jumpLandUrl] : []),
+      ]);
       this.footstepClipsReady = true;
     }
   }
@@ -110,6 +120,16 @@ export class AudioDirector {
     const url = this.footstepUrls[this.footstepIndex % this.footstepUrls.length];
     this.footstepIndex += 1;
     playFootstepClip(url, vol);
+  }
+
+  playJumpStart() {
+    if (!this.unlocked || !this.jumpStartUrl) return;
+    playFootstepClip(this.jumpStartUrl, this.channelVolume("sfx") * 1.25);
+  }
+
+  playJumpLand() {
+    if (!this.unlocked || !this.jumpLandUrl) return;
+    playFootstepClip(this.jumpLandUrl, this.channelVolume("sfx") * 1.25);
   }
 
   private stopProceduralAmbient() {

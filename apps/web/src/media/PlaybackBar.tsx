@@ -20,35 +20,49 @@ export function PlaybackBar({ elevated = false }: { elevated?: boolean }) {
   const { state, seekTo } = usePlayback();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
-  const displayRef = useRef<PlaybackState | null>(null);
+  const [retainedState, setRetainedState] = useState<PlaybackState | null>(null);
   const draggingRef = useRef(false);
   const trackRef = useRef<HTMLDivElement | null>(null);
-
-  if (state) displayRef.current = state;
-
-  const displayState = state ?? displayRef.current;
+  const hasPlaybackState = state !== null;
 
   useEffect(() => {
-    if (state) {
-      setMounted(true);
-      setVisible(false);
-      let raf2 = 0;
-      const raf1 = requestAnimationFrame(() => {
-        raf2 = requestAnimationFrame(() => setVisible(true));
-      });
-      return () => {
-        cancelAnimationFrame(raf1);
-        cancelAnimationFrame(raf2);
-      };
-    }
-    setVisible(false);
-    const t = window.setTimeout(() => {
-      setMounted(false);
-      displayRef.current = null;
-    }, PLAYBACK_BAR_REVEAL_MS);
-    return () => window.clearTimeout(t);
+    if (!state) return;
+    const raf = requestAnimationFrame(() => setRetainedState(state));
+    return () => cancelAnimationFrame(raf);
   }, [state]);
 
+  useEffect(() => {
+    if (hasPlaybackState) {
+      let showRaf2 = 0;
+      const mountRaf = requestAnimationFrame(() => {
+        setMounted(true);
+        setVisible(false);
+        showRaf2 = requestAnimationFrame(() => setVisible(true));
+      });
+      return () => {
+        cancelAnimationFrame(mountRaf);
+        cancelAnimationFrame(showRaf2);
+      };
+    }
+
+    let clearRaf1 = 0;
+    let clearRaf2 = 0;
+    const hideRaf = requestAnimationFrame(() => setVisible(false));
+    const t = window.setTimeout(() => {
+      clearRaf1 = requestAnimationFrame(() => {
+        setMounted(false);
+        clearRaf2 = requestAnimationFrame(() => setRetainedState(null));
+      });
+    }, PLAYBACK_BAR_REVEAL_MS);
+    return () => {
+      cancelAnimationFrame(hideRaf);
+      cancelAnimationFrame(clearRaf1);
+      cancelAnimationFrame(clearRaf2);
+      window.clearTimeout(t);
+    };
+  }, [hasPlaybackState]);
+
+  const displayState = state ?? retainedState;
   const liveDuration = state?.duration ?? displayState?.duration ?? 0;
 
   const pct = useMemo(() => {

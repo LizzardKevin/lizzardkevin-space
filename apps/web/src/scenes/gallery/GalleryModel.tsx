@@ -2,8 +2,14 @@ import { useGLTF } from "@react-three/drei";
 import { useEffect, useMemo } from "react";
 import { ColColliders } from "../collision/colColliders";
 import { GalleryFloorCollider } from "./GalleryFloorCollider";
-import { useGallerySpawn } from "./GallerySpawnContext";
-import { ENABLE_GALLERY_RUNTIME_SHADOWS, GALLERY_BULB, GALLERY_GLB_URL, USE_OUTSIDE_GALLERY_SPAWN } from "./galleryConfig";
+import { useGallerySpawn } from "./useGallerySpawn";
+import {
+  ENABLE_GALLERY_RUNTIME_SHADOWS,
+  GALLERY_BULB,
+  GALLERY_GLB_URL,
+  GLTF_DRACO_DECODER_PATH,
+  USE_OUTSIDE_GALLERY_SPAWN,
+} from "./galleryConfig";
 import { prepareGalleryScene } from "./prepareGalleryScene";
 import {
   resolveGallerySafetyCenter,
@@ -40,7 +46,7 @@ function GalleryBulbLights({
 }
 
 export function GalleryModel() {
-  const gltf = useGLTF(GALLERY_GLB_URL);
+  const gltf = useGLTF(GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH);
   const { spawn, setSpawn, setSafetyGroundY, setSafetyCenter } = useGallerySpawn();
   const { bulbs } = useMemo(() => prepareGalleryScene(gltf.scene), [gltf.scene]);
 
@@ -68,4 +74,4 @@ export function GalleryModel() {
   );
 }
 
-useGLTF.preload(GALLERY_GLB_URL);
+useGLTF.preload(GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH);

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { FOCUS_DOUBLE_CLICK_MS } from "./focusConfig";
 
@@ -10,8 +10,11 @@ export function useFocusDoubleClickHandler(
   maxIntervalMs: number = FOCUS_DOUBLE_CLICK_MS,
 ): () => void {
   const onActionRef = useRef(onDoubleClick);
-  onActionRef.current = onDoubleClick;
   const lastClickAtRef = useRef(0);
+
+  useEffect(() => {
+    onActionRef.current = onDoubleClick;
+  }, [onDoubleClick]);
 
   return useCallback(() => {
     const now = performance.now();

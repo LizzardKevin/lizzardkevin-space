@@ -1,11 +1,10 @@
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { Crosshair } from "../components/Crosshair";
 import { Toast } from "../components/Toast";
 import type { EntryTransition } from "../entry/entryTypes";
-import { FocusOverlay } from "../exhibits/FocusOverlay";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
 import { loadManifest } from "../exhibits/manifest";
 import type { ExhibitManifestItem } from "../exhibits/manifest";
@@ -33,6 +32,19 @@ import {
   resumeSpaceFirstPersonAfterEscape,
 } from "../space/requestSpacePointerLock";
 
+const FocusOverlay = lazy(() =>
+  import("../exhibits/FocusOverlay").then((module) => ({
+    default: module.FocusOverlay,
+  })),
+);
+
+const JUMP_HINT_VISIBLE_MS = 5000;
+
+function JumpHint({ message, visible }: { message: string; visible: boolean }) {
+  if (!visible || !message) return null;
+  return <div className="jump-hint">{message}</div>;
+}
+
 export function SpaceDesktopExperience({
   entry,
   overlay,
@@ -50,8 +62,16 @@ export function SpaceDesktopExperience({
   const [toast, setToast] = useState<string | null>(null);
   const [crosshairPulseNonce, setCrosshairPulseNonce] = useState(0);
   const [suppressNextExhibitClick, setSuppressNextExhibitClick] = useState(false);
+  const [jumpHintMessage, setJumpHintMessage] = useState("");
+  const [jumpHintVisible, setJumpHintVisible] = useState(false);
 
   const { entered, fading: entryIsFading } = entry;
+
+  useEffect(() => {
+    if (!jumpHintVisible) return;
+    const timer = window.setTimeout(() => setJumpHintVisible(false), JUMP_HINT_VISIBLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [jumpHintVisible, jumpHintMessage]);
 
   useEffect(() => {
     let cancelled = false;
@@ -143,13 +163,19 @@ export function SpaceDesktopExperience({
     if (suppressNextExhibitClick) setSuppressNextExhibitClick(false);
   }, [suppressNextExhibitClick]);
 
+  const handleJumpNotice = useCallback((message: string) => {
+    setJumpHintMessage(message);
+    setJumpHintVisible(true);
+  }, []);
+
   const hud = useMemo(
     () => (
       <>
+        <JumpHint message={jumpHintMessage} visible={jumpHintVisible} />
         <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} />
       </>
     ),
-    [crosshairPulseNonce, isHovering],
+    [crosshairPulseNonce, isHovering, jumpHintMessage, jumpHintVisible],
   );
 
   const useShadows = !ENABLE_GALLERY_GLB || ENABLE_GALLERY_RUNTIME_SHADOWS;
@@ -180,11 +206,14 @@ export function SpaceDesktopExperience({
       ) : null}
       {webgpuReady === false ? <WebGPUUnavailable /> : null}
       {focusOverlayExhibit ? (
-        <FocusOverlay
-          exhibit={focusOverlayExhibit}
-          onBeginDismiss={handleBeginDismissFocus}
-          onClose={handleFinishDismissFocus}
-        />
+        <Suspense fallback={null}>
+          <FocusOverlay
+            key={focusOverlayExhibit.exhibitId}
+            exhibit={focusOverlayExhibit}
+            onBeginDismiss={handleBeginDismissFocus}
+            onClose={handleFinishDismissFocus}
+          />
+        </Suspense>
       ) : null}
       {canRender3d ? (
         <WebGPUErrorBoundary>
@@ -247,6 +276,7 @@ export function SpaceDesktopExperience({
                     onEmptyClick={handleEmptyClick}
                     suppressNextClick={suppressNextExhibitClick}
                     onConsumeSuppressedClick={handleConsumeSuppressedClick}
+                    onJumpNotice={handleJumpNotice}
                   />
                 </Physics>
                 <GalleryRenderPipeline />

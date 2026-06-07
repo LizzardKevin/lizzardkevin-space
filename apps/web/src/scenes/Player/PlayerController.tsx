@@ -6,8 +6,9 @@ import {
   useRapier,
   type RapierCollider,
 } from "@react-three/rapier";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { useAudioDirector } from "../../audio/useAudioDirector";
 import { useKeyboard } from "../controls/useKeyboard";
 import { useFootsteps, SPRINT_SPEED as FOOTSTEP_SPRINT_SPEED } from "./useFootsteps";
 import {
@@ -20,6 +21,12 @@ type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
 const WALK_SPEED = 1.5;
 const SPRINT_SPEED = FOOTSTEP_SPRINT_SPEED;
+const JUMP_HEIGHT_M = 0.4;
+const JUMP_DURATION_SCALE = 0.8;
+const JUMP_GRAVITY_SCALE = 1 / (JUMP_DURATION_SCALE * JUMP_DURATION_SCALE);
+const JUMP_ATTEMPT_UNLOCK_COUNT = 20;
+const FIRST_JUMP_WARNING = "在展厅要保持安静，不允许跳跃";
+const JUMP_UNLOCK_MESSAGE = "真拿你没办法～";
 /** Higher = reaches target speed faster when starting / changing direction. */
 const MOVE_ACCEL = 11;
 /** Higher = stops faster when keys are released. */
@@ -34,13 +41,16 @@ function easedMoveBlend(raw: number) {
 export function PlayerController({
   enabled,
   spawn,
+  onJumpNotice,
 }: {
   enabled: boolean;
   spawn?: [number, number, number];
+  onJumpNotice: (message: string) => void;
 }) {
   const { camera } = useThree();
   const keys = useKeyboard();
   const { world } = useRapier();
+  const audio = useAudioDirector();
   const { onPhysicsStep: onFootstepPhysics } = useFootsteps();
 
   const rb = useRef<RigidBodyRef>(null);
@@ -52,7 +62,12 @@ export function PlayerController({
   const idlePhase = useRef(0);
   const idleRef = useRef(0);
   const enabledRef = useRef(enabled);
+  const onJumpNoticeRef = useRef(onJumpNotice);
   const spawnKeyRef = useRef<string | null>(null);
+  const jumpAttemptCountRef = useRef(0);
+  const jumpUnlockedRef = useRef(false);
+  const pendingJumpRef = useRef(false);
+  const jumpedThisAirRef = useRef(false);
 
   const tmp = useMemo(
     () => ({
@@ -71,7 +86,13 @@ export function PlayerController({
   const grounded = useRef(false);
   const horizontalVelocity = useRef(new THREE.Vector3());
 
-  enabledRef.current = enabled;
+  useLayoutEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
+
+  useEffect(() => {
+    onJumpNoticeRef.current = onJumpNotice;
+  }, [onJumpNotice]);
 
   useEffect(() => {
     const controller = world.createCharacterController(0.01);
@@ -99,6 +120,33 @@ export function PlayerController({
     grounded.current = false;
     camera.position.set(spawn[0], spawn[1] + EYE_OFFSET, spawn[2]);
   }, [spawn, camera]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!enabledRef.current) return;
+      if (e.code !== "Space") return;
+      e.preventDefault();
+      if (e.repeat) return;
+
+      if (jumpUnlockedRef.current) {
+        pendingJumpRef.current = true;
+        return;
+      }
+
+      jumpAttemptCountRef.current += 1;
+      if (jumpAttemptCountRef.current === 1) {
+        onJumpNoticeRef.current(FIRST_JUMP_WARNING);
+      }
+      if (jumpAttemptCountRef.current === JUMP_ATTEMPT_UNLOCK_COUNT) {
+        jumpUnlockedRef.current = true;
+        pendingJumpRef.current = true;
+        onJumpNoticeRef.current(JUMP_UNLOCK_MESSAGE);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   useFrame((_, dt) => {
     dtRef.current = Math.min(dt, 0.05);
@@ -152,9 +200,21 @@ export function PlayerController({
     const actualSpeed = horizontalVelocity.current.length();
     const isLocomoting = actualSpeed > 0.0025;
 
+    const wasGrounded = grounded.current;
     const g = -9.81;
-    verticalVelocity.current += g * dt;
+    const jumpGravity = Math.abs(g) * JUMP_GRAVITY_SCALE;
     if (grounded.current && verticalVelocity.current < 0) verticalVelocity.current = 0;
+    if (pendingJumpRef.current) {
+      pendingJumpRef.current = false;
+      if (grounded.current) {
+        verticalVelocity.current = Math.sqrt(2 * jumpGravity * JUMP_HEIGHT_M);
+        grounded.current = false;
+        jumpedThisAirRef.current = true;
+        audio.playJumpStart();
+      }
+    }
+    const gravityScale = jumpedThisAirRef.current ? JUMP_GRAVITY_SCALE : 1;
+    verticalVelocity.current += g * gravityScale * dt;
 
     const desired = {
       x: desiredHorizontal.x,
@@ -165,6 +225,10 @@ export function PlayerController({
     controller.computeColliderMovement(collider, desired);
     const m = controller.computedMovement();
     grounded.current = controller.computedGrounded();
+    if (!wasGrounded && grounded.current && jumpedThisAirRef.current) {
+      jumpedThisAirRef.current = false;
+      audio.playJumpLand();
+    }
 
     if (grounded.current && desired.y < 0) verticalVelocity.current = 0;
 

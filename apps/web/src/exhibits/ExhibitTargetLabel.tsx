@@ -11,14 +11,23 @@ export function ExhibitTargetLabel({ target }: { target: ExhibitTarget | null })
 
   useEffect(() => {
     if (target) {
-      setDisplay(target);
-      const raf = requestAnimationFrame(() => setVisible(true));
-      return () => cancelAnimationFrame(raf);
+      let showRaf = 0;
+      const displayRaf = requestAnimationFrame(() => {
+        setDisplay(target);
+        showRaf = requestAnimationFrame(() => setVisible(true));
+      });
+      return () => {
+        cancelAnimationFrame(displayRaf);
+        cancelAnimationFrame(showRaf);
+      };
     }
 
-    setVisible(false);
+    const hideRaf = requestAnimationFrame(() => setVisible(false));
     const timer = window.setTimeout(() => setDisplay(null), LABEL_FADE_MS);
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelAnimationFrame(hideRaf);
+      window.clearTimeout(timer);
+    };
   }, [target]);
 
   if (!display) return null;

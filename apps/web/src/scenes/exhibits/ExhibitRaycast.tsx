@@ -27,11 +27,20 @@ export function ExhibitRaycast({
   const onEmptyClickRef = useRef(onEmptyClick);
   const suppressNextClickRef = useRef(suppressNextClick);
   const onConsumeSuppressedClickRef = useRef(onConsumeSuppressedClick);
-  onTargetChangeRef.current = onTargetChange;
-  onFocusExhibitRef.current = onFocusExhibit;
-  onEmptyClickRef.current = onEmptyClick;
-  suppressNextClickRef.current = suppressNextClick;
-  onConsumeSuppressedClickRef.current = onConsumeSuppressedClick;
+
+  useEffect(() => {
+    onTargetChangeRef.current = onTargetChange;
+    onFocusExhibitRef.current = onFocusExhibit;
+    onEmptyClickRef.current = onEmptyClick;
+    suppressNextClickRef.current = suppressNextClick;
+    onConsumeSuppressedClickRef.current = onConsumeSuppressedClick;
+  }, [
+    onTargetChange,
+    onFocusExhibit,
+    onEmptyClick,
+    suppressNextClick,
+    onConsumeSuppressedClick,
+  ]);
 
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const center = useMemo(() => new THREE.Vector2(0, 0), []);

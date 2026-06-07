@@ -17,7 +17,10 @@ export function FocusDoubleClickExit({
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const pointer = useMemo(() => new THREE.Vector2(), []);
   const onBlankRef = useRef(onBlankDoubleClick);
-  onBlankRef.current = onBlankDoubleClick;
+
+  useEffect(() => {
+    onBlankRef.current = onBlankDoubleClick;
+  }, [onBlankDoubleClick]);
 
   useEffect(() => {
     const el = gl.domElement;

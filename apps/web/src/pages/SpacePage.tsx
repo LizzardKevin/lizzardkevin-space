@@ -1,12 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { useAudioDirector } from "../audio/useAudioDirector";
 import { EntrySplash } from "../components/entry/EntrySplash";
 import { useEntryTransition } from "../hooks/useEntryTransition";
 import { useClientPlatform } from "../platform/useClientPlatform";
 import { isWebGPUSupported } from "../rendering/webgpuSupport";
 import { resumeSpaceFirstPerson } from "../space/requestSpacePointerLock";
-import { SpaceDesktopExperience } from "./SpaceDesktopExperience";
 import { MobileExperience } from "./MobileExperience";
+
+const SpaceDesktopExperience = lazy(() =>
+  import("./SpaceDesktopExperience").then((module) => ({
+    default: module.SpaceDesktopExperience,
+  })),
+);
 
 export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) {
   const platform = useClientPlatform();
@@ -43,7 +48,11 @@ export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) 
   return (
     <div style={{ height: "100vh", width: "100vw", background: "#ffffff" }}>
       {showSplash && <EntrySplash entry={entry} onEnter={handleEnter} />}
-      {isDesktop && <SpaceDesktopExperience entry={entry} overlay={overlay} />}
+      {isDesktop && (
+        <Suspense fallback={null}>
+          <SpaceDesktopExperience entry={entry} overlay={overlay} />
+        </Suspense>
+      )}
       {!isDesktop && <MobileExperience entry={entry} />}
     </div>
   );

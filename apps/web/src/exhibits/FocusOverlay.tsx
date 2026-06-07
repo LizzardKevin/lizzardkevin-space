@@ -5,6 +5,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -23,6 +24,7 @@ import {
   fitFocusModelToFrame,
   type FocusFrameResult,
 } from "./focusModelFrame";
+import { GLTF_DRACO_DECODER_PATH } from "../scenes/gallery/galleryConfig";
 import { FocusOverviewPanel, FocusSideColumn, FocusStoryPanel } from "./FocusContentPanels";
 import { FocusExhibitTitle } from "./FocusExhibitTitle";
 import { FocusDoubleClickExit } from "./FocusCanvasInput";
@@ -69,6 +71,7 @@ function FocusTurntable({
   useFrame((_, delta) => {
     if (!active) return;
     const root = target.current;
+    // eslint-disable-next-line react-hooks/immutability -- Three.js Object3D transforms are mutable runtime state.
     if (root) root.rotation.y += delta * FOCUS_TURNTABLE_RAD_PER_SEC;
   });
   return null;
@@ -82,6 +85,7 @@ function FocusCameraRig({ frame }: { frame: FocusFrameResult | null }) {
     camera.position.set(...frame.cameraPosition);
     camera.lookAt(frame.orbitTarget[0], frame.orbitTarget[1], frame.orbitTarget[2]);
     if ("fov" in camera && typeof camera.fov === "number") {
+      // eslint-disable-next-line react-hooks/immutability -- R3F camera is an imperative Three.js object.
       camera.fov = FOCUS_FRAME.cameraFov;
       camera.updateProjectionMatrix();
     }
@@ -130,22 +134,17 @@ function FocusModel({
   onButtonAction: (action: ExhibitButtonAction) => void;
   onFrameComputed: (frame: FocusFrameResult) => void;
 }) {
-  const gltf = useGLTF(url);
-  const scene = useRef<THREE.Object3D | null>(null);
+  const gltf = useGLTF(url, GLTF_DRACO_DECODER_PATH);
+  const scene = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
 
   useEffect(() => {
-    scene.current = gltf.scene.clone(true);
-    const frame = fitFocusModelToFrame(scene.current);
+    const frame = fitFocusModelToFrame(scene);
     onFrameComputed(frame);
-    return () => {
-      scene.current = null;
-    };
-  }, [gltf.scene, url, onFrameComputed]);
+  }, [scene, onFrameComputed]);
 
   useEffect(() => {
-    if (!scene.current) return;
-    bindFocusButtonActions(scene.current, buttons);
-  }, [buttons]);
+    bindFocusButtonActions(scene, buttons);
+  }, [buttons, scene]);
 
   const handlePointerDown = useCallback(
     (e: ThreeEvent<PointerEvent>) => {
@@ -165,7 +164,7 @@ function FocusModel({
 
   return (
     <group onPointerDown={handlePointerDown}>
-      {scene.current ? <primitive object={scene.current} /> : null}
+      <primitive object={scene} />
     </group>
   );
 }
@@ -181,15 +180,31 @@ function FocusScene({
   orbitEnabled: boolean;
   onBlankDoubleClick: () => void;
 }) {
+  return (
+    <FocusSceneContent
+      key={exhibit.exhibitId}
+      exhibit={exhibit}
+      onButtonAction={onButtonAction}
+      orbitEnabled={orbitEnabled}
+      onBlankDoubleClick={onBlankDoubleClick}
+    />
+  );
+}
+
+function FocusSceneContent({
+  exhibit,
+  onButtonAction,
+  orbitEnabled,
+  onBlankDoubleClick,
+}: {
+  exhibit: ExhibitManifestItem;
+  onButtonAction: (action: ExhibitButtonAction) => void;
+  orbitEnabled: boolean;
+  onBlankDoubleClick: () => void;
+}) {
   const hitRootRef = useRef<THREE.Group>(null);
   const [turntableSpin, setTurntableSpin] = useState(true);
   const [frame, setFrame] = useState<FocusFrameResult | null>(null);
-
-  useEffect(() => {
-    setTurntableSpin(true);
-    setFrame(null);
-    if (hitRootRef.current) hitRootRef.current.rotation.y = 0;
-  }, [exhibit.exhibitId]);
 
   return (
     <>
@@ -272,12 +287,11 @@ export function FocusOverlay({
   const videoUrl = exhibit.media?.videoUrl;
 
   useEffect(() => {
-    useGLTF.preload(exhibit.focusGlbUrl);
+    useGLTF.preload(exhibit.focusGlbUrl, GLTF_DRACO_DECODER_PATH);
   }, [exhibit.focusGlbUrl]);
 
   useEffect(() => {
     let cancelled = false;
-    setContentLoading(true);
     loadExhibitContent(exhibit.exhibitId).then((c) => {
       if (!cancelled) {
         setContent(c);
