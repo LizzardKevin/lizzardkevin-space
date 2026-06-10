@@ -1,0 +1,1 @@
+Codex App Projects 接管 Cursor/projectless 上下文；修复 hooks lint、拆分 GallerySpawnContext、lazy 加载桌面体验与 Focus、Rolldown vendor 分包；本地化 Draco decoder；修 demo_box Focus 旋转中心；入口白屏增加脉冲放大与第 20/100 次点击彩蛋；第一人称空格第 20 次解锁 0.4m 跳跃并加起跳/落地音；用最新 CSV 重新生成含 demo_bass 的 exhibit-asset-tracker.xlsx。

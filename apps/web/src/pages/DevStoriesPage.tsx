@@ -1,19 +1,113 @@
+import { useEffect, useState } from "react";
+import { devStories } from "../content/devStories";
+
 export function DevStoriesPage() {
+  const [activeStoryId, setActiveStoryId] = useState(devStories[0]?.id ?? "");
+
+  useEffect(() => {
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-dev-story]"));
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        const nextId = visible?.target.id;
+        if (nextId) setActiveStoryId(nextId);
+      },
+      {
+        root: null,
+        rootMargin: "-22% 0px -58% 0px",
+        threshold: [0.18, 0.35, 0.55, 0.75],
+      },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToStory = (storyId: string) => {
+    document.getElementById(storyId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    setActiveStoryId(storyId);
+  };
+
   return (
-    <div className="overlay-tab-content">
-      <h1 style={{ fontSize: 22, margin: 0 }}>DevStories</h1>
-      <p style={{ marginTop: 12, lineHeight: 1.6, maxWidth: 760, opacity: 0.85 }}>
-        这里是开发日志页（占位）。后续会做「文章列表 + 详情页」，内容在本地 Markdown 维护。
-      </p>
-      <ol style={{ marginTop: 8, lineHeight: 1.7, maxWidth: 760, opacity: 0.82 }}>
-        <li>
-          仓库内 <code>docs/devlog/</code> 编写日志（如 DevLog 系列）
-        </li>
-        <li>可选：在应用内增加 MDX 内容目录，构建时生成列表与详情</li>
-      </ol>
-      <p style={{ marginTop: 12, lineHeight: 1.6, maxWidth: 760, opacity: 0.7 }}>
-        说明文档见项目根目录 <code>docs/devstories.md</code>。
-      </p>
+    <div className="overlay-tab-content overlay-tab-content--dev-stories">
+      <header className="dev-stories__header">
+        <p className="dev-stories__label">Development Stories</p>
+        <h1>DevStories</h1>
+        <p>
+          这里不是一份只记录成果的 changelog。它把 LizzardKevin Space 从第一天到 Codex
+          接管后的四段开发过程串起来，也保留那些性能问题、交互回退、资源加载失败和资产流程踩坑。
+        </p>
+      </header>
+
+      <div className="dev-stories__layout">
+        <nav className="dev-stories__rail" aria-label="DevStories timeline">
+          {devStories.map((story) => {
+            const isActive = story.id === activeStoryId;
+            return (
+              <button
+                key={story.id}
+                type="button"
+                className={`dev-stories__railButton${isActive ? " dev-stories__railButton--active" : ""}`}
+                aria-current={isActive ? "location" : undefined}
+                onClick={() => scrollToStory(story.id)}
+              >
+                <span>{story.number}</span>
+                <strong>{story.title}</strong>
+                <small>{story.period}</small>
+              </button>
+            );
+          })}
+        </nav>
+
+        <main className="dev-stories__feed">
+          {devStories.map((story) => (
+            <section key={story.id} id={story.id} className="dev-story" data-dev-story>
+              <div className="dev-story__meta">
+                <span>DevLog {story.number}</span>
+                <span>{story.period}</span>
+              </div>
+              <h2>{story.title}</h2>
+              <p className="dev-story__summary">{story.summary}</p>
+
+              <div className="dev-story__tags" aria-label={`DevLog ${story.number} tags`}>
+                {story.tags.map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
+
+              <div className="dev-story__columns">
+                <StoryList title="Built" items={story.built} />
+                <StoryList title="Trouble / Rollback" items={story.trouble} />
+              </div>
+
+              <div className="dev-story__next">
+                <span>Next</span>
+                <p>{story.next}</p>
+              </div>
+            </section>
+          ))}
+        </main>
+      </div>
     </div>
+  );
+}
+
+function StoryList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section className="dev-story__list" aria-label={title}>
+      <h3>{title}</h3>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </section>
   );
 }
