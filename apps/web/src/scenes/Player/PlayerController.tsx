@@ -19,7 +19,7 @@ import {
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
-const WALK_SPEED = 1.5;
+const WALK_SPEED = 2.45;
 const SPRINT_SPEED = FOOTSTEP_SPRINT_SPEED;
 const JUMP_HEIGHT_M = 0.4;
 const JUMP_DURATION_SCALE = 0.8;

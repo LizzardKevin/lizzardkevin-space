@@ -123,10 +123,16 @@ export function SpaceCursorOverlay({
 
   useEffect(() => {
     overlayOpenRef.current = overlayOpen;
+    if (overlayOpen) {
+      unlockSyncPendingRef.current = false;
+    }
   }, [overlayOpen]);
 
   useEffect(() => {
     focusOpenRef.current = focusOpen;
+    if (focusOpen) {
+      unlockSyncPendingRef.current = false;
+    }
   }, [focusOpen]);
 
   useEffect(() => {
@@ -151,11 +157,13 @@ export function SpaceCursorOverlay({
         setSyncingToSystem(false);
         return;
       }
-      if (wasPointerLockedRef.current) {
+      if (wasPointerLockedRef.current && enteredRef.current && !overlayOpenRef.current && !focusOpenRef.current) {
         wasPointerLockedRef.current = false;
         unlockSyncPendingRef.current = true;
         setPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        return;
       }
+      wasPointerLockedRef.current = false;
     };
     update();
     document.addEventListener("pointerlockchange", update);
@@ -202,7 +210,7 @@ export function SpaceCursorOverlay({
           syncTimerRef.current = null;
           setSyncingToSystem(false);
         }, RETURN_MS);
-      } else if (!syncingToSystem) {
+      } else {
         setPos({ x: e.clientX, y: e.clientY });
       }
       const target = e.target instanceof Element ? e.target : null;
@@ -312,6 +320,8 @@ export function SpaceCursorOverlay({
 
   if (!enabled) return null;
 
+  const effectiveSyncingToSystem = syncingToSystem && !overlayOpen && !focusOpen;
+
   return (
     <div
       aria-hidden
@@ -320,7 +330,7 @@ export function SpaceCursorOverlay({
     >
       <div
         key={clickPulseNonce}
-        className={`space-cursor-dot space-cursor-dot--${mode}${returning ? " space-cursor-dot--returning" : ""}${syncingToSystem ? " space-cursor-dot--syncing" : ""}`}
+        className={`space-cursor-dot space-cursor-dot--${mode}${returning ? " space-cursor-dot--returning" : ""}${effectiveSyncingToSystem ? " space-cursor-dot--syncing" : ""}`}
       >
         <span className="space-cursor-clickPulse" />
         {scrollBursts.map((burst) => (
