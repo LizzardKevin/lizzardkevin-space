@@ -5,6 +5,27 @@ import { DevStoriesPage } from "../pages/DevStoriesPage";
 import { useFocusDoubleClickHandler } from "../exhibits/focusDoubleClick";
 import { releaseSpacePointerLock } from "../space/requestSpacePointerLock";
 
+function isOverlayContentClick(target: EventTarget | null) {
+  if (!(target instanceof Element)) return false;
+  return !!target.closest(
+    [
+      "button",
+      "a",
+      "input",
+      "textarea",
+      "select",
+      "[role='button']",
+      ".profile-page__header",
+      ".profile-page__links",
+      ".profile-page__rail",
+      ".profile-section",
+      ".dev-stories__header",
+      ".dev-stories__rail",
+      ".dev-story",
+    ].join(","),
+  );
+}
+
 export function OverlayLayer({
   tab,
   closing,
@@ -60,12 +81,22 @@ export function OverlayLayer({
       className="overlay-layer"
       onClick={handleBlankDoubleClick}
     >
-      <div className="overlay-layer__panel" style={{ animation: anim }} onClick={(e) => e.stopPropagation()}>
+      <div
+        className="overlay-layer__panel"
+        style={{ animation: anim }}
+        onClick={(e) => {
+          if (isOverlayContentClick(e.target)) {
+            e.stopPropagation();
+            return;
+          }
+          handleBlankDoubleClick();
+        }}
+      >
         {content}
       </div>
 
       <p id="overlay-exit-hint" className="overlay-exit-hint">
-        双击空白区域以退出
+        双击空白退出
       </p>
 
       <style>{`

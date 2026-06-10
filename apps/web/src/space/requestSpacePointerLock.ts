@@ -1,13 +1,21 @@
+import { requestSpaceCursorReturn } from "../cursor/spaceCursorController";
+
+let pendingGestureResume = false;
+
 /** 在用户点击/按键回调中同步调用，避免 rAF 导致手势失效。 */
 export function requestSpacePointerLock() {
   const canvas = document.getElementById("space-canvas") as HTMLCanvasElement | null;
   if (canvas) {
     void canvas.requestPointerLock?.();
+    queueMicrotask(() => {
+      pendingGestureResume = document.pointerLockElement !== canvas;
+    });
     return;
   }
   queueMicrotask(() => {
     const el = document.getElementById("space-canvas") as HTMLCanvasElement | null;
     void el?.requestPointerLock?.();
+    if (el) pendingGestureResume = document.pointerLockElement !== el;
   });
 }
 
@@ -22,13 +30,16 @@ export function resumeSpaceFirstPerson() {
   requestSpacePointerLock();
 }
 
+/** 带自定义 cursor 回中心动画的恢复；动画结束后请求 pointer lock。 */
+export function resumeSpaceFirstPersonWithCursorReturn() {
+  requestSpaceCursorReturn(() => resumeSpaceFirstPerson());
+}
+
 /** 已入场且非全屏 overlay 时恢复第一人称（Focus 退出等场景）。 */
 export function engageSpaceFirstPerson(opts: { entered: boolean; overlayOpen: boolean }) {
   if (!opts.entered || opts.overlayOpen) return;
   resumeSpaceFirstPerson();
 }
-
-let pendingGestureResume = false;
 
 function engageSpaceFirstPersonNow(opts: { entered: boolean; overlayOpen: boolean }) {
   if (opts.overlayOpen) return;
@@ -44,13 +55,15 @@ export function resumeSpaceFirstPersonAfterEscape(opts: { entered: boolean; over
   const onKeyUp = (e: KeyboardEvent) => {
     if (e.key !== "Escape") return;
     window.removeEventListener("keyup", onKeyUp);
-    engageSpaceFirstPersonNow(opts);
-    queueMicrotask(() => {
-      if (document.pointerLockElement) {
-        pendingGestureResume = false;
-        return;
-      }
-      pendingGestureResume = true;
+    requestSpaceCursorReturn(() => {
+      engageSpaceFirstPersonNow(opts);
+      queueMicrotask(() => {
+        if (document.pointerLockElement) {
+          pendingGestureResume = false;
+          return;
+        }
+        pendingGestureResume = true;
+      });
     });
   };
   window.addEventListener("keyup", onKeyUp);

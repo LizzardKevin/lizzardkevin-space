@@ -3,6 +3,7 @@ import { Physics } from "@react-three/rapier";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { Crosshair } from "../components/Crosshair";
+import { SpaceCursorOverlay } from "../cursor/SpaceCursorOverlay";
 import { Toast } from "../components/Toast";
 import type { EntryTransition } from "../entry/entryTypes";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
@@ -28,8 +29,8 @@ import { useTranslation } from "react-i18next";
 
 import {
   engageSpaceFirstPerson,
-  resumeSpaceFirstPerson,
   resumeSpaceFirstPersonAfterEscape,
+  resumeSpaceFirstPersonWithCursorReturn,
 } from "../space/requestSpacePointerLock";
 
 const FocusOverlay = lazy(() =>
@@ -64,6 +65,7 @@ export function SpaceDesktopExperience({
   const [suppressNextExhibitClick, setSuppressNextExhibitClick] = useState(false);
   const [jumpHintMessage, setJumpHintMessage] = useState("");
   const [jumpHintVisible, setJumpHintVisible] = useState(false);
+  const [pointerLocked, setPointerLocked] = useState(false);
 
   const { entered, fading: entryIsFading } = entry;
 
@@ -72,6 +74,13 @@ export function SpaceDesktopExperience({
     const timer = window.setTimeout(() => setJumpHintVisible(false), JUMP_HINT_VISIBLE_MS);
     return () => window.clearTimeout(timer);
   }, [jumpHintVisible, jumpHintMessage]);
+
+  useEffect(() => {
+    const update = () => setPointerLocked(document.pointerLockElement !== null);
+    update();
+    document.addEventListener("pointerlockchange", update);
+    return () => document.removeEventListener("pointerlockchange", update);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,7 +122,7 @@ export function SpaceDesktopExperience({
         resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: overlay.isOverlayOpen });
         return;
       }
-      if (entered) resumeSpaceFirstPerson();
+      if (entered) resumeSpaceFirstPersonWithCursorReturn();
       else engageSpaceFirstPerson({ entered, overlayOpen: false });
     },
     [entered, overlay.isOverlayOpen],
@@ -155,7 +164,7 @@ export function SpaceDesktopExperience({
     if (!controlsEnabled) return;
     setCrosshairPulseNonce((n) => n + 1);
     if (!document.pointerLockElement) {
-      resumeSpaceFirstPerson();
+      resumeSpaceFirstPersonWithCursorReturn();
     }
   }, [controlsEnabled]);
 
@@ -172,10 +181,10 @@ export function SpaceDesktopExperience({
     () => (
       <>
         <JumpHint message={jumpHintMessage} visible={jumpHintVisible} />
-        <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} />
+        {pointerLocked ? <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} /> : null}
       </>
     ),
-    [crosshairPulseNonce, isHovering, jumpHintMessage, jumpHintVisible],
+    [crosshairPulseNonce, isHovering, jumpHintMessage, jumpHintVisible, pointerLocked],
   );
 
   const useShadows = !ENABLE_GALLERY_GLB || ENABLE_GALLERY_RUNTIME_SHADOWS;
@@ -183,6 +192,12 @@ export function SpaceDesktopExperience({
 
   return (
     <>
+      <SpaceCursorOverlay
+        enabled
+        entered={entered}
+        overlayOpen={overlay.isOverlayOpen}
+        focusOpen={focusOverlayExhibit !== null}
+      />
       <Toast message={toast} onDone={() => setToast(null)} />
       {hud}
       <PlaybackBar elevated={!!focusOverlayExhibit} />

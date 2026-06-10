@@ -406,6 +406,7 @@ export function FocusOverlay({
             <Suspense fallback={<FocusLoading />}>
               <Canvas
                 id="focus-canvas"
+                data-cursor="drag-model"
                 className={`focus-canvas${contentVisible ? " focus-canvas--visible" : ""}`}
                 gl={(props) =>
                   createWebGPURenderer({

@@ -1,8 +1,8 @@
 import { SpacePage } from "./pages/SpacePage";
 import {
   releaseSpacePointerLock,
-  resumeSpaceFirstPerson,
   resumeSpaceFirstPersonAfterEscape,
+  resumeSpaceFirstPersonWithCursorReturn,
 } from "./space/requestSpacePointerLock";
 import { useSpacePointerLockGuard } from "./space/useSpacePointerLockGuard";
 import { TopBar } from "./components/TopBar";
@@ -41,7 +41,7 @@ export default function App() {
       resumeSpaceFirstPersonAfterEscape({ entered: true, overlayOpen: false });
       return;
     }
-    resumeSpaceFirstPerson();
+    resumeSpaceFirstPersonWithCursorReturn();
   };
 
   return (
@@ -49,7 +49,7 @@ export default function App() {
       {isDesktop && tab === null && (
         <TopBar
           onOpenTab={openOverlayTab}
-          onCloseTab={() => resumeSpaceFirstPerson()}
+          onCloseTab={() => resumeSpaceFirstPersonWithCursorReturn()}
         />
       )}
       <SpacePage overlay={appOverlayContext} />
