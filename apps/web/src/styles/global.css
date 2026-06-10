@@ -183,7 +183,8 @@ button {
     0 0 28px rgba(218, 189, 129, 0.32);
 }
 
-.space-cursor-dot--returning {
+.space-cursor-dot--returning,
+.space-cursor-dot--syncing {
   transition:
     left 500ms cubic-bezier(0.16, 1, 0.3, 1),
     top 500ms cubic-bezier(0.16, 1, 0.3, 1),

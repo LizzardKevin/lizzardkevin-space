@@ -105,6 +105,7 @@ export function SpaceCursorOverlay({
   const [mode, setMode] = useState<CursorMode>("default");
   const [pointerLocked, setPointerLocked] = useState(false);
   const [returning, setReturning] = useState(false);
+  const [syncingToSystem, setSyncingToSystem] = useState(false);
   const [clickPulseNonce, setClickPulseNonce] = useState(0);
   const [scrollBursts, setScrollBursts] = useState<ScrollBurst[]>([]);
 
@@ -114,9 +115,11 @@ export function SpaceCursorOverlay({
   const enteredRef = useRef(entered);
   const returnTimerRef = useRef<number | null>(null);
   const returnCompleteRef = useRef<(() => void) | null>(null);
+  const syncTimerRef = useRef<number | null>(null);
+  const unlockSyncPendingRef = useRef(false);
+  const wasPointerLockedRef = useRef(false);
   const scrollIdRef = useRef(0);
   const scrollThrottleRef = useRef(0);
-  const virtualSpaceCursorRef = useRef(false);
 
   useEffect(() => {
     overlayOpenRef.current = overlayOpen;
@@ -143,11 +146,14 @@ export function SpaceCursorOverlay({
       setPointerLocked(locked);
       if (locked) {
         setMode("default");
-        virtualSpaceCursorRef.current = false;
+        wasPointerLockedRef.current = true;
+        unlockSyncPendingRef.current = false;
+        setSyncingToSystem(false);
         return;
       }
-      if (enteredRef.current && !overlayOpenRef.current && !focusOpenRef.current) {
-        virtualSpaceCursorRef.current = true;
+      if (wasPointerLockedRef.current) {
+        wasPointerLockedRef.current = false;
+        unlockSyncPendingRef.current = true;
         setPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
       }
     };
@@ -179,6 +185,7 @@ export function SpaceCursorOverlay({
     return () => {
       setSpaceCursorReturnHandler(null);
       if (returnTimerRef.current !== null) window.clearTimeout(returnTimerRef.current);
+      if (syncTimerRef.current !== null) window.clearTimeout(syncTimerRef.current);
     };
   }, [enabled, requestReturn]);
 
@@ -186,14 +193,16 @@ export function SpaceCursorOverlay({
     if (!enabled) return;
     const onPointerMove = (e: PointerEvent) => {
       if (returning || document.pointerLockElement) return;
-      if (enteredRef.current && !overlayOpenRef.current && !focusOpenRef.current) {
-        virtualSpaceCursorRef.current = true;
-        setPos((current) => ({
-          x: Math.min(Math.max(current.x + e.movementX, 0), window.innerWidth),
-          y: Math.min(Math.max(current.y + e.movementY, 0), window.innerHeight),
-        }));
-      } else {
-        virtualSpaceCursorRef.current = false;
+      if (unlockSyncPendingRef.current) {
+        unlockSyncPendingRef.current = false;
+        if (syncTimerRef.current !== null) window.clearTimeout(syncTimerRef.current);
+        setSyncingToSystem(true);
+        requestAnimationFrame(() => setPos({ x: e.clientX, y: e.clientY }));
+        syncTimerRef.current = window.setTimeout(() => {
+          syncTimerRef.current = null;
+          setSyncingToSystem(false);
+        }, RETURN_MS);
+      } else if (!syncingToSystem) {
         setPos({ x: e.clientX, y: e.clientY });
       }
       const target = e.target instanceof Element ? e.target : null;
@@ -250,7 +259,7 @@ export function SpaceCursorOverlay({
       window.removeEventListener("pointercancel", onPointerUp, true);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [enabled, returning]);
+  }, [enabled, returning, syncingToSystem]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -262,7 +271,6 @@ export function SpaceCursorOverlay({
       e.preventDefault();
       if (altHeldRef.current) return;
       altHeldRef.current = true;
-      virtualSpaceCursorRef.current = true;
       releaseSpacePointerLock();
     };
 
@@ -277,6 +285,8 @@ export function SpaceCursorOverlay({
 
     const onBlur = () => {
       altHeldRef.current = false;
+      unlockSyncPendingRef.current = false;
+      setSyncingToSystem(false);
       setMode("default");
     };
 
@@ -310,7 +320,7 @@ export function SpaceCursorOverlay({
     >
       <div
         key={clickPulseNonce}
-        className={`space-cursor-dot space-cursor-dot--${mode}${returning ? " space-cursor-dot--returning" : ""}`}
+        className={`space-cursor-dot space-cursor-dot--${mode}${returning ? " space-cursor-dot--returning" : ""}${syncingToSystem ? " space-cursor-dot--syncing" : ""}`}
       >
         <span className="space-cursor-clickPulse" />
         {scrollBursts.map((burst) => (
