@@ -1505,31 +1505,73 @@ button {
 }
 
 .frosted-split__stage {
-  display: flex;
+  position: relative;
+  display: block;
+  height: 100%;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  --stage-track-y: 0px;
+}
+
+.frosted-split__stageLayer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
   min-height: 0;
   flex-direction: column;
   justify-content: center;
-  overscroll-behavior: contain;
   padding: min(7vh, 58px) 20px;
-  animation: frostedStageIn 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform: translateY(0);
   will-change: opacity, transform;
 }
 
-.frosted-split__stage--page-down {
-  animation-name: frostedStagePageDown;
+.frosted-split__stageLayer--single {
+  animation: frostedStageIn 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform: translateY(var(--stage-track-y));
 }
 
-.frosted-split__stage--page-up {
-  animation-name: frostedStagePageUp;
+.frosted-split__stage--tracking .frosted-split__stageLayer--single {
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.frosted-split__stage--rebound-down {
+.frosted-split__stage--settling .frosted-split__stageLayer--single {
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.frosted-split__stage--rebound-down .frosted-split__stageLayer--single {
   animation: frostedStageReboundDown 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.frosted-split__stage--rebound-up {
+.frosted-split__stage--rebound-up .frosted-split__stageLayer--single {
   animation: frostedStageReboundUp 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.frosted-split__stage--transition .frosted-split__stageLayer {
+  position: absolute;
+  inset: 0;
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.frosted-split__stage--transition-down .frosted-split__stageLayer--out {
+  animation-name: frostedStageOutUp;
+}
+
+.frosted-split__stage--transition-down .frosted-split__stageLayer--in {
+  animation-name: frostedStageInFromDown;
+}
+
+.frosted-split__stage--transition-up .frosted-split__stageLayer--out {
+  animation-name: frostedStageOutDown;
+}
+
+.frosted-split__stage--transition-up .frosted-split__stageLayer--in {
+  animation-name: frostedStageInFromUp;
 }
 
 .frosted-split__stageMeta {
@@ -1643,18 +1685,37 @@ button {
   color: var(--split-brass);
 }
 
-.frosted-split__detailGroup summary strong {
+.frosted-split__detailToggle {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 18px;
+  height: 18px;
   font-size: 10px;
-  font-weight: 540;
-  letter-spacing: 0.12em;
+  font-weight: 620;
+  letter-spacing: 0;
   line-height: 1;
-  opacity: 0.4;
-  transition: opacity 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.46;
+  transform: translateY(-1px);
+  transition:
+    color 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.frosted-split__detailGroup summary:hover strong,
-.frosted-split__detailGroup summary:focus-visible strong {
+.frosted-split__detailToggle::before {
+  content: "+";
+}
+
+.frosted-split__detailGroup[open] .frosted-split__detailToggle::before {
+  content: "-";
+}
+
+.frosted-split__detailGroup summary:hover .frosted-split__detailToggle,
+.frosted-split__detailGroup summary:focus-visible .frosted-split__detailToggle {
+  color: var(--split-cyan);
   opacity: 0.72;
+  transform: translateY(-1px) scale(1.12);
 }
 
 .frosted-split__detailGroup:not([open]) > ul,
@@ -1731,7 +1792,38 @@ button {
 @keyframes frostedStageIn {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.992);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes frostedStageOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-72px) scale(0.988);
+  }
+}
+
+@keyframes frostedStageOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(72px) scale(0.988);
+  }
+}
+
+@keyframes frostedStageInFromDown {
+  from {
+    opacity: 0;
+    transform: translateY(72px) scale(0.988);
   }
   to {
     opacity: 1;
@@ -1739,21 +1831,10 @@ button {
   }
 }
 
-@keyframes frostedStagePageDown {
+@keyframes frostedStageInFromUp {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.992);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes frostedStagePageUp {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.992);
+    transform: translateY(-72px) scale(0.988);
   }
   to {
     opacity: 1;
@@ -1825,6 +1906,10 @@ button {
   }
 
   .frosted-split__stage {
+    height: auto;
+  }
+
+  .frosted-split__stageLayer {
     padding: 24px 0;
   }
 
@@ -1847,7 +1932,8 @@ button {
   .frosted-split__stripButton,
   .frosted-split__indexButton,
   .frosted-split__detailGroup summary,
-  .frosted-split__stage {
+  .frosted-split__stage,
+  .frosted-split__stageLayer {
     animation: none;
     transition: none;
   }

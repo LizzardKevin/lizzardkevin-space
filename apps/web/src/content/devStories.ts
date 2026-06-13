@@ -103,4 +103,28 @@ export const devStories: DevStory[] = [
       "继续手动 QA 跳跃手感和音量；重做 Focus 三按钮交互；上线前确认 /draco/、/audio/、/exhibits/ 等静态资源完整上传。",
     tags: ["Codex", "Lint", "Chunk Split", "Draco"],
   },
+  {
+    id: "devlog-05",
+    number: "05",
+    period: "2026.06.09 - 06.14",
+    title: "把入口、Overlay 和滚轮目录推进成新的前端基准",
+    summary:
+      "第五轮把 SPACE 的第一屏、第一人称进入、Profile / DevStories 信息界面和验证流程重新整理：入口保留极简白屏但不再像加载失败，点击进入后直接请求第一人称控制，Overlay 从长 feed 改成全屏 Frosted Split，并继续把滚轮目录、Detail 展开和开发日志纳入可验证状态。",
+    built: [
+      "清理 Profile 和展品内容中的 TODO、占位和测试语气，入口只保留 LizzardKevin Space 与点击进入提示，并让整组文字可点击、可键盘进入、轻微漂浮。",
+      "让 SPACE canvas ready 后才允许桌面入口进入，并在同一用户手势里请求 pointer lock；失败时只显示 fallback toast，避免重复 unhandled error。",
+      "调整初始视角、Overlay 关闭按钮、ESC / 双击空白关闭和关闭后的 cursor / pointer lock 恢复逻辑。",
+      "把 Profile 与 DevStories 重做成全屏 Frosted Split：白色 Profile、黑色 DevStories、半透明毛玻璃、滑动分界线、低密度 index、深浅光标和 clickable text hover。",
+      "重做中间 stage 的 wheel paging：慢速跟手、过阈值同时飞出飞入、首尾回弹、一次 gesture 只跳一条，并用独立脚本锁定状态机行为。",
+    ],
+    trouble: [
+      "in-app browser 对 WebGPU 与 Pointer Lock 的自动化限制明显，最终用 Chrome CDP fallback 验证 overlay 尺寸、状态和交互，再保留真实 Chrome 手测要求。",
+      "全屏面板初版因为 content-box 宽度叠加 padding，DevStories 顶部说明被裁切，改为 border-box 后修复。",
+      "只靠 cooldown 不能阻止触控板惯性连续跳两条，需要改成 gesture lock，直到 wheel 事件真正空闲后才允许下一次选择。",
+      "Detail 右侧两位数量看起来像编号但没有实际意义，改为 + / - 后才符合可展开控件的直觉。",
+    ],
+    next:
+      "继续在真实 Chrome 中手测 WebGPU 背景透出、Pointer Lock、触控板滚轮手感和移动端降级；下一轮回到 Focus 三按钮 hover、billboard 和展品媒体资产。",
+    tags: ["Frosted Split", "Pointer Lock", "Wheel UX", "DevLog"],
+  },
 ];

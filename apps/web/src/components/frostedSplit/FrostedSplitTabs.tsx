@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type WheelEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type WheelEvent,
+} from "react";
 import { splitArchivePanels } from "./splitArchiveData";
 import type {
   SplitArchiveItem,
@@ -18,10 +27,24 @@ type FrostedSplitTabsProps = {
 };
 
 type StageMotion = {
+  direction: WheelPagingDirection | null;
+  fromItem: SplitArchiveItem | null;
+  mode: "idle" | "tracking" | "settling" | "transition" | "rebound";
   nonce: number;
-  pageDirection: WheelPagingDirection | null;
-  reboundDirection: WheelPagingDirection | null;
+  toItem: SplitArchiveItem | null;
+  trackingProgress: number;
 };
+
+function createIdleStageMotion(nonce = 0): StageMotion {
+  return {
+    direction: null,
+    fromItem: null,
+    mode: "idle",
+    nonce,
+    toItem: null,
+    trackingProgress: 0,
+  };
+}
 
 function getInitialItemId(panel: SplitArchivePanel) {
   return panel.defaultItemId || panel.items[0]?.id || "";
@@ -40,6 +63,16 @@ function getNextIndex(currentIndex: number, total: number, key: string) {
   if (key === "ArrowDown" || key === "ArrowRight") return clampIndex(currentIndex + 1, total);
   if (key === "ArrowUp" || key === "ArrowLeft") return clampIndex(currentIndex - 1, total);
   return currentIndex;
+}
+
+function getStageTrackOffset(direction: WheelPagingDirection | null, progress: number) {
+  if (!direction) return 0;
+  const distance = Math.min(Math.max(progress, 0), 1) * 46;
+  return direction === "down" ? -distance : distance;
+}
+
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function ArchiveIndex({
@@ -98,7 +131,7 @@ function DetailGroups({ item }: { item: SplitArchiveItem }) {
         <details key={group.title} className="frosted-split__detailGroup">
           <summary>
             <span>{group.title}</span>
-            <strong>{group.items.length.toString().padStart(2, "0")}</strong>
+            <strong className="frosted-split__detailToggle" aria-hidden="true" />
           </summary>
           <ul>
             {group.items.map((detail) => (
@@ -111,12 +144,30 @@ function DetailGroups({ item }: { item: SplitArchiveItem }) {
         <details className="frosted-split__detailGroup frosted-split__detailGroup--note">
           <summary>
             <span>{item.note.title}</span>
-            <strong>01</strong>
+            <strong className="frosted-split__detailToggle" aria-hidden="true" />
           </summary>
           <p>{item.note.body}</p>
         </details>
       ) : null}
     </div>
+  );
+}
+
+function StageContent({ item }: { item: SplitArchiveItem }) {
+  return (
+    <>
+      <div className="frosted-split__stageMeta">
+        <span>{item.number}</span>
+        <span>{item.subtitle}</span>
+      </div>
+      <h2>{item.title}</h2>
+      <p>{item.summary}</p>
+      <div className="frosted-split__tags" aria-label={`${item.title} tags`}>
+        {item.tags.slice(0, 5).map((tag) => (
+          <span key={tag}>{tag}</span>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -137,11 +188,19 @@ function ArchivePanel({
   onActivate: () => void;
   onStageWheel: (event: WheelEvent<HTMLElement>) => void;
 }) {
-  const stageMotionClass = motion.reboundDirection
-    ? ` frosted-split__stage--rebound-${motion.reboundDirection}`
-    : motion.pageDirection
-      ? ` frosted-split__stage--page-${motion.pageDirection}`
-      : "";
+  const stageMotionClass =
+    motion.mode === "transition" && motion.direction
+      ? ` frosted-split__stage--transition frosted-split__stage--transition-${motion.direction}`
+      : motion.mode === "rebound" && motion.direction
+        ? ` frosted-split__stage--rebound-${motion.direction}`
+        : motion.mode === "tracking"
+          ? " frosted-split__stage--tracking"
+          : motion.mode === "settling"
+            ? " frosted-split__stage--settling"
+            : "";
+  const stageStyle = {
+    "--stage-track-y": `${getStageTrackOffset(motion.direction, motion.trackingProgress)}px`,
+  } as CSSProperties;
 
   return (
     <section
@@ -171,21 +230,33 @@ function ArchivePanel({
 
           <main
             className={`frosted-split__stage${stageMotionClass}`}
-            key={`${selectedItem.id}-${motion.nonce}`}
+            style={stageStyle}
             onWheel={onStageWheel}
             aria-live="polite"
           >
-            <div className="frosted-split__stageMeta">
-              <span>{selectedItem.number}</span>
-              <span>{selectedItem.subtitle}</span>
-            </div>
-            <h2>{selectedItem.title}</h2>
-            <p>{selectedItem.summary}</p>
-            <div className="frosted-split__tags" aria-label={`${selectedItem.title} tags`}>
-              {selectedItem.tags.slice(0, 5).map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
-            </div>
+            {motion.mode === "transition" && motion.fromItem && motion.toItem ? (
+              <>
+                <div
+                  key={`out-${motion.fromItem.id}-${motion.nonce}`}
+                  className="frosted-split__stageLayer frosted-split__stageLayer--out"
+                >
+                  <StageContent item={motion.fromItem} />
+                </div>
+                <div
+                  key={`in-${motion.toItem.id}-${motion.nonce}`}
+                  className="frosted-split__stageLayer frosted-split__stageLayer--in"
+                >
+                  <StageContent item={motion.toItem} />
+                </div>
+              </>
+            ) : (
+              <div
+                key={`single-${selectedItem.id}-${motion.nonce}`}
+                className="frosted-split__stageLayer frosted-split__stageLayer--single"
+              >
+                <StageContent item={selectedItem} />
+              </div>
+            )}
           </main>
 
           <aside className="frosted-split__details" aria-label={`${selectedItem.title} details`}>
@@ -208,8 +279,8 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     devStories: getInitialItemId(splitArchivePanels.devStories),
   }));
   const [stageMotion, setStageMotion] = useState<Record<SplitArchiveTab, StageMotion>>(() => ({
-    lizzardkevin: { nonce: 0, pageDirection: null, reboundDirection: null },
-    devStories: { nonce: 0, pageDirection: null, reboundDirection: null },
+    lizzardkevin: createIdleStageMotion(),
+    devStories: createIdleStageMotion(),
   }));
   const wheelPagingRefs = useRef<Record<SplitArchiveTab, WheelPagingState>>({
     lizzardkevin: createWheelPagingState(),
@@ -246,17 +317,83 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     }));
   }, []);
 
-  const queueStageMotion = useCallback(
-    (tab: SplitArchiveTab, direction: WheelPagingDirection, kind: "page" | "rebound") => {
+  const clearMotionTimer = useCallback((tab: SplitArchiveTab) => {
+    const currentTimer = motionTimerRefs.current[tab];
+    if (currentTimer !== null) {
+      window.clearTimeout(currentTimer);
+      motionTimerRefs.current[tab] = null;
+    }
+  }, []);
+
+  const resetStageMotion = useCallback(
+    (tab: SplitArchiveTab) => {
+      clearMotionTimer(tab);
+      setStageMotion((current) => ({
+        ...current,
+        [tab]: createIdleStageMotion(current[tab].nonce + 1),
+      }));
+    },
+    [clearMotionTimer],
+  );
+
+  const selectArchiveItem = useCallback(
+    (tab: SplitArchiveTab, itemId: string) => {
+      wheelPagingRefs.current[tab] = createWheelPagingState();
+      resetStageMotion(tab);
+      setSelectedItem(tab, itemId);
+    },
+    [resetStageMotion, setSelectedItem],
+  );
+
+  const queueTrackingMotion = useCallback(
+    (tab: SplitArchiveTab, direction: WheelPagingDirection, progress: number) => {
       const currentTimer = motionTimerRefs.current[tab];
       if (currentTimer !== null) window.clearTimeout(currentTimer);
 
       setStageMotion((current) => ({
         ...current,
         [tab]: {
-          nonce: current[tab].nonce + 1,
-          pageDirection: kind === "page" ? direction : null,
-          reboundDirection: kind === "rebound" ? direction : null,
+          ...current[tab],
+          direction,
+          fromItem: null,
+          mode: "tracking",
+          toItem: null,
+          trackingProgress: progress,
+        },
+      }));
+
+      motionTimerRefs.current[tab] = window.setTimeout(() => {
+        setStageMotion((current) => ({
+          ...current,
+          [tab]: {
+            ...current[tab],
+            mode: "settling",
+            trackingProgress: 0,
+          },
+        }));
+
+        motionTimerRefs.current[tab] = window.setTimeout(() => {
+          motionTimerRefs.current[tab] = null;
+          setStageMotion((current) => ({
+            ...current,
+            [tab]: createIdleStageMotion(current[tab].nonce),
+          }));
+        }, 260);
+      }, 220);
+    },
+    [],
+  );
+
+  const queueReboundMotion = useCallback(
+    (tab: SplitArchiveTab, direction: WheelPagingDirection) => {
+      clearMotionTimer(tab);
+
+      setStageMotion((current) => ({
+        ...current,
+        [tab]: {
+          ...createIdleStageMotion(current[tab].nonce + 1),
+          direction,
+          mode: "rebound",
         },
       }));
 
@@ -264,15 +401,52 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
         motionTimerRefs.current[tab] = null;
         setStageMotion((current) => ({
           ...current,
-          [tab]: {
-            ...current[tab],
-            pageDirection: null,
-            reboundDirection: null,
-          },
+          [tab]: createIdleStageMotion(current[tab].nonce),
         }));
-      }, kind === "page" ? 520 : 420);
+      }, 420);
     },
-    [],
+    [clearMotionTimer],
+  );
+
+  const queueStageTransition = useCallback(
+    (
+      tab: SplitArchiveTab,
+      direction: WheelPagingDirection,
+      fromItem: SplitArchiveItem,
+      toItem: SplitArchiveItem,
+    ) => {
+      clearMotionTimer(tab);
+      setSelectedItem(tab, toItem.id);
+
+      if (prefersReducedMotion()) {
+        setStageMotion((current) => ({
+          ...current,
+          [tab]: createIdleStageMotion(current[tab].nonce + 1),
+        }));
+        return;
+      }
+
+      setStageMotion((current) => ({
+        ...current,
+        [tab]: {
+          direction,
+          fromItem,
+          mode: "transition",
+          nonce: current[tab].nonce + 1,
+          toItem,
+          trackingProgress: 0,
+        },
+      }));
+
+      motionTimerRefs.current[tab] = window.setTimeout(() => {
+        motionTimerRefs.current[tab] = null;
+        setStageMotion((current) => ({
+          ...current,
+          [tab]: createIdleStageMotion(current[tab].nonce),
+        }));
+      }, 560);
+    },
+    [clearMotionTimer, setSelectedItem],
   );
 
   const handleStageWheel = useCallback(
@@ -293,15 +467,24 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
         total: panel.items.length,
       });
 
-      if (outcome.kind === "idle") return;
-      queueStageMotion(tab, outcome.direction, outcome.kind === "select" ? "page" : "rebound");
+      if (stageMotion[tab].mode === "transition") return;
+      if (outcome.kind === "idle" || outcome.kind === "locked") return;
+      if (outcome.kind === "track") {
+        queueTrackingMotion(tab, outcome.direction, outcome.progress);
+        return;
+      }
+
+      if (outcome.kind === "rebound") {
+        queueReboundMotion(tab, outcome.direction);
+        return;
+      }
 
       if (outcome.kind === "select") {
         const next = panel.items[outcome.nextIndex];
-        if (next) setSelectedItem(tab, next.id);
+        if (next) queueStageTransition(tab, outcome.direction, selectedItem, next);
       }
     },
-    [activeTab, queueStageMotion, selectedItems, setSelectedItem],
+    [activeTab, queueReboundMotion, queueStageTransition, queueTrackingMotion, selectedItems, stageMotion],
   );
 
   const selectTab = (nextTab: SplitArchiveTab) => {
@@ -316,7 +499,7 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
         active={activeTab === "lizzardkevin"}
         motion={stageMotion.lizzardkevin}
         selectedItem={selectedItems.lizzardkevin}
-        onSelectItem={(itemId) => setSelectedItem("lizzardkevin", itemId)}
+        onSelectItem={(itemId) => selectArchiveItem("lizzardkevin", itemId)}
         onActivate={() => selectTab("lizzardkevin")}
         onStageWheel={(event) => handleStageWheel("lizzardkevin", event)}
       />
@@ -325,7 +508,7 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
         active={activeTab === "devStories"}
         motion={stageMotion.devStories}
         selectedItem={selectedItems.devStories}
-        onSelectItem={(itemId) => setSelectedItem("devStories", itemId)}
+        onSelectItem={(itemId) => selectArchiveItem("devStories", itemId)}
         onActivate={() => selectTab("devStories")}
         onStageWheel={(event) => handleStageWheel("devStories", event)}
       />

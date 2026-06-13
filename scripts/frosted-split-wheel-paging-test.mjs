@@ -32,8 +32,16 @@ function step(state, input) {
 
 {
   const state = createWheelPagingState();
-  assert.deepEqual(step(state, { deltaY: 80, nowMs: 0 }), { kind: "idle" });
-  assert.deepEqual(step(state, { deltaY: 70, nowMs: 120 }), { kind: "idle" });
+  assert.deepEqual(step(state, { deltaY: 80, nowMs: 0 }), {
+    kind: "track",
+    direction: "down",
+    progress: 0.5,
+  });
+  assert.deepEqual(step(state, { deltaY: 70, nowMs: 120 }), {
+    kind: "track",
+    direction: "down",
+    progress: 0.9375,
+  });
   assert.deepEqual(step(state, { deltaY: 20, nowMs: 240 }), {
     kind: "select",
     direction: "down",
@@ -44,8 +52,9 @@ function step(state, input) {
 {
   const state = createWheelPagingState();
   assert.equal(step(state, { deltaY: 170, nowMs: 0 }).kind, "select");
-  assert.deepEqual(step(state, { deltaY: 190, nowMs: 200 }), { kind: "idle" });
-  assert.deepEqual(step(state, { deltaY: -170, nowMs: 700 }), {
+  assert.deepEqual(step(state, { deltaY: 190, nowMs: 200 }), { kind: "locked" });
+  assert.deepEqual(step(state, { deltaY: 190, nowMs: 420 }), { kind: "locked" });
+  assert.deepEqual(step(state, { deltaY: -170, nowMs: 720 }), {
     kind: "select",
     direction: "up",
     nextIndex: 0,
@@ -59,15 +68,41 @@ function step(state, input) {
     { kind: "rebound", direction: "up" },
   );
   assert.deepEqual(
-    plain(resolveWheelPaging(state, { currentIndex: 3, total: 4, deltaY: 180, nowMs: 700 })),
+    plain(resolveWheelPaging(state, { currentIndex: 0, total: 4, deltaY: -180, nowMs: 120 })),
+    { kind: "locked" },
+  );
+  assert.deepEqual(
+    plain(resolveWheelPaging(state, { currentIndex: 3, total: 4, deltaY: 180, nowMs: 520 })),
     { kind: "rebound", direction: "down" },
   );
 }
 
 {
   const state = createWheelPagingState();
-  assert.deepEqual(step(state, { deltaY: 100, nowMs: 0 }), { kind: "idle" });
-  assert.deepEqual(step(state, { deltaY: 100, nowMs: 420 }), { kind: "idle" });
+  assert.deepEqual(step(state, { deltaY: 100, nowMs: 0 }), {
+    kind: "track",
+    direction: "down",
+    progress: 0.625,
+  });
+  assert.deepEqual(step(state, { deltaY: 100, nowMs: 420 }), {
+    kind: "track",
+    direction: "down",
+    progress: 0.625,
+  });
+}
+
+{
+  const state = createWheelPagingState();
+  assert.deepEqual(step(state, { deltaY: 60, nowMs: 0 }), {
+    kind: "track",
+    direction: "down",
+    progress: 0.375,
+  });
+  assert.deepEqual(step(state, { deltaY: -50, nowMs: 120 }), {
+    kind: "track",
+    direction: "up",
+    progress: 0.3125,
+  });
 }
 
 console.log("frosted split wheel paging tests passed");
