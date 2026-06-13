@@ -71,6 +71,25 @@ export function EntrySplash({
     [easterEggVisible],
   );
 
+  const handlePromptClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      if (fading || hideButton) return;
+      onEnter();
+    },
+    [fading, hideButton, onEnter],
+  );
+
+  const handlePromptKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      if (fading || hideButton) return;
+      onEnter();
+    },
+    [fading, hideButton, onEnter],
+  );
+
   useEffect(() => {
     return () => {
       if (easterEggTimerRef.current !== null) {
@@ -98,18 +117,26 @@ export function EntrySplash({
       ) : null}
       <div
         ref={enterWrapRef}
+        role="button"
+        tabIndex={hideButton ? -1 : 0}
+        aria-label={t("space.enter")}
         className={`space-enterButtonWrap${hideButton ? " space-enterButtonWrap--hide" : ""}`}
         style={{ "--enter-prompt-scale": promptScale } as React.CSSProperties}
+        onClick={handlePromptClick}
+        onKeyDown={handlePromptKeyDown}
       >
         <div className="space-enterButtonFloat">
-          <button type="button" onClick={onEnter} className="space-enterButton">
+          <div className="space-splashSignal">
+            <h1>LizzardKevin Space</h1>
+          </div>
+          <span className="space-enterButton">
             <span
               key={pulseNonce}
               className={pulseNonce > 0 ? "space-enterButtonText space-enterButtonText--pulse" : "space-enterButtonText"}
             >
               {t("space.enter")}
             </span>
-          </button>
+          </span>
         </div>
       </div>
     </div>

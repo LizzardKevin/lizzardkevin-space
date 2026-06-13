@@ -16,6 +16,7 @@ import {
   PLAYER_CAPSULE_HALF_HEIGHT,
   PLAYER_CAPSULE_RADIUS,
 } from "../gallery/resolveGallerySpawn";
+import { GALLERY_INITIAL_LOOK_AT } from "../gallery/galleryConfig";
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
@@ -119,6 +120,7 @@ export function PlayerController({
     horizontalVelocity.current.set(0, 0, 0);
     grounded.current = false;
     camera.position.set(spawn[0], spawn[1] + EYE_OFFSET, spawn[2]);
+    camera.lookAt(...GALLERY_INITIAL_LOOK_AT);
   }, [spawn, camera]);
 
   useEffect(() => {

@@ -2,20 +2,60 @@ import { requestSpaceCursorReturn } from "../cursor/spaceCursorController";
 
 let pendingGestureResume = false;
 
+export const SPACE_POINTER_LOCK_FAILED_EVENT = "space:pointer-lock-failed";
+
+function reportPointerLockFailure(error: unknown) {
+  pendingGestureResume = false;
+  window.dispatchEvent(
+    new CustomEvent(SPACE_POINTER_LOCK_FAILED_EVENT, {
+      detail: {
+        message: error instanceof Error ? error.message : String(error),
+      },
+    }),
+  );
+}
+
+function requestPointerLockSafely(el: HTMLElement) {
+  try {
+    if (!el.requestPointerLock) {
+      reportPointerLockFailure("Pointer Lock API is unavailable");
+      return;
+    }
+    const request = el.requestPointerLock?.();
+    if (request && typeof request.catch === "function") {
+      request.catch(reportPointerLockFailure);
+    }
+  } catch (error) {
+    reportPointerLockFailure(error);
+  }
+}
+
+function trackPendingPointerLock(el: HTMLElement) {
+  queueMicrotask(() => {
+    pendingGestureResume = document.pointerLockElement !== el;
+  });
+  window.setTimeout(() => {
+    if (!pendingGestureResume || document.pointerLockElement === el) return;
+    reportPointerLockFailure("Pointer lock request did not complete");
+  }, 180);
+}
+
 /** 在用户点击/按键回调中同步调用，避免 rAF 导致手势失效。 */
 export function requestSpacePointerLock() {
   const canvas = document.getElementById("space-canvas") as HTMLCanvasElement | null;
   if (canvas) {
-    void canvas.requestPointerLock?.();
-    queueMicrotask(() => {
-      pendingGestureResume = document.pointerLockElement !== canvas;
-    });
+    requestPointerLockSafely(canvas);
+    trackPendingPointerLock(canvas);
     return;
   }
   queueMicrotask(() => {
     const el = document.getElementById("space-canvas") as HTMLCanvasElement | null;
-    void el?.requestPointerLock?.();
-    if (el) pendingGestureResume = document.pointerLockElement !== el;
+    if (!el) {
+      reportPointerLockFailure("Space canvas was not ready");
+      return;
+    }
+    requestPointerLockSafely(el);
+    trackPendingPointerLock(el);
   });
 }
 

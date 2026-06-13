@@ -27,12 +27,12 @@ export const lizzardKevinIdentity = {
 };
 
 export const lizzardKevinLinks: ProfileLink[] = [
-  { label: "Email", value: "TODO" },
-  { label: "Instagram", value: "TODO" },
-  { label: "GitHub", value: "TODO" },
-  { label: "LinkedIn", value: "TODO" },
-  { label: "Resume PDF", value: "TODO" },
-  { label: "Portfolio PDF", value: "TODO" },
+  { label: "Contact", value: "Open for selected collaborations" },
+  { label: "Location", value: "New York / Shanghai" },
+  { label: "GitHub", value: "LizzardKevin", href: "https://github.com/LizzardKevin" },
+  { label: "Practice", value: "Architecture + creative technology" },
+  { label: "Archive", value: "Interactive SPACE in progress" },
+  { label: "Portfolio", value: "SPACE-first work archive" },
 ];
 
 export const lizzardKevinSections: ProfileSection[] = [
@@ -42,16 +42,16 @@ export const lizzardKevinSections: ProfileSection[] = [
     title: "Education",
     subtitle: "Pratt Institute / Columbia University",
     summary:
-      "学生阶段会展示从本科建筑训练到研究生空间研究的连续路径：Pratt 作为基础训练，Columbia 作为更实验、更研究导向的阶段。",
+      "从 Pratt 的建筑基础训练到 Columbia 更研究导向的空间实验，教育经历构成了我理解尺度、叙事、图像和系统的底层方法。",
     details: [
-      "Pratt Institute：本科阶段、专业方向、studio 项目、代表展板与模型。",
-      "Columbia University：研究生阶段、研究方向、课程、实验性空间或 AI 设计项目。",
-      "可展示 academic studio、thesis、diagram、模型照片、渲染图、walk-through 视频。",
+      "以建筑 studio 训练建立平面、剖面、模型、材料和叙事表达的共同语言。",
+      "把研究型课程、空间原型和 AI 辅助设计放进同一套创作方法里。",
+      "关注 diagram、模型照片、渲染和 walk-through 之间如何共同讲清一个空间概念。",
     ],
     fill: [
-      "学位名称、入学/毕业年份、导师或 studio 名称。",
-      "每个代表项目的一句话概念、地点、工具、产出图像和是否可公开。",
-      "你希望强调的学术关键词：空间叙事、城市、计算设计、AI、建造或影像。",
+      "Pratt 作为基础档案区，呈现训练强度、图面逻辑和模型语言。",
+      "Columbia 作为实验档案区，呈现空间研究、计算设计和 AI 视觉方法。",
+      "每个学术节点会以项目图像、短 statement 和可漫游展品连接到 SPACE。",
     ],
     spaceUse:
       "SPACE 中可以做成两段展墙：Pratt 作为基础训练档案，Columbia 作为研究和实验档案。",
@@ -63,16 +63,16 @@ export const lizzardKevinSections: ProfileSection[] = [
     title: "Architecture",
     subtitle: "Three-year professional stage",
     summary:
-      "职业阶段重点呈现你作为空间设计师和建筑从业者的专业可信度，包括项目类型、职责、交付物和可公开成果。",
+      "三年的建筑职业阶段让空间想法进入真实协作、交付和限制条件中；这里强调的是专业判断、表达能力和项目推进方式。",
     details: [
-      "记录公司/事务所、职位、时间范围、项目类型和参与阶段。",
-      "展示概念设计、建模、图纸、渲染、材料研究、客户汇报或施工配合等职责。",
-      "对保密项目使用脱敏 diagram、抽象模型或文字摘要，而不是强行公开完整图纸。",
+      "参与概念设计、建模、图纸、渲染、材料研究和汇报材料组织。",
+      "在项目类型、尺度和阶段变化中保持清晰的空间叙事与表达标准。",
+      "对保密项目采用脱敏 diagram、抽象模型和过程说明，保留专业脉络而不暴露敏感资料。",
     ],
     fill: [
-      "三年内参与过的项目数量、类型、规模、地点和团队角色。",
-      "每个项目你具体负责的部分，以及是否能公开图片或只公开描述。",
-      "可以量化的成果：面积、阶段、方案采纳、交付图纸、展示材料。",
+      "职业项目会被整理成一条空间走廊，按项目阶段和参与角色组织。",
+      "公开素材会展示图像、模型、局部细节和简短职责说明。",
+      "非公开素材会以抽象空间切片呈现，让访问者理解工作方式而不是浏览机密图纸。",
     ],
     spaceUse:
       "SPACE 中可以做成一条职业走廊，每个建筑项目是一个展品节点，保密项目用抽象信息呈现。",
@@ -84,16 +84,16 @@ export const lizzardKevinSections: ProfileSection[] = [
     title: "Photography",
     subtitle: "Image-making and spatial observation",
     summary:
-      "摄影部分不只是兴趣列表，而是解释你如何观察城市、光线、人物和空间，它可以成为你建筑与 AI 视觉创作之间的桥。",
+      "摄影是我训练观察的方式：城市、光线、人物、速度和偶然性会反过来影响空间设计与 AI 视觉创作。",
     details: [
-      "整理建筑摄影、街头、人像、旅行、演出现场、城市夜景或胶片/数码系列。",
-      "每个系列包含名称、年份、地点、statement、代表照片和发布链接。",
-      "可以标注设备、镜头、后期流程、print 或商用授权状态。",
+      "关注建筑、街头、夜景、演出现场和旅行切片中的空间气氛。",
+      "用系列化方式整理图像，让照片不只是单张漂亮画面，而是持续的观察档案。",
+      "把摄影中的构图、光比和色彩经验转译到 WebGPU 展厅和 AI 图像实验里。",
     ],
     fill: [
-      "3-6 个最想展示的摄影系列名称。",
-      "每组照片的主题关键词：光线、城市、孤独感、现场感、速度、日常切片。",
-      "Instagram、小红书、摄影集、print 或授权联系信息。",
+      "照片墙会以系列为单位展开，每组照片保留地点、时间和简短 statement。",
+      "影像展区会更像暗房或城市切片，而不是普通相册网格。",
+      "可公开图像会连接到外部发布渠道，未公开图像只在 SPACE 中以策展方式出现。",
     ],
     spaceUse:
       "SPACE 中可以做成照片墙、暗房或城市切片区域，让影像成为独立展区。",
@@ -105,16 +105,16 @@ export const lizzardKevinSections: ProfileSection[] = [
     title: "Music / Band",
     subtitle: "Bass, rehearsal, live performance",
     summary:
-      "音乐部分展示你作为贝斯手和乐队成员的协作经验、现场感和声音身份，也可以和 SPACE 内的音频展品系统连接。",
+      "贝斯和乐队经验给这个个人档案带来声音、低频和现场感；它也是 SPACE 音频展品系统最自然的内容来源。",
     details: [
-      "记录乐队名称、音乐风格、演出经历、曲目、排练或录音片段。",
-      "展示 bass 型号、pedals、amp、audio interface 或 DAW workflow。",
-      "可以放 demo、live recording、rehearsal clip、海报、演出照片和视频链接。",
+      "从排练、demo、live recording 和演出照片中提取声音身份。",
+      "关注贝斯线如何支撑节奏、空间和舞台氛围，而不只展示器材清单。",
+      "把音频播放、进度条和 Focus 展品连接起来，让作品可以被听见也可以被观看。",
     ],
     fill: [
-      "乐队/项目名称、你的角色、常演风格和代表曲目。",
-      "演出日期、场地、城市、阵容、照片、视频或录音。",
-      "你希望别人如何理解你的贝斯身份：节奏、低频、舞台、协作或改编。",
+      "音乐区域会以 rehearsal corner 的方式呈现，保留器材、海报和声音片段。",
+      "可播放展品会连接 demo、live clip 或低频 loop。",
+      "每个声音节点会保留简单背景：场景、曲目状态、参与角色和记录时间。",
     ],
     spaceUse:
       "SPACE 中可以做成 rehearsal corner 或声音展品，点击后播放 demo、live clip 或 bass line。",
@@ -126,16 +126,16 @@ export const lizzardKevinSections: ProfileSection[] = [
     title: "Anime / Culture",
     subtitle: "Personal references and visual influence",
     summary:
-      "二次元与个人文化部分会以审美来源和叙事影响的方式呈现，而不是直接堆作品名；重点是它们如何影响你的空间、色彩、角色、音乐和 AI 创作。",
+      "个人文化影响会以审美来源和叙事影响的方式进入档案，而不是直接堆作品名；重点是它们如何改变我的空间、色彩和角色想象。",
     details: [
-      "记录动画、漫画、游戏、视觉小说、音乐企划或 ACG cover 对你的影响。",
-      "展示原创或 inspired-by 的创作内容，避免直接使用未经授权的官方图像。",
-      "可以整理同人摄影、poster、视觉实验、AI image experiments 或 cover 演出。",
+      "把动画、漫画、游戏、视觉小说和音乐企划作为个人审美来源来整理。",
+      "优先展示原创、inspired-by 或实验性作品，避免直接搬运未经授权的官方图像。",
+      "关注色彩、角色气质、空间叙事和音乐情绪如何在不同媒介之间迁移。",
     ],
     fill: [
-      "对你影响最大的作品、类型和关键词。",
-      "这些文化内容具体影响了你的哪部分创作：色彩、叙事、空间、角色、音乐。",
-      "可公开展示的原创图像、文字说明、音乐或影像链接。",
+      "文化影响区会更像 reference archive，展示原创图像、poster、AI 实验和文字说明。",
+      "每个节点解释影响来自哪里，以及它如何进入空间、影像或声音创作。",
+      "公开呈现以原创内容为主，引用内容只作为文本层面的线索。",
     ],
     spaceUse:
       "SPACE 中可以做成文化影响档案区，展示原创内容和灵感说明，而不是直接搬运官方素材。",
@@ -147,16 +147,16 @@ export const lizzardKevinSections: ProfileSection[] = [
     title: "Other / Experiments",
     subtitle: "AI, web, writing, and future work",
     summary:
-      "最后一段收纳暂时不属于前面几类的实验：AI 工作流、WebGPU SPACE、写作、研究、奖项、展览和未来合作方向。",
+      "这一段收纳 AI、WebGPU、写作和其他暂时无法归类的实验；它是 SPACE 持续生长的实验室。",
     details: [
-      "记录 AI 图像、视频、空间概念生成、prompt design 或 ComfyUI workflow。",
-      "展示 Three.js / WebGPU / interactive portfolio 等网页和 3D 实验。",
-      "补充 essay、thesis、devlog、publication、award 或 exhibition。",
+      "整理 AI 图像、视频、空间概念生成、prompt design 和 workflow 研究。",
+      "把 Three.js、WebGPU 和 interactive portfolio 当作真实作品载体，而不是技术 demo。",
+      "保留 essay、devlog、研究笔记和实验失败记录，让过程本身成为档案的一部分。",
     ],
     fill: [
-      "当前最值得展示的 AI / Web / 3D 实验名称和链接。",
-      "可公开的工作流截图、生成结果、设计说明或开发日志。",
-      "你希望收到的合作类型：创意技术、空间设计、影像、展览、音乐或 AI workflow。",
+      "实验室区域会持续追加新展品，包含生成结果、过程截图和设计说明。",
+      "DevStories 会成为技术叙事层，解释每轮构建如何改变 SPACE。",
+      "合作方向会围绕创意技术、空间设计、影像、展览、音乐和 AI workflow 展开。",
     ],
     spaceUse:
       "SPACE 中可以作为持续更新的实验室区域，后续新内容直接扩展为新的展品节点。",

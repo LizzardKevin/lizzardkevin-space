@@ -6,6 +6,9 @@ export const ENABLE_GALLERY_WALL_ART = false;
 /** Fallback spawn before GLB resolves (overwritten once gallery loads). */
 export const GALLERY_SPAWN: [number, number, number] = [5.034, 0.92, -0.865];
 
+/** First desktop view target: centered between the initial box and bass exhibits. */
+export const GALLERY_INITIAL_LOOK_AT: [number, number, number] = [4.84, 1.08, -3.22];
+
 /** Bump when replacing gallery_main.glb so dev/browser reloads geometry. */
 export const GALLERY_GLB_REVISION = "20260609";
 

@@ -15,6 +15,7 @@ import { WallPicture } from "./gallery/WallPicture";
 function SpaceSceneContent({
   exhibitTarget,
   onTargetChange,
+  pointerControlsEnabled,
   controlsEnabled,
   onFocusExhibit,
   onEmptyClick,
@@ -24,6 +25,7 @@ function SpaceSceneContent({
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
+  pointerControlsEnabled: boolean;
   controlsEnabled: boolean;
   onFocusExhibit: (exhibitId: string) => void;
   onEmptyClick: () => void;
@@ -35,7 +37,7 @@ function SpaceSceneContent({
 
   return (
     <>
-      {controlsEnabled ? <PointerLockControls /> : null}
+      {pointerControlsEnabled ? <PointerLockControls selector="#space-canvas" /> : null}
 
       {ENABLE_GALLERY_GLB ? <SafetyGround y={safetyGroundY} centerX={safetyCenterX} centerZ={safetyCenterZ} /> : null}
       {ENABLE_GALLERY_GLB ? <GalleryModel /> : null}
@@ -100,6 +102,7 @@ function SpaceSceneContent({
 export function SpaceScene({
   exhibitTarget,
   onTargetChange,
+  pointerControlsEnabled,
   controlsEnabled,
   onFocusExhibit,
   onEmptyClick,
@@ -109,6 +112,7 @@ export function SpaceScene({
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
+  pointerControlsEnabled: boolean;
   controlsEnabled: boolean;
   onFocusExhibit: (exhibitId: string) => void;
   onEmptyClick: () => void;
@@ -122,6 +126,7 @@ export function SpaceScene({
         <SpaceSceneContent
           exhibitTarget={exhibitTarget}
           onTargetChange={onTargetChange}
+          pointerControlsEnabled={pointerControlsEnabled}
           controlsEnabled={controlsEnabled}
           onFocusExhibit={onFocusExhibit}
           onEmptyClick={onEmptyClick}
@@ -137,6 +142,7 @@ export function SpaceScene({
     <SpaceSceneContent
       exhibitTarget={exhibitTarget}
       onTargetChange={onTargetChange}
+      pointerControlsEnabled={pointerControlsEnabled}
       controlsEnabled={controlsEnabled}
       onFocusExhibit={onFocusExhibit}
       onEmptyClick={onEmptyClick}
