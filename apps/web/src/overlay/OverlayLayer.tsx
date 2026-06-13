@@ -1,24 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { OverlayTab } from "./OverlayState";
 import { FrostedSplitTabs } from "../components/frostedSplit/FrostedSplitTabs";
 import type { SplitArchiveTab } from "../components/frostedSplit/splitArchiveTypes";
-import { useFocusDoubleClickHandler } from "../exhibits/focusDoubleClick";
 import { releaseSpacePointerLock } from "../space/requestSpacePointerLock";
-
-function isOverlayContentClick(target: EventTarget | null) {
-  if (!(target instanceof Element)) return false;
-  return !!target.closest(
-    [
-      "button",
-      "a",
-      "input",
-      "textarea",
-      "select",
-      "[role='button']",
-      ".frosted-split",
-    ].join(","),
-  );
-}
 
 function getInitialSplitTab(tab: OverlayTab): SplitArchiveTab {
   return tab === "devStories" ? "devStories" : "lizzardkevin";
@@ -35,7 +19,12 @@ export function OverlayLayer({
   onRequestClose: (opts?: { fromEscape?: boolean }) => void;
   onClosed: () => void;
 }) {
-  const handleBlankDoubleClick = useFocusDoubleClickHandler(onRequestClose);
+  const requestedSplitTab = getInitialSplitTab(tab);
+  const [splitSelection, setSplitSelection] = useState<{
+    active: SplitArchiveTab;
+    source: OverlayTab;
+  } | null>(null);
+  const activeSplitTab = splitSelection?.source === tab ? splitSelection.active : requestedSplitTab;
 
   useEffect(() => {
     if (!tab || closing) return;
@@ -69,43 +58,28 @@ export function OverlayLayer({
     <div
       role="dialog"
       aria-modal="true"
-      aria-describedby="overlay-exit-hint"
       className="overlay-layer"
-      onClick={handleBlankDoubleClick}
     >
       <button
         type="button"
-        className="overlay-close-button"
-        aria-label="关闭 Overlay"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRequestClose();
-        }}
+        className={`overlay-return-button overlay-return-button--${activeSplitTab}`}
+        data-cursor="interactive"
+        data-cursor-tone={activeSplitTab === "lizzardkevin" ? "light" : "dark"}
+        onClick={() => onRequestClose()}
       >
-        <span aria-hidden>×</span>
+        回到space
       </button>
 
       <div
         className="overlay-layer__panel"
         style={{ animation: anim }}
-        onClick={(e) => {
-          if (isOverlayContentClick(e.target)) {
-            e.stopPropagation();
-            return;
-          }
-          handleBlankDoubleClick();
-        }}
       >
         <FrostedSplitTabs
           key={tab}
-          initialTab={getInitialSplitTab(tab)}
-          onSelectTab={() => undefined}
+          initialTab={requestedSplitTab}
+          onSelectTab={(active) => setSplitSelection({ active, source: tab })}
         />
       </div>
-
-      <p id="overlay-exit-hint" className="overlay-exit-hint">
-        双击空白退出
-      </p>
 
       <style>{`
         @keyframes overlayCondenseIn {

@@ -97,11 +97,11 @@ function FocusCameraRig({ frame }: { frame: FocusFrameResult | null }) {
 function FocusOrbitControls({
   enabled,
   frame,
-  onUserInteract,
+  onOrbitInteract,
 }: {
   enabled: boolean;
   frame: FocusFrameResult | null;
-  onUserInteract: () => void;
+  onOrbitInteract: () => void;
 }) {
   const target = frame?.orbitTarget ?? [0, FOCUS_FRAME.orbitTargetY, 0];
 
@@ -111,7 +111,7 @@ function FocusOrbitControls({
       enableRotate={enabled}
       enableZoom={enabled}
       autoRotate={false}
-      onStart={onUserInteract}
+      onStart={onOrbitInteract}
       enablePan={false}
       enableDamping
       dampingFactor={0.12}
@@ -172,11 +172,13 @@ function FocusModel({
 function FocusScene({
   exhibit,
   onButtonAction,
+  onOrbitInteract,
   orbitEnabled,
   onBlankDoubleClick,
 }: {
   exhibit: ExhibitManifestItem;
   onButtonAction: (action: ExhibitButtonAction) => void;
+  onOrbitInteract: () => void;
   orbitEnabled: boolean;
   onBlankDoubleClick: () => void;
 }) {
@@ -185,6 +187,7 @@ function FocusScene({
       key={exhibit.exhibitId}
       exhibit={exhibit}
       onButtonAction={onButtonAction}
+      onOrbitInteract={onOrbitInteract}
       orbitEnabled={orbitEnabled}
       onBlankDoubleClick={onBlankDoubleClick}
     />
@@ -194,17 +197,23 @@ function FocusScene({
 function FocusSceneContent({
   exhibit,
   onButtonAction,
+  onOrbitInteract,
   orbitEnabled,
   onBlankDoubleClick,
 }: {
   exhibit: ExhibitManifestItem;
   onButtonAction: (action: ExhibitButtonAction) => void;
+  onOrbitInteract: () => void;
   orbitEnabled: boolean;
   onBlankDoubleClick: () => void;
 }) {
   const hitRootRef = useRef<THREE.Group>(null);
   const [turntableSpin, setTurntableSpin] = useState(true);
   const [frame, setFrame] = useState<FocusFrameResult | null>(null);
+  const handleOrbitInteract = useCallback(() => {
+    setTurntableSpin(false);
+    onOrbitInteract();
+  }, [onOrbitInteract]);
 
   return (
     <>
@@ -223,7 +232,7 @@ function FocusSceneContent({
       <FocusOrbitControls
         enabled={orbitEnabled}
         frame={frame}
-        onUserInteract={() => setTurntableSpin(false)}
+        onOrbitInteract={handleOrbitInteract}
       />
       <FocusDoubleClickExit
         hitRoot={hitRootRef}
@@ -240,6 +249,15 @@ function FocusLoading() {
       加载展品…
     </div>
   );
+}
+
+function getFocusTags(exhibit: ExhibitManifestItem) {
+  const tags = [exhibit.type.toUpperCase()];
+  if (exhibit.media?.audioUrl) tags.push("AUDIO");
+  if (exhibit.media?.videoUrl) tags.push("VIDEO");
+  if (exhibit.buttons) tags.push("INTERACTIVE");
+  tags.push("FOCUS");
+  return Array.from(new Set(tags));
 }
 
 type ErrorBoundaryProps = { children: ReactNode; url: string };
@@ -282,9 +300,16 @@ export function FocusOverlay({
   const [contentVisible, setContentVisible] = useState(false);
   const [content, setContent] = useState<ExhibitContent | null>(null);
   const [contentLoading, setContentLoading] = useState(true);
+  const [orbitHintState, setOrbitHintState] = useState<{
+    exhibitId: string;
+    interacted: boolean;
+  } | null>(null);
   const closingRef = useRef(false);
   const displayTitle = formatExhibitLabel(exhibit.exhibitId);
   const videoUrl = exhibit.media?.videoUrl;
+  const focusTags = useMemo(() => getFocusTags(exhibit), [exhibit]);
+  const hasOrbitInteracted =
+    orbitHintState?.exhibitId === exhibit.exhibitId ? orbitHintState.interacted : false;
 
   useEffect(() => {
     useGLTF.preload(exhibit.focusGlbUrl, GLTF_DRACO_DECODER_PATH);
@@ -346,6 +371,10 @@ export function FocusOverlay({
     [onBeginDismiss, onClose, playback],
   );
 
+  const handleOrbitInteract = useCallback(() => {
+    setOrbitHintState({ exhibitId: exhibit.exhibitId, interacted: true });
+  }, [exhibit.exhibitId]);
+
   const handleBlankDoubleClick = useCallback(() => {
     if (!contentVisible || closingRef.current) return;
     requestClose();
@@ -365,9 +394,18 @@ export function FocusOverlay({
     <div
       role="dialog"
       aria-modal="true"
-      aria-describedby="focus-exit-hint"
       className={`focus-overlay${dimOn ? " focus-overlay--dim" : ""}${blurOn ? " focus-overlay--blur" : ""}`}
     >
+      <button
+        type="button"
+        className={`focus-return-button${contentVisible ? " focus-return-button--visible" : ""}`}
+        data-cursor="interactive"
+        data-cursor-tone="light"
+        onClick={() => requestClose()}
+      >
+        回到space
+      </button>
+
       {videoUrl ? (
         <video
           ref={(el) => playback.attachVideoElement(el)}
@@ -383,6 +421,7 @@ export function FocusOverlay({
           <FocusOverviewPanel
             overview={content?.overview ?? null}
             loading={contentLoading}
+            tags={focusTags}
             visible={contentVisible}
           />
         </FocusSideColumn>
@@ -394,13 +433,6 @@ export function FocusOverlay({
             className={`focus-blank--fill${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-center" : ""}`}
             onBlankClick={handleBlankClick}
           />
-
-          <p
-            id="focus-exit-hint"
-            className={`ui-hint-micro focus-exit-hint${contentVisible ? " focus-exit-hint--visible" : ""}`}
-          >
-            双击空白区域以退出
-          </p>
 
           <FocusModelErrorBoundary url={exhibit.focusGlbUrl}>
             <Suspense fallback={<FocusLoading />}>
@@ -428,12 +460,19 @@ export function FocusOverlay({
                 <FocusScene
                   exhibit={exhibit}
                   onButtonAction={onButtonAction}
+                  onOrbitInteract={handleOrbitInteract}
                   orbitEnabled={contentVisible}
                   onBlankDoubleClick={handleBlankDoubleClick}
                 />
               </Canvas>
             </Suspense>
           </FocusModelErrorBoundary>
+
+          <p
+            className={`ui-hint-micro focus-orbit-hint${contentVisible && !hasOrbitInteracted ? " focus-orbit-hint--visible" : ""}`}
+          >
+            drag to orbit
+          </p>
         </div>
 
         <FocusSideColumn side="right" onBlankClick={handleBlankClick}>

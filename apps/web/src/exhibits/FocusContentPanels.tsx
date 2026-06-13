@@ -40,10 +40,12 @@ export function FocusSideColumn({
 export function FocusOverviewPanel({
   overview,
   loading,
+  tags,
   visible,
 }: {
   overview: string | null;
   loading: boolean;
+  tags: string[];
   visible: boolean;
 }) {
   return (
@@ -53,6 +55,7 @@ export function FocusOverviewPanel({
       onClick={(e) => e.stopPropagation()}
     >
       <div className="focus-panel__inner">
+        <h2 className="focus-panel__heading">Overview</h2>
         {loading ? (
           <p className="focus-panel__placeholder">加载中…</p>
         ) : overview ? (
@@ -60,6 +63,14 @@ export function FocusOverviewPanel({
         ) : (
           <p className="focus-panel__placeholder">暂无概述</p>
         )}
+        <div className="focus-tags" aria-label="Tags">
+          <h3>Tags</h3>
+          <div>
+            {tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+        </div>
       </div>
     </aside>
   );
@@ -81,6 +92,7 @@ export function FocusStoryPanel({
       onClick={(e) => e.stopPropagation()}
     >
       <div className="focus-panel__inner">
+        <h2 className="focus-panel__heading">Stories</h2>
         {loading ? (
           <p className="focus-panel__placeholder">加载中…</p>
         ) : storyHtml ? (

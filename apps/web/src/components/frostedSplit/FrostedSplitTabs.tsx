@@ -171,21 +171,29 @@ function StageContent({ item }: { item: SplitArchiveItem }) {
   );
 }
 
+function getFoldedDetailCopy(tab: SplitArchiveTab) {
+  return tab === "devStories" ? "Process detail is folded." : "Archive detail is folded.";
+}
+
 function ArchivePanel({
   panel,
   active,
+  detailExpanded,
   motion,
   selectedItem,
   onSelectItem,
   onActivate,
+  onToggleDetail,
   onStageWheel,
 }: {
   panel: SplitArchivePanel;
   active: boolean;
+  detailExpanded: boolean;
   motion: StageMotion;
   selectedItem: SplitArchiveItem;
   onSelectItem: (itemId: string) => void;
   onActivate: () => void;
+  onToggleDetail: () => void;
   onStageWheel: (event: WheelEvent<HTMLElement>) => void;
 }) {
   const stageMotionClass =
@@ -250,21 +258,27 @@ function ArchivePanel({
                 </div>
               </>
             ) : (
-              <div
-                key={`single-${selectedItem.id}-${motion.nonce}`}
-                className="frosted-split__stageLayer frosted-split__stageLayer--single"
-              >
+              <div className="frosted-split__stageLayer frosted-split__stageLayer--single">
                 <StageContent item={selectedItem} />
               </div>
             )}
           </main>
 
           <aside className="frosted-split__details" aria-label={`${selectedItem.title} details`}>
-            <div className="frosted-split__detailsTop">
+            <button
+              type="button"
+              className="frosted-split__detailsTop frosted-split__detailsTop--button"
+              aria-expanded={detailExpanded}
+              onClick={onToggleDetail}
+            >
               <span>Detail</span>
-              <strong>{selectedItem.number}</strong>
-            </div>
-            <DetailGroups item={selectedItem} />
+              <strong className="frosted-split__detailMasterToggle" aria-hidden="true" />
+            </button>
+            {detailExpanded ? (
+              <DetailGroups item={selectedItem} />
+            ) : (
+              <p className="frosted-split__detailFolded">{getFoldedDetailCopy(panel.tab)}</p>
+            )}
           </aside>
         </div>
       </div>
@@ -282,6 +296,10 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     lizzardkevin: createIdleStageMotion(),
     devStories: createIdleStageMotion(),
   }));
+  const [detailExpanded, setDetailExpanded] = useState<Record<SplitArchiveTab, boolean>>({
+    lizzardkevin: true,
+    devStories: true,
+  });
   const wheelPagingRefs = useRef<Record<SplitArchiveTab, WheelPagingState>>({
     lizzardkevin: createWheelPagingState(),
     devStories: createWheelPagingState(),
@@ -314,6 +332,13 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     setSelectedIds((current) => ({
       ...current,
       [tab]: itemId,
+    }));
+  }, []);
+
+  const toggleDetail = useCallback((tab: SplitArchiveTab) => {
+    setDetailExpanded((current) => ({
+      ...current,
+      [tab]: !current[tab],
     }));
   }, []);
 
@@ -497,19 +522,23 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
       <ArchivePanel
         panel={splitArchivePanels.lizzardkevin}
         active={activeTab === "lizzardkevin"}
+        detailExpanded={detailExpanded.lizzardkevin}
         motion={stageMotion.lizzardkevin}
         selectedItem={selectedItems.lizzardkevin}
         onSelectItem={(itemId) => selectArchiveItem("lizzardkevin", itemId)}
         onActivate={() => selectTab("lizzardkevin")}
+        onToggleDetail={() => toggleDetail("lizzardkevin")}
         onStageWheel={(event) => handleStageWheel("lizzardkevin", event)}
       />
       <ArchivePanel
         panel={splitArchivePanels.devStories}
         active={activeTab === "devStories"}
+        detailExpanded={detailExpanded.devStories}
         motion={stageMotion.devStories}
         selectedItem={selectedItems.devStories}
         onSelectItem={(itemId) => selectArchiveItem("devStories", itemId)}
         onActivate={() => selectTab("devStories")}
+        onToggleDetail={() => toggleDetail("devStories")}
         onStageWheel={(event) => handleStageWheel("devStories", event)}
       />
     </div>
