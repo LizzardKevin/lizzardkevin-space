@@ -18,6 +18,7 @@ export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) 
   const entry = useEntryTransition();
   const audio = useAudioDirector();
   const [webgpuReady, setWebgpuReady] = useState<boolean | null>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
 
   const isDesktop = platform === "desktop";
 
@@ -33,9 +34,15 @@ export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) 
   }, [isDesktop]);
 
   const canRender3d = isDesktop && webgpuReady === true;
-  const showSplash = entry.showSplash && (isDesktop ? canRender3d : true);
+  const canEnterDesktopSpace = canRender3d && canvasReady;
+  const showSplash = entry.showSplash && (isDesktop ? canEnterDesktopSpace : true);
+
+  const handleCanvasReady = useCallback(() => {
+    setCanvasReady(true);
+  }, []);
 
   const handleEnter = useCallback(() => {
+    if (isDesktop && !canvasReady) return;
     entry.freezeButtonFloat();
     audio.unlock();
     if (isDesktop) {
@@ -43,14 +50,14 @@ export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) 
       void audio.setZone("architecture");
     }
     entry.startFade();
-  }, [audio, entry, isDesktop]);
+  }, [audio, canvasReady, entry, isDesktop]);
 
   return (
     <div style={{ height: "100vh", width: "100vw", background: "#ffffff" }}>
       {showSplash && <EntrySplash entry={entry} onEnter={handleEnter} />}
       {isDesktop && (
         <Suspense fallback={null}>
-          <SpaceDesktopExperience entry={entry} overlay={overlay} />
+          <SpaceDesktopExperience entry={entry} overlay={overlay} onCanvasReady={handleCanvasReady} />
         </Suspense>
       )}
       {!isDesktop && <MobileExperience entry={entry} />}

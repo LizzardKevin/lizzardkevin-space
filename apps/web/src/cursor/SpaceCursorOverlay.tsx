@@ -7,6 +7,7 @@ const SCROLL_PARTICLE_MS = 360;
 const MAX_SCROLL_BURSTS = 5;
 
 type CursorMode = "default" | "hover" | "text" | "dragReady" | "dragging";
+type CursorTone = "dark" | "light";
 type ScrollBurst = { id: number; direction: "up" | "down" };
 
 function isInteractiveElement(el: Element | null) {
@@ -37,6 +38,12 @@ function isTextElement(el: Element | null) {
       ".focus-story",
     ].join(","),
   );
+}
+
+function getCursorTone(el: Element | null): CursorTone {
+  const toneSurface = el?.closest("[data-cursor-tone]");
+  const tone = toneSurface?.getAttribute("data-cursor-tone");
+  return tone === "light" ? "light" : "dark";
 }
 
 function canScrollElement(el: Element, deltaX: number, deltaY: number) {
@@ -103,6 +110,7 @@ export function SpaceCursorOverlay({
     y: typeof window === "undefined" ? 0 : window.innerHeight / 2,
   }));
   const [mode, setMode] = useState<CursorMode>("default");
+  const [cursorTone, setCursorTone] = useState<CursorTone>("dark");
   const [pointerLocked, setPointerLocked] = useState(false);
   const [returning, setReturning] = useState(false);
   const [syncingToSystem, setSyncingToSystem] = useState(false);
@@ -125,6 +133,10 @@ export function SpaceCursorOverlay({
     overlayOpenRef.current = overlayOpen;
     if (overlayOpen) {
       unlockSyncPendingRef.current = false;
+      return;
+    }
+    if (!focusOpenRef.current && !document.pointerLockElement) {
+      setMode("default");
     }
   }, [overlayOpen]);
 
@@ -132,6 +144,10 @@ export function SpaceCursorOverlay({
     focusOpenRef.current = focusOpen;
     if (focusOpen) {
       unlockSyncPendingRef.current = false;
+      return;
+    }
+    if (!overlayOpenRef.current && !document.pointerLockElement) {
+      setMode("default");
     }
   }, [focusOpen]);
 
@@ -214,6 +230,7 @@ export function SpaceCursorOverlay({
         setPos({ x: e.clientX, y: e.clientY });
       }
       const target = e.target instanceof Element ? e.target : null;
+      setCursorTone(getCursorTone(target));
       if (target?.closest("[data-cursor='drag-model']")) {
         setMode((current) => (current === "dragging" ? current : "dragReady"));
       } else if (isInteractiveElement(target)) {
@@ -325,7 +342,7 @@ export function SpaceCursorOverlay({
   return (
     <div
       aria-hidden
-      className={`space-cursor-layer${visible ? " space-cursor-layer--visible" : ""}${entered ? "" : " space-cursor-layer--entry"}`}
+      className={`space-cursor-layer space-cursor-layer--tone-${cursorTone}${visible ? " space-cursor-layer--visible" : ""}${entered ? "" : " space-cursor-layer--entry"}`}
       style={style}
     >
       <div

@@ -28,6 +28,7 @@ import { spawnToCameraPosition } from "../scenes/gallery/resolveGallerySpawn";
 import { useTranslation } from "react-i18next";
 
 import {
+  SPACE_POINTER_LOCK_FAILED_EVENT,
   engageSpaceFirstPerson,
   resumeSpaceFirstPersonAfterEscape,
   resumeSpaceFirstPersonWithCursorReturn,
@@ -41,6 +42,15 @@ const FocusOverlay = lazy(() =>
 
 const JUMP_HINT_VISIBLE_MS = 5000;
 
+function SpaceGuide({ message, visible }: { message: string; visible: boolean }) {
+  if (!visible || !message) return null;
+  return (
+    <p className="space-guide" aria-live="polite">
+      {message}
+    </p>
+  );
+}
+
 function JumpHint({ message, visible }: { message: string; visible: boolean }) {
   if (!visible || !message) return null;
   return <div className="jump-hint">{message}</div>;
@@ -49,9 +59,11 @@ function JumpHint({ message, visible }: { message: string; visible: boolean }) {
 export function SpaceDesktopExperience({
   entry,
   overlay,
+  onCanvasReady,
 }: {
   entry: EntryTransition;
   overlay: { isOverlayOpen: boolean };
+  onCanvasReady?: () => void;
 }) {
   const [exhibitTarget, setExhibitTarget] = useState<ExhibitTarget | null>(null);
   const [webgpuReady, setWebgpuReady] = useState<boolean | null>(null);
@@ -66,8 +78,18 @@ export function SpaceDesktopExperience({
   const [jumpHintMessage, setJumpHintMessage] = useState("");
   const [jumpHintVisible, setJumpHintVisible] = useState(false);
   const [pointerLocked, setPointerLocked] = useState(false);
+  const [pointerLockUnavailable, setPointerLockUnavailable] = useState(false);
 
   const { entered, fading: entryIsFading } = entry;
+
+  useEffect(() => {
+    const onPointerLockFailed = () => {
+      setPointerLockUnavailable(true);
+      setToast(t("space.pointerLockFailed"));
+    };
+    window.addEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, onPointerLockFailed);
+    return () => window.removeEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, onPointerLockFailed);
+  }, [t]);
 
   useEffect(() => {
     if (!jumpHintVisible) return;
@@ -157,8 +179,9 @@ export function SpaceDesktopExperience({
   );
 
   const isHovering = exhibitTarget !== null && !focused;
-  const spaceOperable = entered || entryIsFading;
-  const controlsEnabled = spaceOperable && !overlay.isOverlayOpen && !focused;
+  const pointerControlsEnabled =
+    (entry.showSplash || entryIsFading || entered) && !overlay.isOverlayOpen && !focused && !pointerLockUnavailable;
+  const controlsEnabled = (entryIsFading || entered) && !overlay.isOverlayOpen && !focused && !pointerLockUnavailable;
 
   const handleEmptyClick = useCallback(() => {
     if (!controlsEnabled) return;
@@ -180,11 +203,26 @@ export function SpaceDesktopExperience({
   const hud = useMemo(
     () => (
       <>
+        <SpaceGuide
+          message={t("space.guide")}
+          visible={entered && !pointerLockUnavailable && !overlay.isOverlayOpen && focusOverlayExhibit === null}
+        />
         <JumpHint message={jumpHintMessage} visible={jumpHintVisible} />
         {pointerLocked ? <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} /> : null}
       </>
     ),
-    [crosshairPulseNonce, isHovering, jumpHintMessage, jumpHintVisible, pointerLocked],
+    [
+      crosshairPulseNonce,
+      focusOverlayExhibit,
+      isHovering,
+      jumpHintMessage,
+      jumpHintVisible,
+      overlay.isOverlayOpen,
+      pointerLocked,
+      pointerLockUnavailable,
+      t,
+      entered,
+    ],
   );
 
   const useShadows = !ENABLE_GALLERY_GLB || ENABLE_GALLERY_RUNTIME_SHADOWS;
@@ -198,7 +236,11 @@ export function SpaceDesktopExperience({
         overlayOpen={overlay.isOverlayOpen}
         focusOpen={focusOverlayExhibit !== null}
       />
-      <Toast message={toast} onDone={() => setToast(null)} />
+      <Toast
+        message={toast}
+        durationMs={toast === t("space.pointerLockFailed") ? 5200 : 2200}
+        onDone={() => setToast(null)}
+      />
       {hud}
       <PlaybackBar elevated={!!focusOverlayExhibit} />
       {webgpuReady === null ? (
@@ -253,6 +295,7 @@ export function SpaceDesktopExperience({
               shadows={useShadows}
               onCreated={({ gl }) => {
                 gl.domElement.id = "space-canvas";
+                onCanvasReady?.();
               }}
             >
               <color attach="background" args={[GALLERY_TOON.background]} />
@@ -286,6 +329,7 @@ export function SpaceDesktopExperience({
                   <SpaceScene
                     exhibitTarget={exhibitTarget}
                     onTargetChange={setExhibitTarget}
+                    pointerControlsEnabled={pointerControlsEnabled}
                     controlsEnabled={controlsEnabled}
                     onFocusExhibit={handleFocusExhibit}
                     onEmptyClick={handleEmptyClick}

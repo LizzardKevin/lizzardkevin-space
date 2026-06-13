@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import type { OverlayTab } from "./OverlayState";
-import { LizzardKevinPage } from "../pages/LizzardKevinPage";
-import { DevStoriesPage } from "../pages/DevStoriesPage";
+import { FrostedSplitTabs } from "../components/frostedSplit/FrostedSplitTabs";
+import type { SplitArchiveTab } from "../components/frostedSplit/splitArchiveTypes";
 import { useFocusDoubleClickHandler } from "../exhibits/focusDoubleClick";
 import { releaseSpacePointerLock } from "../space/requestSpacePointerLock";
 
@@ -15,15 +15,13 @@ function isOverlayContentClick(target: EventTarget | null) {
       "textarea",
       "select",
       "[role='button']",
-      ".profile-page__header",
-      ".profile-page__links",
-      ".profile-page__rail",
-      ".profile-section",
-      ".dev-stories__header",
-      ".dev-stories__rail",
-      ".dev-story",
+      ".frosted-split",
     ].join(","),
   );
+}
+
+function getInitialSplitTab(tab: OverlayTab): SplitArchiveTab {
+  return tab === "devStories" ? "devStories" : "lizzardkevin";
 }
 
 export function OverlayLayer({
@@ -47,7 +45,7 @@ export function OverlayLayer({
   useEffect(() => {
     if (!tab) return;
     if (!closing) return;
-    const t = window.setTimeout(() => onClosed(), 260);
+    const t = window.setTimeout(() => onClosed(), 320);
     return () => window.clearTimeout(t);
   }, [closing, onClosed, tab]);
 
@@ -60,18 +58,12 @@ export function OverlayLayer({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [tab, onRequestClose]);
 
-  const content = useMemo(() => {
-    if (tab === "lizzardkevin") return <LizzardKevinPage />;
-    if (tab === "devStories") return <DevStoriesPage />;
-    return null;
-  }, [tab]);
-
   if (!tab) return null;
 
-  const easing = "cubic-bezier(0.2, 0.9, 0.2, 1)";
+  const easing = "cubic-bezier(0.16, 1, 0.3, 1)";
   const anim = closing
-    ? `overlayRise 260ms ${easing} forwards`
-    : `overlayDrop 260ms ${easing} both`;
+    ? `overlayCondenseOut 320ms ${easing} forwards`
+    : `overlayCondenseIn 520ms ${easing} both`;
 
   return (
     <div
@@ -81,6 +73,18 @@ export function OverlayLayer({
       className="overlay-layer"
       onClick={handleBlankDoubleClick}
     >
+      <button
+        type="button"
+        className="overlay-close-button"
+        aria-label="关闭 Overlay"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRequestClose();
+        }}
+      >
+        <span aria-hidden>×</span>
+      </button>
+
       <div
         className="overlay-layer__panel"
         style={{ animation: anim }}
@@ -92,7 +96,11 @@ export function OverlayLayer({
           handleBlankDoubleClick();
         }}
       >
-        {content}
+        <FrostedSplitTabs
+          key={tab}
+          initialTab={getInitialSplitTab(tab)}
+          onSelectTab={() => undefined}
+        />
       </div>
 
       <p id="overlay-exit-hint" className="overlay-exit-hint">
@@ -100,13 +108,13 @@ export function OverlayLayer({
       </p>
 
       <style>{`
-        @keyframes overlayDrop {
-          from { transform: translateY(-18px); opacity: 0; }
-          to { transform: translateY(0px); opacity: 1; }
+        @keyframes overlayCondenseIn {
+          from { transform: scale(1.018); opacity: 0; filter: blur(18px) brightness(1.16); }
+          to { transform: scale(1); opacity: 1; filter: blur(0) brightness(1); }
         }
-        @keyframes overlayRise {
-          from { transform: translateY(0px); opacity: 1; }
-          to { transform: translateY(-18px); opacity: 0; }
+        @keyframes overlayCondenseOut {
+          from { transform: scale(1); opacity: 1; filter: blur(0) brightness(1); }
+          to { transform: scale(1.01); opacity: 0; filter: blur(14px) brightness(1.12); }
         }
       `}</style>
     </div>
