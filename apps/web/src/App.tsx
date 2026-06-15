@@ -5,12 +5,22 @@ import {
   resumeSpaceFirstPersonWithCursorReturn,
 } from "./space/requestSpacePointerLock";
 import { useSpacePointerLockGuard } from "./space/useSpacePointerLockGuard";
-import { TopBar } from "./components/TopBar";
-import { OverlayLayer } from "./overlay/OverlayLayer";
 import type { OverlayTab } from "./overlay/OverlayState";
 import { useClientPlatform } from "./platform/useClientPlatform";
-import { useMemo, useState } from "react";
+import { Suspense, lazy, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
+
+const DesktopTopBar = lazy(() =>
+  import("./desktop/DesktopChrome").then((module) => ({
+    default: module.DesktopTopBar,
+  })),
+);
+
+const DesktopOverlayLayer = lazy(() =>
+  import("./desktop/DesktopChrome").then((module) => ({
+    default: module.DesktopOverlayLayer,
+  })),
+);
 
 type SpaceWordRect = {
   height: number;
@@ -69,24 +79,28 @@ export default function App() {
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
       {isDesktop && tab === null && (
-        <TopBar
-          onOpenTab={openOverlayTab}
-          onCloseTab={() => resumeSpaceFirstPersonWithCursorReturn()}
-        />
+        <Suspense fallback={null}>
+          <DesktopTopBar
+            onOpenTab={openOverlayTab}
+            onCloseTab={() => resumeSpaceFirstPersonWithCursorReturn()}
+          />
+        </Suspense>
       )}
       <SpacePage overlay={appOverlayContext} />
-      {isDesktop && (
-        <OverlayLayer
-          tab={tab}
-          closing={closing}
-          spaceWordSourceRect={spaceWordSourceRect}
-          onRequestClose={closeOverlayToSpace}
-          onClosed={() => {
-            setClosing(false);
-            setTab(null);
-            setSpaceWordSourceRect(null);
-          }}
-        />
+      {isDesktop && tab !== null && (
+        <Suspense fallback={null}>
+          <DesktopOverlayLayer
+            tab={tab}
+            closing={closing}
+            spaceWordSourceRect={spaceWordSourceRect}
+            onRequestClose={closeOverlayToSpace}
+            onClosed={() => {
+              setClosing(false);
+              setTab(null);
+              setSpaceWordSourceRect(null);
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );
