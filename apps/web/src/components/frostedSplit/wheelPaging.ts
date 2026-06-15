@@ -7,6 +7,13 @@ export type WheelPagingState = {
   locked: boolean;
 };
 
+export type DragPagingState = {
+  active: boolean;
+  direction: WheelPagingDirection | null;
+  locked: boolean;
+  startY: number;
+};
+
 export type WheelPagingInput = {
   currentIndex: number;
   deltaY: number;
@@ -14,10 +21,17 @@ export type WheelPagingInput = {
   total: number;
 };
 
+export type DragPagingInput = {
+  currentIndex: number;
+  pointerY: number;
+  total: number;
+};
+
 export type WheelPagingOutcome =
   | { kind: "idle" }
   | { kind: "track"; direction: WheelPagingDirection; progress: number }
   | { kind: "locked" }
+  | { kind: "settle"; direction: WheelPagingDirection }
   | { kind: "rebound"; direction: WheelPagingDirection }
   | { kind: "select"; direction: WheelPagingDirection; nextIndex: number };
 
@@ -32,6 +46,30 @@ export function createWheelPagingState(): WheelPagingState {
     lastWheelAt: 0,
     locked: false,
   };
+}
+
+export function createDragPagingState(): DragPagingState {
+  return {
+    active: false,
+    direction: null,
+    locked: false,
+    startY: 0,
+  };
+}
+
+export function getRelativeSelectionDirection(currentIndex: number, nextIndex: number): WheelPagingDirection | null {
+  if (nextIndex === currentIndex) return null;
+  return nextIndex > currentIndex ? "down" : "up";
+}
+
+export function beginDragPaging(
+  state: DragPagingState,
+  { pointerY }: { pointerY: number; nowMs: number },
+) {
+  state.active = true;
+  state.direction = null;
+  state.locked = false;
+  state.startY = pointerY;
 }
 
 export function resolveWheelPaging(
@@ -82,4 +120,48 @@ export function resolveWheelPaging(
 
   if (currentIndex >= total - 1) return { kind: "rebound", direction };
   return { kind: "select", direction, nextIndex: currentIndex + 1 };
+}
+
+export function resolveDragPaging(
+  state: DragPagingState,
+  { currentIndex, pointerY, total }: DragPagingInput,
+): WheelPagingOutcome {
+  if (!state.active || total <= 0) return { kind: "idle" };
+  if (state.locked) return { kind: "locked" };
+
+  const deltaY = state.startY - pointerY;
+  if (deltaY === 0) return { kind: "idle" };
+
+  const direction: WheelPagingDirection = deltaY > 0 ? "down" : "up";
+  const amount = Math.abs(deltaY);
+  state.direction = direction;
+
+  if (amount < WHEEL_PAGING_THRESHOLD) {
+    return {
+      kind: "track",
+      direction,
+      progress: Math.min(1, amount / WHEEL_PAGING_THRESHOLD),
+    };
+  }
+
+  state.locked = true;
+
+  if (direction === "up") {
+    if (currentIndex <= 0) return { kind: "rebound", direction };
+    return { kind: "select", direction, nextIndex: currentIndex - 1 };
+  }
+
+  if (currentIndex >= total - 1) return { kind: "rebound", direction };
+  return { kind: "select", direction, nextIndex: currentIndex + 1 };
+}
+
+export function releaseDragPaging(state: DragPagingState): WheelPagingOutcome {
+  const direction = state.direction;
+  state.active = false;
+  state.direction = null;
+  state.locked = false;
+  state.startY = 0;
+
+  if (!direction) return { kind: "idle" };
+  return { kind: "settle", direction };
 }

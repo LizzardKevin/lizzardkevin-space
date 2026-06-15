@@ -15,7 +15,7 @@ EXHIBITS_HEADERS = [
     "type",
     "zone",
     "status",
-    "in_gallery_main",
+    "in_space_main",
     "folder_path",
     "focus_glb_file",
     "focus_glb_exists",
@@ -62,7 +62,8 @@ EXHIBITS_ROWS = [
 SCENE_HEADERS = ["asset_key", "path", "exists", "status", "notes"]
 
 SCENE_ROWS = [
-    ["gallery_main", "models/gallery_main.glb", "N", "待制作", "灰白测试厅 + COL_* + exhibit_demo_box"],
+    ["space_main", "models/space_main.glb", "Y", "已入库", "生产展厅空间 + COL_floor_* + bulb_* + spawn_player_main"],
+    ["gallery_main_demo", "models/gallery_main.glb", "Y", "历史 demo", "测试 / 历史对照，不再作为生产展厅空间"],
     ["bgm_architecture", "audio/bgm_architecture.mp3", "N", "待制作", "进入 SPACE 后 architecture 分区 BGM"],
     ["wall_art", "media/art_01.jpg", "N", "可选", "北墙代码画框贴图"],
 ]
@@ -76,7 +77,7 @@ LEGEND_ROWS = [
     ["status: 已验收", "联调通过"],
     ["Y / N", "文件或绑定是否就绪；入库后改为 Y"],
     ["exhibitId", "与 manifest.json 的 exhibitId 一致"],
-    ["sceneObjectName", "gallery_main 内 hit mesh，规则 exhibit_<exhibitId>"],
+    ["sceneObjectName", "space_main 内 hit mesh，规则 exhibit_<exhibitId>"],
     ["focus_glb_file", "位于 folder_path 下，建议 focus_<exhibitId>.glb"],
     ["in_manifest", "manifest.json 是否已有该条目（代码可先配好为 Y）"],
     ["维护顺序", "新增行 → 建目录 → 做 glb/媒体 → 更新 manifest → 改 Y"],

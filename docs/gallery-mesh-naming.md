@@ -1,6 +1,6 @@
-# gallery_main.glb Mesh 命名规范
+# space_main.glb Mesh 命名规范
 
-本文档定义主场景 `apps/web/public/models/gallery_main.glb` 内所有 **Object / Mesh** 的命名规则，供 Blender 建模、导出与运行时解析共用。
+本文档定义生产主场景 `BlenderFile/space_main.blend` 与 `apps/web/public/models/space_main.glb` 内所有 **Object / Mesh** 的命名规则，供 Blender 建模、导出与运行时解析共用。`gallery_main` 仅保留为历史 demo / 测试资产，不再作为生产展厅空间。
 
 与 [`asset-manifest.md`](asset-manifest.md)（展品 manifest 绑定）配合使用。
 
@@ -129,7 +129,7 @@ mat_wood_oak_light
 
 | Mesh 名 | 说明 |
 |---------|------|
-| `COL_floor_main` / `COL_ground` | 地板碰撞（当前 glb 使用 `COL_ground`） |
+| `COL_floor_main` / `COL_floor_001` | 地板碰撞（当前 `space_main.glb` 使用 `COL_floor_*`） |
 | `COL_wall_north` | 北墙碰撞 |
 | `COL_wall_south` | 南墙碰撞 |
 | `COL_wall_east` | 东墙碰撞 |
@@ -199,7 +199,7 @@ Empty: exhibit_demo_box_grp
 └── COL_exhibit_demo_box      ← 可选物理阻挡
 ```
 
-Focus 特写模型在 **独立文件** `public/exhibits/<id>/focus_<id>.glb`（例：`demo_box/focus_demo_box.glb`），不在 `gallery_main.glb` 内。
+Focus 特写模型在 **独立文件** `public/exhibits/<id>/focus_<id>.glb`（例：`demo_box/focus_demo_box.glb`），不在 `space_main.glb` 内。
 
 ### 6.4 展品 Material 名
 
@@ -317,22 +317,24 @@ mat_exhibit_band_tv_screen_emissive
 
 ---
 
-## 13. 完整示例：当前测试厅（2026-06-01）
+## 13. 完整示例：当前生产空间（2026-06-14）
 
 ```
-gallery_main.glb
-├── struct_ground
-├── struct_outer_1 / struct_inner_1~3 / struct_ceiling_1 / struct_platform_1
-├── prop_sidetable_1
-├── COL_ground
-├── COL_inner_1 / COL_inner_2 / COL_inner_3
-├── COL_outer_1
-├── COL_platform_1
-├── spawn_player_main          ← Empty 出生点
-└── exhibit_demo_box           ← 交互 hit
+space_main.glb
+├── struct_floor_001~012
+├── struct_wall_001~013
+├── struct_stair_001~013
+├── struct_ceiling_001~010
+├── struct_arch_001~002
+├── lgt_panel_001~002
+├── bulb_001~002
+├── COL_floor_001~012
+├── COL_wall_001~013
+├── COL_stair_001~013
+└── spawn_player_main          ← Empty 出生点
 ```
 
-Focus 特写：`public/exhibits/demo_box/focus_demo_box.glb`
+当前 `space_main.glb` 暂未放置 `exhibit_*` hit mesh；展品 Focus 特写仍放在 `public/exhibits/<id>/focus_<id>.glb`。
 
 ---
 
@@ -346,7 +348,7 @@ Focus 特写：`public/exhibits/demo_box/focus_demo_box.glb`
 - [ ] `COL_*` 已简化；`exhibit_*` hit mesh 明确
 - [ ] 玻璃、发光材质已设 Emissive / Alpha
 - [ ] 导出 glTF Binary (`.glb`)，仅选必要 Collection
-- [ ] 放入 `apps/web/public/models/gallery_main.glb`
+- [ ] 放入 `apps/web/public/models/space_main.glb`
 
 ---
 

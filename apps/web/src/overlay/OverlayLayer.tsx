@@ -1,8 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { OverlayTab } from "./OverlayState";
 import { FrostedSplitTabs } from "../components/frostedSplit/FrostedSplitTabs";
 import type { SplitArchiveTab } from "../components/frostedSplit/splitArchiveTypes";
 import { releaseSpacePointerLock } from "../space/requestSpacePointerLock";
+
+type SpaceWordRect = {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+};
 
 function getInitialSplitTab(tab: OverlayTab): SplitArchiveTab {
   return tab === "devStories" ? "devStories" : "lizzardkevin";
@@ -11,19 +18,24 @@ function getInitialSplitTab(tab: OverlayTab): SplitArchiveTab {
 export function OverlayLayer({
   tab,
   closing,
+  spaceWordSourceRect,
   onRequestClose,
   onClosed,
 }: {
   tab: OverlayTab;
   closing: boolean;
+  spaceWordSourceRect?: SpaceWordRect | null;
   onRequestClose: (opts?: { fromEscape?: boolean }) => void;
   onClosed: () => void;
 }) {
+  const spaceWordRef = useRef<HTMLSpanElement>(null);
   const requestedSplitTab = getInitialSplitTab(tab);
   const [splitSelection, setSplitSelection] = useState<{
     active: SplitArchiveTab;
     source: OverlayTab;
   } | null>(null);
+  const [returnMorphPhase, setReturnMorphPhase] = useState<"from-source" | "settled">("from-source");
+  const [returnMorphStyle, setReturnMorphStyle] = useState<CSSProperties | undefined>(undefined);
   const activeSplitTab = splitSelection?.source === tab ? splitSelection.active : requestedSplitTab;
 
   useEffect(() => {
@@ -34,7 +46,7 @@ export function OverlayLayer({
   useEffect(() => {
     if (!tab) return;
     if (!closing) return;
-    const t = window.setTimeout(() => onClosed(), 320);
+    const t = window.setTimeout(() => onClosed(), 620);
     return () => window.clearTimeout(t);
   }, [closing, onClosed, tab]);
 
@@ -47,12 +59,46 @@ export function OverlayLayer({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [tab, onRequestClose]);
 
+  useLayoutEffect(() => {
+    if (!tab || closing) return;
+    const target = spaceWordRef.current;
+    if (!target || !spaceWordSourceRect) {
+      setReturnMorphPhase("settled");
+      setReturnMorphStyle(undefined);
+      return;
+    }
+
+    const targetRect = target.getBoundingClientRect();
+    const sourceCenterX = spaceWordSourceRect.x + spaceWordSourceRect.width / 2;
+    const sourceCenterY = spaceWordSourceRect.y + spaceWordSourceRect.height / 2;
+    const targetCenterX = targetRect.left + targetRect.width / 2;
+    const targetCenterY = targetRect.top + targetRect.height / 2;
+    const scale = targetRect.width > 0 ? spaceWordSourceRect.width / targetRect.width : 1;
+
+    setReturnMorphStyle({
+      "--overlay-space-source-x": `${sourceCenterX - targetCenterX}px`,
+      "--overlay-space-source-y": `${sourceCenterY - targetCenterY}px`,
+      "--overlay-space-source-scale": `${Math.max(0.72, Math.min(1.28, scale))}`,
+    } as CSSProperties);
+    setReturnMorphPhase("from-source");
+
+    const frame = window.requestAnimationFrame(() => {
+      setReturnMorphPhase("settled");
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [closing, spaceWordSourceRect, tab]);
+
   if (!tab) return null;
 
   const easing = "cubic-bezier(0.16, 1, 0.3, 1)";
   const anim = closing
-    ? `overlayCondenseOut 320ms ${easing} forwards`
+    ? `overlayCondenseOut 620ms ${easing} forwards`
     : `overlayCondenseIn 520ms ${easing} both`;
+  const returnMorphClass = closing
+    ? "overlay-return-button--closing"
+    : returnMorphPhase === "from-source"
+      ? "overlay-return-button--from-source"
+      : "overlay-return-button--settled";
 
   return (
     <div
@@ -62,12 +108,15 @@ export function OverlayLayer({
     >
       <button
         type="button"
-        className={`overlay-return-button overlay-return-button--${activeSplitTab}`}
+        aria-label="回到space"
+        className={`overlay-return-button overlay-return-button--${activeSplitTab} ${returnMorphClass}`}
         data-cursor="interactive"
         data-cursor-tone={activeSplitTab === "lizzardkevin" ? "light" : "dark"}
+        style={returnMorphStyle}
         onClick={() => onRequestClose()}
       >
-        回到space
+        <span className="overlay-return-button__prefix">回到</span>
+        <span ref={spaceWordRef} className="overlay-return-button__space">space</span>
       </button>
 
       <div

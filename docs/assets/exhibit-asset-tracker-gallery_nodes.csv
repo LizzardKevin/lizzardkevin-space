@@ -1,19 +1,13 @@
 node_name,node_type,y_range,code_binding,notes
-COL_ground,mesh,-0.99~0.00,GalleryFloorCollider + walkable spawn,地板碰撞（优先读取此名）
-COL_inner_1,mesh,2.00~4.00,ColColliders cuboid,内墙碰撞
-COL_inner_2,mesh,0.00~1.00,ColColliders cuboid,内墙碰撞
-COL_inner_3,mesh,0.00~4.00,ColColliders cuboid,内墙碰撞
-COL_outer_1,mesh,0.00~4.00,ColColliders trimesh (double-sided),外墙碰撞
-COL_platform_1,mesh,0.00~0.50,ColColliders trimesh + GalleryFloorCollider cutout,平台含台阶
-COL_sidetable_1,mesh,0.00~0.77,ColColliders trimesh,边桌碰撞（GLB 2026-06-05 已入库）
-spawn_player_main,empty,,resolveGallerySpawn,"出生 Empty XZ≈(5.034,-0.865)；Y 由脚下地面算 bodyY≈0.92"
-exhibit_demo_box,mesh,0.77~0.98,bindExhibitIds → demo_box,交互 hit mesh
-exhibit_demo_bass,mesh,0.89~0.96,bindExhibitIds → demo_bass,贝司交互 hit mesh
-prop_sidetable_1,mesh,0.00~0.77,视觉 only,装饰道具，无碰撞
-struct_ground,mesh,-0.99~0.00,视觉,地面对应 struct_ground
-struct_inner_1,mesh,2.00~4.00,视觉,内墙视觉
-struct_inner_2,mesh,0.00~1.00,视觉,内墙视觉
-struct_inner_3,mesh,0.00~4.00,视觉,内墙视觉
-struct_outer_1,mesh,0.00~4.00,视觉,外墙视觉
-struct_ceiling_1,mesh,4.00~4.00,视觉,天花
-struct_platform_1,mesh,0.00~0.50,视觉,平台视觉
+COL_floor_*,mesh,12.81~35.98,GalleryFloorCollider + walkable spawn,12 个地板碰撞；运行时按包围盒生成薄 CuboidCollider
+COL_wall_*,mesh,12.81~43.48,ColColliders trimesh,13 个墙体碰撞；运行时自动隐藏
+COL_stair_*,mesh,13.31~35.98,ColColliders trimesh,13 个楼梯碰撞；运行时自动隐藏
+spawn_player_main,empty,21.03~21.03,resolveGallerySpawn,"出生 Empty XZ≈(-19.154,7.203)；Y 由脚下 COL_floor_* 算 bodyY≈21.897"
+bulb_*,mesh,37.38~41.58,prepareGalleryScene → GalleryBulbLights,2 个灯泡锚点；mesh 位置驱动运行时 PointLight
+lgt_panel_*,mesh,37.73~41.23,visual only,2 个发光灯板视觉 mesh
+struct_floor_*,mesh,12.81~35.98,visual only,12 个地面视觉 mesh
+struct_wall_*,mesh,12.81~43.48,visual only,13 个墙体视觉 mesh
+struct_stair_*,mesh,13.31~35.98,visual only,13 个楼梯视觉 mesh
+struct_ceiling_*,mesh,17.31~41.23,visual only,10 个天花视觉 mesh
+struct_arch_*,mesh,13.31~18.81,visual only,2 个结构补件
+exhibit_*,mesh,,bindExhibitIds,当前 space_main 暂未放置交互 hit mesh

@@ -70,9 +70,10 @@ export function resumeSpaceFirstPerson() {
   requestSpacePointerLock();
 }
 
-/** 带自定义 cursor 回中心动画的恢复；动画结束后请求 pointer lock。 */
+/** 带自定义 cursor 回中心动画的恢复；pointer lock 在同一用户手势内先请求。 */
 export function resumeSpaceFirstPersonWithCursorReturn() {
-  requestSpaceCursorReturn(() => resumeSpaceFirstPerson());
+  requestSpacePointerLock();
+  requestSpaceCursorReturn({ target: "center" });
 }
 
 /** 已入场且非全屏 overlay 时恢复第一人称（Focus 退出等场景）。 */
@@ -95,7 +96,8 @@ export function resumeSpaceFirstPersonAfterEscape(opts: { entered: boolean; over
   const onKeyUp = (e: KeyboardEvent) => {
     if (e.key !== "Escape") return;
     window.removeEventListener("keyup", onKeyUp);
-    requestSpaceCursorReturn(() => {
+    requestSpaceCursorReturn({ target: "center" });
+    window.setTimeout(() => {
       engageSpaceFirstPersonNow(opts);
       queueMicrotask(() => {
         if (document.pointerLockElement) {
@@ -104,7 +106,7 @@ export function resumeSpaceFirstPersonAfterEscape(opts: { entered: boolean; over
         }
         pendingGestureResume = true;
       });
-    });
+    }, 500);
   };
   window.addEventListener("keyup", onKeyUp);
 }

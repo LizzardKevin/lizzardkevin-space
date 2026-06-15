@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { releaseSpacePointerLock, resumeSpaceFirstPerson } from "../space/requestSpacePointerLock";
-import { setSpaceCursorReturnHandler } from "./spaceCursorController";
+import { setSpaceCursorReturnHandler, type CursorReturnOptions } from "./spaceCursorController";
 
 const RETURN_MS = 500;
 const SCROLL_PARTICLE_MS = 360;
 const MAX_SCROLL_BURSTS = 5;
 
-type CursorMode = "default" | "hover" | "text" | "dragReady" | "dragging";
+type CursorMode = "default" | "hover" | "dragReady" | "dragging";
 type CursorTone = "dark" | "light";
 type ScrollBurst = { id: number; direction: "up" | "down" };
 
@@ -21,21 +21,6 @@ function isInteractiveElement(el: Element | null) {
       "summary",
       "[role='button']",
       "[data-cursor='interactive']",
-    ].join(","),
-  );
-}
-
-function isTextElement(el: Element | null) {
-  if (!el) return false;
-  if (el.closest("input, textarea, [contenteditable='true']")) return true;
-  return !!el.closest(
-    [
-      ".profile-page__identity",
-      ".profile-section",
-      ".dev-stories__header",
-      ".dev-story",
-      ".focus-overview",
-      ".focus-story",
     ].join(","),
   );
 }
@@ -122,10 +107,13 @@ export function SpaceCursorOverlay({
   const focusOpenRef = useRef(focusOpen);
   const enteredRef = useRef(entered);
   const returnTimerRef = useRef<number | null>(null);
-  const returnCompleteRef = useRef<(() => void) | null>(null);
   const syncTimerRef = useRef<number | null>(null);
   const unlockSyncPendingRef = useRef(false);
   const wasPointerLockedRef = useRef(false);
+  const lastPointerPositionRef = useRef({
+    x: typeof window === "undefined" ? 0 : window.innerWidth / 2,
+    y: typeof window === "undefined" ? 0 : window.innerHeight / 2,
+  });
   const scrollIdRef = useRef(0);
   const scrollThrottleRef = useRef(0);
 
@@ -186,20 +174,20 @@ export function SpaceCursorOverlay({
     return () => document.removeEventListener("pointerlockchange", update);
   }, [enabled]);
 
-  const requestReturn = useCallback((onComplete: () => void) => {
+  const requestReturn = useCallback((options?: CursorReturnOptions) => {
     if (returnTimerRef.current !== null) {
       window.clearTimeout(returnTimerRef.current);
       returnTimerRef.current = null;
     }
-    returnCompleteRef.current = onComplete;
     setReturning(true);
-    setPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    if (options?.target === "pointer") {
+      setPos(lastPointerPositionRef.current);
+    } else {
+      setPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    }
     returnTimerRef.current = window.setTimeout(() => {
       returnTimerRef.current = null;
       setReturning(false);
-      const complete = returnCompleteRef.current;
-      returnCompleteRef.current = null;
-      complete?.();
     }, RETURN_MS);
   }, []);
 
@@ -216,7 +204,9 @@ export function SpaceCursorOverlay({
   useEffect(() => {
     if (!enabled) return;
     const onPointerMove = (e: PointerEvent) => {
-      if (returning || document.pointerLockElement) return;
+      lastPointerPositionRef.current = { x: e.clientX, y: e.clientY };
+      if (document.pointerLockElement) return;
+      if (returning) return;
       if (unlockSyncPendingRef.current) {
         unlockSyncPendingRef.current = false;
         if (syncTimerRef.current !== null) window.clearTimeout(syncTimerRef.current);
@@ -235,8 +225,6 @@ export function SpaceCursorOverlay({
         setMode((current) => (current === "dragging" ? current : "dragReady"));
       } else if (isInteractiveElement(target)) {
         setMode("hover");
-      } else if (isTextElement(target)) {
-        setMode("text");
       } else {
         setMode("default");
       }
@@ -254,7 +242,6 @@ export function SpaceCursorOverlay({
       const target = e.target instanceof Element ? e.target : null;
       if (target?.closest("[data-cursor='drag-model']")) setMode("dragReady");
       else if (isInteractiveElement(target)) setMode("hover");
-      else if (isTextElement(target)) setMode("text");
       else setMode("default");
     };
 
@@ -305,7 +292,8 @@ export function SpaceCursorOverlay({
       e.preventDefault();
       altHeldRef.current = false;
       if (!enteredRef.current || overlayOpenRef.current || focusOpenRef.current) return;
-      requestReturn(() => resumeSpaceFirstPerson());
+      resumeSpaceFirstPerson();
+      requestReturn({ target: "center" });
     };
 
     const onBlur = () => {
@@ -325,7 +313,7 @@ export function SpaceCursorOverlay({
     };
   }, [enabled, requestReturn]);
 
-  const visible = enabled && !pointerLocked;
+  const visible = enabled && (!pointerLocked || returning);
   const style = useMemo(
     () =>
       ({

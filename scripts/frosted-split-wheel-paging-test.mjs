@@ -16,7 +16,15 @@ const compiled = ts.transpileModule(source, {
 const module = { exports: {} };
 vm.runInNewContext(compiled.outputText, { module, exports: module.exports }, { filename: "wheelPaging.ts" });
 
-const { createWheelPagingState, resolveWheelPaging } = module.exports;
+const {
+  beginDragPaging,
+  createDragPagingState,
+  createWheelPagingState,
+  getRelativeSelectionDirection,
+  releaseDragPaging,
+  resolveDragPaging,
+  resolveWheelPaging,
+} = module.exports;
 
 function plain(value) {
   return JSON.parse(JSON.stringify(value));
@@ -103,6 +111,47 @@ function step(state, input) {
     direction: "up",
     progress: 0.3125,
   });
+}
+
+{
+  assert.equal(getRelativeSelectionDirection(1, 3), "down");
+  assert.equal(getRelativeSelectionDirection(3, 1), "up");
+  assert.equal(getRelativeSelectionDirection(2, 2), null);
+}
+
+{
+  const state = createDragPagingState();
+  beginDragPaging(state, { pointerY: 300, nowMs: 0 });
+  assert.deepEqual(
+    plain(resolveDragPaging(state, { currentIndex: 1, total: 4, pointerY: 230, nowMs: 80 })),
+    { kind: "track", direction: "down", progress: 0.4375 },
+  );
+  assert.deepEqual(plain(releaseDragPaging(state)), {
+    kind: "settle",
+    direction: "down",
+  });
+}
+
+{
+  const state = createDragPagingState();
+  beginDragPaging(state, { pointerY: 300, nowMs: 0 });
+  assert.deepEqual(
+    plain(resolveDragPaging(state, { currentIndex: 1, total: 4, pointerY: 120, nowMs: 90 })),
+    { kind: "select", direction: "down", nextIndex: 2 },
+  );
+  assert.deepEqual(
+    plain(resolveDragPaging(state, { currentIndex: 2, total: 4, pointerY: -80, nowMs: 140 })),
+    { kind: "locked" },
+  );
+}
+
+{
+  const state = createDragPagingState();
+  beginDragPaging(state, { pointerY: 200, nowMs: 0 });
+  assert.deepEqual(
+    plain(resolveDragPaging(state, { currentIndex: 0, total: 4, pointerY: 380, nowMs: 90 })),
+    { kind: "rebound", direction: "up" },
+  );
 }
 
 console.log("frosted split wheel paging tests passed");

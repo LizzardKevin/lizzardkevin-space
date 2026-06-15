@@ -1,3 +1,3 @@
-exhibitId,sceneObjectName,type,zone,status,in_gallery_main,folder_path,focus_glb_file,focus_glb_exists,audio_file,audio_exists,video_file,video_exists,image_file,image_exists,in_manifest,manifest_buttons,focusGlbUrl,notes,last_updated,owner
-demo_box,exhibit_demo_box,audio,architecture,制作中,Y,exhibits/demo_box/,focus_demo_box.glb,Y,demo_box.mp3,N,,,,,Y,"btn_play, btn_pause, btn_end",/exhibits/demo_box/focus_demo_box.glb,gallery_main 已同步 2026-06-01 覆写,2026-06-01,
-demo_bass,exhibit_demo_bass,model3d,architecture,制作中,Y,exhibits/demo_bass/,focus_demo_bass.glb,Y,,,,,,,Y,,/exhibits/demo_bass/focus_demo_bass.glb,gallery_main exhibit_demo_bass 已同步,2026-06-07,
+exhibitId,sceneObjectName,type,zone,status,in_space_main,folder_path,focus_glb_file,focus_glb_exists,audio_file,audio_exists,video_file,video_exists,image_file,image_exists,in_manifest,manifest_buttons,focusGlbUrl,notes,last_updated,owner
+demo_box,exhibit_demo_box,audio,architecture,制作中,N,exhibits/demo_box/,focus_demo_box.glb,Y,demo_box.mp3,N,,,,,Y,"btn_play, btn_pause, btn_end",/exhibits/demo_box/focus_demo_box.glb,space_main 当前未放置 exhibit_* hit mesh；gallery_main 仅保留历史 demo,2026-06-14,
+demo_bass,exhibit_demo_bass,model3d,architecture,制作中,N,exhibits/demo_bass/,focus_demo_bass.glb,Y,,,,,,,Y,,/exhibits/demo_bass/focus_demo_bass.glb,space_main 当前未放置 exhibit_* hit mesh；gallery_main 仅保留历史 demo,2026-06-14,

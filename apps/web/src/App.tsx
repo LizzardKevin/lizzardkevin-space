@@ -12,11 +12,31 @@ import { useClientPlatform } from "./platform/useClientPlatform";
 import { useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 
+type SpaceWordRect = {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+};
+
+function captureSpaceWordSourceRect(): SpaceWordRect | null {
+  const el = document.querySelector<HTMLElement>("[data-space-word-origin='true']");
+  if (!el) return null;
+  const rect = el.getBoundingClientRect();
+  return {
+    height: rect.height,
+    width: rect.width,
+    x: rect.left,
+    y: rect.top,
+  };
+}
+
 export default function App() {
   const platform = useClientPlatform();
   const isDesktop = platform === "desktop";
   const [tab, setTab] = useState<OverlayTab>(null);
   const [closing, setClosing] = useState(false);
+  const [spaceWordSourceRect, setSpaceWordSourceRect] = useState<SpaceWordRect | null>(null);
 
   /** 关闭动效期间不再阻挡 SPACE 控制，以便同步恢复 pointer lock。 */
   const spaceOverlayBlocking = tab !== null && !closing;
@@ -28,8 +48,10 @@ export default function App() {
   useSpacePointerLockGuard(isDesktop && spaceOverlayBlocking);
 
   const openOverlayTab = (next: Exclude<OverlayTab, null>) => {
+    const sourceRect = captureSpaceWordSourceRect();
     releaseSpacePointerLock();
     flushSync(() => {
+      setSpaceWordSourceRect(sourceRect);
       setClosing(false);
       setTab(next);
     });
@@ -57,10 +79,12 @@ export default function App() {
         <OverlayLayer
           tab={tab}
           closing={closing}
+          spaceWordSourceRect={spaceWordSourceRect}
           onRequestClose={closeOverlayToSpace}
           onClosed={() => {
             setClosing(false);
             setTab(null);
+            setSpaceWordSourceRect(null);
           }}
         />
       )}

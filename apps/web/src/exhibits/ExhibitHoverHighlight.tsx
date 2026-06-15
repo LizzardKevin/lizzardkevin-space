@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { EXHIBIT_TARGET } from "../scenes/gallery/galleryConfig";
 import type { ExhibitTarget } from "./exhibitTarget";
@@ -39,10 +39,10 @@ function restoreMaterial(material: THREE.Material, snap: MaterialSnapshot) {
 export function ExhibitHoverHighlight({ target }: { target: ExhibitTarget | null }) {
   const snapshotsRef = useRef<Map<string, MaterialSnapshot>>(new Map());
   const meshesRef = useRef<THREE.Mesh[]>([]);
+  const restoreFrameRef = useRef<number | null>(null);
 
-  useEffect(() => {
+  const restoreCurrentHover = useCallback(() => {
     const snapshots = snapshotsRef.current;
-
     for (const mesh of meshesRef.current) {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       for (const mat of mats) {
@@ -52,8 +52,25 @@ export function ExhibitHoverHighlight({ target }: { target: ExhibitTarget | null
     }
     snapshots.clear();
     meshesRef.current = [];
+  }, []);
 
-    if (!target) return;
+  useEffect(() => {
+    const snapshots = snapshotsRef.current;
+
+    if (restoreFrameRef.current !== null) {
+      cancelAnimationFrame(restoreFrameRef.current);
+      restoreFrameRef.current = null;
+    }
+
+    if (!target) {
+      restoreFrameRef.current = requestAnimationFrame(() => {
+        restoreFrameRef.current = null;
+        restoreCurrentHover();
+      });
+      return;
+    }
+
+    restoreCurrentHover();
 
     const meshes: THREE.Mesh[] = [];
     target.object.traverse((obj) => {
@@ -71,17 +88,15 @@ export function ExhibitHoverHighlight({ target }: { target: ExhibitTarget | null
     meshesRef.current = meshes;
 
     return () => {
-      for (const mesh of meshes) {
-        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        for (const mat of mats) {
-          const snap = snapshots.get(mat.uuid);
-          if (snap) restoreMaterial(mat, snap);
-        }
+      if (restoreFrameRef.current !== null) {
+        cancelAnimationFrame(restoreFrameRef.current);
       }
-      snapshots.clear();
-      meshesRef.current = [];
+      restoreFrameRef.current = requestAnimationFrame(() => {
+        restoreFrameRef.current = null;
+        restoreCurrentHover();
+      });
     };
-  }, [target]);
+  }, [restoreCurrentHover, target]);
 
   return null;
 }

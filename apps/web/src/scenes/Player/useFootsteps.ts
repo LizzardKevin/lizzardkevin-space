@@ -6,7 +6,7 @@ import {
   FOOTSTEP_INTERVAL_WALK,
 } from "../../audio/audioConfig";
 
-const SPRINT_SPEED = 3.85;
+const SPRINT_SPEED = 5.1;
 
 /**
  * 根据水平位移在落地行走时触发脚步声。

@@ -4,15 +4,15 @@ export const ENABLE_GALLERY_GLB = true;
 export const ENABLE_GALLERY_WALL_ART = false;
 
 /** Fallback spawn before GLB resolves (overwritten once gallery loads). */
-export const GALLERY_SPAWN: [number, number, number] = [5.034, 0.92, -0.865];
+export const GALLERY_SPAWN: [number, number, number] = [-19.154, 21.897, 7.203];
 
-/** First desktop view target: centered between the initial box and bass exhibits. */
-export const GALLERY_INITIAL_LOOK_AT: [number, number, number] = [4.84, 1.08, -3.22];
+/** First desktop view target for space_main: look from the spawn room toward the central volume. */
+export const GALLERY_INITIAL_LOOK_AT: [number, number, number] = [-38.654, 22.6, -11.025];
 
-/** Bump when replacing gallery_main.glb so dev/browser reloads geometry. */
-export const GALLERY_GLB_REVISION = "20260609";
+/** Bump when replacing space_main.glb so dev/browser reloads geometry. */
+export const GALLERY_GLB_REVISION = "20260614-space-main";
 
-export const GALLERY_GLB_URL = `/models/gallery_main.glb?v=${GALLERY_GLB_REVISION}`;
+export const GALLERY_GLB_URL = `/models/space_main.glb?v=${GALLERY_GLB_REVISION}`;
 
 /** Local Draco decoder path for compressed GLB files; avoids runtime fetches to gstatic. */
 export const GLTF_DRACO_DECODER_PATH = "/draco/";
@@ -27,7 +27,7 @@ export const GALLERY_OUTSIDE_SPAWN_DROP = 2;
 export const GALLERY_SURFACE_COLOR = "#c0bab0";
 
 /**
- * false = 保留 gallery_main.glb 内 Blender/glTF 材质（Principled、Emission 等）。
+ * false = 保留 space_main.glb 内 Blender/glTF 材质（Principled、Emission 等）。
  * true = 加载时整场景替换为统一 toon/纯色（会丢弃导出材质）。
  */
 export const ENABLE_GALLERY_OVERRIDE_MATERIALS = false;

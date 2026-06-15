@@ -6,6 +6,7 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent,
+  type PointerEvent,
   type WheelEvent,
 } from "react";
 import { splitArchivePanels } from "./splitArchiveData";
@@ -15,8 +16,14 @@ import type {
   SplitArchiveTab,
 } from "./splitArchiveTypes";
 import {
+  beginDragPaging,
+  createDragPagingState,
   createWheelPagingState,
+  getRelativeSelectionDirection,
+  releaseDragPaging,
+  resolveDragPaging,
   resolveWheelPaging,
+  type DragPagingState,
   type WheelPagingDirection,
   type WheelPagingState,
 } from "./wheelPaging";
@@ -69,6 +76,10 @@ function getStageTrackOffset(direction: WheelPagingDirection | null, progress: n
   if (!direction) return 0;
   const distance = Math.min(Math.max(progress, 0), 1) * 46;
   return direction === "down" ? -distance : distance;
+}
+
+function toDetailPanelId(id: string) {
+  return `detail-${id.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
 }
 
 function prefersReducedMotion() {
@@ -125,30 +136,73 @@ function ArchiveIndex({
 }
 
 function DetailGroups({ item }: { item: SplitArchiveItem }) {
+  const [closedGroupIds, setClosedGroupIds] = useState<Set<string>>(() => new Set());
+
+  const rows = useMemo(() => {
+    const detailRows = item.detailGroups.map((group) => ({
+      id: `${item.id}:group:${group.title}`,
+      title: group.title,
+      kind: "list" as const,
+      items: group.items,
+    }));
+
+    if (!item.note) return detailRows;
+    return [
+      ...detailRows,
+      {
+        id: `${item.id}:note:${item.note.title}`,
+        title: item.note.title,
+        kind: "note" as const,
+        body: item.note.body,
+      },
+    ];
+  }, [item]);
+
+  const toggleGroup = useCallback((groupId: string) => {
+    setClosedGroupIds((current) => {
+      const next = new Set(current);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  }, []);
+
   return (
     <div className="frosted-split__detailGroups">
-      {item.detailGroups.map((group) => (
-        <details key={group.title} className="frosted-split__detailGroup">
-          <summary>
-            <span>{group.title}</span>
-            <strong className="frosted-split__detailToggle" aria-hidden="true" />
-          </summary>
-          <ul>
-            {group.items.map((detail) => (
-              <li key={detail}>{detail}</li>
-            ))}
-          </ul>
-        </details>
-      ))}
-      {item.note ? (
-        <details className="frosted-split__detailGroup frosted-split__detailGroup--note">
-          <summary>
-            <span>{item.note.title}</span>
-            <strong className="frosted-split__detailToggle" aria-hidden="true" />
-          </summary>
-          <p>{item.note.body}</p>
-        </details>
-      ) : null}
+      {rows.map((row) => {
+        const closed = closedGroupIds.has(row.id);
+        const panelId = toDetailPanelId(row.id);
+        return (
+          <section
+            key={row.id}
+            className={`frosted-split__detailGroup${row.kind === "note" ? " frosted-split__detailGroup--note" : ""}${closed ? "" : " frosted-split__detailGroup--open"}`}
+          >
+            <button
+              type="button"
+              className="frosted-split__detailButton"
+              aria-expanded={!closed}
+              aria-controls={panelId}
+              onClick={() => toggleGroup(row.id)}
+            >
+              <span>{row.title}</span>
+              <strong className="frosted-split__detailToggle" aria-hidden="true" />
+            </button>
+            <div id={panelId} className="frosted-split__detailPanel">
+              <div className="frosted-split__detailPanelInner">
+                {row.kind === "list" ? (
+                  <ul>
+                    {row.items.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>{row.body}</p>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -171,29 +225,29 @@ function StageContent({ item }: { item: SplitArchiveItem }) {
   );
 }
 
-function getFoldedDetailCopy(tab: SplitArchiveTab) {
-  return tab === "devStories" ? "Process detail is folded." : "Archive detail is folded.";
-}
-
 function ArchivePanel({
   panel,
   active,
-  detailExpanded,
   motion,
   selectedItem,
   onSelectItem,
   onActivate,
-  onToggleDetail,
+  onStagePointerCancel,
+  onStagePointerDown,
+  onStagePointerMove,
+  onStagePointerUp,
   onStageWheel,
 }: {
   panel: SplitArchivePanel;
   active: boolean;
-  detailExpanded: boolean;
   motion: StageMotion;
   selectedItem: SplitArchiveItem;
   onSelectItem: (itemId: string) => void;
   onActivate: () => void;
-  onToggleDetail: () => void;
+  onStagePointerCancel: (event: PointerEvent<HTMLElement>) => void;
+  onStagePointerDown: (event: PointerEvent<HTMLElement>) => void;
+  onStagePointerMove: (event: PointerEvent<HTMLElement>) => void;
+  onStagePointerUp: (event: PointerEvent<HTMLElement>) => void;
   onStageWheel: (event: WheelEvent<HTMLElement>) => void;
 }) {
   const stageMotionClass =
@@ -239,6 +293,10 @@ function ArchivePanel({
           <main
             className={`frosted-split__stage${stageMotionClass}`}
             style={stageStyle}
+            onPointerCancel={onStagePointerCancel}
+            onPointerDown={onStagePointerDown}
+            onPointerMove={onStagePointerMove}
+            onPointerUp={onStagePointerUp}
             onWheel={onStageWheel}
             aria-live="polite"
           >
@@ -265,20 +323,7 @@ function ArchivePanel({
           </main>
 
           <aside className="frosted-split__details" aria-label={`${selectedItem.title} details`}>
-            <button
-              type="button"
-              className="frosted-split__detailsTop frosted-split__detailsTop--button"
-              aria-expanded={detailExpanded}
-              onClick={onToggleDetail}
-            >
-              <span>Detail</span>
-              <strong className="frosted-split__detailMasterToggle" aria-hidden="true" />
-            </button>
-            {detailExpanded ? (
-              <DetailGroups item={selectedItem} />
-            ) : (
-              <p className="frosted-split__detailFolded">{getFoldedDetailCopy(panel.tab)}</p>
-            )}
+            <DetailGroups key={selectedItem.id} item={selectedItem} />
           </aside>
         </div>
       </div>
@@ -296,13 +341,13 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     lizzardkevin: createIdleStageMotion(),
     devStories: createIdleStageMotion(),
   }));
-  const [detailExpanded, setDetailExpanded] = useState<Record<SplitArchiveTab, boolean>>({
-    lizzardkevin: true,
-    devStories: true,
-  });
   const wheelPagingRefs = useRef<Record<SplitArchiveTab, WheelPagingState>>({
     lizzardkevin: createWheelPagingState(),
     devStories: createWheelPagingState(),
+  });
+  const dragPagingRefs = useRef<Record<SplitArchiveTab, DragPagingState>>({
+    lizzardkevin: createDragPagingState(),
+    devStories: createDragPagingState(),
   });
   const motionTimerRefs = useRef<Record<SplitArchiveTab, number | null>>({
     lizzardkevin: null,
@@ -335,13 +380,6 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     }));
   }, []);
 
-  const toggleDetail = useCallback((tab: SplitArchiveTab) => {
-    setDetailExpanded((current) => ({
-      ...current,
-      [tab]: !current[tab],
-    }));
-  }, []);
-
   const clearMotionTimer = useCallback((tab: SplitArchiveTab) => {
     const currentTimer = motionTimerRefs.current[tab];
     if (currentTimer !== null) {
@@ -350,28 +388,8 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     }
   }, []);
 
-  const resetStageMotion = useCallback(
-    (tab: SplitArchiveTab) => {
-      clearMotionTimer(tab);
-      setStageMotion((current) => ({
-        ...current,
-        [tab]: createIdleStageMotion(current[tab].nonce + 1),
-      }));
-    },
-    [clearMotionTimer],
-  );
-
-  const selectArchiveItem = useCallback(
-    (tab: SplitArchiveTab, itemId: string) => {
-      wheelPagingRefs.current[tab] = createWheelPagingState();
-      resetStageMotion(tab);
-      setSelectedItem(tab, itemId);
-    },
-    [resetStageMotion, setSelectedItem],
-  );
-
   const queueTrackingMotion = useCallback(
-    (tab: SplitArchiveTab, direction: WheelPagingDirection, progress: number) => {
+    (tab: SplitArchiveTab, direction: WheelPagingDirection, progress: number, autoSettle = true) => {
       const currentTimer = motionTimerRefs.current[tab];
       if (currentTimer !== null) window.clearTimeout(currentTimer);
 
@@ -386,6 +404,8 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
           trackingProgress: progress,
         },
       }));
+
+      if (!autoSettle) return;
 
       motionTimerRefs.current[tab] = window.setTimeout(() => {
         setStageMotion((current) => ({
@@ -408,6 +428,28 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     },
     [],
   );
+
+  const queueSettleMotion = useCallback((tab: SplitArchiveTab) => {
+    const currentTimer = motionTimerRefs.current[tab];
+    if (currentTimer !== null) window.clearTimeout(currentTimer);
+
+    setStageMotion((current) => ({
+      ...current,
+      [tab]: {
+        ...current[tab],
+        mode: "settling",
+        trackingProgress: 0,
+      },
+    }));
+
+    motionTimerRefs.current[tab] = window.setTimeout(() => {
+      motionTimerRefs.current[tab] = null;
+      setStageMotion((current) => ({
+        ...current,
+        [tab]: createIdleStageMotion(current[tab].nonce),
+      }));
+    }, 260);
+  }, []);
 
   const queueReboundMotion = useCallback(
     (tab: SplitArchiveTab, direction: WheelPagingDirection) => {
@@ -474,6 +516,26 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     [clearMotionTimer, setSelectedItem],
   );
 
+  const selectArchiveItem = useCallback(
+    (tab: SplitArchiveTab, itemId: string) => {
+      const panel = splitArchivePanels[tab];
+      const selectedItem = selectedItems[tab];
+      const currentIndex = Math.max(
+        0,
+        panel.items.findIndex((item) => item.id === selectedItem.id),
+      );
+      const nextIndex = panel.items.findIndex((item) => item.id === itemId);
+      const next = panel.items[nextIndex];
+      const direction = getRelativeSelectionDirection(currentIndex, nextIndex);
+      if (!next || !direction || stageMotion[tab].mode === "transition") return;
+
+      wheelPagingRefs.current[tab] = createWheelPagingState();
+      dragPagingRefs.current[tab] = createDragPagingState();
+      queueStageTransition(tab, direction, selectedItem, next);
+    },
+    [queueStageTransition, selectedItems, stageMotion],
+  );
+
   const handleStageWheel = useCallback(
     (tab: SplitArchiveTab, event: WheelEvent<HTMLElement>) => {
       if (activeTab !== tab) return;
@@ -493,7 +555,7 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
       });
 
       if (stageMotion[tab].mode === "transition") return;
-      if (outcome.kind === "idle" || outcome.kind === "locked") return;
+      if (outcome.kind === "idle" || outcome.kind === "locked" || outcome.kind === "settle") return;
       if (outcome.kind === "track") {
         queueTrackingMotion(tab, outcome.direction, outcome.progress);
         return;
@@ -512,6 +574,65 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
     [activeTab, queueReboundMotion, queueStageTransition, queueTrackingMotion, selectedItems, stageMotion],
   );
 
+  const handleStagePointerDown = useCallback(
+    (tab: SplitArchiveTab, event: PointerEvent<HTMLElement>) => {
+      if (activeTab !== tab || event.button !== 0 || stageMotion[tab].mode === "transition") return;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      dragPagingRefs.current[tab] = createDragPagingState();
+      beginDragPaging(dragPagingRefs.current[tab], {
+        nowMs: performance.now(),
+        pointerY: event.clientY,
+      });
+    },
+    [activeTab, stageMotion],
+  );
+
+  const handleStagePointerMove = useCallback(
+    (tab: SplitArchiveTab, event: PointerEvent<HTMLElement>) => {
+      if (activeTab !== tab || stageMotion[tab].mode === "transition") return;
+
+      const panel = splitArchivePanels[tab];
+      const selectedItem = selectedItems[tab];
+      const currentIndex = Math.max(
+        0,
+        panel.items.findIndex((item) => item.id === selectedItem.id),
+      );
+      const outcome = resolveDragPaging(dragPagingRefs.current[tab], {
+        currentIndex,
+        pointerY: event.clientY,
+        total: panel.items.length,
+      });
+
+      if (outcome.kind === "idle" || outcome.kind === "locked" || outcome.kind === "settle") return;
+      if (outcome.kind === "track") {
+        queueTrackingMotion(tab, outcome.direction, outcome.progress, false);
+        return;
+      }
+      if (outcome.kind === "rebound") {
+        queueReboundMotion(tab, outcome.direction);
+        return;
+      }
+      if (outcome.kind === "select") {
+        const next = panel.items[outcome.nextIndex];
+        if (next) queueStageTransition(tab, outcome.direction, selectedItem, next);
+      }
+    },
+    [activeTab, queueReboundMotion, queueStageTransition, queueTrackingMotion, selectedItems, stageMotion],
+  );
+
+  const handleStagePointerUp = useCallback(
+    (tab: SplitArchiveTab, event: PointerEvent<HTMLElement>) => {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      const outcome = releaseDragPaging(dragPagingRefs.current[tab]);
+      if (outcome.kind === "settle" && stageMotion[tab].mode === "tracking") {
+        queueSettleMotion(tab);
+      }
+    },
+    [queueSettleMotion, stageMotion],
+  );
+
   const selectTab = (nextTab: SplitArchiveTab) => {
     setActiveTab(nextTab);
     onSelectTab?.(nextTab);
@@ -522,23 +643,27 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
       <ArchivePanel
         panel={splitArchivePanels.lizzardkevin}
         active={activeTab === "lizzardkevin"}
-        detailExpanded={detailExpanded.lizzardkevin}
         motion={stageMotion.lizzardkevin}
         selectedItem={selectedItems.lizzardkevin}
         onSelectItem={(itemId) => selectArchiveItem("lizzardkevin", itemId)}
         onActivate={() => selectTab("lizzardkevin")}
-        onToggleDetail={() => toggleDetail("lizzardkevin")}
+        onStagePointerCancel={(event) => handleStagePointerUp("lizzardkevin", event)}
+        onStagePointerDown={(event) => handleStagePointerDown("lizzardkevin", event)}
+        onStagePointerMove={(event) => handleStagePointerMove("lizzardkevin", event)}
+        onStagePointerUp={(event) => handleStagePointerUp("lizzardkevin", event)}
         onStageWheel={(event) => handleStageWheel("lizzardkevin", event)}
       />
       <ArchivePanel
         panel={splitArchivePanels.devStories}
         active={activeTab === "devStories"}
-        detailExpanded={detailExpanded.devStories}
         motion={stageMotion.devStories}
         selectedItem={selectedItems.devStories}
         onSelectItem={(itemId) => selectArchiveItem("devStories", itemId)}
         onActivate={() => selectTab("devStories")}
-        onToggleDetail={() => toggleDetail("devStories")}
+        onStagePointerCancel={(event) => handleStagePointerUp("devStories", event)}
+        onStagePointerDown={(event) => handleStagePointerDown("devStories", event)}
+        onStagePointerMove={(event) => handleStagePointerMove("devStories", event)}
+        onStagePointerUp={(event) => handleStagePointerUp("devStories", event)}
         onStageWheel={(event) => handleStageWheel("devStories", event)}
       />
     </div>

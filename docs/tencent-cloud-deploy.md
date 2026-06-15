@@ -44,7 +44,7 @@ npm run build
 上线时建议迁移到 COS：
 
 ```
-/models/gallery_main.glb
+/models/space_main.glb
 /exhibits/<exhibitId>/focus.glb
 /media/<file>.mp3
 /media/<file>.mp4
@@ -77,4 +77,3 @@ npm run build
 - 数据库（收藏、登录、留言）
 
 否则：**纯静态 + COS + CDN** 是最稳、成本最低的起点。
-

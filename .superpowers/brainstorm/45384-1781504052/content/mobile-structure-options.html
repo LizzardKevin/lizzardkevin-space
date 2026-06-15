@@ -1,0 +1,103 @@
+<h2>手机版信息架构方向</h2>
+<p class="subtitle">目标：没有 3D 展厅时，让 10 个展品和个人 Resume 在手机上成为完整、独立、可读的体验。下面三种都不展示 DevStories。</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="width:240px;min-height:520px;margin:0 auto;border:1px solid #d8d8d8;border-radius:28px;background:#f7f7f4;overflow:hidden;color:#171717;font-family:system-ui;">
+        <div style="padding:22px 18px 14px;border-bottom:1px solid #e6e2da;">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#777;">LizzardKevin Space</div>
+          <div style="font-size:28px;line-height:1.05;margin-top:10px;">Mobile Archive</div>
+          <div style="font-size:13px;line-height:1.45;margin-top:10px;color:#666;">展品、媒介、故事与个人档案。</div>
+        </div>
+        <div style="display:flex;gap:8px;padding:12px 14px;overflow:hidden;border-bottom:1px solid #e6e2da;">
+          <span style="border:1px solid #111;border-radius:999px;padding:6px 10px;font-size:12px;">全部</span>
+          <span style="border:1px solid #d4d0c8;border-radius:999px;padding:6px 10px;font-size:12px;color:#666;">声音</span>
+          <span style="border:1px solid #d4d0c8;border-radius:999px;padding:6px 10px;font-size:12px;color:#666;">影像</span>
+          <span style="border:1px solid #d4d0c8;border-radius:999px;padding:6px 10px;font-size:12px;color:#666;">模型</span>
+        </div>
+        <div style="padding:14px;display:grid;gap:10px;">
+          <div style="height:118px;border-radius:14px;background:#202020;color:white;padding:14px;display:flex;flex-direction:column;justify-content:space-between;">
+            <span style="font-size:11px;opacity:.7;">01 / Featured</span>
+            <strong style="font-size:22px;">展品 1</strong>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="height:104px;border:1px solid #ddd6cb;border-radius:14px;padding:12px;background:#fff;">展品 2</div>
+            <div style="height:104px;border:1px solid #ddd6cb;border-radius:14px;padding:12px;background:#fff;">展品 3</div>
+            <div style="height:104px;border:1px solid #ddd6cb;border-radius:14px;padding:12px;background:#fff;">展品 4</div>
+            <div style="height:104px;border:1px solid #ddd6cb;border-radius:14px;padding:12px;background:#fff;">展品 5</div>
+          </div>
+        </div>
+        <div style="position:relative;margin:0 14px 14px;padding:14px;border-radius:16px;background:#ece8df;font-size:13px;">Resume 摘要入口</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Archive Index</h3>
+      <p>推荐。首页是展品索引，Resume 是底部/顶部固定入口。最清楚、最可扩展，适合展品内容还在持续增加。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="width:240px;min-height:520px;margin:0 auto;border:1px solid #d8d8d8;border-radius:28px;background:#111;color:#f6f1e8;overflow:hidden;font-family:system-ui;">
+        <div style="padding:22px 18px 12px;">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#aaa;">LizzardKevin Space</div>
+          <div style="font-size:30px;line-height:1.02;margin-top:12px;">Ten Rooms</div>
+          <div style="font-size:13px;line-height:1.45;margin-top:10px;color:#bbb;">把展品组织成十个房间切片。</div>
+        </div>
+        <div style="padding:10px 0 14px;display:flex;gap:12px;overflow:hidden;">
+          <div style="min-width:178px;height:310px;margin-left:18px;border-radius:22px;background:#f6f1e8;color:#111;padding:18px;display:flex;flex-direction:column;justify-content:space-between;">
+            <span style="font-size:12px;">01</span>
+            <strong style="font-size:34px;line-height:1;">展品 1</strong>
+            <span style="font-size:13px;color:#666;">故事 / 媒介 / 详情</span>
+          </div>
+          <div style="min-width:156px;height:310px;border-radius:22px;background:#2a2a2a;padding:18px;display:flex;align-items:end;"><strong>展品 2</strong></div>
+        </div>
+        <div style="padding:0 18px 18px;display:flex;gap:8px;">
+          <span style="width:26px;height:4px;border-radius:999px;background:#f6f1e8;"></span>
+          <span style="width:12px;height:4px;border-radius:999px;background:#555;"></span>
+          <span style="width:12px;height:4px;border-radius:999px;background:#555;"></span>
+        </div>
+        <div style="margin:0 18px 18px;padding:14px;border:1px solid #333;border-radius:16px;color:#ddd;">Resume</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Horizontal Rooms</h3>
+      <p>最有 SPACE 感。用横向卡片模拟“房间”，视觉记忆强，但长内容和十件以上展品会更难扫读。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="width:240px;min-height:520px;margin:0 auto;border:1px solid #d8d8d8;border-radius:28px;background:#fbfbfb;overflow:hidden;color:#151515;font-family:system-ui;">
+        <div style="position:sticky;top:0;background:#fbfbfb;padding:14px 16px;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center;">
+          <strong>SPACE</strong>
+          <span style="font-size:12px;border:1px solid #ddd;border-radius:999px;padding:5px 9px;">Resume</span>
+        </div>
+        <div style="padding:18px 16px 10px;">
+          <div style="font-size:24px;line-height:1.1;">Today's Path</div>
+          <div style="font-size:13px;color:#666;margin-top:8px;">一条策展阅读路线。</div>
+        </div>
+        <div style="padding:8px 16px 20px;display:grid;gap:12px;">
+          <div style="display:grid;grid-template-columns:36px 1fr;gap:12px;">
+            <div style="height:36px;border-radius:50%;background:#111;color:white;display:grid;place-items:center;font-size:12px;">01</div>
+            <div style="border-bottom:1px solid #e6e6e6;padding-bottom:14px;"><strong>展品 1</strong><p style="margin:6px 0 0;color:#666;font-size:13px;">短简介与继续阅读</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:36px 1fr;gap:12px;">
+            <div style="height:36px;border-radius:50%;background:#eee;display:grid;place-items:center;font-size:12px;">02</div>
+            <div style="border-bottom:1px solid #e6e6e6;padding-bottom:14px;"><strong>展品 2</strong><p style="margin:6px 0 0;color:#666;font-size:13px;">短简介与继续阅读</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:36px 1fr;gap:12px;">
+            <div style="height:36px;border-radius:50%;background:#eee;display:grid;place-items:center;font-size:12px;">03</div>
+            <div style="border-bottom:1px solid #e6e6e6;padding-bottom:14px;"><strong>展品 3</strong><p style="margin:6px 0 0;color:#666;font-size:13px;">短简介与继续阅读</p></div>
+          </div>
+          <div style="height:80px;border-radius:18px;background:#f0eee8;padding:14px;">Resume 插入段</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Curated Scroll</h3>
+      <p>最像移动杂志。适合讲故事和顺序阅读，但用户不如索引式容易快速跳到某个展品。</p>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,8 @@
-type CursorReturnHandler = (onComplete: () => void) => void;
+export type CursorReturnOptions = {
+  target?: "center" | "pointer";
+};
+
+type CursorReturnHandler = (options?: CursorReturnOptions) => void;
 
 let cursorReturnHandler: CursorReturnHandler | null = null;
 
@@ -6,10 +10,9 @@ export function setSpaceCursorReturnHandler(handler: CursorReturnHandler | null)
   cursorReturnHandler = handler;
 }
 
-export function requestSpaceCursorReturn(onComplete: () => void) {
+export function requestSpaceCursorReturn(options?: CursorReturnOptions) {
   if (!cursorReturnHandler) {
-    onComplete();
     return;
   }
-  cursorReturnHandler(onComplete);
+  cursorReturnHandler(options);
 }
