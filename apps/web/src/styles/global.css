@@ -617,7 +617,7 @@ button {
 }
 
 .mobile-terminal-chromeLoad,
-.mobile-terminal-document--loading {
+.mobile-terminal-loadLayer.mobile-terminal-document--loading {
   animation: mobile-terminal-text-load 250ms steps(5, end) both;
 }
 
@@ -835,6 +835,10 @@ button {
   transform: translate3d(0, var(--terminal-content-scroll-y), 0);
 }
 
+.mobile-terminal-loadLayer {
+  min-height: 100%;
+}
+
 .mobile-terminal-document--contact {
   min-height: calc(100% + var(--terminal-view-scroll-room));
   padding-bottom: var(--terminal-view-scroll-room);
@@ -1049,11 +1053,14 @@ button {
 }
 
 .mobile-project-detail {
-  display: grid;
-  gap: 22px;
   min-height: calc(100% + var(--terminal-project-scroll-room));
   padding: 8px 0 calc(32px + var(--terminal-project-scroll-room));
   transform: translate3d(0, var(--terminal-content-scroll-y), 0);
+}
+
+.mobile-project-detail__loadLayer {
+  display: grid;
+  gap: 22px;
 }
 
 .mobile-terminal-back {

@@ -118,8 +118,9 @@ async function loadTerminalFonts(language: MobileTerminalLanguage): Promise<Term
 function applyTerminalScrollState(root: HTMLElement | null, scrollTop: number) {
   if (!root) return;
   const progress = Math.min(1, Math.max(0, scrollTop / HEADER_COLLAPSE_DISTANCE_PX));
+  const scrollWithinCollapse = Math.min(scrollTop, HEADER_COLLAPSE_DISTANCE_PX);
   const contentScrollY = SHELL_COLLAPSE_OFFSET_PX * progress;
-  const navScrollY = NAV_COLLAPSE_OFFSET_PX * progress - Math.min(scrollTop, HEADER_COLLAPSE_DISTANCE_PX);
+  const navScrollY = NAV_COLLAPSE_OFFSET_PX * progress - scrollWithinCollapse;
 
   root.style.setProperty("--terminal-collapse", progress.toFixed(3));
   root.style.setProperty("--terminal-header-height", `${82 - 34 * progress}px`);
@@ -386,14 +387,16 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
             ) : (
               <section
                 key={documentKey}
-                className={`mobile-terminal-document mobile-terminal-document--loading${activeTab === "contact" ? " mobile-terminal-document--contact" : ""}`}
+                className={`mobile-terminal-document${activeTab === "contact" ? " mobile-terminal-document--contact" : ""}`}
                 aria-label={documentLabel}
               >
-                {activeTab === null ? <MobileTerminalIdle /> : null}
-                {activeTab === "projects" ? <ProjectsView copy={copy.projects} onSelectProject={openProject} /> : null}
-                {activeTab === "skills" ? <SkillsDocument copy={copy.skills} language={language} /> : null}
-                {activeTab === "soul" ? <SoulDocument copy={copy.soul} /> : null}
-                {activeTab === "contact" ? <ContactDocument copy={copy.contact} /> : null}
+                <div className="mobile-terminal-loadLayer mobile-terminal-document--loading">
+                  {activeTab === null ? <MobileTerminalIdle /> : null}
+                  {activeTab === "projects" ? <ProjectsView copy={copy.projects} onSelectProject={openProject} /> : null}
+                  {activeTab === "skills" ? <SkillsDocument copy={copy.skills} language={language} /> : null}
+                  {activeTab === "soul" ? <SoulDocument copy={copy.soul} /> : null}
+                  {activeTab === "contact" ? <ContactDocument copy={copy.contact} /> : null}
+                </div>
               </section>
             )}
           </main>
@@ -558,34 +561,36 @@ function ProjectDetailView({
   onBack: () => void;
 }) {
   return (
-    <article className="mobile-project-detail mobile-terminal-document--loading">
-      <button type="button" className="mobile-terminal-back" onClick={onBack}>
-        cd ..
-      </button>
-      <div className="mobile-terminal-command">$ open {project.id}</div>
-      <header className="mobile-project-detail__header">
-        <span>{project.indexLabel}</span>
-        <h1>{project.title}</h1>
-        <p>{project.summary[language]}</p>
-      </header>
-      <div className="mobile-project-detail__media" aria-label={`${project.title} media placeholder`}>
-        <span>{project.mediaKind}</span>
-        <strong>{project.mediaStatus[language]}</strong>
+    <article className="mobile-project-detail">
+      <div className="mobile-terminal-loadLayer mobile-terminal-document--loading mobile-project-detail__loadLayer">
+        <button type="button" className="mobile-terminal-back" onClick={onBack}>
+          cd ..
+        </button>
+        <div className="mobile-terminal-command">$ open {project.id}</div>
+        <header className="mobile-project-detail__header">
+          <span>{project.indexLabel}</span>
+          <h1>{project.title}</h1>
+          <p>{project.summary[language]}</p>
+        </header>
+        <div className="mobile-project-detail__media" aria-label={`${project.title} media placeholder`}>
+          <span>{project.mediaKind}</span>
+          <strong>{project.mediaStatus[language]}</strong>
+        </div>
+        <dl className="mobile-project-detail__notes">
+          <div>
+            <dt>Current Signal</dt>
+            <dd>{project.signal[language]}</dd>
+          </div>
+          <div>
+            <dt>SPACE Layer</dt>
+            <dd>{project.spaceLayer[language]}</dd>
+          </div>
+          <div>
+            <dt>Archive Note</dt>
+            <dd>{project.archiveNote[language]}</dd>
+          </div>
+        </dl>
       </div>
-      <dl className="mobile-project-detail__notes">
-        <div>
-          <dt>Current Signal</dt>
-          <dd>{project.signal[language]}</dd>
-        </div>
-        <div>
-          <dt>SPACE Layer</dt>
-          <dd>{project.spaceLayer[language]}</dd>
-        </div>
-        <div>
-          <dt>Archive Note</dt>
-          <dd>{project.archiveNote[language]}</dd>
-        </div>
-      </dl>
     </article>
   );
 }
