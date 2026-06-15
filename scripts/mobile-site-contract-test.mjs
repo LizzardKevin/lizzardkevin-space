@@ -94,8 +94,13 @@ assert(files.mobileExperience.includes("applyTerminalScrollState"), "mobile scro
 assert(files.mobileExperience.includes("--terminal-content-scroll-y"), "mobile scroll must let document content move one-to-one while the header collapses");
 assert(files.mobileExperience.includes("--terminal-nav-scroll-y"), "mobile scroll must let the four main tabs move one-to-one while the header collapses");
 assert(files.mobileExperience.includes("HEADER_COLLAPSE_DISTANCE_PX = 36"), "mobile Space title must collapse over a shorter 36px scroll distance");
+assert(files.mobileExperience.includes("const scrollWithinCollapse = Math.min(scrollTop, HEADER_COLLAPSE_DISTANCE_PX)"), "mobile scroll must explicitly separate the collapse scroll range");
 assert(files.mobileExperience.includes("const contentScrollY = SHELL_COLLAPSE_OFFSET_PX * progress"), "content movement must only compensate shell collapse, not pin the document");
-assert(files.mobileExperience.includes("const navScrollY = NAV_COLLAPSE_OFFSET_PX * progress - Math.min(scrollTop, HEADER_COLLAPSE_DISTANCE_PX)"), "main tabs must stop once the header is fully collapsed");
+assert(files.mobileExperience.includes("const navScrollY = NAV_COLLAPSE_OFFSET_PX * progress - scrollWithinCollapse"), "main tabs must stop once the header is fully collapsed");
+assert(files.mobileExperience.includes("className=\"mobile-terminal-loadLayer mobile-terminal-document--loading\""), "terminal text-load animation must run on an inner load layer");
+assert(files.mobileExperience.includes("className=\"mobile-terminal-loadLayer mobile-terminal-document--loading mobile-project-detail__loadLayer\""), "project detail text-load animation must run on an inner load layer");
+assert(!files.mobileExperience.includes("className={`mobile-terminal-document mobile-terminal-document--loading"), "terminal document scroll compensation element must not carry the text-load animation class");
+assert(!files.mobileExperience.includes("className=\"mobile-project-detail mobile-terminal-document--loading\""), "project detail scroll compensation element must not carry the text-load animation class");
 assert(!files.mobileExperience.includes("pinnedScroll"), "mobile scroll must not keep the document visually pinned during header collapse");
 assert(files.mobileExperience.includes("SPACE_INLINE_OFFSET_X_PX = 90"), "collapsed Space x-offset must sit closer to the small brand label");
 assert(files.mobileExperience.includes("SPACE_INLINE_OFFSET_Y_PX = -16"), "collapsed Space y-offset must align with the small brand label");
@@ -336,6 +341,7 @@ assert(terminalCss.includes("--terminal-content-scroll-y"), "terminal CSS must e
 assert(terminalCss.includes("--terminal-nav-scroll-y"), "terminal CSS must expose main tab scroll-follow offset");
 assert(terminalCss.includes("transform: translate3d(0, var(--terminal-nav-scroll-y), 0)"), "main tabs must move with the user's scroll during header collapse");
 assert(terminalCss.includes("transform: translate3d(0, var(--terminal-content-scroll-y), 0)"), "terminal documents must move one-to-one with the user's scroll during header collapse");
+assert(terminalCss.includes(".mobile-terminal-loadLayer"), "terminal CSS must include a separate inner text-load animation layer");
 assert(terminalCss.includes("color-mix(in srgb, var(--terminal-text)"), "collapsed Space color must interpolate toward the muted small-label color");
 assert(terminalCss.includes("var(--terminal-muted) calc(var(--terminal-collapse) * 100%)"), "collapsed Space final color must match the small-label muted color");
 assert(terminalCss.includes(".mobile-terminal-fold"), "terminal CSS must include markdown-style fold sections");
@@ -372,6 +378,7 @@ assert(terminalCss.includes(".mobile-terminal-boot .mobile-terminal-bootDots"), 
 assert(!terminalCss.includes(".mobile-terminal-boot span,\n.mobile-terminal-boot strong"), "terminal boot CSS must not block-layout every nested dot span");
 assert(terminalCss.includes("@keyframes mobile-terminal-dot-pulse"), "boot loading dots must use a repeating dot animation");
 assert(terminalCss.includes("@keyframes mobile-terminal-text-load"), "terminal CSS must define the 250ms text loading animation");
+assert(terminalCss.includes(".mobile-terminal-loadLayer.mobile-terminal-document--loading"), "terminal changed text animation must be scoped to the inner load layer");
 assert(terminalCss.includes("animation: mobile-terminal-text-load 250ms"), "terminal changed text must animate for 250ms");
 assert(!terminalCss.includes(".mobile-terminal-boot i"), "mobile terminal boot CSS must not keep the vertical cursor rule");
 assert(terminalCss.includes("--terminal-project-scroll-room"), "project detail must reserve scroll room for header collapse");
