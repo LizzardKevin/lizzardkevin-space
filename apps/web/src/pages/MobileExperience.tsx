@@ -69,6 +69,8 @@ type ThemeRevealState = {
   y: number;
 };
 
+type TerminalFoldState = Record<string, boolean>;
+
 function readStoredLanguage(): MobileTerminalLanguage {
   if (typeof window === "undefined") return DEFAULT_TERMINAL_LANGUAGE;
   const value = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -135,6 +137,10 @@ function applyTerminalScrollState(root: HTMLElement | null, scrollTop: number) {
   root.style.setProperty("--terminal-nav-scroll-y", `${navScrollY}px`);
 }
 
+function getFoldExpanded(foldState: TerminalFoldState, foldId: string) {
+  return foldState[foldId] ?? false;
+}
+
 export function MobileExperience({ entry }: { entry: EntryTransition }) {
   const { entered } = entry;
   const terminalRootRef = useRef<HTMLDivElement | null>(null);
@@ -143,6 +149,7 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
   const terminalSnapFrameRef = useRef<number | null>(null);
   const [bootLanguage] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
   const [activeTab, setActiveTab] = useState<MobileTabId | null>(null);
+  const [foldState, setFoldState] = useState<TerminalFoldState>({});
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [viewLoadKey, setViewLoadKey] = useState(0);
   const [language, setLanguageState] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
@@ -273,6 +280,13 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
     window.requestAnimationFrame(() => animateTerminalCollapseTo(targetProgress));
   };
 
+  const handleFoldExpandedChange = (foldId: string, expanded: boolean) => {
+    setFoldState((current) => {
+      if (current[foldId] === expanded) return current;
+      return { ...current, [foldId]: expanded };
+    });
+  };
+
   const selectTab = (tabId: MobileTabId) => {
     if (activeTab === tabId && selectedProjectId === null) {
       return;
@@ -392,9 +406,29 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
               >
                 <div className="mobile-terminal-loadLayer mobile-terminal-document--loading">
                   {activeTab === null ? <MobileTerminalIdle /> : null}
-                  {activeTab === "projects" ? <ProjectsView copy={copy.projects} onSelectProject={openProject} /> : null}
-                  {activeTab === "skills" ? <SkillsDocument copy={copy.skills} language={language} /> : null}
-                  {activeTab === "soul" ? <SoulDocument copy={copy.soul} /> : null}
+                  {activeTab === "projects" ? (
+                    <ProjectsView
+                      copy={copy.projects}
+                      foldState={foldState}
+                      onFoldExpandedChange={handleFoldExpandedChange}
+                      onSelectProject={openProject}
+                    />
+                  ) : null}
+                  {activeTab === "skills" ? (
+                    <SkillsDocument
+                      copy={copy.skills}
+                      foldState={foldState}
+                      language={language}
+                      onFoldExpandedChange={handleFoldExpandedChange}
+                    />
+                  ) : null}
+                  {activeTab === "soul" ? (
+                    <SoulDocument
+                      copy={copy.soul}
+                      foldState={foldState}
+                      onFoldExpandedChange={handleFoldExpandedChange}
+                    />
+                  ) : null}
                   {activeTab === "contact" ? <ContactDocument copy={copy.contact} /> : null}
                 </div>
               </section>
@@ -479,22 +513,26 @@ function TerminalSettings({
 
 function TerminalFold({
   className,
+  expanded,
+  foldId,
+  onExpandedChange,
   summary,
   children,
 }: {
   className: string;
+  expanded: boolean;
+  foldId: string;
+  onExpandedChange: (expanded: boolean) => void;
   summary: ReactNode;
   children: ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(true);
-
   return (
-    <details open className={className} data-fold-state={expanded ? "open" : "closed"}>
+    <details open className={className} data-fold-id={foldId} data-fold-state={expanded ? "open" : "closed"}>
       <summary
         aria-expanded={expanded}
         onClick={(event) => {
           event.preventDefault();
-          setExpanded((open) => !open);
+          onExpandedChange(!expanded);
         }}
       >
         {summary}
@@ -508,9 +546,13 @@ function TerminalFold({
 
 function ProjectsView({
   copy,
+  foldState,
+  onFoldExpandedChange,
   onSelectProject,
 }: {
   copy: typeof mobileTerminalCopy.en.projects;
+  foldState: TerminalFoldState;
+  onFoldExpandedChange: (foldId: string, expanded: boolean) => void;
   onSelectProject: (id: string) => void;
 }) {
   const groupedProjects = useMemo(() => {
@@ -529,6 +571,9 @@ function ProjectsView({
         <TerminalFold
           key={stageLabel}
           className="mobile-terminal-fold mobile-terminal-fold--projects"
+          expanded={getFoldExpanded(foldState, `projects:${stageLabel}`)}
+          foldId={`projects:${stageLabel}`}
+          onExpandedChange={(expanded) => onFoldExpandedChange(`projects:${stageLabel}`, expanded)}
           summary={<span>{stageLabel}</span>}
         >
           <div className="mobile-project-list">
@@ -597,10 +642,14 @@ function ProjectDetailView({
 
 function SkillsDocument({
   copy,
+  foldState,
   language,
+  onFoldExpandedChange,
 }: {
   copy: typeof mobileTerminalCopy.en.skills;
+  foldState: TerminalFoldState;
   language: MobileTerminalLanguage;
+  onFoldExpandedChange: (foldId: string, expanded: boolean) => void;
 }) {
   return (
     <div className="mobile-terminal-section">
@@ -613,6 +662,9 @@ function SkillsDocument({
           <TerminalFold
             key={category}
             className="mobile-terminal-fold mobile-terminal-fold--skills mobile-skill-module"
+            expanded={getFoldExpanded(foldState, `skills:${category}`)}
+            foldId={`skills:${category}`}
+            onExpandedChange={(expanded) => onFoldExpandedChange(`skills:${category}`, expanded)}
             summary={
               <>
               <div className="mobile-skill-module__prompt">{meta.command}</div>
@@ -638,7 +690,15 @@ function SkillsDocument({
   );
 }
 
-function SoulDocument({ copy }: { copy: typeof mobileTerminalCopy.en.soul }) {
+function SoulDocument({
+  copy,
+  foldState,
+  onFoldExpandedChange,
+}: {
+  copy: typeof mobileTerminalCopy.en.soul;
+  foldState: TerminalFoldState;
+  onFoldExpandedChange: (foldId: string, expanded: boolean) => void;
+}) {
   return (
     <div className="mobile-terminal-section">
       <div className="mobile-terminal-command">{copy.command}</div>
@@ -648,6 +708,9 @@ function SoulDocument({ copy }: { copy: typeof mobileTerminalCopy.en.soul }) {
           <TerminalFold
             key={section.title}
             className="mobile-terminal-fold mobile-terminal-fold--soul mobile-resume-block"
+            expanded={getFoldExpanded(foldState, `soul:${section.title}`)}
+            foldId={`soul:${section.title}`}
+            onExpandedChange={(expanded) => onFoldExpandedChange(`soul:${section.title}`, expanded)}
             summary={
               <>
               <span>{section.meta}</span>
