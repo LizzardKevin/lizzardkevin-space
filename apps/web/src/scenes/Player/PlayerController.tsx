@@ -16,7 +16,7 @@ import {
   PLAYER_CAPSULE_HALF_HEIGHT,
   PLAYER_CAPSULE_RADIUS,
 } from "../gallery/resolveGallerySpawn";
-import { GALLERY_INITIAL_LOOK_AT } from "../gallery/galleryConfig";
+import { GALLERY_INITIAL_LOOK_DIRECTION, GALLERY_INITIAL_LOOK_DISTANCE } from "../gallery/galleryConfig";
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
@@ -37,6 +37,14 @@ const MOVE_DECEL = 15;
 function easedMoveBlend(raw: number) {
   const t = Math.min(Math.max(raw, 0), 1);
   return t * t * (3 - 2 * t);
+}
+
+function initialLookAtFromSpawn(spawn: [number, number, number]): [number, number, number] {
+  return [
+    spawn[0] + GALLERY_INITIAL_LOOK_DIRECTION[0] * GALLERY_INITIAL_LOOK_DISTANCE,
+    spawn[1] + EYE_OFFSET + GALLERY_INITIAL_LOOK_DIRECTION[1] * GALLERY_INITIAL_LOOK_DISTANCE,
+    spawn[2] + GALLERY_INITIAL_LOOK_DIRECTION[2] * GALLERY_INITIAL_LOOK_DISTANCE,
+  ];
 }
 
 export function PlayerController({
@@ -120,7 +128,7 @@ export function PlayerController({
     horizontalVelocity.current.set(0, 0, 0);
     grounded.current = false;
     camera.position.set(spawn[0], spawn[1] + EYE_OFFSET, spawn[2]);
-    camera.lookAt(...GALLERY_INITIAL_LOOK_AT);
+    camera.lookAt(...initialLookAtFromSpawn(spawn));
   }, [spawn, camera]);
 
   useEffect(() => {

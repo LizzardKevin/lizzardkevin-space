@@ -298,7 +298,7 @@ export function resolveOutsideGallerySpawn(root: THREE.Object3D): [number, numbe
     }
   }
 
-  const floorTopY = floorTopUnder(root, x, z);
+  const floorTopY = floorTopUnder(root, x, z) ?? 0;
   const y = bodyYOnFloor(floorTopY) + GALLERY_OUTSIDE_SPAWN_DROP;
   return [x, y, z];
 }
@@ -312,7 +312,7 @@ export function resolveGallerySpawn(root: THREE.Object3D): [number, number, numb
   if (marker) {
     const p = new THREE.Vector3();
     marker.getWorldPosition(p);
-    const floorTopY = floorTopUnder(root, p.x, p.z);
+    const floorTopY = floorTopUnder(root, p.x, p.z) ?? p.y;
     const y = bodyYOnFloor(floorTopY);
     if (isSpawnClear(p.x, y, p.z, innerBoxes, outer)) return [p.x, y, p.z];
   }
@@ -322,18 +322,18 @@ export function resolveGallerySpawn(root: THREE.Object3D): [number, number, numb
 
   const box = new THREE.Box3().setFromObject(root);
   const c = box.getCenter(new THREE.Vector3());
-  const floorTopY = floorTopUnder(root, c.x, c.z);
+  const floorTopY = floorTopUnder(root, c.x, c.z) ?? 0;
   return [c.x, bodyYOnFloor(floorTopY), c.z];
 }
 
-/** Walkable floor top Y at a world XZ (defaults to 0). */
-function floorTopUnder(root: THREE.Object3D, x: number, z: number): number {
+/** Walkable floor top Y at a world XZ. */
+function floorTopUnder(root: THREE.Object3D, x: number, z: number): number | null {
   root.updateMatrixWorld(true);
-  let best = 0;
+  let best: number | null = null;
   for (const floor of collectWalkableFloors(root)) {
     const box = new THREE.Box3().setFromObject(floor);
     if (x < box.min.x || x > box.max.x || z < box.min.z || z > box.max.z) continue;
-    best = Math.max(best, box.max.y);
+    best = best === null ? box.max.y : Math.max(best, box.max.y);
   }
   return best;
 }
