@@ -2,8 +2,10 @@
 
 ## 前置：代码在 GitHub
 
+Windows 先安装 Git for Windows；如果要用 GitHub CLI，可执行 `winget install --id GitHub.cli -e`。macOS 可用 `brew install gh` 安装 GitHub CLI。也可以完全不用 `gh`，只用下面的 `git` 命令。
+
 1. 在 GitHub 创建 **public** 空仓库（不要勾选 “Add README”）
-2. 本地推送：
+2. 本地推送（Windows/macOS 通用）：
 
 ```bash
 git init
@@ -18,9 +20,13 @@ git push -u origin main
 
 ```bash
 gh auth login
-git init && git add . && git commit -m "Initial commit: LizzardKevin Space web gallery"
+git init
+git add .
+git commit -m "Initial commit: LizzardKevin Space web gallery"
 gh repo create lizzardkevin-space --public --source=. --remote=origin --push
 ```
+
+首次推送也可参考 [GitHub 首次推送](github-first-push.md)。
 
 ## 1. 连接仓库
 

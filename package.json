@@ -1,17 +1,28 @@
 {
   "name": "lizzardkevins-space",
   "private": true,
+  "packageManager": "npm@11.6.1",
+  "engines": {
+    "node": ">=24.11.0 <25",
+    "npm": ">=11.6.1 <12"
+  },
   "workspaces": [
     "apps/web"
   ],
   "scripts": {
     "dev": "npm run dev -w apps/web",
+    "dev:local": "npm run dev -w apps/web -- --host 127.0.0.1 --port 5173",
     "build": "npm run build -w apps/web",
     "build:chunks": "npm run build && node scripts/build-chunk-contract-test.mjs",
     "preview": "npm run preview -w apps/web",
     "lint": "npm run lint -w apps/web",
+    "verify:quick": "npm run lint && npm exec -w apps/web tsc -- --noEmit -p tsconfig.app.json && node scripts/mobile-site-contract-test.mjs && node scripts/space-interaction-contract-test.mjs && node scripts/frosted-overlay-contract-test.mjs && node scripts/frosted-split-wheel-paging-test.mjs",
+    "verify:release": "npm run verify:quick && npm run build:chunks && npm run package:test && npm audit",
     "deploy:pages": "npm run build -w apps/web && echo \"Deploy via Cloudflare Pages: set build output to apps/web/dist\"",
     "package:test": "node scripts/package-test-build.mjs",
     "github:push": "bash scripts/github-bootstrap.sh"
+  },
+  "devDependencies": {
+    "yazl": "^3.3.1"
   }
 }

@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 function readProjectFile(path) {
   const url = new URL(`../${path}`, import.meta.url);
   assert(existsSync(url), `${path} must exist`);
-  return readFileSync(url, "utf8");
+  return readFileSync(url, "utf8").replace(/\r\n/g, "\n");
 }
 
 function terminalCssSlice(css) {
@@ -25,7 +25,7 @@ const files = {
 
 const mobileDataUrl = new URL("../apps/web/src/mobile/mobileArchiveData.ts", import.meta.url);
 assert(existsSync(mobileDataUrl), "mobile archive data module must exist");
-const mobileData = readFileSync(mobileDataUrl, "utf8");
+const mobileData = readFileSync(mobileDataUrl, "utf8").replace(/\r\n/g, "\n");
 
 assert(
   !files.app.includes('from "./components/TopBar"'),
@@ -81,8 +81,7 @@ assert(
   "settings panel must not render inside the animated header because header clip-path clips the theme row",
 );
 assert(
-  files.mobileExperience.includes(`          {settingsOpen ? (
-            <TerminalSettings`),
+  /<header[\s\S]*<\/header>\s*\{\s*settingsOpen\s*\?\s*\(\s*<TerminalSettings/.test(files.mobileExperience),
   "settings panel must render as an overlay sibling outside the animated header",
 );
 assert(files.mobileExperience.includes("mobileTerminalCopy"), "mobile experience must use localized terminal copy");
