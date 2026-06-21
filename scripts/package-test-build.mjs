@@ -2,10 +2,19 @@
 /**
  * 构建 apps/web 并打包为可发给朋友本地试玩的 zip（仅静态文件 + 启动说明）。
  */
-import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import {
+  copyFileSync,
+  createWriteStream,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
+import yazl from "yazl";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const webDir = join(root, "apps/web");
@@ -13,6 +22,54 @@ const distDir = join(webDir, "dist");
 const releaseName = "LizzardKevin-Space-test";
 const releaseDir = join(root, "release", releaseName);
 const zipPath = join(root, "release", `${releaseName}.zip`);
+
+function toZipPath(path) {
+  return path.split("\\").join("/");
+}
+
+function addDirectoryToZip(zipfile, sourceDir, packageRootName) {
+  for (const entry of readdirSync(sourceDir)) {
+    const fullPath = join(sourceDir, entry);
+    const stats = statSync(fullPath);
+    if (stats.isDirectory()) {
+      addDirectoryToZip(zipfile, fullPath, packageRootName);
+      continue;
+    }
+    if (!stats.isFile()) continue;
+    const pathInPackage = toZipPath(join(packageRootName, relative(releaseDir, fullPath)));
+    zipfile.addFile(fullPath, pathInPackage);
+  }
+}
+
+function copyDirectory(sourceDir, targetDir) {
+  mkdirSync(targetDir, { recursive: true });
+  for (const entry of readdirSync(sourceDir)) {
+    const sourcePath = join(sourceDir, entry);
+    const targetPath = join(targetDir, entry);
+    const stats = statSync(sourcePath);
+    if (stats.isDirectory()) {
+      copyDirectory(sourcePath, targetPath);
+      continue;
+    }
+    if (stats.isFile()) {
+      copyFileSync(sourcePath, targetPath);
+    }
+  }
+}
+
+async function writeZipArchive(sourceDir, targetZipPath) {
+  const zipfile = new yazl.ZipFile();
+  addDirectoryToZip(zipfile, sourceDir, releaseName);
+
+  await new Promise((resolve, reject) => {
+    const output = createWriteStream(targetZipPath);
+    zipfile.outputStream.pipe(output);
+    zipfile.outputStream.once("error", reject);
+    output.once("error", reject);
+    output.once("close", resolve);
+    zipfile.end();
+  });
+}
 
 const readme = `LizzardKevin Space — 本地试玩包
 ================================
@@ -82,7 +139,7 @@ execSync("npm run build -w apps/web", { cwd: root, stdio: "inherit" });
 rmSync(releaseDir, { recursive: true, force: true });
 mkdirSync(releaseDir, { recursive: true });
 
-cpSync(distDir, releaseDir, { recursive: true });
+copyDirectory(distDir, releaseDir);
 writeFileSync(join(releaseDir, "测试说明.txt"), readme, "utf8");
 writeFileSync(join(releaseDir, "启动试玩-mac.sh"), startMacSh, { utf8: true, mode: 0o755 });
 writeFileSync(join(releaseDir, "启动试玩-mac.command"), startMacCommand, { utf8: true, mode: 0o755 });
@@ -90,8 +147,6 @@ writeFileSync(join(releaseDir, "启动试玩-windows.bat"), startWinBat, "utf8")
 
 mkdirSync(join(root, "release"), { recursive: true });
 rmSync(zipPath, { force: true });
-execSync(`cd "${join(root, "release")}" && zip -rq "${releaseName}.zip" "${releaseName}"`, {
-  stdio: "inherit",
-});
+await writeZipArchive(releaseDir, zipPath);
 
 console.log(`[package] done: ${zipPath}`);

@@ -1,0 +1,36 @@
+* text=auto eol=lf
+
+# Windows launchers are easier to double-click with CRLF line endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell scripts must stay LF on macOS/Linux/Git Bash.
+*.sh text eol=lf
+*.command text eol=lf
+
+# Binary design, model, media, font, spreadsheet, and archive assets.
+*.blend binary
+*.blend1 binary
+*.glb binary
+*.gltf binary
+*.bin binary
+*.mp3 binary
+*.mp4 binary
+*.mov binary
+*.wav binary
+*.wasm binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.xlsx binary
+*.xls binary
+*.zip binary
+*.7z binary
+*.rar binary

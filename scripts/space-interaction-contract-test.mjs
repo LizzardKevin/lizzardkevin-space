@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
+function readProjectFile(path) {
+  return readFileSync(new URL(`../${path}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
+}
+
 const files = {
-  cursor: readFileSync(new URL("../apps/web/src/cursor/SpaceCursorOverlay.tsx", import.meta.url), "utf8"),
-  cursorController: readFileSync(new URL("../apps/web/src/cursor/spaceCursorController.ts", import.meta.url), "utf8"),
-  crosshair: readFileSync(new URL("../apps/web/src/components/Crosshair.tsx", import.meta.url), "utf8"),
-  css: readFileSync(new URL("../apps/web/src/styles/global.css", import.meta.url), "utf8"),
-  hoverHighlight: readFileSync(new URL("../apps/web/src/exhibits/ExhibitHoverHighlight.tsx", import.meta.url), "utf8"),
-  player: readFileSync(new URL("../apps/web/src/scenes/Player/PlayerController.tsx", import.meta.url), "utf8"),
-  pointerLock: readFileSync(new URL("../apps/web/src/space/requestSpacePointerLock.ts", import.meta.url), "utf8"),
-  footsteps: readFileSync(new URL("../apps/web/src/scenes/Player/useFootsteps.ts", import.meta.url), "utf8"),
-  topbar: readFileSync(new URL("../apps/web/src/components/TopBar.tsx", import.meta.url), "utf8"),
+  cursor: readProjectFile("apps/web/src/cursor/SpaceCursorOverlay.tsx"),
+  cursorController: readProjectFile("apps/web/src/cursor/spaceCursorController.ts"),
+  crosshair: readProjectFile("apps/web/src/components/Crosshair.tsx"),
+  css: readProjectFile("apps/web/src/styles/global.css"),
+  hoverHighlight: readProjectFile("apps/web/src/exhibits/ExhibitHoverHighlight.tsx"),
+  player: readProjectFile("apps/web/src/scenes/Player/PlayerController.tsx"),
+  pointerLock: readProjectFile("apps/web/src/space/requestSpacePointerLock.ts"),
+  footsteps: readProjectFile("apps/web/src/scenes/Player/useFootsteps.ts"),
+  topbar: readProjectFile("apps/web/src/components/TopBar.tsx"),
 };
 
 function cssBlock(selector) {
@@ -38,9 +42,7 @@ assert(
   "cursor return animation must target the viewport center",
 );
 assert(
-  files.cursor.includes(
-    'if (options?.target === "pointer") {\n      setPos(lastPointerPositionRef.current);\n    } else {\n      setPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });\n    }',
-  ),
+  /if\s*\(\s*options\?\.target\s*===\s*"pointer"\s*\)\s*\{\s*setPos\s*\(\s*lastPointerPositionRef\.current\s*\);\s*\}\s*else\s*\{\s*setPos\s*\(\s*\{\s*x:\s*window\.innerWidth\s*\/\s*2,\s*y:\s*window\.innerHeight\s*\/\s*2\s*\}\s*\);\s*\}/.test(files.cursor),
   "cursor return animation must default to center while keeping pointer target as an explicit option",
 );
 assert(files.cursorController.includes("type CursorReturnOptions"), "cursor return controller must expose visual options");
