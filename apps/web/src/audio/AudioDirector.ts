@@ -1,5 +1,6 @@
 import { Howl, Howler } from "howler";
-import { AUDIO_PATHS } from "./audioConfig";
+import { AUDIO_PATHS, FOOTSTEP_SFX_GAIN, JUMP_SFX_GAIN } from "./audioConfig";
+import { primeSpaceAudioOnGesture } from "./audioUnlock";
 import { playFootstepClip, preloadFootstepClips } from "./footstepPlayer";
 import {
   playProceduralFootstep,
@@ -64,12 +65,14 @@ export class AudioDirector {
   unlock() {
     if (this.unlocked) return;
     this.unlocked = true;
+    const shortSfxUrls = [
+      ...this.footstepUrls,
+      ...(this.jumpStartUrl ? [this.jumpStartUrl] : []),
+      ...(this.jumpLandUrl ? [this.jumpLandUrl] : []),
+    ];
+    primeSpaceAudioOnGesture(shortSfxUrls);
     if (!this.footstepClipsReady && this.footstepUrls.length > 0) {
-      preloadFootstepClips([
-        ...this.footstepUrls,
-        ...(this.jumpStartUrl ? [this.jumpStartUrl] : []),
-        ...(this.jumpLandUrl ? [this.jumpLandUrl] : []),
-      ]);
+      preloadFootstepClips(shortSfxUrls);
       this.footstepClipsReady = true;
     }
   }
@@ -112,7 +115,7 @@ export class AudioDirector {
 
   playFootstep() {
     if (!this.unlocked) return;
-    const vol = this.channelVolume("sfx");
+    const vol = this.channelVolume("sfx") * FOOTSTEP_SFX_GAIN;
     if (this.useProceduralFootsteps || this.footstepUrls.length === 0) {
       playProceduralFootstep(vol);
       return;
@@ -124,12 +127,12 @@ export class AudioDirector {
 
   playJumpStart() {
     if (!this.unlocked || !this.jumpStartUrl) return;
-    playFootstepClip(this.jumpStartUrl, this.channelVolume("sfx") * 1.25);
+    playFootstepClip(this.jumpStartUrl, this.channelVolume("sfx") * JUMP_SFX_GAIN);
   }
 
   playJumpLand() {
     if (!this.unlocked || !this.jumpLandUrl) return;
-    playFootstepClip(this.jumpLandUrl, this.channelVolume("sfx") * 1.25);
+    playFootstepClip(this.jumpLandUrl, this.channelVolume("sfx") * JUMP_SFX_GAIN);
   }
 
   private stopProceduralAmbient() {

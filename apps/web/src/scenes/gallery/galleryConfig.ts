@@ -14,7 +14,7 @@ export const GALLERY_INITIAL_LOOK_DIRECTION: [number, number, number] = [0, 0, 1
 export const GALLERY_INITIAL_LOOK_DISTANCE = 10;
 
 /** Bump when replacing space_main.glb so dev/browser reloads geometry. */
-export const GALLERY_GLB_REVISION = "20260622-spawn-main";
+export const GALLERY_GLB_REVISION = "20260623-vertex-ao-fog-0013";
 
 export const GALLERY_GLB_URL = `/models/space_main.glb?v=${GALLERY_GLB_REVISION}`;
 
@@ -37,33 +37,34 @@ export const GALLERY_SURFACE_COLOR = "#c0bab0";
 export const ENABLE_GALLERY_OVERRIDE_MATERIALS = false;
 
 /**
- * Firewatch-style toon look: stepped MeshToonMaterial + fog + tuned lights.
+ * Neutral space look: soft fog + tuned lights. Mesh material override remains off
+ * for production so Blender/glTF PBR materials drive metal, glass, and floor finish.
  * 仅在与 OVERRIDE_MATERIALS 同时为 true 时才会给 mesh 套上 toon；否则只影响雾与灯光。
  */
 export const ENABLE_GALLERY_TOON = true;
 
 /** Cel band colors sampled by gradientMap (shadow → highlight). */
 export const GALLERY_TOON = {
-  background: "#c8ccb4",
-  fogColor: "#c8ccb4",
+  background: "#d2d2d2",
+  fogColor: "#d2d2d2",
   fogNear: 10,
   fogFar: 32,
   /** Bump when changing gradientStops so dev HMR rebuilds the toon lookup texture. */
   gradientRevision: 3,
-  /** Yellow-green highlights + teal shadows (Firewatch hazy morning). */
+  /** Neutral grayscale bands, used only when material override is enabled. */
   gradientStops: {
-    shadow: "#3a5248",
-    mid: "#6a7260",
-    light: "#a8a070",
-    highlight: "#e4dcb8",
+    shadow: "#4f504d",
+    mid: "#7d7d78",
+    light: "#b5b4ad",
+    highlight: "#e8e8e8",
   },
-  ambientIntensity: 0.16,
-  hemisphere: { sky: "#d4d8b8", ground: "#3d5248", intensity: 0.5 },
-  keyLight: { position: [-10, 5, 5] as [number, number, number], intensity: 2.0, color: "#e8dcb0" },
-  fillLight: { position: [5, 3, -7] as [number, number, number], intensity: 0.5, color: "#587068" },
+  ambientIntensity: 0.2,
+  hemisphere: { sky: "#dedede", ground: "#505050", intensity: 0.46 },
+  keyLight: { position: [-8, 5, 6] as [number, number, number], intensity: 1.1, color: "#f0f0f0" },
+  fillLight: { position: [5, 3, -7] as [number, number, number], intensity: 0.32, color: "#8c8c8c" },
   /** Linear Fog vs FogExp2 — exponential gives softer indoor falloff. */
   useExponentialFog: true,
-  fogDensity: 0.028,
+  fogDensity: 0.013,
 };
 
 /**
@@ -100,7 +101,7 @@ export const GALLERY_VIGNETTE = {
 export const GALLERY_BULB = {
   intensity: 10,
   distance: 9,
-  color: "#e8d898",
+  color: "#f3e6c8",
 };
 
 /** Exhibit raycast label + hover highlight tuning. */

@@ -302,11 +302,18 @@ export function SpaceDesktopExperience({
               {ENABLE_GALLERY_TOON ? <GalleryAtmosphere /> : null}
               <ambientLight intensity={ENABLE_GALLERY_TOON ? GALLERY_TOON.ambientIntensity : 0.42} />
               {ENABLE_GALLERY_TOON ? (
-                <directionalLight
-                  position={GALLERY_TOON.fillLight.position}
-                  intensity={GALLERY_TOON.fillLight.intensity}
-                  color={GALLERY_TOON.fillLight.color}
-                />
+                <>
+                  <directionalLight
+                    position={GALLERY_TOON.keyLight.position}
+                    intensity={GALLERY_TOON.keyLight.intensity}
+                    color={GALLERY_TOON.keyLight.color}
+                  />
+                  <directionalLight
+                    position={GALLERY_TOON.fillLight.position}
+                    intensity={GALLERY_TOON.fillLight.intensity}
+                    color={GALLERY_TOON.fillLight.color}
+                  />
+                </>
               ) : null}
               <hemisphereLight
                 args={

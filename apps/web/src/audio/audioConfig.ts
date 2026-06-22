@@ -20,10 +20,13 @@ export const DEFAULT_VOLUMES = {
   /** 很轻的环境底噪 */
   ambient: 0.11,
   /** 脚步声 */
-  sfx: 0.24,
+  sfx: 0.32,
   exhibit: 0.72,
 } as const;
 
 /** 每步水平位移（米）；行走与跑步共用。 */
-export const FOOTSTEP_INTERVAL_WALK = 0.75;
-export const FOOTSTEP_INTERVAL_SPRINT = 0.75;
+export const FOOTSTEP_INTERVAL_WALK = 1.6;
+export const FOOTSTEP_INTERVAL_SPRINT = 1.6;
+
+export const JUMP_SFX_GAIN = 1.5;
+export const FOOTSTEP_SFX_GAIN = 1.8;

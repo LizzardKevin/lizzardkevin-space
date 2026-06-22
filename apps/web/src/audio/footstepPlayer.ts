@@ -1,4 +1,4 @@
-import { playProceduralFootstep } from "./proceduralAudio";
+import { playProceduralFootstep } from "./proceduralAudio.ts";
 
 const POOL_PER_URL = 3;
 const pools = new Map<string, HTMLAudioElement[]>();
@@ -15,6 +15,41 @@ export function preloadFootstepClips(urls: readonly string[]) {
         return el;
       }),
     );
+  }
+}
+
+export function primeFootstepClips(urls: readonly string[]) {
+  preloadFootstepClips(urls);
+
+  for (const url of urls) {
+    const el = pools.get(url)?.[0];
+    if (!el) continue;
+
+    const muted = el.muted;
+    const volume = el.volume;
+    const restore = () => {
+      try {
+        el.pause();
+        el.currentTime = 0;
+      } catch {
+        /* keep unlock best-effort */
+      }
+      el.muted = muted;
+      el.volume = volume;
+    };
+
+    el.muted = true;
+    el.volume = 0;
+    try {
+      const result = el.play();
+      if (result && typeof result.then === "function") {
+        void result.then(restore).catch(restore);
+      } else {
+        restore();
+      }
+    } catch {
+      restore();
+    }
   }
 }
 

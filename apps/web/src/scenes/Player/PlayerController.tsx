@@ -17,6 +17,7 @@ import {
   PLAYER_CAPSULE_RADIUS,
 } from "../gallery/resolveGallerySpawn";
 import { GALLERY_INITIAL_LOOK_DIRECTION, GALLERY_INITIAL_LOOK_DISTANCE } from "../gallery/galleryConfig";
+import { WALK_HEAD_BOB_SPEED, nextLandingStepState, walkHeadBobOffset } from "./playerMotion";
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
@@ -77,6 +78,7 @@ export function PlayerController({
   const jumpUnlockedRef = useRef(false);
   const pendingJumpRef = useRef(false);
   const jumpedThisAirRef = useRef(false);
+  const landingStepArmedRef = useRef(false);
 
   const tmp = useMemo(
     () => ({
@@ -127,6 +129,7 @@ export function PlayerController({
     verticalVelocity.current = 0;
     horizontalVelocity.current.set(0, 0, 0);
     grounded.current = false;
+    landingStepArmedRef.current = false;
     camera.position.set(spawn[0], spawn[1] + EYE_OFFSET, spawn[2]);
     camera.lookAt(...initialLookAtFromSpawn(spawn));
   }, [spawn, camera]);
@@ -235,7 +238,13 @@ export function PlayerController({
     controller.computeColliderMovement(collider, desired);
     const m = controller.computedMovement();
     grounded.current = controller.computedGrounded();
-    if (!wasGrounded && grounded.current && jumpedThisAirRef.current) {
+    const landingStep = nextLandingStepState({
+      wasGrounded,
+      grounded: grounded.current,
+      landingStepArmed: landingStepArmedRef.current,
+    });
+    landingStepArmedRef.current = landingStep.landingStepArmed;
+    if (landingStep.shouldPlayLandingStep) {
       jumpedThisAirRef.current = false;
       audio.playJumpLand();
     }
@@ -244,13 +253,11 @@ export function PlayerController({
 
     body.setNextKinematicTranslation({ x: t.x + m.x, y: t.y + m.y, z: t.z + m.z });
 
-    const bobAmp = 0.018;
-    const bobSpeed = 10;
     // Scale bob by horizontal speed so stop deceleration fades bob smoothly (no sin jitter).
     const bobBlend = Math.min(actualSpeed / WALK_SPEED, 1);
     if (isLocomoting && grounded.current && bobBlend > 0.02) {
-      bobPhase.current += bobSpeed * dt;
-      bobRef.current = Math.sin(bobPhase.current) * bobAmp * bobBlend;
+      bobPhase.current += WALK_HEAD_BOB_SPEED * dt;
+      bobRef.current = walkHeadBobOffset(bobPhase.current, bobBlend);
     } else {
       bobRef.current = THREE.MathUtils.lerp(bobRef.current, 0, blend);
       if (Math.abs(bobRef.current) < 1e-4) {

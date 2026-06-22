@@ -47,6 +47,114 @@
 
 运行时目前 **不解析** mesh 名中的颜色后缀；颜色由 glTF 材质贴图/因子决定。
 
+### 1.5 `space_main` 生产材质恢复规则（2026-06-23）
+
+当前 `space_main.blend` 仍使用 Rhino/Blender 导入后的生产对象名前缀（大写），后续重新导入或替换几何时，按对象名恢复材质即可保留网页端观感。可直接运行：
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender --background \
+  BlenderFile/space_main.blend --python scripts/apply-space-main-materials.py
+```
+
+Windows / PowerShell 中建议先设 Blender 路径，避免 Codex 找不到 GUI app；路径里的 Blender 版本号按本机安装版本替换：
+
+```powershell
+$BLENDER = "C:\Program Files\Blender Foundation\Blender 4.3\blender.exe"
+& $BLENDER --background BlenderFile/space_main.blend --python scripts/apply-space-main-materials.py
+```
+
+如果 Windows 已把 Blender 加入 PATH，也可以直接用：
+
+```powershell
+blender --background BlenderFile/space_main.blend --python scripts/apply-space-main-materials.py
+```
+
+该脚本会保存 `BlenderFile/space_main.blend` 并重新导出 `apps/web/public/models/space_main.glb`。材质只使用 glTF 基础 PBR metallic/roughness、alpha blend 与 `KHR_materials_emissive_strength`，避免 transmission / clearcoat / IOR / specular 等 WebGPU 路径下更容易不稳定或退化的高级扩展。
+
+**权威脚本文件**：[`scripts/apply-space-main-materials.py`](../scripts/apply-space-main-materials.py)。后续调色、金属度、粗糙度、透明度、LED 强度，优先修改该脚本内 `MATERIAL_SPECS`，再重新跑脚本；不要只在 Blender UI 里手动改材质，否则下次重新导入模型时容易丢失。
+
+**材质脚本当前参数**：
+
+| Material | Base Color / Alpha | Metallic | Roughness | Blend | Emission |
+|---|---:|---:|---:|---|---|
+| `mat_arch_plaster_warm_white` | `(0.92, 0.92, 0.92, 1.0)` | `0.08` | `0.72` | `OPAQUE` | - |
+| `mat_floor_concrete_warm_gray` | `(0.37, 0.37, 0.37, 1.0)` | `0.06` | `0.76` | `OPAQUE` | - |
+| `mat_stair_warm_concrete` | `(0.37, 0.37, 0.37, 1.0)` | `0.06` | `0.76` | `OPAQUE` | - |
+| `mat_metal_aluminum_soft` | `(0.90, 0.90, 0.90, 1.0)` | `0.74` | `0.18` | `OPAQUE` | - |
+| `mat_glass_frosted_soft` | `(0.74, 0.76, 0.76, 0.42)` | `0.0` | `0.42` | `BLEND` | - |
+| `mat_glass_clear_soft` | `(0.84, 0.86, 0.86, 0.32)` | `0.0` | `0.14` | `BLEND` | - |
+| `mat_led_generic_warm_emissive` | `(1.0, 0.94, 0.78, 1.0)` | `0.0` | `0.30` | `OPAQUE` | color `(1.0, 0.90, 0.66, 1.0)`, strength `2.8` |
+| `mat_collision_helper_transparent_red` | `(1.0, 0.08, 0.02, 0.22)` | `0.0` | `0.35` | `BLEND` | - |
+
+**对象名前缀到材质的脚本映射**（函数 `material_for_object_name`）：
+
+| Object / Mesh 前缀 | Material |
+|---|---|
+| `COL_*` | `mat_collision_helper_transparent_red` |
+| `LIGHT_GENERIC_LIGHT_*` | `mat_led_generic_warm_emissive` |
+| `STRUCT_STAIR_*` | `mat_stair_warm_concrete` |
+| `ARCH_FLOOR_*`、`STRUCT_FLOOR_*` | `mat_floor_concrete_warm_gray` |
+| `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` |
+| `GLASS_CLEAR_*` | `mat_glass_clear_soft` |
+| `GLASS_FROSTED_*`、其他 `GLASS_*` | `mat_glass_frosted_soft` |
+| `ARCH_*`、`STRUCT_WALL_*`、`STRUCT_CEILING_*` | `mat_arch_plaster_warm_white` |
+
+**材质脚本导出约定**：
+
+| 导出参数 | 当前值 / 意图 |
+|---|---|
+| 输出路径 | `apps/web/public/models/space_main.glb` |
+| `export_format` | `GLB` |
+| `export_materials` | `EXPORT`，保留 Blender/glTF 材质 |
+| `export_vertex_color` | `ACTIVE`，材质脚本与 vertex AO 方案会导出 active `Color` |
+| `export_vertex_color_name` | `Color` |
+| `export_lights` / `export_cameras` / `export_animations` | 全部 `False` |
+| Draco | `export_draco_mesh_compression_enable=False`，当前资产不需要压缩 |
+| 坐标 | `export_yup=True` |
+| 隐藏对象 | `use_visible=False`、`use_renderable=False`，确保 `COL_*` 等合同节点仍导出，运行时再隐藏 |
+
+重新导出 GLB 后，记得同步更新 [`apps/web/src/scenes/gallery/galleryConfig.ts`](../apps/web/src/scenes/gallery/galleryConfig.ts) 的 `GALLERY_GLB_REVISION`，否则浏览器可能继续用旧缓存。
+
+如需给墙脚、楼梯根部、金属格栅交界处增加结构阴影，可运行：
+
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender --background \
+  BlenderFile/space_main.blend --python scripts/bake-space-main-ao.py
+```
+
+该脚本会把 AO bake 到结构/金属 mesh 的 `Color` 顶点色并以 glTF `COLOR_0` 导出。当前参数：`ARCH_*`、`STRUCT_STAIR_*`、`METAL_ALUMINUM_*` 接收 AO；`COL_*`、`GLASS_*`、`LIGHT_GENERIC_LIGHT_*` 不作为 AO occluder；AO remap 下限 `0.62`、强度 `0.38`，用于让角落读得出来但不压黑整个空间。
+
+**Vertex-color AO 参数**（[`scripts/bake-space-main-ao.py`](../scripts/bake-space-main-ao.py)）：
+
+| 参数 | 当前值 / 说明 |
+|---|---|
+| `AO_ATTR_NAME` | `Color`，导出为 glTF `COLOR_0` |
+| `AO_TARGET_PREFIXES` | `("ARCH_", "STRUCT_STAIR_", "METAL_ALUMINUM_")` |
+| `AO_RECEIVER_PREFIXES` | `("ARCH_", "STRUCT_STAIR_", "METAL_ALUMINUM_")` |
+| `AO_EXCLUDED_OCCLUDER_PREFIXES` | `("COL_", "GLASS_", "LIGHT_GENERIC_LIGHT_")` |
+| `AO_SAMPLES` | `64` |
+| `AO_MIN` | `0.62`，AO 最暗下限，防止压黑 |
+| `AO_STRENGTH` | `0.38` |
+| Bake target | `VERTEX_COLORS` |
+| Bake margin | `2` |
+| Remap 公式 | `ao = max(AO_MIN, 1.0 - AO_STRENGTH * (1.0 - raw))` |
+| GLB export | `export_vertex_color="ACTIVE"`、`export_vertex_color_name="Color"` |
+
+适用场景：快速、文件体积小、无贴图依赖；缺点是 AO 精度受 mesh 顶点密度限制，墙角/楼梯根部如果几何点少，效果会不明显。
+
+| Object / Mesh 命名前缀 | 材质 | 网页端意图 |
+|---|---|---|
+| `ARCH_*`、`STRUCT_WALL_*`、`STRUCT_CEILING_*` | `mat_arch_plaster_warm_white` | 中性银白墙/顶，磨砂轻金属涂层：base `(0.92, 0.92, 0.92, 1)`, metallic `0.08`, roughness `0.72` |
+| `ARCH_FLOOR_*`、`STRUCT_FLOOR_*` | `mat_floor_concrete_warm_gray` | 中性深灰磨砂地面，弱反射：base `(0.37, 0.37, 0.37, 1)`, metallic `0.06`, roughness `0.76` |
+| `STRUCT_STAIR_*` | `mat_stair_warm_concrete` | 楼梯与地面同色同反射：base `(0.37, 0.37, 0.37, 1)`, metallic `0.06`, roughness `0.76` |
+| `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` | 银白阳极氧化铝/格栅：base `(0.90, 0.90, 0.90, 1)`, metallic `0.74`, roughness `0.18` |
+| `GLASS_FROSTED_*`、其他 `GLASS_*` | `mat_glass_frosted_soft` | 磨砂灰蓝透明玻璃，反射更强：base `(0.74, 0.76, 0.76, 0.42)`, roughness `0.42`, alpha blend |
+| `GLASS_CLEAR_*` | `mat_glass_clear_soft` | 更清透、更强反射玻璃：base `(0.84, 0.86, 0.86, 0.32)`, roughness `0.14`, alpha blend |
+| `LIGHT_GENERIC_LIGHT_*` | `mat_led_generic_warm_emissive` | 暖白 LED 发光面：base `(1.0, 0.94, 0.78, 1)`, emissive `(1.0, 0.90, 0.66)`, strength `2.8` |
+| `COL_*` | `mat_collision_helper_transparent_red` | 碰撞辅助材质；运行时由 `prepareGalleryScene` 隐藏 |
+
+> WebGPU 材质支持备注：Three.js `WebGPURenderer` 对 `MeshStandardMaterial` 的 base color、metallic、roughness、emissive、alpha blend 支持稳定，适合作为 `space_main` 主通路。透明玻璃的“反射”主要来自低 roughness 对灯光/环境的高光响应；如果未来要镜面级反射，需要单独引入环境贴图、反射探针或屏幕空间反射方案，而不应只依赖 glTF 透明材质扩展。
+
 ---
 
 ## 2. 前缀速查表
@@ -380,4 +488,5 @@ space_main.glb
 
 | 日期 | 说明 |
 |------|------|
+| 2026-06-23 | 增补 `space_main` 银白轻金属材质恢复规则、Blender 脚本入口、对象前缀映射、vertex AO 参数与 Windows 接续命令 |
 | 2026-05-28 | 初版：对齐 `COL_` / `exhibit_` / `bulb_` 实现，预留 glass / FOOT_ / zone |

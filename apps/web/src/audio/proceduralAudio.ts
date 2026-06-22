@@ -5,10 +5,27 @@
 
 let sharedCtx: AudioContext | null = null;
 
+function getAudioContextCtor() {
+  return (
+    globalThis.AudioContext ??
+    (globalThis as typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  );
+}
+
 function getCtx(): AudioContext {
-  if (!sharedCtx) sharedCtx = new AudioContext();
+  const AudioContextCtor = getAudioContextCtor();
+  if (!AudioContextCtor) throw new Error("Web Audio API is unavailable");
+  if (!sharedCtx) sharedCtx = new AudioContextCtor();
   if (sharedCtx.state === "suspended") void sharedCtx.resume();
   return sharedCtx;
+}
+
+export function primeProceduralAudio() {
+  try {
+    getCtx();
+  } catch {
+    /* Web Audio is optional; footstep clips may still play natively. */
+  }
 }
 
 function makeNoiseBuffer(ctx: AudioContext, seconds: number) {
