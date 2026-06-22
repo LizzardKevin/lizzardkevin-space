@@ -128,4 +128,32 @@ export const devStories: DevStory[] = [
       "下一轮重点是真机手机 QA：iPhone Safari、Android Chrome 的滚动折叠、safe-area、字体 fallback、主题 reveal 和 Contact 链接；同时继续把 12 个 project slot 替换成真实内容，并回到桌面 Focus 三按钮与 exhibit_* hit mesh。",
     tags: ["Mobile", "Terminal Site", "space_main", "Frosted Split"],
   },
+  {
+    id: "devlog-06",
+    number: "06",
+    period: "2026.06.17 - 06.22",
+    title: "把跨平台开发和 space_main 资产管线接稳",
+    summary:
+      "第六轮把项目从单机连续开发推进到跨平台协作：Windows Codex 分支接入 GitHub，macOS 本机继续作为 Blender 和视觉 QA 的事实源。同时，桌面 cursor、Pointer Lock、入口彩蛋、出生点和主空间模型材质都继续收口，space_main 的楼梯、LED、碰撞和 spawn 开始进入更稳定的资产管线。",
+    built: [
+      "补齐 LizzardKevin 个人页和 DevStories 内容层，让个人网页既能作为传统简历，也能在同一 Overlay 中阅读开发故事。",
+      "建立全局自定义 cursor：圆点、hover、点击脉冲、文字选择、滚动粒子、Focus 拖拽八角星，以及回第一人称前的 500ms 回中心动画。",
+      "处理 Alt / ESC 释放 pointer lock 后的 cursor 漂移，让圆点从中心动画飞向真实系统鼠标位置，并在鼠标移动时持续更新目标。",
+      "把 Windows Codex 的 cross-platform 分支合入项目，并确认 `.nvmrc`、package scripts、lockfile 和 contract test 适合双平台继续开发。",
+      "将 Blender 里的 Plain Axes Empty 规范为 `spawn_player_main`，出生后平视朝 Blender -Y，并让 runtime 在缺少地板碰撞时使用 marker 自身高度。",
+      "改用 Blender Python Console 作为默认资产批处理方式，保存 blend 后导出覆盖 `space_main.glb`。",
+      "生成 69 个 `STRUCT_STAIR_*` 可见楼梯，保留 `COL_STAIR_*` 碰撞体，并给 55 个 `LIGHT_GENERIC_LIGHT_*` 赋 emissive LED 材质。",
+    ],
+    trouble: [
+      "Blender MCP 多次返回不完整 JSON，直接 socket 也超时，最后放弃 MCP 作为本阶段主流程，改用 Python Console 加 JSON report。",
+      "重新导入 GLB 后出现 `spawn_player_main` 和 `spawn_player_main.001`，批处理必须保留最新 marker 并清掉重复节点。",
+      "新模型只有 `COL_STAIR_*` 时，运行时会隐藏 `COL_` 节点，网页端看起来就像楼梯透明或不存在，因此需要单独生成可见 `STRUCT_STAIR_*`。",
+      "generic LED 初始仍是 dark metal 材质，视觉上不发光，需要写入真正的 emissive factor 和 emissive strength。",
+      "Node v26 会触发项目 engine warning，并让 `package-lock.json` 产生无意义 metadata 漂移，后续应统一使用 `.nvmrc` 的 Node 24.11.0。",
+      "远端 main 和本机 main 曾经分叉；在用户确认本机为最新事实源后，使用 `--force-with-lease` 将远端安全对齐到本机。",
+    ],
+    next:
+      "继续做真实 Chrome 视觉 QA：确认可见楼梯、上楼碰撞、LED 亮度、出生点和移动手感；随后把 `STRUCT_STAIR_*` 视觉/`COL_STAIR_*` 碰撞的双节点规则写回资产命名文档，并开始补正式 `exhibit_*` hit mesh。",
+    tags: ["Cross Platform", "Blender", "Cursor", "space_main"],
+  },
 ];
