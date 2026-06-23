@@ -3,6 +3,20 @@ import { playProceduralFootstep } from "./proceduralAudio.ts";
 const POOL_PER_URL = 3;
 const pools = new Map<string, HTMLAudioElement[]>();
 
+export function chooseFootstepUrl(
+  urls: readonly string[],
+  previousUrl: string | undefined,
+  random = Math.random,
+) {
+  if (urls.length === 0) return undefined;
+  if (urls.length === 1) return urls[0];
+
+  const available = urls.filter((url) => url !== previousUrl);
+  const pool = available.length > 0 ? available : urls;
+  const index = Math.min(pool.length - 1, Math.floor(random() * pool.length));
+  return pool[index];
+}
+
 export function preloadFootstepClips(urls: readonly string[]) {
   for (const url of urls) {
     if (pools.has(url)) continue;

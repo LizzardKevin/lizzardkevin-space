@@ -1,7 +1,7 @@
 import { Howl, Howler } from "howler";
 import { AUDIO_PATHS, FOOTSTEP_SFX_GAIN, JUMP_SFX_GAIN } from "./audioConfig";
 import { primeSpaceAudioOnGesture } from "./audioUnlock";
-import { playFootstepClip, preloadFootstepClips } from "./footstepPlayer";
+import { chooseFootstepUrl, playFootstepClip, preloadFootstepClips } from "./footstepPlayer";
 import {
   playProceduralFootstep,
   startProceduralAmbient,
@@ -36,7 +36,7 @@ export class AudioDirector {
   private bgm: Playing = null;
   private ambient: Playing = null;
   private proceduralAmbient: ProceduralAmbientHandle | null = null;
-  private footstepIndex = 0;
+  private lastFootstepUrl: string | undefined;
   private useProceduralFootsteps = false;
   private footstepClipsReady = false;
 
@@ -120,8 +120,12 @@ export class AudioDirector {
       playProceduralFootstep(vol);
       return;
     }
-    const url = this.footstepUrls[this.footstepIndex % this.footstepUrls.length];
-    this.footstepIndex += 1;
+    const url = chooseFootstepUrl(this.footstepUrls, this.lastFootstepUrl);
+    if (!url) {
+      playProceduralFootstep(vol);
+      return;
+    }
+    this.lastFootstepUrl = url;
     playFootstepClip(url, vol);
   }
 

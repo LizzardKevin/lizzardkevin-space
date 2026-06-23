@@ -1,5 +1,57 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
+
+const testDir = path.dirname(fileURLToPath(import.meta.url));
+
+function readMono16WavMetrics(filePath) {
+  const data = fs.readFileSync(filePath);
+  assert.equal(data.toString("ascii", 0, 4), "RIFF");
+  assert.equal(data.toString("ascii", 8, 12), "WAVE");
+
+  let offset = 12;
+  let sampleRate = 0;
+  let channels = 0;
+  let bitsPerSample = 0;
+  let pcm = null;
+  while (offset + 8 <= data.length) {
+    const chunkId = data.toString("ascii", offset, offset + 4);
+    const chunkSize = data.readUInt32LE(offset + 4);
+    const chunkStart = offset + 8;
+    if (chunkId === "fmt ") {
+      channels = data.readUInt16LE(chunkStart + 2);
+      sampleRate = data.readUInt32LE(chunkStart + 4);
+      bitsPerSample = data.readUInt16LE(chunkStart + 14);
+    }
+    if (chunkId === "data") {
+      pcm = data.subarray(chunkStart, chunkStart + chunkSize);
+      break;
+    }
+    offset = chunkStart + chunkSize + (chunkSize % 2);
+  }
+
+  assert.equal(channels, 1);
+  assert.equal(bitsPerSample, 16);
+  assert.ok(pcm);
+
+  const samples = [];
+  for (let index = 0; index < pcm.length; index += 2) {
+    samples.push(pcm.readInt16LE(index) / 32768);
+  }
+  const peak = Math.max(...samples.map(Math.abs));
+  const rms = Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length);
+  const windowSize = Math.max(1, Math.floor(sampleRate * 0.025));
+  let shortRms = 0;
+  for (let index = 0; index < samples.length; index += Math.floor(windowSize / 2)) {
+    const window = samples.slice(index, index + windowSize);
+    const value = Math.sqrt(window.reduce((sum, sample) => sum + sample * sample, 0) / window.length);
+    shortRms = Math.max(shortRms, value);
+  }
+
+  return { peak, rms, shortRms, samples };
+}
 
 test("walking head bob has a stronger but bounded amplitude", async () => {
   const motion = await import("../src/scenes/Player/playerMotion.ts");
@@ -23,6 +75,46 @@ test("footstep gain is louder than boosted jump start and land gain", async () =
   assert.ok(audioConfig.DEFAULT_VOLUMES.sfx > 0.24);
   assert.ok(audioConfig.JUMP_SFX_GAIN > 1.25);
   assert.ok(audioConfig.FOOTSTEP_SFX_GAIN > audioConfig.JUMP_SFX_GAIN);
+});
+
+test("footsteps use five clip variants and random selection avoids immediate repeats", async () => {
+  const audioConfig = await import("../src/audio/audioConfig.ts");
+  const { chooseFootstepUrl } = await import("../src/audio/footstepPlayer.ts");
+
+  assert.equal(audioConfig.AUDIO_PATHS.footstepUrls.length, 5);
+
+  const urls = ["/a.wav", "/b.wav", "/c.wav", "/d.wav", "/e.wav"];
+  const first = chooseFootstepUrl(urls, undefined, () => 0.6);
+  const second = chooseFootstepUrl(urls, first, () => urls.indexOf(first) / urls.length);
+
+  assert.equal(first, "/d.wav");
+  assert.notEqual(second, first);
+  assert.ok(urls.includes(second));
+});
+
+test("footstep wav variants stay close to the original clip loudness", async () => {
+  const audioConfig = await import("../src/audio/audioConfig.ts");
+  const audioDir = path.resolve(testDir, "../public/audio");
+
+  for (const url of audioConfig.AUDIO_PATHS.footstepUrls) {
+    const metrics = readMono16WavMetrics(path.join(audioDir, path.basename(url)));
+    assert.ok(metrics.peak <= 0.08, `${url} peak ${metrics.peak}`);
+    assert.ok(metrics.rms >= 0.011, `${url} rms too quiet ${metrics.rms}`);
+    assert.ok(metrics.rms <= 0.02, `${url} rms too loud ${metrics.rms}`);
+    assert.ok(metrics.shortRms <= 0.045, `${url} shortRms ${metrics.shortRms}`);
+  }
+});
+
+test("generated footstep variants are quieter transforms of the first footstep", async () => {
+  const audioDir = path.resolve(testDir, "../public/audio");
+  const base = readMono16WavMetrics(path.join(audioDir, "footstep_01.wav"));
+
+  for (const filename of ["footstep_04.wav", "footstep_05.wav"]) {
+    const metrics = readMono16WavMetrics(path.join(audioDir, filename));
+    assert.ok(metrics.peak <= base.peak * 0.82, `${filename} peak ${metrics.peak}`);
+    assert.ok(metrics.rms <= base.rms * 0.82, `${filename} rms ${metrics.rms}`);
+    assert.ok(metrics.shortRms <= base.shortRms * 0.82, `${filename} shortRms ${metrics.shortRms}`);
+  }
 });
 
 test("landing step plays after non-jump airborne transition returns to grounded", async () => {

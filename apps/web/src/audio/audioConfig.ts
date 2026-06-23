@@ -9,6 +9,8 @@ export const AUDIO_PATHS = {
     "/audio/footstep_01.wav",
     "/audio/footstep_02.wav",
     "/audio/footstep_03.wav",
+    "/audio/footstep_04.wav",
+    "/audio/footstep_05.wav",
   ],
   jumpStartUrl: "/audio/jump_start.wav",
   jumpLandUrl: "/audio/jump_land.wav",
