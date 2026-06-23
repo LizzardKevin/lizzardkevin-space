@@ -73,6 +73,8 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 
 **权威脚本文件**：[`scripts/apply-space-main-materials.py`](../scripts/apply-space-main-materials.py)。后续调色、金属度、粗糙度、透明度、LED 强度，优先修改该脚本内 `MATERIAL_SPECS`，再重新跑脚本；不要只在 Blender UI 里手动改材质，否则下次重新导入模型时容易丢失。
 
+完整的 Rhino 重导入、collection 重建、spawn 设置和 Windows 批处理流程，见 [`space-main-rhino-reimport-runbook.md`](./space-main-rhino-reimport-runbook.md)。
+
 **材质脚本当前参数**：
 
 | Material | Base Color / Alpha | Metallic | Roughness | Blend | Emission |
