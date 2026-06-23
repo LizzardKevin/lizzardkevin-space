@@ -1,7 +1,8 @@
-import { CuboidCollider, RigidBody } from "@react-three/rapier";
+import { CuboidCollider, RigidBody, type RapierCollider } from "@react-three/rapier";
 import type * as THREE from "three";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE_NS from "three";
+import { registerSpaceCollisionDebugCollider } from "../debug/spaceMovementDebug";
 import { PLAYER_CAPSULE_RADIUS } from "./resolveGallerySpawn";
 
 function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
@@ -10,6 +11,11 @@ function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
 
 function isGalleryFloorCol(name: string) {
   return name.startsWith("COL_ground") || name.startsWith("COL_floor");
+}
+
+function isFloorCutoutCol(name: string) {
+  const normalized = name.toUpperCase();
+  return normalized.startsWith("COL_PLATFORM") || normalized.startsWith("COL_STAIR");
 }
 
 type XzRect = {
@@ -21,6 +27,7 @@ type XzRect = {
 
 type FloorSpec = {
   key: string;
+  debugName: string;
   position: [number, number, number];
   halfExtents: [number, number, number];
 };
@@ -28,7 +35,7 @@ type FloorSpec = {
 function collectPlatformCutouts(root: THREE.Object3D, padding: number): XzRect[] {
   const cutouts: XzRect[] = [];
   root.traverse((obj) => {
-    if (!isMesh(obj) || !obj.name.startsWith("COL_platform")) return;
+    if (!isMesh(obj) || !isFloorCutoutCol(obj.name)) return;
     const box = new THREE_NS.Box3().setFromObject(obj);
     if (box.max.y <= 0.05) return;
     cutouts.push({
@@ -73,11 +80,18 @@ function subtractMultipleHoles(base: XzRect, holes: XzRect[]): XzRect[] {
   return regions;
 }
 
-function rectToFloorSpec(rect: XzRect, floorTopY: number, halfY: number, key: string): FloorSpec {
+function rectToFloorSpec(
+  rect: XzRect,
+  floorTopY: number,
+  halfY: number,
+  key: string,
+  debugName: string,
+): FloorSpec {
   const cx = (rect.minX + rect.maxX) / 2;
   const cz = (rect.minZ + rect.maxZ) / 2;
   return {
     key,
+    debugName,
     position: [cx, floorTopY - halfY, cz],
     halfExtents: [(rect.maxX - rect.minX) / 2, halfY, (rect.maxZ - rect.minZ) / 2],
   };
@@ -104,7 +118,9 @@ function collectGalleryFloorColliders(root: THREE.Object3D): FloorSpec[] {
 
     const regions = cutouts.length > 0 ? subtractMultipleHoles(base, cutouts) : [base];
     regions.forEach((rect, index) => {
-      floors.push(rectToFloorSpec(rect, floorTopY, halfY, `${obj.uuid}-${index}`));
+      floors.push(
+        rectToFloorSpec(rect, floorTopY, halfY, `${obj.uuid}-${index}`, `${obj.name}#${index}`),
+      );
     });
   });
 
@@ -112,6 +128,23 @@ function collectGalleryFloorColliders(root: THREE.Object3D): FloorSpec[] {
 }
 
 /** Thin box floor colliders — more reliable than trimesh for character controller. */
+function RegisteredFloorCollider({ floor }: { floor: FloorSpec }) {
+  const colliderRef = useRef<RapierCollider>(null);
+
+  useEffect(() => {
+    return registerSpaceCollisionDebugCollider(colliderRef.current, floor.debugName);
+  }, [floor.debugName]);
+
+  return (
+    <CuboidCollider
+      ref={colliderRef}
+      name={floor.debugName}
+      args={floor.halfExtents}
+      position={floor.position}
+    />
+  );
+}
+
 export function GalleryFloorCollider({ root }: { root: THREE.Object3D }) {
   const floors = useMemo(() => collectGalleryFloorColliders(root), [root]);
   if (floors.length === 0) return null;
@@ -120,7 +153,7 @@ export function GalleryFloorCollider({ root }: { root: THREE.Object3D }) {
     <>
       {floors.map((floor) => (
         <RigidBody key={floor.key} type="fixed" colliders={false} friction={1}>
-          <CuboidCollider args={floor.halfExtents} position={floor.position} />
+          <RegisteredFloorCollider floor={floor} />
         </RigidBody>
       ))}
     </>

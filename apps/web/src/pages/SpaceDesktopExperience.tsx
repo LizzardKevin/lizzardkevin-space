@@ -15,6 +15,7 @@ import { GalleryRenderPipeline } from "../rendering/GalleryRenderPipeline";
 import { isWebGPUSupported } from "../rendering/webgpuSupport";
 import { WebGPUErrorBoundary } from "../rendering/WebGPUErrorBoundary";
 import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
+import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
 import { SpaceScene } from "../scenes/SpaceScene";
 import {
   ENABLE_GALLERY_GLB,
@@ -41,6 +42,7 @@ const FocusOverlay = lazy(() =>
 );
 
 const JUMP_HINT_VISIBLE_MS = 5000;
+const SPACE_PHYSICS_TIME_STEP = 1 / 60;
 
 function SpaceGuide({ message, visible }: { message: string; visible: boolean }) {
   if (!visible || !message) return null;
@@ -236,6 +238,7 @@ export function SpaceDesktopExperience({
         overlayOpen={overlay.isOverlayOpen}
         focusOpen={focusOverlayExhibit !== null}
       />
+      <SpaceMovementDebugOverlay />
       <Toast
         message={toast}
         durationMs={toast === t("space.pointerLockFailed") ? 5200 : 2200}
@@ -332,7 +335,7 @@ export function SpaceDesktopExperience({
                   </group>
                 }
               >
-                <Physics gravity={[0, -9.81, 0]}>
+                <Physics gravity={[0, -9.81, 0]} timeStep={SPACE_PHYSICS_TIME_STEP}>
                   <SpaceScene
                     exhibitTarget={exhibitTarget}
                     onTargetChange={setExhibitTarget}

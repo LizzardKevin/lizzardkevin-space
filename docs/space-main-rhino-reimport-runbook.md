@@ -20,7 +20,7 @@
 |---|---|
 | `COL_*` | `mat_collision_helper_transparent_red` |
 | `LIGHT_GENERIC_LIGHT_*` | `mat_led_generic_warm_emissive` |
-| `STRUCT_STAIR_*` | `mat_stair_warm_concrete` |
+| `ARCH_STAIR_*`、`STRUCT_STAIR_*` | `mat_stair_warm_concrete` |
 | `ARCH_FLOOR_*`、`STRUCT_FLOOR_*` | `mat_floor_concrete_warm_gray` |
 | `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` |
 | `GLASS_CLEAR_*` | `mat_glass_clear_soft` |
@@ -37,12 +37,12 @@
 |---|---|
 | `COLLISION_HELPERS` | 所有 `COL_*` 碰撞对象，包括地面、墙、楼梯等碰撞网格 |
 | `MARKERS` | `spawn_player_main` 以及其他标记 Empty |
-| `VIS_ARCHITECTURE` | `ARCH_*` 视觉结构 |
+| `VIS_ARCHITECTURE` | `ARCH_*` 视觉结构，不含 `ARCH_STAIR_*` |
 | `VIS_FLOORS` | `ARCH_FLOOR_*`、`STRUCT_FLOOR_*` |
 | `VIS_GLASS` | `GLASS_*` |
 | `VIS_LIGHTING` | `LIGHT_GENERIC_LIGHT_*` |
 | `VIS_METAL_PROPS` | `METAL_ALUMINUM_*` |
-| `VIS_STAIRS` | `STRUCT_STAIR_*` |
+| `VIS_STAIRS` | `ARCH_STAIR_*`、`STRUCT_STAIR_*` |
 
 如果 Rhino 重导入后生成了临时 import collection，原则很简单：
 
@@ -139,7 +139,7 @@ blender --background BlenderFile\space_main.blend --python scripts\apply-space-m
 & $BLENDER --background BlenderFile\space_main.blend --python scripts\bake-space-main-ao.py
 ```
 
-这个脚本只影响 `ARCH_*`、`STRUCT_STAIR_*`、`METAL_ALUMINUM_*` 的 `Color` 顶点色，不会改几何和出生点。
+这个脚本只影响 `ARCH_*`、`ARCH_STAIR_*`、`STRUCT_STAIR_*`、`METAL_ALUMINUM_*` 的 `Color` 顶点色，不会改几何和出生点。
 
 ### E. 重新导出 GLB
 

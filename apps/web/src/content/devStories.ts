@@ -156,4 +156,28 @@ export const devStories: DevStory[] = [
       "继续做真实 Chrome 视觉 QA：确认可见楼梯、上楼碰撞、LED 亮度、出生点和移动手感；随后把 `STRUCT_STAIR_*` 视觉/`COL_STAIR_*` 碰撞的双节点规则写回资产命名文档，并开始补正式 `exhibit_*` hit mesh。",
     tags: ["Cross Platform", "Blender", "Cursor", "space_main"],
   },
+  {
+    id: "devlog-07",
+    number: "07",
+    period: "2026.06.23 - 06.24",
+    title: "把 SPACE 移动手感和 physics tick 收回到可验证状态",
+    summary:
+      "第七轮集中处理 space_main 新模型进入网页后的运行时排障：先用 dev-only 移动 debug overlay 显示位置、速度、ratio 和当前接触的 COL_*，再确认所谓 Vite/服务器动态 tick 实际是浏览器端 render dt 与 Rapier fixed timestep 混用；最终显式固定 Physics timeStep 和 PlayerController timestep，把速度回到 2.45 / 3.85 基线。",
+    built: [
+      "新增 space:movement-debug telemetry 和左上角 debug overlay，显示 pos、actual/desired speed、ratio、target、grounded、collision count、vertical velocity 和 contact 名称。",
+      "给 floor、COL_* trimesh/cuboid、prop fallback 和 SAFETY_GROUND 注册 collider handle 到名称，方便在真实浏览器中定位碰撞来源。",
+      "保守回退自定义 pointer lock controls 到 Drei PointerLockControls，先恢复第一人称视角可用性。",
+      "显式设置 SPACE_PHYSICS_TIME_STEP = 1 / 60，并让 PlayerController 使用 PLAYER_PHYSICS_TIME_STEP，不再用 useFrame 的动态 dt 推动物理移动。",
+      "将临时翻倍速度回退到 WALK 2.45 / SPRINT 3.85，同时保留 smoothstep 和 lerp 带来的停止惯性。",
+    ],
+    trouble: [
+      "debug ratio 一度看起来稳定，是因为 actual/desired 都用同一个动态 dtRef 归一化，反而掩盖了 physics step 和 render dt 混用。",
+      "Vite dev server 被怀疑在跑动态 tick，但排查后确认它只负责 dev server/HMR，真正的问题在浏览器运行时的 timestep 使用。",
+      "自定义 guarded pointer lock controls 虽然能过滤异常 delta，但破坏了第一人称视角移动，因此先整段回退。",
+      "新 GLB 的碰撞是否异常不能靠体感猜，需要通过 contact 名称回到 Blender 检查对应 COL_*。",
+    ],
+    next:
+      "继续用真实浏览器和 debug overlay 复测移动手感；若鼠标跳闪仍存在，在 Drei PointerLockControls 链路上做最小 delta 防护；同时把异常 contact 名称带回 Blender 检查 COL_* 重叠、法线和 Apply Scale。",
+    tags: ["Physics Tick", "Movement Debug", "Rapier", "space_main"],
+  },
 ];

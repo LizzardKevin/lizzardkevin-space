@@ -9,6 +9,10 @@ import {
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useAudioDirector } from "../../audio/useAudioDirector";
+import {
+  publishSpaceMovementDebug,
+  resolveSpaceCollisionDebugName,
+} from "../debug/spaceMovementDebug";
 import { useKeyboard } from "../controls/useKeyboard";
 import { useFootsteps, SPRINT_SPEED as FOOTSTEP_SPRINT_SPEED } from "./useFootsteps";
 import {
@@ -21,7 +25,7 @@ import { WALK_HEAD_BOB_SPEED, nextLandingStepState, walkHeadBobOffset } from "./
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
-const WALK_SPEED = 3.25;
+const WALK_SPEED = 2.45;
 const SPRINT_SPEED = FOOTSTEP_SPRINT_SPEED;
 const JUMP_HEIGHT_M = 0.4;
 const JUMP_DURATION_SCALE = 0.8;
@@ -33,6 +37,7 @@ const JUMP_UNLOCK_MESSAGE = "真拿你没办法～";
 const MOVE_ACCEL = 11;
 /** Higher = stops faster when keys are released. */
 const MOVE_DECEL = 15;
+const PLAYER_PHYSICS_TIME_STEP = 1 / 60;
 
 /** Smoothstep on the per-frame blend — softer ease-in/out at start and stop. */
 function easedMoveBlend(raw: number) {
@@ -66,7 +71,6 @@ export function PlayerController({
   const rb = useRef<RigidBodyRef>(null);
   const colliderRef = useRef<RapierCollider>(null);
   const controllerRef = useRef<ReturnType<typeof world.createCharacterController> | null>(null);
-  const dtRef = useRef(1 / 60);
   const bobPhase = useRef(0);
   const bobRef = useRef(0);
   const idlePhase = useRef(0);
@@ -161,8 +165,7 @@ export function PlayerController({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  useFrame((_, dt) => {
-    dtRef.current = Math.min(dt, 0.05);
+  useFrame(() => {
     const body = rb.current;
     if (!body) return;
 
@@ -181,7 +184,7 @@ export function PlayerController({
     const collider = colliderRef.current;
     if (!body || !controller || !collider || !enabledRef.current) return;
 
-    const dt = dtRef.current;
+    const dt = PLAYER_PHYSICS_TIME_STEP;
     const t = body.translation();
 
     camera.getWorldDirection(tmp.forward);
@@ -211,6 +214,8 @@ export function PlayerController({
     const desiredHorizontal = tmp.step;
 
     const actualSpeed = horizontalVelocity.current.length();
+    const desiredSpeed = Math.hypot(desiredHorizontal.x, desiredHorizontal.z) / Math.max(dt, 1e-6);
+    const targetSpeed = tmp.targetVel.length();
     const isLocomoting = actualSpeed > 0.0025;
 
     const wasGrounded = grounded.current;
@@ -237,7 +242,31 @@ export function PlayerController({
 
     controller.computeColliderMovement(collider, desired);
     const m = controller.computedMovement();
+    const collisionCount = controller.numComputedCollisions();
     grounded.current = controller.computedGrounded();
+    if (import.meta.env.DEV) {
+      const contactNames: string[] = [];
+      for (let i = 0; i < collisionCount; i += 1) {
+        const collision = controller.computedCollision(i);
+        const contactName = resolveSpaceCollisionDebugName(collision?.collider);
+        if (contactName && !contactNames.includes(contactName)) contactNames.push(contactName);
+      }
+      const appliedHorizontalSpeed = Math.hypot(m.x, m.z) / Math.max(dt, 1e-6);
+      publishSpaceMovementDebug({
+        timestamp: performance.now(),
+        enabled: enabledRef.current,
+        grounded: grounded.current,
+        collisionCount,
+        contactNames,
+        position: { x: t.x + m.x, y: t.y + m.y, z: t.z + m.z },
+        desiredSpeed,
+        actualSpeed: appliedHorizontalSpeed,
+        targetSpeed,
+        speedRatio: desiredSpeed > 0.001 ? appliedHorizontalSpeed / desiredSpeed : null,
+        verticalVelocity: verticalVelocity.current,
+        dt,
+      });
+    }
     const landingStep = nextLandingStepState({
       wasGrounded,
       grounded: grounded.current,

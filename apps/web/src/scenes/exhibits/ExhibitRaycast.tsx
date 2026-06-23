@@ -2,7 +2,17 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { buildExhibitTarget, isExhibitWithinRange, type ExhibitTarget } from "../../exhibits/exhibitTarget";
+import { publishSpaceRaycastDebug } from "../debug/spaceMovementDebug";
 import { resumeSpaceFirstPersonOnGestureIfPending } from "../../space/requestSpacePointerLock";
+
+function isIgnoredDebugRaycastObject(object: THREE.Object3D) {
+  let current: THREE.Object3D | null = object;
+  while (current) {
+    if (current.name.toUpperCase().startsWith("COL_")) return true;
+    current = current.parent;
+  }
+  return false;
+}
 
 export function ExhibitRaycast({
   onTargetChange,
@@ -44,6 +54,7 @@ export function ExhibitRaycast({
 
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const center = useMemo(() => new THREE.Vector2(0, 0), []);
+  const lastDebugHitMeshName = useRef<string | null>(null);
 
   useEffect(() => {
     if (enabled) return;
@@ -58,6 +69,17 @@ export function ExhibitRaycast({
 
     const hits = raycaster.intersectObjects(scene.children, true);
     const frontHit = hits[0]?.object as THREE.Object3D | undefined;
+    if (import.meta.env.DEV) {
+      const debugHit = hits.find((hit) => !isIgnoredDebugRaycastObject(hit.object))?.object;
+      const hitMeshName = debugHit ? debugHit.name || debugHit.parent?.name || debugHit.uuid : null;
+      if (hitMeshName !== lastDebugHitMeshName.current) {
+        lastDebugHitMeshName.current = hitMeshName;
+        publishSpaceRaycastDebug({
+          timestamp: performance.now(),
+          hitMeshName,
+        });
+      }
+    }
     // 射线常命中展品的子 mesh；exhibitId 往往绑定在父级节点上，需要向上冒泡查找。
     let hitObject: THREE.Object3D | null = frontHit ?? null;
     let exhibitId: string | null = null;

@@ -1,4 +1,4 @@
-"""Apply the production space_main material contract and export the runtime GLB.
+"""Apply the production space_main asset contract and export the runtime GLB.
 
 Run from the repository root:
 
@@ -7,6 +7,7 @@ Run from the repository root:
 
 The script intentionally keys material assignment from object names so a refreshed
 model can recover the same web-facing look after re-importing/replacing geometry.
+It also restores the runbook collections and spawn marker.
 """
 
 from __future__ import annotations
@@ -19,6 +20,25 @@ import bpy
 BLEND_PATH = Path(bpy.data.filepath).resolve()
 REPO_ROOT = BLEND_PATH.parent.parent
 GLB_PATH = REPO_ROOT / "apps" / "web" / "public" / "models" / "space_main.glb"
+
+REQUIRED_COLLECTIONS = (
+    "COLLISION_HELPERS",
+    "VIS_ARCHITECTURE",
+    "VIS_FLOORS",
+    "VIS_GLASS",
+    "VIS_LIGHTING",
+    "VIS_METAL_PROPS",
+    "VIS_STAIRS",
+    "MARKERS",
+)
+
+MANAGED_COLLECTIONS = set(REQUIRED_COLLECTIONS) | {"Collection"}
+SPAWN_MARKER_NAME = "spawn_player_main"
+
+# Runtime fallback spawn is [-0.51, 37.758, -48.318]. The GLB exporter maps
+# Blender (X, Y, Z) to runtime (X, Z, -Y), so the marker floor-top coordinate is:
+# X=-0.51, Blender Y=48.318, Blender Z=36.838.
+SPAWN_MARKER_LOCATION = (-0.51, 48.318, 36.838)
 
 
 MATERIAL_SPECS = {
@@ -123,7 +143,7 @@ def material_for_object_name(name: str) -> str | None:
         return "mat_collision_helper_transparent_red"
     if name.startswith("LIGHT_GENERIC_LIGHT_"):
         return "mat_led_generic_warm_emissive"
-    if name.startswith("STRUCT_STAIR_"):
+    if name.startswith("ARCH_STAIR_") or name.startswith("STRUCT_STAIR_"):
         return "mat_stair_warm_concrete"
     if name.startswith("ARCH_FLOOR_") or name.startswith("STRUCT_FLOOR_"):
         return "mat_floor_concrete_warm_gray"
@@ -138,9 +158,82 @@ def material_for_object_name(name: str) -> str | None:
     return None
 
 
+def collection_for_object_name(name: str) -> str | None:
+    if name.startswith("COL_"):
+        return "COLLISION_HELPERS"
+    if name == SPAWN_MARKER_NAME or name.startswith("spawn_"):
+        return "MARKERS"
+    if name.startswith("ARCH_FLOOR_") or name.startswith("STRUCT_FLOOR_"):
+        return "VIS_FLOORS"
+    if name.startswith("GLASS_"):
+        return "VIS_GLASS"
+    if name.startswith("LIGHT_GENERIC_LIGHT_"):
+        return "VIS_LIGHTING"
+    if name.startswith("METAL_ALUMINUM_"):
+        return "VIS_METAL_PROPS"
+    if name.startswith("ARCH_STAIR_") or name.startswith("STRUCT_STAIR_"):
+        return "VIS_STAIRS"
+    if name.startswith("ARCH_") or name.startswith("STRUCT_WALL_") or name.startswith("STRUCT_CEILING_"):
+        return "VIS_ARCHITECTURE"
+    return None
+
+
 def assign_material(obj: bpy.types.Object, material: bpy.types.Material) -> None:
     obj.data.materials.clear()
     obj.data.materials.append(material)
+
+
+def ensure_collection(name: str) -> bpy.types.Collection:
+    collection = bpy.data.collections.get(name)
+    if collection is None:
+        collection = bpy.data.collections.new(name)
+    if collection.name not in {child.name for child in bpy.context.scene.collection.children}:
+        bpy.context.scene.collection.children.link(collection)
+    return collection
+
+
+def ensure_spawn_marker() -> bpy.types.Object:
+    marker = bpy.data.objects.get(SPAWN_MARKER_NAME)
+    if marker is None:
+        marker = bpy.data.objects.new(SPAWN_MARKER_NAME, None)
+        marker.empty_display_type = "PLAIN_AXES"
+        marker.empty_display_size = 1.25
+    marker.location = SPAWN_MARKER_LOCATION
+    marker.rotation_euler = (0.0, 0.0, 0.0)
+    marker.scale = (1.0, 1.0, 1.0)
+    if marker.name not in {obj.name for obj in bpy.context.scene.objects}:
+        bpy.context.scene.collection.objects.link(marker)
+    return marker
+
+
+def link_object_only_to_target_collection(obj: bpy.types.Object, target_name: str) -> None:
+    target = ensure_collection(target_name)
+    if obj.name not in {item.name for item in target.objects}:
+        target.objects.link(obj)
+
+    if obj.name in {item.name for item in bpy.context.scene.collection.objects}:
+        bpy.context.scene.collection.objects.unlink(obj)
+
+    for collection in list(obj.users_collection):
+        if collection.name in MANAGED_COLLECTIONS and collection.name != target_name:
+            collection.objects.unlink(obj)
+
+
+def ensure_space_main_scene_contract() -> dict[str, int]:
+    for collection_name in REQUIRED_COLLECTIONS:
+        ensure_collection(collection_name)
+
+    marker = ensure_spawn_marker()
+    linked = 0
+    for obj in list(bpy.context.scene.objects):
+        target_name = collection_for_object_name(obj.name)
+        if target_name is None:
+            continue
+        link_object_only_to_target_collection(obj, target_name)
+        linked += 1
+
+    link_object_only_to_target_collection(marker, "MARKERS")
+    return {"linked": linked, "collections": len(REQUIRED_COLLECTIONS)}
 
 
 def main() -> None:
@@ -154,6 +247,8 @@ def main() -> None:
             continue
         assign_material(obj, materials[material_name])
         assigned += 1
+
+    scene_contract = ensure_space_main_scene_contract()
 
     bpy.ops.wm.save_as_mainfile(filepath=str(BLEND_PATH))
     bpy.ops.export_scene.gltf(
@@ -175,6 +270,10 @@ def main() -> None:
         export_apply=False,
     )
     print(f"[space_main_materials] assigned {assigned} meshes")
+    print(
+        "[space_main_materials] restored "
+        f"{scene_contract['collections']} collections and linked {scene_contract['linked']} objects"
+    )
     print(f"[space_main_materials] saved {BLEND_PATH}")
     print(f"[space_main_materials] exported {GLB_PATH}")
 

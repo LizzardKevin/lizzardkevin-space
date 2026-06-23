@@ -24,8 +24,8 @@ MATERIAL_SCRIPT = REPO_ROOT / "scripts" / "apply-space-main-materials.py"
 GLB_PATH = REPO_ROOT / "apps" / "web" / "public" / "models" / "space_main.glb"
 
 AO_ATTR_NAME = "Color"
-AO_TARGET_PREFIXES = ("ARCH_", "STRUCT_STAIR_", "METAL_ALUMINUM_")
-AO_RECEIVER_PREFIXES = ("ARCH_", "STRUCT_STAIR_", "METAL_ALUMINUM_")
+AO_TARGET_PREFIXES = ("ARCH_", "ARCH_STAIR_", "STRUCT_STAIR_", "METAL_ALUMINUM_")
+AO_RECEIVER_PREFIXES = ("ARCH_", "ARCH_STAIR_", "STRUCT_STAIR_", "METAL_ALUMINUM_")
 AO_EXCLUDED_OCCLUDER_PREFIXES = ("COL_", "GLASS_", "LIGHT_GENERIC_LIGHT_")
 AO_SAMPLES = 64
 AO_MIN = 0.62
@@ -112,6 +112,8 @@ def apply_material_contract() -> None:
         material_name = contract.material_for_object_name(obj.name)
         if material_name is not None:
             contract.assign_material(obj, materials[material_name])
+    if hasattr(contract, "ensure_space_main_scene_contract"):
+        contract.ensure_space_main_scene_contract()
 
 
 def export_glb() -> None:

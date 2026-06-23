@@ -1,7 +1,13 @@
-import { CuboidCollider, RigidBody, TrimeshCollider } from "@react-three/rapier";
+import {
+  CuboidCollider,
+  RigidBody,
+  TrimeshCollider,
+  type RapierCollider,
+} from "@react-three/rapier";
 import type * as THREE from "three";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE_NS from "three";
+import { registerSpaceCollisionDebugCollider } from "../debug/spaceMovementDebug";
 import { bakeMeshTrimesh } from "./trimeshColliderUtils";
 
 const INNER_COL_PREFIX = "COL_inner";
@@ -18,12 +24,14 @@ function isGalleryFloorCol(name: string) {
 
 type TrimeshSpec = {
   key: string;
+  debugName: string;
   vertices: Float32Array;
   indices: Uint32Array;
 };
 
 type CuboidSpec = {
   key: string;
+  debugName: string;
   halfExtents: [number, number, number];
   position: [number, number, number];
 };
@@ -38,6 +46,7 @@ function pushCuboidFromMesh(
   rootInv: THREE_NS.Matrix4,
   cuboids: CuboidSpec[],
   key: string,
+  debugName: string,
 ) {
   obj.updateMatrixWorld(true);
   const box = new THREE_NS.Box3().setFromObject(obj);
@@ -46,6 +55,7 @@ function pushCuboidFromMesh(
   center.applyMatrix4(rootInv);
   cuboids.push({
     key,
+    debugName,
     halfExtents: [
       Math.max(size.x / 2, 0.05),
       Math.max(size.y / 2, 0.05),
@@ -74,7 +84,7 @@ function collectColSpecs(root: THREE.Object3D): { trimeshes: TrimeshSpec[]; cubo
     obj.updateMatrixWorld(true);
 
     if (obj.name.startsWith(INNER_COL_PREFIX)) {
-      pushCuboidFromMesh(obj, rootInv, cuboids, obj.uuid);
+      pushCuboidFromMesh(obj, rootInv, cuboids, obj.uuid, obj.name);
       return;
     }
 
@@ -83,6 +93,7 @@ function collectColSpecs(root: THREE.Object3D): { trimeshes: TrimeshSpec[]; cubo
 
     trimeshes.push({
       key: obj.uuid,
+      debugName: obj.name,
       vertices: baked.vertices,
       indices: baked.indices,
     });
@@ -96,10 +107,43 @@ function collectColSpecs(root: THREE.Object3D): { trimeshes: TrimeshSpec[]; cubo
     if (import.meta.env.DEV) {
       console.info(`[ColColliders] fallback cuboid for missing ${expectedCol} ← ${obj.name}`);
     }
-    pushCuboidFromMesh(obj, rootInv, cuboids, `prop-fallback-${obj.uuid}`);
+    pushCuboidFromMesh(
+      obj,
+      rootInv,
+      cuboids,
+      `prop-fallback-${obj.uuid}`,
+      `${expectedCol} (fallback from ${obj.name})`,
+    );
   });
 
   return { trimeshes, cuboids };
+}
+
+function RegisteredCuboidCollider({ spec }: { spec: CuboidSpec }) {
+  const colliderRef = useRef<RapierCollider>(null);
+
+  useEffect(() => {
+    return registerSpaceCollisionDebugCollider(colliderRef.current, spec.debugName);
+  }, [spec.debugName]);
+
+  return (
+    <CuboidCollider
+      ref={colliderRef}
+      name={spec.debugName}
+      args={spec.halfExtents}
+      position={spec.position}
+    />
+  );
+}
+
+function RegisteredTrimeshCollider({ spec }: { spec: TrimeshSpec }) {
+  const colliderRef = useRef<RapierCollider>(null);
+
+  useEffect(() => {
+    return registerSpaceCollisionDebugCollider(colliderRef.current, spec.debugName);
+  }, [spec.debugName]);
+
+  return <TrimeshCollider ref={colliderRef} name={spec.debugName} args={[spec.vertices, spec.indices]} />;
 }
 
 export function ColColliders({ root }: { root: THREE.Object3D }) {
@@ -109,12 +153,12 @@ export function ColColliders({ root }: { root: THREE.Object3D }) {
     <>
       {cuboids.map((c) => (
         <RigidBody key={c.key} type="fixed" colliders={false}>
-          <CuboidCollider args={c.halfExtents} position={c.position} />
+          <RegisteredCuboidCollider spec={c} />
         </RigidBody>
       ))}
       {trimeshes.map((c) => (
         <RigidBody key={c.key} type="fixed" colliders={false}>
-          <TrimeshCollider args={[c.vertices, c.indices]} />
+          <RegisteredTrimeshCollider spec={c} />
         </RigidBody>
       ))}
     </>

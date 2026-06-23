@@ -94,7 +94,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 |---|---|
 | `COL_*` | `mat_collision_helper_transparent_red` |
 | `LIGHT_GENERIC_LIGHT_*` | `mat_led_generic_warm_emissive` |
-| `STRUCT_STAIR_*` | `mat_stair_warm_concrete` |
+| `ARCH_STAIR_*`、`STRUCT_STAIR_*` | `mat_stair_warm_concrete` |
 | `ARCH_FLOOR_*`、`STRUCT_FLOOR_*` | `mat_floor_concrete_warm_gray` |
 | `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` |
 | `GLASS_CLEAR_*` | `mat_glass_clear_soft` |
@@ -124,15 +124,15 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
   BlenderFile/space_main.blend --python scripts/bake-space-main-ao.py
 ```
 
-该脚本会把 AO bake 到结构/金属 mesh 的 `Color` 顶点色并以 glTF `COLOR_0` 导出。当前参数：`ARCH_*`、`STRUCT_STAIR_*`、`METAL_ALUMINUM_*` 接收 AO；`COL_*`、`GLASS_*`、`LIGHT_GENERIC_LIGHT_*` 不作为 AO occluder；AO remap 下限 `0.62`、强度 `0.38`，用于让角落读得出来但不压黑整个空间。
+该脚本会把 AO bake 到结构/金属 mesh 的 `Color` 顶点色并以 glTF `COLOR_0` 导出。当前参数：`ARCH_*`、`ARCH_STAIR_*`、`STRUCT_STAIR_*`、`METAL_ALUMINUM_*` 接收 AO；`COL_*`、`GLASS_*`、`LIGHT_GENERIC_LIGHT_*` 不作为 AO occluder；AO remap 下限 `0.62`、强度 `0.38`，用于让角落读得出来但不压黑整个空间。
 
 **Vertex-color AO 参数**（[`scripts/bake-space-main-ao.py`](../scripts/bake-space-main-ao.py)）：
 
 | 参数 | 当前值 / 说明 |
 |---|---|
 | `AO_ATTR_NAME` | `Color`，导出为 glTF `COLOR_0` |
-| `AO_TARGET_PREFIXES` | `("ARCH_", "STRUCT_STAIR_", "METAL_ALUMINUM_")` |
-| `AO_RECEIVER_PREFIXES` | `("ARCH_", "STRUCT_STAIR_", "METAL_ALUMINUM_")` |
+| `AO_TARGET_PREFIXES` | `("ARCH_", "ARCH_STAIR_", "STRUCT_STAIR_", "METAL_ALUMINUM_")` |
+| `AO_RECEIVER_PREFIXES` | `("ARCH_", "ARCH_STAIR_", "STRUCT_STAIR_", "METAL_ALUMINUM_")` |
 | `AO_EXCLUDED_OCCLUDER_PREFIXES` | `("COL_", "GLASS_", "LIGHT_GENERIC_LIGHT_")` |
 | `AO_SAMPLES` | `64` |
 | `AO_MIN` | `0.62`，AO 最暗下限，防止压黑 |
@@ -148,7 +148,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 |---|---|---|
 | `ARCH_*`、`STRUCT_WALL_*`、`STRUCT_CEILING_*` | `mat_arch_plaster_warm_white` | 中性银白墙/顶，磨砂轻金属涂层：base `(0.92, 0.92, 0.92, 1)`, metallic `0.08`, roughness `0.72` |
 | `ARCH_FLOOR_*`、`STRUCT_FLOOR_*` | `mat_floor_concrete_warm_gray` | 中性深灰磨砂地面，弱反射：base `(0.37, 0.37, 0.37, 1)`, metallic `0.06`, roughness `0.76` |
-| `STRUCT_STAIR_*` | `mat_stair_warm_concrete` | 楼梯与地面同色同反射：base `(0.37, 0.37, 0.37, 1)`, metallic `0.06`, roughness `0.76` |
+| `ARCH_STAIR_*`、`STRUCT_STAIR_*` | `mat_stair_warm_concrete` | 楼梯与地面同色同反射：base `(0.37, 0.37, 0.37, 1)`, metallic `0.06`, roughness `0.76` |
 | `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` | 银白阳极氧化铝/格栅：base `(0.90, 0.90, 0.90, 1)`, metallic `0.74`, roughness `0.18` |
 | `GLASS_FROSTED_*`、其他 `GLASS_*` | `mat_glass_frosted_soft` | 磨砂灰蓝透明玻璃，反射更强：base `(0.74, 0.76, 0.76, 0.42)`, roughness `0.42`, alpha blend |
 | `GLASS_CLEAR_*` | `mat_glass_clear_soft` | 更清透、更强反射玻璃：base `(0.84, 0.86, 0.86, 0.32)`, roughness `0.14`, alpha blend |
