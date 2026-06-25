@@ -27,3 +27,11 @@ export function nextLandingStepState({
     shouldPlayLandingStep,
   };
 }
+
+export function initialPlayerSpawnMotionState() {
+  return {
+    grounded: true,
+    verticalVelocity: 0,
+    landingStepArmed: false,
+  };
+}

@@ -1,0 +1,44 @@
+import * as THREE from "three";
+
+export const EXHIBIT_ANCHOR_PREFIX = "ANCHOR_";
+
+export type ExhibitAnchorTransform = {
+  name: string;
+  object: THREE.Object3D;
+  matrixWorld: THREE.Matrix4;
+  position: THREE.Vector3;
+  quaternion: THREE.Quaternion;
+  euler: THREE.Euler;
+  scale: THREE.Vector3;
+};
+
+export function isExhibitAnchorName(name: string) {
+  return name.toUpperCase().startsWith(EXHIBIT_ANCHOR_PREFIX);
+}
+
+export function collectExhibitAnchors(root: THREE.Object3D) {
+  const anchors = new Map<string, ExhibitAnchorTransform>();
+  root.updateMatrixWorld(true);
+
+  root.traverse((object) => {
+    if (!isExhibitAnchorName(object.name)) return;
+
+    const position = new THREE.Vector3();
+    const quaternion = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+    const matrixWorld = object.matrixWorld.clone();
+    matrixWorld.decompose(position, quaternion, scale);
+
+    anchors.set(object.name, {
+      name: object.name,
+      object,
+      matrixWorld,
+      position,
+      quaternion,
+      euler: new THREE.Euler().setFromQuaternion(quaternion, "XYZ"),
+      scale,
+    });
+  });
+
+  return anchors;
+}

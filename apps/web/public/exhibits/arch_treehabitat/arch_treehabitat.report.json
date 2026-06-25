@@ -1,0 +1,82 @@
+{
+  "source": "E:\\00 自己的活儿\\2026_个人网页SPACE\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.source.glb",
+  "method": "blender-decimate",
+  "outputs": [
+    {
+      "lod": "lod0",
+      "path": "E:\\00 自己的活儿\\2026_个人网页SPACE\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod0.glb",
+      "ratio": 1,
+      "materialAssignment": {
+        "whiteAssigned": 465,
+        "glassAssigned": 32,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": true
+      },
+      "before": {
+        "meshCount": 497,
+        "materialCount": 2,
+        "vertexCount": 194458,
+        "faceCount": 223054
+      },
+      "after": {
+        "meshCount": 497,
+        "materialCount": 2,
+        "vertexCount": 194458,
+        "faceCount": 223054
+      },
+      "fileSizeBytes": 8236400,
+      "manualReviewRequired": false
+    },
+    {
+      "lod": "lod1",
+      "path": "E:\\00 自己的活儿\\2026_个人网页SPACE\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod1.glb",
+      "ratio": 0.45,
+      "materialAssignment": {
+        "whiteAssigned": 465,
+        "glassAssigned": 32,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": true
+      },
+      "before": {
+        "meshCount": 497,
+        "materialCount": 2,
+        "vertexCount": 194458,
+        "faceCount": 223054
+      },
+      "after": {
+        "meshCount": 497,
+        "materialCount": 2,
+        "vertexCount": 103683,
+        "faceCount": 100073
+      },
+      "fileSizeBytes": 4562428,
+      "manualReviewRequired": true
+    },
+    {
+      "lod": "lod2",
+      "path": "E:\\00 自己的活儿\\2026_个人网页SPACE\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod2.glb",
+      "ratio": 0.12,
+      "materialAssignment": {
+        "whiteAssigned": 465,
+        "glassAssigned": 32,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": true
+      },
+      "before": {
+        "meshCount": 497,
+        "materialCount": 2,
+        "vertexCount": 194458,
+        "faceCount": 223054
+      },
+      "after": {
+        "meshCount": 497,
+        "materialCount": 2,
+        "vertexCount": 42387,
+        "faceCount": 28517
+      },
+      "fileSizeBytes": 1633744,
+      "manualReviewRequired": true
+    }
+  ],
+  "nextStep": "Inspect lod1/lod2 for hard edges, text, thin rods, stair-stepped details, and silhouette loss."
+}

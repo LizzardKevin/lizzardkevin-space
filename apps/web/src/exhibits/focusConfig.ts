@@ -23,9 +23,9 @@ export const FOCUS_FRAME = {
   framePadding: 1.2,
   /** 中间清晰区约占屏宽比例，用于水平方向取景 */
   centerWidthFraction: 0.46,
-  orbitTargetY: -0.6,
+  orbitTargetY: 0,
   /** 相机相对 orbit 目标的高度抬升 */
-  cameraHeightOffset: 1.8,
+  cameraHeightOffset: 0,
   minCameraDistance: 2.4,
   minZoomFactor: 0.5,
   maxZoomFactor: 3,

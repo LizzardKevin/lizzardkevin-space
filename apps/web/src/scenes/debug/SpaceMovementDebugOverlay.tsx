@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  SPACE_EXHIBIT_PLACEMENT_DEBUG_EVENT,
   SPACE_MOVEMENT_DEBUG_EVENT,
   SPACE_RAYCAST_DEBUG_EVENT,
+  type SpaceExhibitPlacementDebugSample,
   type SpaceMovementDebugSample,
   type SpaceRaycastDebugSample,
 } from "./spaceMovementDebug";
@@ -17,6 +19,9 @@ function formatSpeedRatio(value: number | null) {
 export function SpaceMovementDebugOverlay() {
   const [sample, setSample] = useState<SpaceMovementDebugSample | null>(null);
   const [raycastSample, setRaycastSample] = useState<SpaceRaycastDebugSample | null>(null);
+  const [placementSample, setPlacementSample] = useState<SpaceExhibitPlacementDebugSample | null>(
+    null,
+  );
   const lastRenderRef = useRef(0);
 
   useEffect(() => {
@@ -31,12 +36,19 @@ export function SpaceMovementDebugOverlay() {
     const onRaycastSample = (event: WindowEventMap[typeof SPACE_RAYCAST_DEBUG_EVENT]) => {
       setRaycastSample(event.detail);
     };
+    const onPlacementSample = (
+      event: WindowEventMap[typeof SPACE_EXHIBIT_PLACEMENT_DEBUG_EVENT],
+    ) => {
+      setPlacementSample(event.detail);
+    };
 
     window.addEventListener(SPACE_MOVEMENT_DEBUG_EVENT, onDebugSample);
     window.addEventListener(SPACE_RAYCAST_DEBUG_EVENT, onRaycastSample);
+    window.addEventListener(SPACE_EXHIBIT_PLACEMENT_DEBUG_EVENT, onPlacementSample);
     return () => {
       window.removeEventListener(SPACE_MOVEMENT_DEBUG_EVENT, onDebugSample);
       window.removeEventListener(SPACE_RAYCAST_DEBUG_EVENT, onRaycastSample);
+      window.removeEventListener(SPACE_EXHIBIT_PLACEMENT_DEBUG_EVENT, onPlacementSample);
     };
   }, []);
 
@@ -44,6 +56,11 @@ export function SpaceMovementDebugOverlay() {
 
   const contacts = sample.contactNames.length > 0 ? sample.contactNames.join(", ") : "none";
   const hitMeshName = raycastSample?.hitMeshName ?? "none";
+  const exhibitPlacement = placementSample
+    ? `${placementSample.exhibitId} / ${placementSample.anchorName} / ${placementSample.lod ?? "none"} / ${
+        placementSample.floorName ?? "no floor"
+      }`
+    : "none";
 
   return (
     <aside className="space-movement-debug" aria-label="SPACE debug">
@@ -52,6 +69,10 @@ export function SpaceMovementDebugOverlay() {
         <div>
           <dt>mesh</dt>
           <dd>{hitMeshName}</dd>
+        </div>
+        <div>
+          <dt>exhibit</dt>
+          <dd>{exhibitPlacement}</dd>
         </div>
         <div>
           <dt>pos</dt>

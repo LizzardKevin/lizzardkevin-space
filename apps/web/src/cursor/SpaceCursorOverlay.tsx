@@ -314,6 +314,7 @@ export function SpaceCursorOverlay({
   }, [enabled, requestReturn]);
 
   const visible = enabled && (!pointerLocked || returning);
+  const effectiveCursorTone = focusOpen ? "light" : cursorTone;
   const style = useMemo(
     () =>
       ({
@@ -330,7 +331,7 @@ export function SpaceCursorOverlay({
   return (
     <div
       aria-hidden
-      className={`space-cursor-layer space-cursor-layer--tone-${cursorTone}${visible ? " space-cursor-layer--visible" : ""}${entered ? "" : " space-cursor-layer--entry"}`}
+      className={`space-cursor-layer space-cursor-layer--tone-${effectiveCursorTone}${visible ? " space-cursor-layer--visible" : ""}${entered ? "" : " space-cursor-layer--entry"}`}
       style={style}
     >
       <div

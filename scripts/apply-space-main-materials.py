@@ -13,6 +13,7 @@ It also restores the runbook collections and spawn marker.
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 import bpy
 
@@ -39,6 +40,11 @@ SPAWN_MARKER_NAME = "spawn_player_main"
 # Blender (X, Y, Z) to runtime (X, Z, -Y), so the marker floor-top coordinate is:
 # X=-0.51, Blender Y=48.318, Blender Z=36.838.
 SPAWN_MARKER_LOCATION = (-0.51, 48.318, 36.838)
+
+REQUIRED_ANCHOR_MARKERS = {
+    "ANCHOR_DEMO_BOX": (-2.2, 48.318, 36.838),
+    "ANCHOR_DEMO_BASS": (1.8, 48.318, 36.838),
+}
 
 
 MATERIAL_SPECS = {
@@ -158,10 +164,34 @@ def material_for_object_name(name: str) -> str | None:
     return None
 
 
+def strip_blender_duplicate_suffix(name: str) -> str:
+    return re.sub(r"\.\d{3}$", "", name.strip())
+
+
+def remove_object(obj: bpy.types.Object) -> None:
+    bpy.data.objects.remove(obj, do_unlink=True)
+
+
+def normalize_anchor_name(name: str) -> str | None:
+    normalized = strip_blender_duplicate_suffix(name)
+    upper = normalized.upper()
+    if upper.startswith("ANCHOR_") or upper.startswith("ANCHOR-"):
+        suffix = normalized[7:]
+    elif upper.startswith("ANCHOR "):
+        suffix = normalized[7:]
+    else:
+        return None
+
+    suffix = re.sub(r"[^0-9A-Za-z]+", "_", suffix).strip("_").upper()
+    if not suffix:
+        return None
+    return f"ANCHOR_{suffix}"
+
+
 def collection_for_object_name(name: str) -> str | None:
     if name.startswith("COL_"):
         return "COLLISION_HELPERS"
-    if name == SPAWN_MARKER_NAME or name.startswith("spawn_"):
+    if name == SPAWN_MARKER_NAME or name.startswith("spawn_") or normalize_anchor_name(name):
         return "MARKERS"
     if name.startswith("ARCH_FLOOR_") or name.startswith("STRUCT_FLOOR_"):
         return "VIS_FLOORS"
@@ -183,6 +213,23 @@ def assign_material(obj: bpy.types.Object, material: bpy.types.Material) -> None
     obj.data.materials.append(material)
 
 
+def remove_vertex_color_attributes() -> int:
+    removed = 0
+    for mesh in bpy.data.meshes:
+        color_attributes = getattr(mesh, "color_attributes", None)
+        if color_attributes is not None:
+            for attr in list(color_attributes):
+                color_attributes.remove(attr)
+                removed += 1
+
+        legacy_vertex_colors = getattr(mesh, "vertex_colors", None)
+        if legacy_vertex_colors is not None:
+            for attr in list(legacy_vertex_colors):
+                legacy_vertex_colors.remove(attr)
+                removed += 1
+    return removed
+
+
 def ensure_collection(name: str) -> bpy.types.Collection:
     collection = bpy.data.collections.get(name)
     if collection is None:
@@ -193,7 +240,24 @@ def ensure_collection(name: str) -> bpy.types.Collection:
 
 
 def ensure_spawn_marker() -> bpy.types.Object:
+    candidates = [
+        obj
+        for obj in bpy.context.scene.objects
+        if strip_blender_duplicate_suffix(obj.name) == SPAWN_MARKER_NAME
+    ]
     marker = bpy.data.objects.get(SPAWN_MARKER_NAME)
+    if marker is None and candidates:
+        marker = next((obj for obj in candidates if obj.type == "EMPTY"), candidates[0])
+        marker.name = SPAWN_MARKER_NAME
+
+    for duplicate in list(candidates):
+        if duplicate != marker:
+            remove_object(duplicate)
+
+    if marker is not None and marker.type != "EMPTY":
+        remove_object(marker)
+        marker = None
+
     if marker is None:
         marker = bpy.data.objects.new(SPAWN_MARKER_NAME, None)
         marker.empty_display_type = "PLAIN_AXES"
@@ -204,6 +268,59 @@ def ensure_spawn_marker() -> bpy.types.Object:
     if marker.name not in {obj.name for obj in bpy.context.scene.objects}:
         bpy.context.scene.collection.objects.link(marker)
     return marker
+
+
+def ensure_empty_marker(name: str, location: tuple[float, float, float]) -> bpy.types.Object:
+    marker = bpy.data.objects.get(name)
+    if marker is None:
+        marker = bpy.data.objects.new(name, None)
+        marker.empty_display_type = "PLAIN_AXES"
+        marker.empty_display_size = 0.8
+    marker.location = location
+    marker.rotation_euler = (0.0, 0.0, 0.0)
+    marker.scale = (1.0, 1.0, 1.0)
+    if marker.name not in {obj.name for obj in bpy.context.scene.objects}:
+        bpy.context.scene.collection.objects.link(marker)
+    return marker
+
+
+def normalize_anchor_markers() -> list[bpy.types.Object]:
+    anchors_by_name: dict[str, list[bpy.types.Object]] = {}
+    for obj in list(bpy.context.scene.objects):
+        anchor_name = normalize_anchor_name(obj.name)
+        if anchor_name is None:
+            continue
+        anchors_by_name.setdefault(anchor_name, []).append(obj)
+
+    anchors: list[bpy.types.Object] = []
+    for anchor_name, candidates in anchors_by_name.items():
+        anchor = next((obj for obj in candidates if obj.type == "EMPTY"), candidates[0])
+        source_location = tuple(anchor.location)
+        source_rotation = tuple(anchor.rotation_euler)
+        source_scale = tuple(anchor.scale)
+
+        for duplicate in list(candidates):
+            if duplicate != anchor:
+                remove_object(duplicate)
+
+        if anchor.type != "EMPTY":
+            remove_object(anchor)
+            anchor = bpy.data.objects.new(anchor_name, None)
+            anchor.location = source_location
+            anchor.rotation_euler = source_rotation
+            anchor.scale = source_scale
+            bpy.context.scene.collection.objects.link(anchor)
+
+        if anchor.name != anchor_name:
+            anchor.name = anchor_name
+        anchor.empty_display_type = "PLAIN_AXES"
+        anchor.empty_display_size = max(anchor.empty_display_size, 0.8)
+        anchors.append(anchor)
+
+    for name, location in REQUIRED_ANCHOR_MARKERS.items():
+        anchors.append(ensure_empty_marker(name, location))
+
+    return anchors
 
 
 def link_object_only_to_target_collection(obj: bpy.types.Object, target_name: str) -> None:
@@ -224,6 +341,7 @@ def ensure_space_main_scene_contract() -> dict[str, int]:
         ensure_collection(collection_name)
 
     marker = ensure_spawn_marker()
+    anchors = normalize_anchor_markers()
     linked = 0
     for obj in list(bpy.context.scene.objects):
         target_name = collection_for_object_name(obj.name)
@@ -233,7 +351,9 @@ def ensure_space_main_scene_contract() -> dict[str, int]:
         linked += 1
 
     link_object_only_to_target_collection(marker, "MARKERS")
-    return {"linked": linked, "collections": len(REQUIRED_COLLECTIONS)}
+    for anchor in anchors:
+        link_object_only_to_target_collection(anchor, "MARKERS")
+    return {"linked": linked, "collections": len(REQUIRED_COLLECTIONS), "anchors": len(anchors)}
 
 
 def main() -> None:
@@ -249,6 +369,7 @@ def main() -> None:
         assigned += 1
 
     scene_contract = ensure_space_main_scene_contract()
+    removed_vertex_colors = remove_vertex_color_attributes()
 
     bpy.ops.wm.save_as_mainfile(filepath=str(BLEND_PATH))
     bpy.ops.export_scene.gltf(
@@ -270,9 +391,11 @@ def main() -> None:
         export_apply=False,
     )
     print(f"[space_main_materials] assigned {assigned} meshes")
+    print(f"[space_main_materials] removed {removed_vertex_colors} vertex color attributes")
     print(
         "[space_main_materials] restored "
-        f"{scene_contract['collections']} collections and linked {scene_contract['linked']} objects"
+        f"{scene_contract['collections']} collections, linked {scene_contract['linked']} objects, "
+        f"and normalized {scene_contract['anchors']} anchors"
     )
     print(f"[space_main_materials] saved {BLEND_PATH}")
     print(f"[space_main_materials] exported {GLB_PATH}")

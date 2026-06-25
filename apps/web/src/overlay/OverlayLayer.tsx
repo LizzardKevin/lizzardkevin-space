@@ -11,6 +11,8 @@ type SpaceWordRect = {
   y: number;
 };
 
+const OVERLAY_CLOSE_MS = 700;
+
 function getInitialSplitTab(tab: OverlayTab): SplitArchiveTab {
   return tab === "devStories" ? "devStories" : "lizzardkevin";
 }
@@ -46,7 +48,7 @@ export function OverlayLayer({
   useEffect(() => {
     if (!tab) return;
     if (!closing) return;
-    const t = window.setTimeout(() => onClosed(), 620);
+    const t = window.setTimeout(() => onClosed(), OVERLAY_CLOSE_MS);
     return () => window.clearTimeout(t);
   }, [closing, onClosed, tab]);
 
@@ -104,7 +106,7 @@ export function OverlayLayer({
     <div
       role="dialog"
       aria-modal="true"
-      className="overlay-layer"
+      className={`overlay-layer${closing ? " overlay-layer--closing" : ""}`}
     >
       <button
         type="button"

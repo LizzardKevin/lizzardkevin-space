@@ -1,6 +1,7 @@
 import { useGLTF } from "@react-three/drei";
 import { useEffect, useMemo } from "react";
 import { ColColliders } from "../collision/colColliders";
+import { ExhibitPlacement } from "../exhibits/SceneExhibitPlacement";
 import { GalleryFloorCollider } from "./GalleryFloorCollider";
 import { useGallerySpawn } from "./useGallerySpawn";
 import {
@@ -45,7 +46,15 @@ function GalleryBulbLights({
   );
 }
 
-export function GalleryModel() {
+export function GalleryModel({
+  loadExhibits,
+  onExhibitsReady,
+  onSceneReady,
+}: {
+  loadExhibits: boolean;
+  onExhibitsReady: () => void;
+  onSceneReady?: () => void;
+}) {
   const gltf = useGLTF(GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH);
   const { spawn, setSpawn, setSafetyGroundY, setSafetyCenter } = useGallerySpawn();
   const { bulbs } = useMemo(() => prepareGalleryScene(gltf.scene), [gltf.scene]);
@@ -59,13 +68,15 @@ export function GalleryModel() {
     setSafetyGroundY(resolveGallerySafetyGroundY(gltf.scene));
     const [x, z] = resolveGallerySafetyCenter(gltf.scene);
     setSafetyCenter(x, z);
-  }, [gltf.scene, setSpawn, setSafetyGroundY, setSafetyCenter]);
+    onSceneReady?.();
+  }, [gltf.scene, onSceneReady, setSpawn, setSafetyGroundY, setSafetyCenter]);
 
   return (
     <group>
       <primitive object={gltf.scene} />
       <GalleryFloorCollider root={gltf.scene} />
       <GalleryBulbLights bulbs={bulbs} />
+      <ExhibitPlacement root={gltf.scene} enabled={loadExhibits} onReady={onExhibitsReady} />
       <ColColliders root={gltf.scene} />
       {!USE_OUTSIDE_GALLERY_SPAWN ? (
         <GallerySpawnValidator root={gltf.scene} spawn={spawn} onRespawn={setSpawn} />

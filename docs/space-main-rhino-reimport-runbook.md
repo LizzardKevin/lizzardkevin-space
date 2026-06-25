@@ -133,7 +133,7 @@ blender --background BlenderFile\space_main.blend --python scripts\apply-space-m
 
 ### D. 需要的话重烘 AO
 
-如果结构、墙角、楼梯或者金属格栅的压暗需要重新做，就再跑 vertex AO 脚本。
+当前 `space_main` 生产流程先关闭 vertex AO；`scripts/apply-space-main-materials.py` 会清掉 mesh 上的 vertex color attributes。只有重新确认视觉方向时，才把下面这一步当作实验步骤运行。
 
 ```powershell
 & $BLENDER --background BlenderFile\space_main.blend --python scripts\bake-space-main-ao.py
@@ -143,7 +143,7 @@ blender --background BlenderFile\space_main.blend --python scripts\apply-space-m
 
 ### E. 重新导出 GLB
 
-材质和必要的 AO 跑完以后，保存 `.blend`，再导出 `apps/web/public/models/space_main.glb`。
+材质自动化跑完以后，保存 `.blend`，再导出 `apps/web/public/models/space_main.glb`。
 
 如果你是在 Blender GUI 里手动导出，记得保持这些导出约束：
 
@@ -151,7 +151,7 @@ blender --background BlenderFile\space_main.blend --python scripts\apply-space-m
 |---|---|
 | 格式 | `GLB` |
 | 材质 | 保留 Blender / glTF 原生材质 |
-| 顶点色 | 需要 AO 时导出 `Color`，不需要时可以不带 |
+| 顶点色 | 当前生产 GLB 不带 vertex color / `COLOR_0`；需要重新实验 AO 时才导出 `Color` |
 | 灯光 | 不导出 Blender 灯光 |
 | 相机 | 不导出 Blender 相机 |
 | 动画 | 不导出 |

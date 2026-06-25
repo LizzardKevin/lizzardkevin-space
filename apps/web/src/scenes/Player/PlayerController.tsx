@@ -21,7 +21,12 @@ import {
   PLAYER_CAPSULE_RADIUS,
 } from "../gallery/resolveGallerySpawn";
 import { GALLERY_INITIAL_LOOK_DIRECTION, GALLERY_INITIAL_LOOK_DISTANCE } from "../gallery/galleryConfig";
-import { WALK_HEAD_BOB_SPEED, nextLandingStepState, walkHeadBobOffset } from "./playerMotion";
+import {
+  WALK_HEAD_BOB_SPEED,
+  initialPlayerSpawnMotionState,
+  nextLandingStepState,
+  walkHeadBobOffset,
+} from "./playerMotion";
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
@@ -128,12 +133,15 @@ export function PlayerController({
     const key = spawn.join(",");
     if (spawnKeyRef.current === key) return;
     spawnKeyRef.current = key;
+    const spawnMotion = initialPlayerSpawnMotionState();
     body.setTranslation({ x: spawn[0], y: spawn[1], z: spawn[2] }, true);
     body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-    verticalVelocity.current = 0;
+    verticalVelocity.current = spawnMotion.verticalVelocity;
     horizontalVelocity.current.set(0, 0, 0);
-    grounded.current = false;
-    landingStepArmedRef.current = false;
+    grounded.current = spawnMotion.grounded;
+    landingStepArmedRef.current = spawnMotion.landingStepArmed;
+    jumpedThisAirRef.current = false;
+    pendingJumpRef.current = false;
     camera.position.set(spawn[0], spawn[1] + EYE_OFFSET, spawn[2]);
     camera.lookAt(...initialLookAtFromSpawn(spawn));
   }, [spawn, camera]);

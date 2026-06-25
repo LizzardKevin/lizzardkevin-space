@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { ExhibitManifestItem } from "./manifest";
-import { FOCUS_FRAME } from "./focusConfig";
+import { FOCUS_FRAME } from "./focusConfig.ts";
 
 export type FocusFrameResult = {
   cameraPosition: [number, number, number];
@@ -8,25 +8,6 @@ export type FocusFrameResult = {
   minDistance: number;
   maxDistance: number;
 };
-
-function findPivot(root: THREE.Object3D): THREE.Object3D | null {
-  let pivot: THREE.Object3D | null = null;
-  root.traverse((obj) => {
-    if (pivot) return;
-    const name = String(obj.name ?? "");
-    if (!name) return;
-    const lower = name.toLowerCase();
-    if (
-      lower === "focus_pivot" ||
-      lower === "turntable_pivot" ||
-      lower.endsWith("_focus_pivot") ||
-      lower.endsWith("_turntable_pivot")
-    ) {
-      pivot = obj;
-    }
-  });
-  return pivot;
-}
 
 function effectiveViewportAspect(): number {
   if (typeof window === "undefined") return 16 / 9;
@@ -67,14 +48,9 @@ export function fitFocusModelToFrame(root: THREE.Object3D): FocusFrameResult {
   root.scale.setScalar(scale);
   root.updateMatrixWorld(true);
 
-  const pivot = findPivot(root);
   const anchor = new THREE.Vector3();
-  if (pivot) {
-    pivot.getWorldPosition(anchor);
-  } else {
-    const box2 = new THREE.Box3().setFromObject(root);
-    box2.getCenter(anchor);
-  }
+  const box2 = new THREE.Box3().setFromObject(root);
+  box2.getCenter(anchor);
   root.position.sub(anchor);
   root.updateMatrixWorld(true);
 

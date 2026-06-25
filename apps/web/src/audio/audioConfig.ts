@@ -1,10 +1,9 @@
 /** 空间环境音与 SFX 资源路径（可替换为同名 .mp3）。 */
 export const AUDIO_PATHS = {
-  zoneAmbientUrls: {
-    architecture: "/audio/ambient_architecture.mp3",
+  zoneAmbientUrls: {} as Partial<Record<string, string>>,
+  zoneBgmUrls: {
+    architecture: "/audio/space_background_looped.mp3",
   } as Partial<Record<string, string>>,
-  /** 留空则 architecture 区不播 BGM，仅环境循环。 */
-  zoneBgmUrls: {} as Partial<Record<string, string>>,
   footstepUrls: [
     "/audio/footstep_01.wav",
     "/audio/footstep_02.wav",
@@ -18,7 +17,7 @@ export const AUDIO_PATHS = {
 
 export const DEFAULT_VOLUMES = {
   master: 0.9,
-  bgm: 0.5,
+  bgm: 0.14,
   /** 很轻的环境底噪 */
   ambient: 0.11,
   /** 脚步声 */
@@ -32,3 +31,6 @@ export const FOOTSTEP_INTERVAL_SPRINT = 1.6;
 
 export const JUMP_SFX_GAIN = 1.5;
 export const FOOTSTEP_SFX_GAIN = 1.8;
+
+export const SPACE_BGM_FADE_IN_DELAY_MS = 10_000;
+export const SPACE_BGM_FADE_IN_MS = 4_000;

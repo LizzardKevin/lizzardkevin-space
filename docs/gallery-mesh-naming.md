@@ -108,7 +108,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 | 输出路径 | `apps/web/public/models/space_main.glb` |
 | `export_format` | `GLB` |
 | `export_materials` | `EXPORT`，保留 Blender/glTF 材质 |
-| `export_vertex_color` | `ACTIVE`，材质脚本与 vertex AO 方案会导出 active `Color` |
+| `export_vertex_color` | `ACTIVE`，但当前 `scripts/apply-space-main-materials.py` 会在导出前清除 mesh vertex color attributes；运行时 GLB 不应包含 `COLOR_0` |
 | `export_vertex_color_name` | `Color` |
 | `export_lights` / `export_cameras` / `export_animations` | 全部 `False` |
 | Draco | `export_draco_mesh_compression_enable=False`，当前资产不需要压缩 |
@@ -117,7 +117,9 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 
 重新导出 GLB 后，记得同步更新 [`apps/web/src/scenes/gallery/galleryConfig.ts`](../apps/web/src/scenes/gallery/galleryConfig.ts) 的 `GALLERY_GLB_REVISION`，否则浏览器可能继续用旧缓存。
 
-如需给墙脚、楼梯根部、金属格栅交界处增加结构阴影，可运行：
+当前 `space_main` 已关闭 vertex-color AO，因为实机效果偏脏且不稳定。除非重新确认视觉方向，不要把 AO bake 回生产 GLB。
+
+如需重新实验墙脚、楼梯根部、金属格栅交界处的结构阴影，可运行：
 
 ```bash
 /Applications/Blender.app/Contents/MacOS/Blender --background \
@@ -490,5 +492,6 @@ space_main.glb
 
 | 日期 | 说明 |
 |------|------|
+| 2026-06-25 | Add `ANCHOR_*` + independent exhibit LOD pipeline: `space_main.glb` keeps architecture/COL/spawn/anchors only, while real exhibit models load from manifest scene entries. |
 | 2026-06-23 | 增补 `space_main` 银白轻金属材质恢复规则、Blender 脚本入口、对象前缀映射、vertex AO 参数与 Windows 接续命令 |
 | 2026-05-28 | 初版：对齐 `COL_` / `exhibit_` / `bulb_` 实现，预留 glass / FOOT_ / zone |

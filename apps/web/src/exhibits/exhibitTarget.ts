@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { EXHIBIT_TARGET } from "../scenes/gallery/galleryConfig";
+import { EXHIBIT_TARGET } from "../scenes/gallery/galleryConfig.ts";
 
 export type ExhibitTarget = {
   exhibitId: string;
@@ -8,7 +8,13 @@ export type ExhibitTarget = {
   object: THREE.Object3D;
 };
 
+const EXHIBIT_LABELS: Record<string, string> = {
+  arch_treehabitat: "Tree Habitat",
+};
+
 export function formatExhibitLabel(exhibitId: string): string {
+  const label = EXHIBIT_LABELS[exhibitId];
+  if (label) return label;
   return exhibitId.replace(/_/g, " ");
 }
 

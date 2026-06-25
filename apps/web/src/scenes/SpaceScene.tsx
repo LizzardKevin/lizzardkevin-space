@@ -15,6 +15,9 @@ import { WallPicture } from "./gallery/WallPicture";
 function SpaceSceneContent({
   exhibitTarget,
   onTargetChange,
+  loadExhibits,
+  onSceneExhibitsReady,
+  onSceneReady,
   pointerControlsEnabled,
   controlsEnabled,
   onFocusExhibit,
@@ -25,6 +28,9 @@ function SpaceSceneContent({
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
+  loadExhibits: boolean;
+  onSceneExhibitsReady: () => void;
+  onSceneReady?: () => void;
   pointerControlsEnabled: boolean;
   controlsEnabled: boolean;
   onFocusExhibit: (exhibitId: string) => void;
@@ -40,7 +46,13 @@ function SpaceSceneContent({
       {pointerControlsEnabled ? <PointerLockControls selector="#space-canvas" /> : null}
 
       {ENABLE_GALLERY_GLB ? <SafetyGround y={safetyGroundY} centerX={safetyCenterX} centerZ={safetyCenterZ} /> : null}
-      {ENABLE_GALLERY_GLB ? <GalleryModel /> : null}
+      {ENABLE_GALLERY_GLB ? (
+        <GalleryModel
+          loadExhibits={loadExhibits}
+          onExhibitsReady={onSceneExhibitsReady}
+          onSceneReady={onSceneReady}
+        />
+      ) : null}
 
       {!ENABLE_GALLERY_GLB ? (
         <RigidBody type="fixed" colliders="trimesh">
@@ -102,6 +114,9 @@ function SpaceSceneContent({
 export function SpaceScene({
   exhibitTarget,
   onTargetChange,
+  loadExhibits,
+  onSceneExhibitsReady,
+  onSceneReady,
   pointerControlsEnabled,
   controlsEnabled,
   onFocusExhibit,
@@ -112,6 +127,9 @@ export function SpaceScene({
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
+  loadExhibits: boolean;
+  onSceneExhibitsReady: () => void;
+  onSceneReady?: () => void;
   pointerControlsEnabled: boolean;
   controlsEnabled: boolean;
   onFocusExhibit: (exhibitId: string) => void;
@@ -126,6 +144,9 @@ export function SpaceScene({
         <SpaceSceneContent
           exhibitTarget={exhibitTarget}
           onTargetChange={onTargetChange}
+          loadExhibits={loadExhibits}
+          onSceneExhibitsReady={onSceneExhibitsReady}
+          onSceneReady={onSceneReady}
           pointerControlsEnabled={pointerControlsEnabled}
           controlsEnabled={controlsEnabled}
           onFocusExhibit={onFocusExhibit}
@@ -142,6 +163,9 @@ export function SpaceScene({
     <SpaceSceneContent
       exhibitTarget={exhibitTarget}
       onTargetChange={onTargetChange}
+      loadExhibits={loadExhibits}
+      onSceneExhibitsReady={onSceneExhibitsReady}
+      onSceneReady={onSceneReady}
       pointerControlsEnabled={pointerControlsEnabled}
       controlsEnabled={controlsEnabled}
       onFocusExhibit={onFocusExhibit}

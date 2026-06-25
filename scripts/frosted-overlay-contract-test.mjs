@@ -47,6 +47,14 @@ assert(files.overlay.includes("overlay-return-button__space"), "return-to-space 
 assert(files.overlay.includes("overlay-return-button--from-source"), "return button must have a from-source morph phase");
 assert(files.overlay.includes("overlay-return-button--settled"), "return button must have a settled morph phase");
 assert(files.overlay.includes("overlay-return-button--closing"), "return button must have a closing morph phase");
+assert(files.overlay.includes("overlay-layer--closing"), "tab overlay root must expose a closing phase");
+assert(
+  files.css.includes(".overlay-layer--closing") &&
+    files.css.includes("backdrop-filter: blur(0px)") &&
+    files.css.includes("-webkit-backdrop-filter: blur(0px)") &&
+    files.css.includes("opacity: 0"),
+  "tab overlay root must fade out backdrop blur and opacity before unmount",
+);
 assert(
   overlayReturnButtonCss.includes("\n  top: 8px;") && overlayReturnButtonCss.includes("\n  left: 50%;"),
   "tab overlay return button must sit at the top center like the SPACE top menu",
@@ -103,10 +111,33 @@ assert(
 );
 
 assert(files.focusOverlay.includes("focus-return-button"), "focus overlay needs a return-to-space button");
-assert(files.focusOverlay.includes("回到space"), "focus overlay return button copy must be 回到space");
 assert(
-  focusReturnButtonCss.includes("\n  top: 8px;") && focusReturnButtonCss.includes("\n  left: 50%;"),
-  "focus overlay return button must align with the SPACE top menu",
+  files.focusOverlay.includes("focus-return-button__prefix") &&
+    files.focusOverlay.includes("focus-return-button__space"),
+  "focus overlay return button must split 回到 and space like the tab overlay",
+);
+assert(!files.focusOverlay.includes("‹ RETURN TO SPACE"), "focus overlay return button must not keep English copy");
+assert(
+  files.focusOverlay.indexOf("focus-return-button") <
+    files.focusOverlay.indexOf('className="focus-layout"'),
+  "focus overlay return button must render at the overlay top level before the layout grid",
+);
+assert(
+  focusReturnButtonCss.includes("\n  position: fixed;") &&
+    focusReturnButtonCss.includes("\n  top: 8px;") &&
+    focusReturnButtonCss.includes("\n  left: 50%;") &&
+    focusReturnButtonCss.includes("mix-blend-mode: difference") &&
+    focusReturnButtonCss.includes("translateX(calc(-50%"),
+  "focus overlay return button must mirror the centered LizzardKevin return button",
+);
+assert(
+  focusReturnButtonCss.includes("\n  background: transparent;") &&
+    focusReturnButtonCss.includes("\n  border: 0;"),
+  "focus overlay return button must remain visually light",
+);
+assert(
+  !focusReturnButtonCss.includes("\n  right: clamp"),
+  "focus overlay return button must not remain top-right",
 );
 assert(files.focusOverlay.includes("hasOrbitInteracted"), "focus overlay needs first-drag state");
 assert(files.focusOverlay.includes("drag to orbit"), "focus overlay needs the first-drag hint");
@@ -115,6 +146,7 @@ assert(!files.focusOverlay.includes("双击空白区域以退出"), "focus overl
 
 assert(files.focusPanels.includes("Overview"), "focus left panel must label Overview");
 assert(files.focusPanels.includes("Tags"), "focus left panel must label Tags");
-assert(files.focusPanels.includes("Stories"), "focus right panel must label Stories");
+assert(files.focusPanels.includes("Story"), "focus right panel must label Story");
+assert(!files.focusPanels.includes("Stories"), "focus right panel must not label Stories");
 
 console.log("frosted overlay contract tests passed");

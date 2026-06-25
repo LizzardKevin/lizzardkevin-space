@@ -21,6 +21,10 @@ export function useEntryTransition(): EntryTransition {
     floatEl.style.animation = "none";
   }, []);
 
+  const beginLoading = useCallback(() => {
+    setHideButton(true);
+  }, []);
+
   const startFade = useCallback(() => {
     setHideButton(true);
     setFading(true);
@@ -47,6 +51,7 @@ export function useEntryTransition(): EntryTransition {
     showSplash,
     enterWrapRef,
     freezeButtonFloat,
+    beginLoading,
     startFade,
     onSplashTransitionEnd,
   };

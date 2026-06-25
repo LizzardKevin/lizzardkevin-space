@@ -9,6 +9,7 @@ export type EntryTransition = {
   showSplash: boolean;
   enterWrapRef: RefObject<HTMLDivElement | null>;
   freezeButtonFloat: () => void;
+  beginLoading: () => void;
   startFade: () => void;
   onSplashTransitionEnd: (e: React.TransitionEvent<HTMLDivElement>) => void;
 };

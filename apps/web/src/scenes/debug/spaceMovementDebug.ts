@@ -1,5 +1,6 @@
 export const SPACE_MOVEMENT_DEBUG_EVENT = "space:movement-debug";
 export const SPACE_RAYCAST_DEBUG_EVENT = "space:raycast-debug";
+export const SPACE_EXHIBIT_PLACEMENT_DEBUG_EVENT = "space:exhibit-placement-debug";
 
 export type SpaceMovementDebugSample = {
   timestamp: number;
@@ -21,10 +22,19 @@ export type SpaceRaycastDebugSample = {
   hitMeshName: string | null;
 };
 
+export type SpaceExhibitPlacementDebugSample = {
+  timestamp: number;
+  exhibitId: string;
+  anchorName: string;
+  lod: string | null;
+  floorName: string | null;
+};
+
 declare global {
   interface WindowEventMap {
     "space:movement-debug": CustomEvent<SpaceMovementDebugSample>;
     "space:raycast-debug": CustomEvent<SpaceRaycastDebugSample>;
+    "space:exhibit-placement-debug": CustomEvent<SpaceExhibitPlacementDebugSample>;
   }
 }
 
@@ -58,4 +68,9 @@ export function publishSpaceMovementDebug(sample: SpaceMovementDebugSample) {
 export function publishSpaceRaycastDebug(sample: SpaceRaycastDebugSample) {
   if (!import.meta.env.DEV || typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(SPACE_RAYCAST_DEBUG_EVENT, { detail: sample }));
+}
+
+export function publishSpaceExhibitPlacementDebug(sample: SpaceExhibitPlacementDebugSample) {
+  if (!import.meta.env.DEV || typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(SPACE_EXHIBIT_PLACEMENT_DEBUG_EVENT, { detail: sample }));
 }

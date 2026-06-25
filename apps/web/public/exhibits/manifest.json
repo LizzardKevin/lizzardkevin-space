@@ -4,6 +4,26 @@
       "exhibitId": "demo_box",
       "focusGlbUrl": "/exhibits/demo_box/focus_demo_box.glb",
       "type": "audio",
+      "scene": {
+        "anchor": "ANCHOR_DEMO_BOX",
+        "models": {
+          "lod0": "/exhibits/demo_box/demo_box.lod0.glb",
+          "lod1": "/exhibits/demo_box/demo_box.lod1.glb",
+          "lod2": "/exhibits/demo_box/demo_box.lod2.glb"
+        },
+        "scale": 1,
+        "placement": {
+          "snap": "floor",
+          "heightOffset": 0,
+          "yawOffsetDeg": 0
+        },
+        "load": {
+          "lod0Distance": 8,
+          "lod1Distance": 22,
+          "lod2Distance": 45,
+          "unloadDistance": 60
+        }
+      },
       "buttons": {
         "btn_play": { "action": "play" },
         "btn_pause": { "action": "pause" },
@@ -13,7 +33,82 @@
     {
       "exhibitId": "demo_bass",
       "focusGlbUrl": "/exhibits/demo_bass/focus_demo_bass.glb",
-      "type": "model3d"
+      "type": "model3d",
+      "scene": {
+        "anchor": "ANCHOR_DEMO_BASS",
+        "models": {
+          "lod0": "/exhibits/demo_bass/demo_bass.lod0.glb",
+          "lod1": "/exhibits/demo_bass/demo_bass.lod1.glb",
+          "lod2": "/exhibits/demo_bass/demo_bass.lod2.glb"
+        },
+        "scale": 1,
+        "placement": {
+          "snap": "floor",
+          "heightOffset": 0,
+          "yawOffsetDeg": 0
+        },
+        "load": {
+          "lod0Distance": 8,
+          "lod1Distance": 22,
+          "lod2Distance": 45,
+          "unloadDistance": 60
+        }
+      }
+    },
+    {
+      "exhibitId": "arch_treehabitat",
+      "focusGlbUrl": "/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+      "type": "model3d",
+      "media": {
+        "imageUrls": [
+          "/exhibits/arch_treehabitat/img/FL-1.jpg",
+          "/exhibits/arch_treehabitat/img/FL-2.jpg",
+          "/exhibits/arch_treehabitat/img/FL-3.jpg",
+          "/exhibits/arch_treehabitat/img/FL-4.jpg",
+          "/exhibits/arch_treehabitat/img/FL-5.jpg",
+          "/exhibits/arch_treehabitat/img/FL-6.jpg",
+          "/exhibits/arch_treehabitat/img/FL-7.jpg",
+          "/exhibits/arch_treehabitat/img/FL-8.jpg",
+          "/exhibits/arch_treehabitat/img/FL-9.jpg",
+          "/exhibits/arch_treehabitat/img/FL-10.jpg",
+          "/exhibits/arch_treehabitat/img/FL-11.jpg",
+          "/exhibits/arch_treehabitat/img/FL-12.jpg",
+          "/exhibits/arch_treehabitat/img/FL-13.jpg",
+          "/exhibits/arch_treehabitat/img/FL-14.jpg",
+          "/exhibits/arch_treehabitat/img/FL-15.jpg",
+          "/exhibits/arch_treehabitat/img/FL-16.jpg",
+          "/exhibits/arch_treehabitat/img/FL-17.jpg",
+          "/exhibits/arch_treehabitat/img/FL-18.jpg",
+          "/exhibits/arch_treehabitat/img/FL-19.jpg",
+          "/exhibits/arch_treehabitat/img/FL-20.jpg",
+          "/exhibits/arch_treehabitat/img/FL-21.jpg",
+          "/exhibits/arch_treehabitat/img/FL-22.jpg",
+          "/exhibits/arch_treehabitat/img/FL-23.jpg",
+          "/exhibits/arch_treehabitat/img/FL-24.jpg",
+          "/exhibits/arch_treehabitat/img/FL-25.jpg",
+          "/exhibits/arch_treehabitat/img/FL-26.jpg"
+        ]
+      },
+      "scene": {
+        "anchor": "ANCHOR_ARCH_TREEHABITAT",
+        "models": {
+          "lod0": "/exhibits/arch_treehabitat/arch_treehabitat.lod0.glb",
+          "lod1": "/exhibits/arch_treehabitat/arch_treehabitat.lod1.glb",
+          "lod2": "/exhibits/arch_treehabitat/arch_treehabitat.lod2.glb"
+        },
+        "scale": 1,
+        "placement": {
+          "snap": "floor",
+          "heightOffset": 0.8,
+          "yawOffsetDeg": 0
+        },
+        "load": {
+          "lod0Distance": 8,
+          "lod1Distance": 22,
+          "lod2Distance": 45,
+          "unloadDistance": 60
+        }
+      }
     }
   ]
 }

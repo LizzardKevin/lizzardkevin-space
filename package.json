@@ -16,13 +16,19 @@
     "build:chunks": "npm run build && node scripts/build-chunk-contract-test.mjs",
     "preview": "npm run preview -w apps/web",
     "lint": "npm run lint -w apps/web",
-    "verify:quick": "npm run lint && npm exec -w apps/web tsc -- --noEmit -p tsconfig.app.json && node scripts/mobile-site-contract-test.mjs && node scripts/space-interaction-contract-test.mjs && node scripts/frosted-overlay-contract-test.mjs && node scripts/frosted-split-wheel-paging-test.mjs",
+    "audio:remix-space-bgm": "node scripts/remix-space-background.mjs",
+    "exhibits:validate": "node scripts/validate-exhibit-scene-assets.mjs",
+    "exhibits:cache": "node scripts/generate-exhibit-placement-cache.mjs",
+    "exhibits:lod": "node scripts/prepare-exhibit-lods.mjs",
+    "test:node": "node --test apps/web/tests/playerMotionAudio.test.mjs apps/web/tests/exhibitPlacement.test.mjs apps/web/tests/exhibitSceneAssets.test.mjs apps/web/tests/exhibitTarget.test.mjs apps/web/tests/focusModelFrame.test.mjs apps/web/tests/focusMedia.test.mjs apps/web/tests/focusOverlayLayout.test.mjs apps/web/tests/exhibitContent.test.mjs && node scripts/exhibit-scene-pipeline-contract-test.mjs",
+    "verify:quick": "npm run lint && npm exec -w apps/web tsc -- --noEmit -p tsconfig.app.json && npm run test:node && node scripts/mobile-site-contract-test.mjs && node scripts/space-interaction-contract-test.mjs && node scripts/frosted-overlay-contract-test.mjs && node scripts/frosted-split-wheel-paging-test.mjs",
     "verify:release": "npm run verify:quick && npm run build:chunks && npm run package:test && npm audit",
     "deploy:pages": "npm run build -w apps/web && echo \"Deploy via Cloudflare Pages: set build output to apps/web/dist\"",
     "package:test": "node scripts/package-test-build.mjs",
     "github:push": "bash scripts/github-bootstrap.sh"
   },
   "devDependencies": {
+    "ffmpeg-static": "^5.3.0",
     "yazl": "^3.3.1"
   }
 }

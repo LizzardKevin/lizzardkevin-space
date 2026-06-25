@@ -2,6 +2,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { buildExhibitTarget, isExhibitWithinRange, type ExhibitTarget } from "../../exhibits/exhibitTarget";
+import { findSceneExhibitRoot } from "./exhibitPlacement.ts";
 import { publishSpaceRaycastDebug } from "../debug/spaceMovementDebug";
 import { resumeSpaceFirstPersonOnGestureIfPending } from "../../space/requestSpacePointerLock";
 
@@ -86,6 +87,7 @@ export function ExhibitRaycast({
     while (hitObject) {
       if (hitObject.userData?.exhibitId != null) {
         exhibitId = String(hitObject.userData.exhibitId);
+        hitObject = findSceneExhibitRoot(hitObject, exhibitId);
         break;
       }
       hitObject = hitObject.parent;

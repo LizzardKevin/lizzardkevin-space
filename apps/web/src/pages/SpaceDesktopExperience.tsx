@@ -61,10 +61,14 @@ function JumpHint({ message, visible }: { message: string; visible: boolean }) {
 export function SpaceDesktopExperience({
   entry,
   overlay,
+  loadExhibits,
+  onSceneExhibitsReady,
   onCanvasReady,
 }: {
   entry: EntryTransition;
   overlay: { isOverlayOpen: boolean };
+  loadExhibits: boolean;
+  onSceneExhibitsReady: () => void;
   onCanvasReady?: () => void;
 }) {
   const [exhibitTarget, setExhibitTarget] = useState<ExhibitTarget | null>(null);
@@ -298,7 +302,6 @@ export function SpaceDesktopExperience({
               shadows={useShadows}
               onCreated={({ gl }) => {
                 gl.domElement.id = "space-canvas";
-                onCanvasReady?.();
               }}
             >
               <color attach="background" args={[GALLERY_TOON.background]} />
@@ -339,6 +342,9 @@ export function SpaceDesktopExperience({
                   <SpaceScene
                     exhibitTarget={exhibitTarget}
                     onTargetChange={setExhibitTarget}
+                    loadExhibits={loadExhibits}
+                    onSceneExhibitsReady={onSceneExhibitsReady}
+                    onSceneReady={onCanvasReady}
                     pointerControlsEnabled={pointerControlsEnabled}
                     controlsEnabled={controlsEnabled}
                     onFocusExhibit={handleFocusExhibit}

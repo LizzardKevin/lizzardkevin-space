@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ExhibitContentMetadataItem } from "./exhibitContent";
 import { SHOW_FOCUS_BLANK_DEBUG } from "./focusConfig";
 import { FocusRichText } from "./FocusRichText";
 
@@ -41,13 +42,17 @@ export function FocusOverviewPanel({
   overview,
   loading,
   tags,
+  metadata = [],
   visible,
 }: {
   overview: string | null;
   loading: boolean;
   tags: string[];
+  metadata?: ExhibitContentMetadataItem[];
   visible: boolean;
 }) {
+  const hasMetadata = (metadata?.length ?? 0) > 0;
+
   return (
     <aside
       className={`focus-panel focus-panel--left${visible ? " focus-panel--visible" : ""}`}
@@ -63,14 +68,29 @@ export function FocusOverviewPanel({
         ) : (
           <p className="focus-panel__placeholder">暂无概述</p>
         )}
-        <div className="focus-tags" aria-label="Tags">
-          <h3>Tags</h3>
-          <div>
-            {tags.map((tag) => (
-              <span key={tag}>{tag}</span>
-            ))}
+        {tags.length > 0 ? (
+          <div className="focus-tags" aria-label="Tags">
+            <h3>Tags</h3>
+            <div>
+              {tags.map((tag) => (
+                <span key={tag}>{tag}</span>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
+        {hasMetadata ? (
+          <div className="focus-details" aria-label="Details">
+            <h3>Details</h3>
+            <dl>
+              {metadata.map((item) => (
+                <div key={`${item.label}:${item.value}`}>
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ) : null}
       </div>
     </aside>
   );
@@ -85,6 +105,11 @@ export function FocusStoryPanel({
   loading: boolean;
   visible: boolean;
 }) {
+  const hasStoryHtml = Boolean(storyHtml?.trim());
+  const storyMarkup = hasStoryHtml ? storyHtml : null;
+
+  if (!loading && !hasStoryHtml) return null;
+
   return (
     <aside
       className={`focus-panel focus-panel--right${visible ? " focus-panel--visible" : ""}`}
@@ -92,14 +117,12 @@ export function FocusStoryPanel({
       onClick={(e) => e.stopPropagation()}
     >
       <div className="focus-panel__inner">
-        <h2 className="focus-panel__heading">Stories</h2>
+        <h2 className="focus-panel__heading">Story</h2>
         {loading ? (
           <p className="focus-panel__placeholder">加载中…</p>
-        ) : storyHtml ? (
-          <FocusRichText html={storyHtml} />
-        ) : (
-          <p className="focus-panel__placeholder">暂无故事</p>
-        )}
+        ) : storyMarkup ? (
+          <FocusRichText html={storyMarkup} />
+        ) : null}
       </div>
     </aside>
   );

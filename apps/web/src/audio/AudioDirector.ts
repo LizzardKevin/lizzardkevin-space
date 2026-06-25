@@ -1,5 +1,11 @@
 import { Howl, Howler } from "howler";
-import { AUDIO_PATHS, FOOTSTEP_SFX_GAIN, JUMP_SFX_GAIN } from "./audioConfig";
+import {
+  AUDIO_PATHS,
+  FOOTSTEP_SFX_GAIN,
+  JUMP_SFX_GAIN,
+  SPACE_BGM_FADE_IN_DELAY_MS,
+  SPACE_BGM_FADE_IN_MS,
+} from "./audioConfig";
 import { primeSpaceAudioOnGesture } from "./audioUnlock";
 import { chooseFootstepUrl, playFootstepClip, preloadFootstepClips } from "./footstepPlayer";
 import {
@@ -36,6 +42,7 @@ export class AudioDirector {
   private bgm: Playing = null;
   private ambient: Playing = null;
   private proceduralAmbient: ProceduralAmbientHandle | null = null;
+  private bgmStartTimer: ReturnType<typeof setTimeout> | null = null;
   private lastFootstepUrl: string | undefined;
   private useProceduralFootsteps = false;
   private footstepClipsReady = false;
@@ -88,7 +95,7 @@ export class AudioDirector {
   setVolume(key: VolumeKey, value: number) {
     this.volumes[key] = clamp01(value);
     if (key === "master") Howler.volume(this.volumes.master);
-    if (key === "bgm" && this.bgm) this.bgm.howl.volume(this.volumes.bgm);
+    if (key === "bgm" && this.bgm && !this.bgmStartTimer) this.bgm.howl.volume(this.volumes.bgm);
     if (key === "ambient" && this.ambient) this.ambient.howl.volume(this.volumes.ambient);
   }
 
@@ -144,6 +151,12 @@ export class AudioDirector {
     this.proceduralAmbient = null;
   }
 
+  private clearBgmStartTimer() {
+    if (!this.bgmStartTimer) return;
+    clearTimeout(this.bgmStartTimer);
+    this.bgmStartTimer = null;
+  }
+
   private startProceduralAmbientFallback() {
     if (this.proceduralAmbient || this.ambient) return;
     this.proceduralAmbient = startProceduralAmbient(this.channelVolume("ambient"));
@@ -158,6 +171,7 @@ export class AudioDirector {
     const current = kind === "bgm" ? this.bgm : this.ambient;
     if (current?.zone === zone) return;
 
+    if (kind === "bgm") this.clearBgmStartTimer();
     if (kind === "ambient") this.stopProceduralAmbient();
 
     if (!url) {
@@ -183,12 +197,10 @@ export class AudioDirector {
         this.ambient = null;
         this.startProceduralAmbientFallback();
       } else {
+        this.clearBgmStartTimer();
         this.bgm = null;
       }
     });
-
-    next.play();
-    next.fade(0, volume, 650);
 
     if (current) {
       current.howl.fade(current.howl.volume(), 0, 650);
@@ -196,8 +208,17 @@ export class AudioDirector {
     }
 
     const playing: Playing = { zone, howl: next };
-    if (kind === "bgm") this.bgm = playing;
-    else {
+    if (kind === "bgm") {
+      this.bgm = playing;
+      this.bgmStartTimer = setTimeout(() => {
+        this.bgmStartTimer = null;
+        if (this.bgm?.howl !== next) return;
+        next.play();
+        next.fade(0, this.volumes.bgm, SPACE_BGM_FADE_IN_MS);
+      }, SPACE_BGM_FADE_IN_DELAY_MS);
+    } else {
+      next.play();
+      next.fade(0, volume, 650);
       this.ambient = playing;
       this.stopProceduralAmbient();
     }

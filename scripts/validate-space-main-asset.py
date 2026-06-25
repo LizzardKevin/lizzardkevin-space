@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import sys
 
 import bpy
@@ -33,7 +34,7 @@ REQUIRED_COLLECTIONS = (
 def collection_for_object(name: str) -> str | None:
     if name.startswith("COL_"):
         return "COLLISION_HELPERS"
-    if name == "spawn_player_main" or name.startswith("spawn_"):
+    if name == "spawn_player_main" or name.startswith("spawn_") or name.startswith("ANCHOR_"):
         return "MARKERS"
     if name.startswith(("ARCH_FLOOR_", "STRUCT_FLOOR_")):
         return "VIS_FLOORS"
@@ -94,6 +95,14 @@ def is_generic_name(name: str) -> bool:
     return name in {"Cube", "Mesh"} or name.startswith(("Cube.", "Mesh."))
 
 
+def is_anchor_name(name: str) -> bool:
+    return name.startswith("ANCHOR_")
+
+
+def is_runbook_safe_anchor_name(name: str) -> bool:
+    return is_anchor_name(name) and re.fullmatch(r"ANCHOR_[A-Z0-9_]+", name) is not None
+
+
 def material_names(obj: bpy.types.Object) -> set[str]:
     if obj.type != "MESH":
         return set()
@@ -104,7 +113,12 @@ def is_ao_target(obj: bpy.types.Object) -> bool:
     return obj.type == "MESH" and obj.name.startswith(AO_TARGET_PREFIXES)
 
 
-def validate_scene(label: str, validate_collection_links: bool, require_ao: bool) -> list[str]:
+def validate_scene(
+    label: str,
+    validate_collection_links: bool,
+    require_ao: bool,
+    forbid_vertex_colors: bool = False,
+) -> list[str]:
     errors: list[str] = []
     if validate_collection_links:
         existing_collections = {collection.name for collection in bpy.data.collections}
@@ -128,6 +142,10 @@ def validate_scene(label: str, validate_collection_links: bool, require_ao: bool
     for obj in bpy.context.scene.objects:
         if is_generic_name(obj.name) or "." in obj.name or "-" in obj.name or " " in obj.name:
             errors.append(f"{label}: object name is not runbook-safe: {obj.name}")
+        if obj.name.lower().startswith("anchor") and not is_runbook_safe_anchor_name(obj.name):
+            errors.append(f"{label}: anchor must use ANCHOR_* uppercase underscore naming: {obj.name}")
+        if is_anchor_name(obj.name) and obj.type != "EMPTY":
+            errors.append(f"{label}: {obj.name} should be an EMPTY anchor, got {obj.type}")
         expected_material = material_for_object(obj.name)
         if expected_material is not None and expected_material not in material_names(obj):
             errors.append(f"{label}: {obj.name} must use {expected_material}, got {sorted(material_names(obj))}")
@@ -153,6 +171,14 @@ def validate_scene(label: str, validate_collection_links: bool, require_ao: bool
         elif min(ao_values) > 0.995:
             errors.append(f"{label}: vertex AO appears unbaked; darkest value is {min(ao_values):.3f}")
 
+    if forbid_vertex_colors:
+        for obj in bpy.context.scene.objects:
+            if obj.type != "MESH":
+                continue
+            color_attributes = getattr(obj.data, "color_attributes", None)
+            if color_attributes and len(color_attributes) > 0:
+                errors.append(f"{label}: {obj.name} should not keep vertex color attributes")
+
     return errors
 
 
@@ -160,14 +186,26 @@ def main() -> None:
     if not bpy.data.filepath:
         bpy.ops.wm.open_mainfile(filepath=str(BLEND_PATH))
 
-    errors = validate_scene("blend", validate_collection_links=True, require_ao=True)
+    errors = validate_scene(
+        "blend",
+        validate_collection_links=True,
+        require_ao=False,
+        forbid_vertex_colors=True,
+    )
 
     if not GLB_PATH.exists():
         errors.append(f"glb: missing exported file: {GLB_PATH}")
     else:
         clear_scene()
         bpy.ops.import_scene.gltf(filepath=str(GLB_PATH))
-        errors.extend(validate_scene("glb", validate_collection_links=False, require_ao=True))
+        errors.extend(
+            validate_scene(
+                "glb",
+                validate_collection_links=False,
+                require_ao=False,
+                forbid_vertex_colors=True,
+            ),
+        )
 
     if errors:
         for error in errors[:80]:

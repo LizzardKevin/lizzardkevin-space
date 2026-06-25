@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
 import type { ExhibitManifestItem } from "./manifest";
@@ -17,7 +18,6 @@ import { usePlayback } from "../media/usePlayback";
 import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
 import { loadExhibitContent, type ExhibitContent } from "./exhibitContent";
-import { formatExhibitLabel } from "./exhibitTarget";
 import { FOCUS_FRAME, FOCUS_TURNTABLE_RAD_PER_SEC, SHOW_FOCUS_BLANK_DEBUG } from "./focusConfig";
 import {
   bindFocusButtonActions,
@@ -29,6 +29,12 @@ import { FocusOverviewPanel, FocusSideColumn, FocusStoryPanel } from "./FocusCon
 import { FocusExhibitTitle } from "./FocusExhibitTitle";
 import { FocusDoubleClickExit } from "./FocusCanvasInput";
 import { useFocusDoubleClickHandler } from "./focusDoubleClick";
+import {
+  getFocusMediaItems,
+  nextFocusMediaIndex,
+  resolveFocusMediaDragStep,
+} from "./focusMedia.ts";
+import { resolveFocusDisplayTitle } from "./focusDisplayTitle";
 import * as THREE from "three";
 import type { ThreeEvent } from "@react-three/fiber";
 
@@ -217,7 +223,7 @@ function FocusSceneContent({
 
   return (
     <>
-      <group ref={hitRootRef} position={[0, -0.6, 0]}>
+      <group ref={hitRootRef}>
         <FocusModel
           key={exhibit.focusGlbUrl}
           url={exhibit.focusGlbUrl}
@@ -305,9 +311,22 @@ export function FocusOverlay({
     interacted: boolean;
   } | null>(null);
   const closingRef = useRef(false);
-  const displayTitle = formatExhibitLabel(exhibit.exhibitId);
+  const displayTitle = resolveFocusDisplayTitle(content, exhibit.exhibitId);
   const videoUrl = exhibit.media?.videoUrl;
-  const focusTags = useMemo(() => getFocusTags(exhibit), [exhibit]);
+  const mediaItems = useMemo(() => getFocusMediaItems(exhibit), [exhibit]);
+  const [activeMediaState, setActiveMediaState] = useState({
+    exhibitId: exhibit.exhibitId,
+    index: 0,
+  });
+  const [mediaTransitionDirection, setMediaTransitionDirection] = useState<1 | -1>(1);
+  const imageDragStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const activeMediaIndex =
+    activeMediaState.exhibitId === exhibit.exhibitId
+      ? Math.min(activeMediaState.index, mediaItems.length - 1)
+      : 0;
+  const activeMedia = mediaItems[activeMediaIndex] ?? mediaItems[0];
+  const fallbackFocusTags = useMemo(() => getFocusTags(exhibit), [exhibit]);
+  const focusTags = content?.tags ?? fallbackFocusTags;
   const hasOrbitInteracted =
     orbitHintState?.exhibitId === exhibit.exhibitId ? orbitHintState.interacted : false;
 
@@ -381,6 +400,69 @@ export function FocusOverlay({
   }, [contentVisible, requestClose]);
 
   const handleBlankClick = useFocusDoubleClickHandler(handleBlankDoubleClick);
+  const handleMediaStep = useCallback(
+    (direction: -1 | 1) => {
+      setMediaTransitionDirection(direction);
+      setActiveMediaState((current) => {
+        const currentIndex = current.exhibitId === exhibit.exhibitId ? current.index : 0;
+        return {
+          exhibitId: exhibit.exhibitId,
+          index: nextFocusMediaIndex(currentIndex, direction, mediaItems.length),
+        };
+      });
+    },
+    [exhibit.exhibitId, mediaItems.length],
+  );
+
+  const handleMediaSelect = useCallback(
+    (index: number) => {
+      const currentIndex =
+        activeMediaState.exhibitId === exhibit.exhibitId ? activeMediaState.index : 0;
+      if (index !== currentIndex) {
+        setMediaTransitionDirection(index > currentIndex ? 1 : -1);
+      }
+      setActiveMediaState({ exhibitId: exhibit.exhibitId, index });
+    },
+    [activeMediaState.exhibitId, activeMediaState.index, exhibit.exhibitId],
+  );
+
+  const handleImagePointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLImageElement>) => {
+      if (activeMedia.kind !== "image") return;
+      imageDragStartRef.current = { pointerId: e.pointerId, x: e.clientX, y: e.clientY };
+      e.currentTarget.setPointerCapture(e.pointerId);
+    },
+    [activeMedia.kind],
+  );
+
+  const handleImagePointerUp = useCallback(
+    (e: ReactPointerEvent<HTMLImageElement>) => {
+      const start = imageDragStartRef.current;
+      if (!start || start.pointerId !== e.pointerId) return;
+      imageDragStartRef.current = null;
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+      const step = resolveFocusMediaDragStep(
+        activeMedia.kind,
+        e.clientX - start.x,
+        e.clientY - start.y,
+      );
+      if (step === 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      handleMediaStep(step);
+    },
+    [activeMedia.kind, handleMediaStep],
+  );
+
+  const handleImagePointerCancel = useCallback((e: ReactPointerEvent<HTMLImageElement>) => {
+    if (imageDragStartRef.current?.pointerId !== e.pointerId) return;
+    imageDragStartRef.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -395,17 +477,8 @@ export function FocusOverlay({
       role="dialog"
       aria-modal="true"
       className={`focus-overlay${dimOn ? " focus-overlay--dim" : ""}${blurOn ? " focus-overlay--blur" : ""}`}
+      data-cursor-tone="light"
     >
-      <button
-        type="button"
-        className={`focus-return-button${contentVisible ? " focus-return-button--visible" : ""}`}
-        data-cursor="interactive"
-        data-cursor-tone="light"
-        onClick={() => requestClose()}
-      >
-        回到space
-      </button>
-
       {videoUrl ? (
         <video
           ref={(el) => playback.attachVideoElement(el)}
@@ -416,18 +489,34 @@ export function FocusOverlay({
         />
       ) : null}
 
+      <button
+        type="button"
+        className={`focus-return-button${contentVisible ? " focus-return-button--visible" : ""}`}
+        data-cursor="interactive"
+        data-cursor-tone="light"
+        onClick={() => requestClose()}
+      >
+        <span className="focus-return-button__prefix">回到</span>
+        <span className="focus-return-button__space">space</span>
+      </button>
+
       <div className="focus-layout">
         <FocusSideColumn side="left" onBlankClick={handleBlankClick}>
           <FocusOverviewPanel
             overview={content?.overview ?? null}
             loading={contentLoading}
             tags={focusTags}
+            metadata={content?.metadata}
             visible={contentVisible}
           />
         </FocusSideColumn>
 
         <div className="focus-layout__center">
-          <FocusExhibitTitle title={displayTitle} visible={contentVisible} />
+          <FocusExhibitTitle
+            title={displayTitle}
+            subtitle={content?.subtitle}
+            visible={contentVisible}
+          />
 
           <FocusBlank
             className={`focus-blank--fill${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-center" : ""}`}
@@ -439,7 +528,7 @@ export function FocusOverlay({
               <Canvas
                 id="focus-canvas"
                 data-cursor="drag-model"
-                className={`focus-canvas${contentVisible ? " focus-canvas--visible" : ""}`}
+                className={`focus-canvas${contentVisible && activeMedia.kind === "model" ? " focus-canvas--visible" : ""}`}
                 gl={(props) =>
                   createWebGPURenderer({
                     canvas: props.canvas as HTMLCanvasElement,
@@ -461,15 +550,78 @@ export function FocusOverlay({
                   exhibit={exhibit}
                   onButtonAction={onButtonAction}
                   onOrbitInteract={handleOrbitInteract}
-                  orbitEnabled={contentVisible}
+                  orbitEnabled={contentVisible && activeMedia.kind === "model"}
                   onBlankDoubleClick={handleBlankDoubleClick}
                 />
               </Canvas>
             </Suspense>
           </FocusModelErrorBoundary>
 
+          {activeMedia.kind === "image" ? (
+            <img
+              key={activeMedia.url}
+              className={`focus-image${contentVisible ? " focus-image--visible" : ""} focus-image--step-${mediaTransitionDirection === 1 ? "next" : "previous"}`}
+              src={activeMedia.url}
+              alt={displayTitle}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+              data-cursor="interactive"
+              onPointerDown={handleImagePointerDown}
+              onPointerUp={handleImagePointerUp}
+              onPointerCancel={handleImagePointerCancel}
+            />
+          ) : null}
+
+          {mediaItems.length > 1 ? (
+            <>
+              <button
+                type="button"
+                className="focus-media-arrow focus-media-arrow--left"
+                aria-label="Previous exhibit image"
+                data-cursor="interactive"
+                data-cursor-tone="light"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMediaStep(-1);
+                }}
+              />
+              <button
+                type="button"
+                className="focus-media-arrow focus-media-arrow--right"
+                aria-label="Next exhibit image"
+                data-cursor="interactive"
+                data-cursor-tone="light"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMediaStep(1);
+                }}
+              />
+            </>
+          ) : null}
+
+          {mediaItems.length > 1 ? (
+            <div className="focus-media-dots" aria-label="Focus media pages">
+              {mediaItems.map((item, index) => (
+                <button
+                  key={`${item.kind}-${item.url}`}
+                  type="button"
+                  className={`focus-media-dot${index === activeMediaIndex ? " focus-media-dot--active" : ""}${item.kind === "model" ? " focus-media-dot--model" : ""}`}
+                  aria-label={item.kind === "model" ? "Show 3D model" : `Show image ${index}`}
+                  aria-current={index === activeMediaIndex ? "true" : undefined}
+                  data-cursor="interactive"
+                  data-cursor-tone="light"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMediaSelect(index);
+                  }}
+                />
+              ))}
+            </div>
+          ) : null}
+
           <p
-            className={`ui-hint-micro focus-orbit-hint${contentVisible && !hasOrbitInteracted ? " focus-orbit-hint--visible" : ""}`}
+            className={`ui-hint-micro focus-orbit-hint${contentVisible && activeMedia.kind === "model" && !hasOrbitInteracted ? " focus-orbit-hint--visible" : ""}`}
           >
             drag to orbit
           </p>

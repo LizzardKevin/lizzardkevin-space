@@ -43,3 +43,11 @@
   - 无媒资则可省略 `media` 与 `buttons`
 - 其他道具：`apps/web/public/models/*.glb`
 
+## Anchor + LOD scene exhibits
+
+- `space_main.glb` should no longer carry real exhibit geometry. Keep only architecture, `COL_*`, `spawn_player_main`, `ANCHOR_*`, and required light/zone markers.
+- Independent scene exhibit models live at `apps/web/public/exhibits/<exhibitId>/<exhibitId>.lod0.glb`, `.lod1.glb`, and `.lod2.glb`.
+- `apps/web/public/exhibits/manifest.json` uses each exhibit's `scene.anchor` to mount those LOD models to `ANCHOR_*`.
+- Runtime assigns `userData.exhibitId` to the loaded independent exhibit root and children, so raycast, hover label, and Focus continue to use the existing `exhibitId` contract.
+- Full workflow: [`exhibit-anchor-lod-pipeline.md`](exhibit-anchor-lod-pipeline.md).
+
