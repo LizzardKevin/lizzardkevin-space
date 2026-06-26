@@ -34,6 +34,7 @@ import {
   resumeSpaceFirstPersonAfterEscape,
   resumeSpaceFirstPersonWithCursorReturn,
 } from "../space/requestSpacePointerLock";
+import { isPermanentPointerLockFailure } from "../space/pointerLockFailure";
 
 const FocusOverlay = lazy(() =>
   import("../exhibits/FocusOverlay").then((module) => ({
@@ -43,6 +44,11 @@ const FocusOverlay = lazy(() =>
 
 const JUMP_HINT_VISIBLE_MS = 5000;
 const SPACE_PHYSICS_TIME_STEP = 1 / 60;
+
+type SpacePointerLockFailedEvent = CustomEvent<{
+  message: string;
+  permanent?: boolean;
+}>;
 
 function SpaceGuide({ message, visible }: { message: string; visible: boolean }) {
   if (!visible || !message) return null;
@@ -89,7 +95,11 @@ export function SpaceDesktopExperience({
   const { entered, fading: entryIsFading } = entry;
 
   useEffect(() => {
-    const onPointerLockFailed = () => {
+    const onPointerLockFailed = (event: Event) => {
+      const detail = (event as SpacePointerLockFailedEvent).detail;
+      const message = detail?.message ?? "";
+      const permanent = detail?.permanent ?? isPermanentPointerLockFailure(message);
+      if (!permanent) return;
       setPointerLockUnavailable(true);
       setToast(t("space.pointerLockFailed"));
     };

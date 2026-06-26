@@ -1,4 +1,9 @@
 import { requestSpaceCursorReturn } from "../cursor/spaceCursorController";
+import { requestPointerLockWithRawFallback } from "../scenes/controls/guardedPointerLock";
+import {
+  isPermanentPointerLockFailure,
+  POINTER_LOCK_RESUME_TIMEOUT_MS,
+} from "./pointerLockFailure";
 
 let pendingGestureResume = false;
 
@@ -6,28 +11,19 @@ export const SPACE_POINTER_LOCK_FAILED_EVENT = "space:pointer-lock-failed";
 
 function reportPointerLockFailure(error: unknown) {
   pendingGestureResume = false;
+  const message = error instanceof Error ? error.message : String(error);
   window.dispatchEvent(
     new CustomEvent(SPACE_POINTER_LOCK_FAILED_EVENT, {
       detail: {
-        message: error instanceof Error ? error.message : String(error),
+        message,
+        permanent: isPermanentPointerLockFailure(message),
       },
     }),
   );
 }
 
 function requestPointerLockSafely(el: HTMLElement) {
-  try {
-    if (!el.requestPointerLock) {
-      reportPointerLockFailure("Pointer Lock API is unavailable");
-      return;
-    }
-    const request = el.requestPointerLock?.();
-    if (request && typeof request.catch === "function") {
-      request.catch(reportPointerLockFailure);
-    }
-  } catch (error) {
-    reportPointerLockFailure(error);
-  }
+  requestPointerLockWithRawFallback(el, reportPointerLockFailure);
 }
 
 function trackPendingPointerLock(el: HTMLElement) {
@@ -35,9 +31,13 @@ function trackPendingPointerLock(el: HTMLElement) {
     pendingGestureResume = document.pointerLockElement !== el;
   });
   window.setTimeout(() => {
-    if (!pendingGestureResume || document.pointerLockElement === el) return;
+    if (document.pointerLockElement === el) {
+      pendingGestureResume = false;
+      return;
+    }
+    if (!pendingGestureResume) return;
     reportPointerLockFailure("Pointer lock request did not complete");
-  }, 180);
+  }, POINTER_LOCK_RESUME_TIMEOUT_MS);
 }
 
 /** 在用户点击/按键回调中同步调用，避免 rAF 导致手势失效。 */

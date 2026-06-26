@@ -10,8 +10,12 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useAudioDirector } from "../../audio/useAudioDirector";
 import {
+  buildSpaceFrameRateDebugSample,
+  buildSpaceLookRotationDebugSample,
   publishSpaceMovementDebug,
   resolveSpaceCollisionDebugName,
+  type SpaceFrameRateDebugSample,
+  type SpaceLookRotationDebugSample,
 } from "../debug/spaceMovementDebug";
 import { useKeyboard } from "../controls/useKeyboard";
 import { useFootsteps, SPRINT_SPEED as FOOTSTEP_SPRINT_SPEED } from "./useFootsteps";
@@ -98,6 +102,7 @@ export function PlayerController({
       targetVel: new THREE.Vector3(),
       step: new THREE.Vector3(),
       foot: new THREE.Vector3(),
+      lookEuler: new THREE.Euler(0, 0, 0, "YXZ"),
     }),
     [],
   );
@@ -105,9 +110,13 @@ export function PlayerController({
   const verticalVelocity = useRef(0);
   const grounded = useRef(false);
   const horizontalVelocity = useRef(new THREE.Vector3());
+  const lookRotationDebugRef = useRef<SpaceLookRotationDebugSample | null>(null);
+  const frameRateDebugRef = useRef<SpaceFrameRateDebugSample | null>(null);
+  const movementDebugTickRef = useRef(0);
 
   useLayoutEffect(() => {
     enabledRef.current = enabled;
+    if (!enabled) lookRotationDebugRef.current = null;
   }, [enabled]);
 
   useEffect(() => {
@@ -144,6 +153,9 @@ export function PlayerController({
     pendingJumpRef.current = false;
     camera.position.set(spawn[0], spawn[1] + EYE_OFFSET, spawn[2]);
     camera.lookAt(...initialLookAtFromSpawn(spawn));
+    lookRotationDebugRef.current = null;
+    frameRateDebugRef.current = null;
+    movementDebugTickRef.current = 0;
   }, [spawn, camera]);
 
   useEffect(() => {
@@ -173,7 +185,14 @@ export function PlayerController({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    if (import.meta.env.DEV) {
+      frameRateDebugRef.current = buildSpaceFrameRateDebugSample({
+        deltaSec: delta,
+        previous: frameRateDebugRef.current,
+      });
+    }
+
     const body = rb.current;
     if (!body) return;
 
@@ -260,6 +279,16 @@ export function PlayerController({
         if (contactName && !contactNames.includes(contactName)) contactNames.push(contactName);
       }
       const appliedHorizontalSpeed = Math.hypot(m.x, m.z) / Math.max(dt, 1e-6);
+      tmp.lookEuler.setFromQuaternion(camera.quaternion, "YXZ");
+      const lookRotation = buildSpaceLookRotationDebugSample({
+        tick: movementDebugTickRef.current + 1,
+        yawRad: tmp.lookEuler.y,
+        pitchRad: tmp.lookEuler.x,
+        previous: lookRotationDebugRef.current,
+      });
+      movementDebugTickRef.current = lookRotation.tick;
+      lookRotationDebugRef.current = lookRotation;
+      const frameRate = frameRateDebugRef.current ?? { fps: 0, frameMs: 0 };
       publishSpaceMovementDebug({
         timestamp: performance.now(),
         enabled: enabledRef.current,
@@ -272,6 +301,8 @@ export function PlayerController({
         targetSpeed,
         speedRatio: desiredSpeed > 0.001 ? appliedHorizontalSpeed / desiredSpeed : null,
         verticalVelocity: verticalVelocity.current,
+        lookRotation,
+        frameRate,
         dt,
       });
     }

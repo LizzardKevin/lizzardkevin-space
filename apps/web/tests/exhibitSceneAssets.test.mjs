@@ -15,12 +15,16 @@ function readGlbJson(filePath) {
   return JSON.parse(data.toString("utf8", 20, 20 + jsonLength));
 }
 
-test("scene exhibit manifest points demo exhibits at anchors and three LOD models", () => {
+test("scene exhibit manifest points active exhibits at anchors and three LOD models", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
   );
+  const ids = manifest.exhibits.map((item) => item.exhibitId);
 
-  for (const exhibitId of ["demo_box", "demo_bass", "arch_treehabitat"]) {
+  assert.ok(!ids.includes("demo_box"));
+  assert.ok(!ids.includes("demo_bass"));
+
+  for (const exhibitId of ["arch_treehabitat"]) {
     const exhibit = manifest.exhibits.find((item) => item.exhibitId === exhibitId);
     assert.ok(exhibit?.scene, `${exhibitId} needs scene placement config`);
     assert.match(exhibit.scene.anchor, /^ANCHOR_/);
@@ -81,12 +85,10 @@ test("Tree Habitat content sample has portfolio metadata and no pipeline copy", 
   );
 });
 
-test("space_main GLB includes trial exhibit anchors and no embedded exhibit meshes", () => {
+test("space_main GLB includes production exhibit anchors and no embedded exhibit meshes", () => {
   const json = readGlbJson(path.join(publicDir, "models/space_main.glb"));
   const names = new Set((json.nodes ?? []).map((node) => node.name).filter(Boolean));
 
-  assert.ok(names.has("ANCHOR_DEMO_BOX"));
-  assert.ok(names.has("ANCHOR_DEMO_BASS"));
   assert.ok(names.has("ANCHOR_ARCH_TREEHABITAT"));
   assert.ok(![...names].some((name) => name.startsWith("exhibit_")));
 });

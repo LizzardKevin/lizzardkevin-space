@@ -26,17 +26,17 @@ TREEHABITAT_GLASS_NAMES = ("model glass", "model_glass", "model-glass")
 
 TREEHABITAT_MATERIAL_SPECS = {
     "mat_treehabitat_white_matte": {
-        "base_color": (0.92, 0.92, 0.88, 1.0),
+        "base_color": (0.96, 0.96, 0.94, 1.0),
         "metallic": 0.0,
         "roughness": 0.82,
         "alpha": 1.0,
         "blend_method": "OPAQUE",
     },
     "mat_treehabitat_glass_frosted": {
-        "base_color": (0.78, 0.86, 0.9, 0.38),
+        "base_color": (0.68, 0.70, 0.70, 0.40),
         "metallic": 0.0,
-        "roughness": 0.64,
-        "alpha": 0.38,
+        "roughness": 0.68,
+        "alpha": 0.40,
         "blend_method": "BLEND",
     },
 }

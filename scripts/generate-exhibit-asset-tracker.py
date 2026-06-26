@@ -33,55 +33,49 @@ EXHIBITS_HEADERS = [
     "owner",
 ]
 
-EXHIBITS_ROWS = [
-    [
-        "demo_box",
-        "exhibit_demo_box",
-        "audio",
-        "architecture",
-        "制作中",
-        "N",
-        "exhibits/demo_box/",
-        "focus_demo_box.glb",
-        "N",
-        "demo_box.mp3",
-        "N",
-        "",
-        "",
-        "",
-        "",
-        "Y",
-        "btn_play, btn_pause, btn_end",
-        "/exhibits/demo_box/focus_demo_box.glb",
-        "灰白测试厅首个音频展品",
-        "2026-05-28",
-        "",
-    ],
-]
+EXHIBITS_ROWS = []
 
 SCENE_HEADERS = ["asset_key", "path", "exists", "status", "notes"]
 
 SCENE_ROWS = [
-    ["space_main", "models/space_main.glb", "Y", "已入库", "生产展厅空间 + COL_floor_* + bulb_* + spawn_player_main"],
-    ["gallery_main_demo", "models/gallery_main.glb", "Y", "历史 demo", "测试 / 历史对照，不再作为生产展厅空间"],
-    ["bgm_architecture", "audio/bgm_architecture.mp3", "N", "待制作", "进入 SPACE 后 architecture 分区 BGM"],
-    ["wall_art", "media/art_01.jpg", "N", "可选", "北墙代码画框贴图"],
+    [
+        "space_main",
+        "models/space_main.glb",
+        "Y",
+        "in_library",
+        "Production gallery space with COL_floor_* helpers, bulb_* lights, and spawn_player_main.",
+    ],
+    [
+        "gallery_main_demo",
+        "models/gallery_main.glb",
+        "Y",
+        "historical_demo",
+        "Historical comparison asset; not used as the production SPACE scene.",
+    ],
+    [
+        "bgm_architecture",
+        "audio/bgm_architecture.mp3",
+        "N",
+        "todo",
+        "Optional architecture-zone BGM after entering SPACE.",
+    ],
+    ["wall_art", "media/art_01.jpg", "N", "optional", "Optional north-wall code-art texture."],
 ]
 
 LEGEND_ROWS = [
-    ["字段/值", "说明"],
-    ["status: 待制作", "尚未开始建模或导出"],
-    ["status: 制作中", "DCC 进行中或待入库"],
-    ["status: 已入库", "文件已放入 public 对应路径"],
-    ["status: 需调整", "已入库但命名/尺度/manifest 需改"],
-    ["status: 已验收", "联调通过"],
-    ["Y / N", "文件或绑定是否就绪；入库后改为 Y"],
-    ["exhibitId", "与 manifest.json 的 exhibitId 一致"],
-    ["sceneObjectName", "space_main 内 hit mesh，规则 exhibit_<exhibitId>"],
-    ["focus_glb_file", "位于 folder_path 下，建议 focus_<exhibitId>.glb"],
-    ["in_manifest", "manifest.json 是否已有该条目（代码可先配好为 Y）"],
-    ["维护顺序", "新增行 → 建目录 → 做 glb/媒体 → 更新 manifest → 改 Y"],
-    ["对照文档", "docs/gallery-mesh-naming.md / docs/asset-manifest.md"],
+    ["field/value", "description"],
+    ["status: todo", "Not started."],
+    ["status: in_progress", "DCC work or export is in progress."],
+    ["status: in_library", "File is present under the public runtime path."],
+    ["status: needs_adjustment", "File exists but naming, scale, or manifest data needs work."],
+    ["status: accepted", "Runtime integration has been checked."],
+    ["Y / N", "Whether the file or binding is present."],
+    ["exhibitId", "Must match manifest.json exhibitId."],
+    ["sceneObjectName", "space_main hit mesh name; convention is exhibit_<exhibitId>."],
+    ["focus_glb_file", "Stored under folder_path; convention is focus_<exhibitId>.glb."],
+    ["in_manifest", "Whether manifest.json has this item."],
+    ["maintenance order", "Add row, create folder, add media/model, update manifest, then mark ready."],
+    ["reference docs", "docs/gallery-mesh-naming.md / docs/asset-manifest.md"],
 ]
 
 

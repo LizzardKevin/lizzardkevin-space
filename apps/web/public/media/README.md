@@ -1,10 +1,10 @@
-# 展品媒资（`exhibitId` 命名）
+# Exhibit Media
 
-| 类型 | 磁盘路径 | 示例 |
-|------|----------|------|
-| 音频 | `public/media/<exhibitId>.mp3` | `demo_box.mp3` |
-| 视频 | `public/media/<exhibitId>.mp4` | `band_tv.mp4` |
+| Type | Disk path | Example |
+| --- | --- | --- |
+| Audio | `public/media/<exhibitId>.mp3` | `work_001.mp3` |
+| Video | `public/media/<exhibitId>.mp4` | `band_tv.mp4` |
 
-`manifest.json` 里 `type` 为 `audio` 或 `video` 时，默认使用 `/media/<exhibitId>.mp3` 或 `.mp4`，无需在 JSON 里重复写 URL。
+When `manifest.json` uses `type: "audio"` or `type: "video"`, the runtime default is `/media/<exhibitId>.mp3` or `/media/<exhibitId>.mp4`.
 
-非标准路径时在 manifest 中显式配置 `media.audioUrl` / `media.videoUrl`。
+Use explicit `media.audioUrl` or `media.videoUrl` in the manifest for non-standard paths.

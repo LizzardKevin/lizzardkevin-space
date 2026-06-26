@@ -6,7 +6,7 @@ function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
 
 const EXHIBIT_PREFIX = "exhibit_";
 
-/** Map mesh names like `exhibit_demo_box` → userData.exhibitId = `demo_box`. */
+/** Map mesh names like `exhibit_work_001` to userData.exhibitId = `work_001`. */
 export function bindExhibitIds(root: THREE.Object3D) {
   root.traverse((obj) => {
     if (!isMesh(obj)) return;

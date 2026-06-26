@@ -75,9 +75,17 @@ test("Focus return action mirrors the LizzardKevin centered top return affordanc
     "Return button should use the same centered transform language as the LizzardKevin overlay",
   );
   assert.doesNotMatch(returnRule, /right\s*:/, "Return button should not stay top-right");
-  assert.equal(declarationValue(titleRule, "left"), "0");
-  assert.equal(declarationValue(titleRule, "right"), "0");
+  assert.equal(declarationValue(titleRule, "position"), "fixed");
+  assert.equal(declarationValue(titleRule, "top"), "72px");
+  assert.equal(declarationValue(titleRule, "left"), "50%");
+  assert.equal(declarationValue(titleRule, "right"), "auto");
+  assert.equal(declarationValue(titleRule, "width"), "min(760px, 82vw)");
   assert.equal(declarationValue(titleRule, "text-align"), "center");
+  assert.match(
+    titleRule,
+    /translate\(-50%, -6px\)/,
+    "Focus title should share the viewport centerline with the return button",
+  );
 });
 
 test("Focus media uses dark cursor, image drag affordance, and page dots", () => {
@@ -91,14 +99,38 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.ok(
     overlaySource.includes("onPointerDown={handleImagePointerDown}") &&
-      overlaySource.includes("onPointerUp={handleImagePointerUp}"),
-    "Focus images should support horizontal pointer drag navigation",
+      overlaySource.includes("onPointerEnter={handleImagePointerEnter}") &&
+      overlaySource.includes("onPointerMove={handleImagePointerMove}") &&
+      overlaySource.includes("onPointerUp={handleImagePointerUp}") &&
+      overlaySource.includes("focus-image-frame--expanded") &&
+      overlaySource.includes("focus-image-lightbox"),
+    "Focus images should support drag navigation, real-image hover, and expanded viewing",
+  );
+  assert.ok(
+    overlaySource.includes("naturalWidth") &&
+      overlaySource.includes("--focus-image-rendered-width") &&
+      overlaySource.includes("--focus-image-rendered-height") &&
+      overlaySource.includes("--focus-image-expanded-width") &&
+      overlaySource.includes("--focus-image-expanded-height") &&
+      overlaySource.includes("contentVisible && imageFrameReady"),
+    "Focus images should measure each image's natural dimensions before showing rounded normal and viewport-scale frames",
+  );
+  assert.ok(
+    overlaySource.includes("preloadedFocusImagesRef") &&
+      overlaySource.includes("new Image()") &&
+      overlaySource.includes('image.loading = "eager"') &&
+      overlaySource.includes('loading="eager"'),
+    "Focus should eagerly preload all images for the selected exhibit and keep them until the overlay exits",
   );
   assert.ok(
     overlaySource.includes("mediaTransitionDirection") &&
-      overlaySource.includes("focus-image--step-") &&
+      overlaySource.includes("focus-image-frame--step-") &&
       overlaySource.includes("key={activeMedia.url}"),
     "Focus image page changes should remount with direction-aware animation classes",
+  );
+  assert.ok(
+    overlaySource.includes("mediaItems.length > 1 && !imageExpanded"),
+    "Expanded Focus images should disable arrows and pagination switching",
   );
   assert.ok(
     overlaySource.includes("focus-media-dots") && overlaySource.includes("focus-media-dot--model"),
@@ -106,13 +138,39 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.match(
     css,
-    /\.focus-image\s*{[^}]*top:\s*calc\([^}]*translate\(-50%, -50%\)/s,
-    "Focus image should be vertically centered in the central media stage",
+    /\.focus-image-frame\s*{[^}]*top:\s*calc\([^}]*width:\s*var\(--focus-image-rendered-width\);[^}]*height:\s*var\(--focus-image-rendered-height\);/s,
+    "Focus image frame should be sized to the measured rendered image bounds",
   );
   assert.match(
     css,
-    /\.focus-media-dots\s*{[^}]*bottom:/s,
-    "Focus media dots should sit near the bottom of the focus stage",
+    /\.focus-image-frame\s*{[^}]*border-radius:\s*14px;[^}]*box-shadow:\s*none;[^}]*filter:\s*none;[^}]*overflow:\s*hidden;/s,
+    "Focus image frames should render the actual image as a rounded rectangle without a background shadow",
+  );
+  assert.match(
+    css,
+    /\.focus-image-frame--hovered\s*{[^}]*--focus-image-lift:\s*-4px;[^}]*--focus-image-scale:\s*1\.006;/s,
+    "Focus images should use a reduced, slower lift only while the cursor is truly over the image frame",
+  );
+  assert.doesNotMatch(cssRule(css, ".focus-image-frame--visible"), /perspective|rotate[XY]/);
+  assert.match(
+    css,
+    /\.focus-image-frame--expanded\s*{[^}]*--focus-image-scale:\s*1;[^}]*position:\s*fixed;[^}]*width:\s*var\(--focus-image-expanded-width\);[^}]*height:\s*var\(--focus-image-expanded-height\);[^}]*animation:\s*focusImageExpand 560ms cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\)/s,
+    "Expanded Focus image should use viewport-scale measured dimensions with a nonlinear fixed-layer animation",
+  );
+  assert.match(
+    css,
+    /\.focus-image\s*{[^}]*object-fit:\s*contain;/s,
+    "Focus images should preserve the original frame without cropping in expanded view",
+  );
+  assert.match(
+    css,
+    /\.focus-image-lightbox\s*{[^}]*position:\s*fixed;[^}]*background:\s*rgba\(12,\s*14,\s*14,\s*0\.42\);[^}]*backdrop-filter:\s*blur\(12px\);/s,
+    "Expanded Focus image should place a dark blurred full-screen backdrop behind the image",
+  );
+  assert.match(
+    css,
+    /\.focus-media-dots\s*{[^}]*bottom:\s*76px;/s,
+    "Focus media dots should sit higher above the bottom edge",
   );
   assert.match(
     css,
@@ -123,6 +181,16 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
     css,
     /@keyframes\s+focusImageInFromRight[\s\S]*@keyframes\s+focusImageInFromLeft/s,
     "Focus image switches should define left/right entrance animations",
+  );
+  assert.doesNotMatch(
+    css,
+    /focusImageInFromRight\s+320ms[^{;]*\bboth\b/,
+    "Focus image entrance animation should release transform so hover and press motion can work",
+  );
+  assert.match(
+    css,
+    /@keyframes\s+focusImageExpand[\s\S]*0%[\s\S]*scale\(0\.96\)[\s\S]*64%[\s\S]*scale\(1\.035\)[\s\S]*100%[\s\S]*scale\(1\)/,
+    "Focus image expand should include a restrained nonlinear overshoot while the frame grows to viewport scale",
   );
   assert.match(
     css,
@@ -182,13 +250,23 @@ test("Focus desktop layout uses the planned ratio and side panels become framele
   );
   assert.equal(
     declarationValue(overviewRule, "max-width"),
-    "34ch",
-    "Overview copy should keep a readable line length",
+    "42ch",
+    "Overview copy should use the wider requested readable line length",
   );
   assert.equal(
     declarationValue(storyRule, "max-width"),
-    "34ch",
-    "Story copy should keep a readable line length",
+    "42ch",
+    "Story copy should use the wider requested readable line length",
+  );
+  assert.equal(
+    declarationValue(panelShellRule, "max-width"),
+    "430px",
+    "Focus side panels should use the wider requested desktop width",
+  );
+  assert.equal(
+    declarationValue(panelShellRule, "max-height"),
+    "min(72vh, 640px)",
+    "Focus side panels should use the taller requested desktop height",
   );
 });
 
