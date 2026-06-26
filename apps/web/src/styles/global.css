@@ -1113,6 +1113,7 @@ button {
 }
 
 .mobile-project-detail__header p,
+.mobile-project-detail__story,
 .mobile-project-detail__notes dd,
 .mobile-resume-block p,
 .mobile-resume-block li,
@@ -1123,6 +1124,24 @@ button {
   font-family: var(--terminal-body-font);
   font-size: 14px;
   line-height: 1.62;
+}
+
+.mobile-project-detail__subtitle {
+  color: var(--terminal-muted);
+}
+
+.mobile-project-detail__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mobile-project-detail__tags span {
+  background: var(--terminal-surface);
+  color: var(--terminal-text);
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 5px 7px;
 }
 
 .mobile-project-detail__media {
@@ -1144,6 +1163,24 @@ button {
   color: var(--terminal-text);
   font-size: 15px;
   line-height: 1.4;
+}
+
+.mobile-project-detail__imageRail {
+  display: grid;
+  grid-auto-columns: minmax(210px, 78vw);
+  grid-auto-flow: column;
+  gap: 10px;
+  margin-top: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+}
+
+.mobile-project-detail__imageRail img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  scroll-snap-align: start;
 }
 
 .mobile-project-detail__notes {

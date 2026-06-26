@@ -605,6 +605,9 @@ function ProjectDetailView({
   language: MobileTerminalLanguage;
   onBack: () => void;
 }) {
+  const subtitle = project.subtitle?.[language];
+  const story = project.story?.[language];
+
   return (
     <article className="mobile-project-detail">
       <div className="mobile-terminal-loadLayer mobile-terminal-document--loading mobile-project-detail__loadLayer">
@@ -615,12 +618,34 @@ function ProjectDetailView({
         <header className="mobile-project-detail__header">
           <span>{project.indexLabel}</span>
           <h1>{project.title}</h1>
+          {subtitle ? <p className="mobile-project-detail__subtitle">{subtitle}</p> : null}
+          {project.tags?.length ? (
+            <div className="mobile-project-detail__tags" aria-label={`${project.title} tags`}>
+              {project.tags?.map((tag) => (
+                <span key={tag}>{tag}</span>
+              ))}
+            </div>
+          ) : null}
           <p>{project.summary[language]}</p>
         </header>
-        <div className="mobile-project-detail__media" aria-label={`${project.title} media placeholder`}>
+        <div className="mobile-project-detail__media" aria-label={`${project.title} media`}>
           <span>{project.mediaKind}</span>
           <strong>{project.mediaStatus[language]}</strong>
+          {project.imageUrls?.length ? (
+            <div className="mobile-project-detail__imageRail">
+              {project.imageUrls?.map((url, index) => (
+                <img
+                  key={url}
+                  src={url}
+                  alt={`${project.title} image ${index + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
+        {story ? <p className="mobile-project-detail__story">{project.story?.[language]}</p> : null}
         <dl className="mobile-project-detail__notes">
           <div>
             <dt>Current Signal</dt>

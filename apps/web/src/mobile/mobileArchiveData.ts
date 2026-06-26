@@ -24,16 +24,20 @@ export type MobileLocalizedText = {
 export type MobileProjectItem = {
   id: string;
   title: string;
+  subtitle?: MobileLocalizedText;
   indexLabel: string;
   category: MobileProjectCategory;
   stageId: MobileProjectStageId;
   stageLabel: string;
+  tags?: string[];
   summary: MobileLocalizedText;
+  story?: MobileLocalizedText;
   signal: MobileLocalizedText;
   spaceLayer: MobileLocalizedText;
   archiveNote: MobileLocalizedText;
   mediaKind: MobileMediaKind;
   mediaStatus: MobileLocalizedText;
+  imageUrls?: string[];
 };
 
 export type MobileSkillCategory = "ai" | "architecture" | "soft" | "digital" | "analog";
@@ -302,33 +306,67 @@ export const mobileTerminalCopy = {
 
 export const mobileProjectItems: MobileProjectItem[] = [
   {
-    id: "project-01",
-    title: "Project 01",
-    indexLabel: "Student Room / Object 01",
+    id: "arch_treehabitat",
+    title: "Tree Habitat",
+    subtitle: {
+      en: "Academic architecture study for a speculative vertical habitat",
+      zh: "学生阶段的推想型垂直栖居建筑研究",
+    },
+    indexLabel: "Student Room / Academic Architecture",
     category: "Study",
     stageId: "stage-student",
     stageLabel: "Education",
+    tags: ["ACADEMIC ARCHITECTURE", "STUDENT WORK", "SPECULATIVE HABITAT", "MANGROVE LOGIC", "MIXED USE"],
     summary: {
-      en: "Reserved for early studio research, drawings, spatial tests, and school-era process material.",
-      zh: "预留给早期 studio 研究、图纸、空间测试和学生阶段过程材料。",
+      en: "A student-era architecture project that studies how a dense tower can act as an urban habitat shaped by mangrove structure, mixed use, circulation, and planted sky levels.",
+      zh: "一个学生阶段建筑作品，研究高密度塔楼如何借由红树林结构、复合功能、动线和空中绿化，成为一种城市栖居系统。",
+    },
+    story: {
+      en: "Tree Habitat is presented here as academic architecture, not as a built or commercial project. The focus is the learning-stage design question: how to translate ecological structure into section, circulation, program stacking, and architectural representation.",
+      zh: "Tree Habitat 在这里作为学生阶段建筑作品呈现，而不是已建成或商业项目。重点是学习阶段的设计命题：如何把生态结构转译成剖面、动线、功能叠合和建筑表达。",
     },
     signal: {
-      en: "Early spatial questions and study fragments are grouped for later replacement.",
-      zh: "早期空间问题和学习片段会先集中在这里，之后替换为正式展品。",
+      en: "The project should read as academic architecture and spatial design research, with the model and images serving the concept rather than claiming finished delivery.",
+      zh: "这个项目应被读作 academic architecture 和 spatial design research；模型与图片服务于概念，而不是包装成成熟交付项目。",
     },
     spaceLayer: {
-      en: "Student room object slot with model, drawing, and process media reserved.",
-      zh: "Student room 中的对象位，预留模型、图纸和过程媒体。",
+      en: "Education layer / Student Room entry for architecture studio work, image boards, model views, and concept notes.",
+      zh: "Education layer / Student Room 条目，用于承载建筑 studio 作品、图像板、模型视角和概念说明。",
     },
     archiveNote: {
-      en: "Use this entry for school-era work once final exhibit material is ready.",
-      zh: "正式展品材料完成后，用这个条目承载学生阶段作品。",
+      en: "Mobile keeps this entry text-and-image first. The 3D model remains a desktop Focus artifact and is not shown in the phone view.",
+      zh: "移动端保持文字和图片优先。3D 模型保留给桌面端 Focus，不在手机页面展示。",
     },
-    mediaKind: "model",
+    mediaKind: "image",
     mediaStatus: {
-      en: "3D preview reserved",
-      zh: "预留 3D preview",
+      en: "image sequence / no mobile 3D",
+      zh: "图片序列 / 手机端不展示 3D",
     },
+    imageUrls: [
+      "/exhibits/arch_treehabitat/img/FL-1.jpg",
+      "/exhibits/arch_treehabitat/img/FL-2.jpg",
+      "/exhibits/arch_treehabitat/img/FL-3.jpg",
+      "/exhibits/arch_treehabitat/img/FL-6.jpg",
+      "/exhibits/arch_treehabitat/img/FL-8.jpg",
+      "/exhibits/arch_treehabitat/img/FL-9.jpg",
+      "/exhibits/arch_treehabitat/img/FL-10.jpg",
+      "/exhibits/arch_treehabitat/img/FL-11.jpg",
+      "/exhibits/arch_treehabitat/img/FL-12.jpg",
+      "/exhibits/arch_treehabitat/img/FL-13.jpg",
+      "/exhibits/arch_treehabitat/img/FL-14.jpg",
+      "/exhibits/arch_treehabitat/img/FL-15.jpg",
+      "/exhibits/arch_treehabitat/img/FL-16.jpg",
+      "/exhibits/arch_treehabitat/img/FL-17.jpg",
+      "/exhibits/arch_treehabitat/img/FL-18.jpg",
+      "/exhibits/arch_treehabitat/img/FL-19.jpg",
+      "/exhibits/arch_treehabitat/img/FL-20.jpg",
+      "/exhibits/arch_treehabitat/img/FL-21.jpg",
+      "/exhibits/arch_treehabitat/img/FL-22.jpg",
+      "/exhibits/arch_treehabitat/img/FL-23.jpg",
+      "/exhibits/arch_treehabitat/img/FL-24.jpg",
+      "/exhibits/arch_treehabitat/img/FL-25.jpg",
+      "/exhibits/arch_treehabitat/img/FL-26.jpg",
+    ],
   },
   {
     id: "project-02",

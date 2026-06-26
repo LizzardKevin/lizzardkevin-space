@@ -1,28 +1,28 @@
 {
   "title": "Tree Habitat",
-  "subtitle": "A speculative vertical community beside Shenzhen's mangrove coast",
-  "overview": "Tree Habitat is a speculative vertical community for Shenzhen's mobile working population. Set beside the mangrove coast of the Greater Bay Area, the tower combines office, public culture, commerce, hotel programs and sky gardens into one climate-responsive high-rise structure. Its root-like base, three tower bodies and layered green platforms translate mangrove ecology into an urban habitat organized around working, gathering and staying near the city center.",
-  "storyHtml": "<p>Shenzhen is built on movement. Many people come for work, but the city center that concentrates opportunity often separates work from daily life. Tree Habitat proposes a vertical alternative: production, leisure and public functions are compressed into one active urban organism.</p><p>The project takes its structural imagination from the mangrove reserve across the road. Mangroves do not stand as isolated objects. Their roots interlock, stabilize unstable ground and create a shared habitat. In the tower, this logic becomes a split root base for traffic and public programs, a dense trunk for office and company space, three tower bodies as branches, and high-level gardens as leaves.</p><p>Circulation is treated as ecology rather than only transport. Express elevators, local elevators, transfer levels and bridged commercial floors separate different user groups while allowing them to meet where programs overlap. Public culture, retail and sky clubs occupy the lower and middle zones; hotel, restaurants and observation spaces rise above.</p><p>A double facade, vertical gardens, heat chimney and geothermal system moderate the tower's climate. The building grows, breathes and circulates like a small city, turning the high-rise from an isolated object into a working habitat.</p>",
+  "subtitle": "Academic architecture study for a speculative vertical habitat",
+  "overview": "Tree Habitat is a student-era architecture project that studies how a dense mixed-use tower could behave less like an isolated object and more like an urban habitat. Set beside Shenzhen's mangrove coast, the proposal uses root, trunk, branch and canopy metaphors to organize circulation, public program, office space, hotel use and planted sky levels into one spatial system.",
+  "storyHtml": "<p>This project belongs to an academic studio context rather than a commercial commission. Its value is in the design question: how can a high-rise combine work, public culture, temporary stay and ecological imagination without becoming only a sealed office object?</p><p>The concept begins with mangrove structure. Mangrove roots stabilize unstable ground, filter edges and create shared habitat. Tree Habitat translates that logic into a split base for traffic and public programs, a dense trunk of work spaces, branching tower bodies and elevated gardens that act as collective pause points.</p><p>The proposal also tests circulation as a spatial ecology. Express elevators, local elevators, transfer floors and bridged commercial levels separate different users while allowing overlap around public and social programs. The drawings and model treat movement, section and program stacking as the main design material.</p><p>On this site, the project is presented as academic architecture: a learning-stage spatial study about ecology, structure, mixed use and representation. The digital model and image sequence are kept as evidence of the design process, not as proof of a completed built project.</p>",
   "tags": [
-    "SUPERTALL TOWER",
+    "ACADEMIC ARCHITECTURE",
+    "STUDENT WORK",
+    "SPECULATIVE HABITAT",
     "MANGROVE LOGIC",
     "MIXED USE",
-    "WORK-STAY PROGRAM",
-    "CLIMATE SKIN",
     "SKY GARDEN"
   ],
   "metadata": [
     {
       "label": "Year",
-      "value": "2026"
+      "value": "Student era"
     },
     {
       "label": "Type",
-      "value": "Mixed-use supertall tower"
+      "value": "Academic architecture / speculative habitat"
     },
     {
       "label": "Medium",
-      "value": "Architectural design, digital model, spatial study"
+      "value": "Architectural drawings, digital model, image sequence"
     },
     {
       "label": "Role",
@@ -30,7 +30,7 @@
     },
     {
       "label": "Status",
-      "value": "Portfolio exhibit"
+      "value": "Student portfolio exhibit"
     }
   ]
 }

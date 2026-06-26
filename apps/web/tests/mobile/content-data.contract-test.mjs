@@ -155,6 +155,10 @@ assert(!files.mobileExperience.includes("contactLinks"), "Contact.md must read m
 assert(files.mobileExperience.includes("copy.lines.map"), "Contact.md must render localized contact line data");
 assert(files.mobileExperience.includes("entry.summary[language]"), "Skills.md summaries must be selected by current language");
 assert(files.mobileExperience.includes("project.summary[language]"), "Project summaries must be selected by current language");
+assert(files.mobileExperience.includes("project.subtitle?.[language]"), "Project subtitles must be selected by current language when present");
+assert(files.mobileExperience.includes("project.tags?.map"), "Project details must render optional project tags");
+assert(files.mobileExperience.includes("project.story?.[language]"), "Project details must render optional project story copy");
+assert(files.mobileExperience.includes("project.imageUrls?.map"), "Project details must render optional project images");
 assert(files.mobileExperience.includes("project.signal[language]"), "Project signals must be selected by current language");
 assert(files.mobileExperience.includes("project.spaceLayer[language]"), "Project SPACE layer copy must be selected by current language");
 assert(files.mobileExperience.includes("project.archiveNote[language]"), "Project archive notes must be selected by current language");
@@ -183,6 +187,29 @@ assert(files.mobileExperience.includes("mobile-soul-intro"), "Soul.md intro must
 for (const detailLabel of ["Current Signal", "SPACE Layer", "Archive Note"]) {
   assert(files.mobileExperience.includes(detailLabel), `project detail must render ${detailLabel}`);
 }
+
+assert(mobileData.includes('id: "arch_treehabitat"'), "mobile projects must include Tree Habitat by exhibit id");
+assert(mobileData.includes('title: "Tree Habitat"'), "Tree Habitat mobile project must use the exhibit title");
+assert(
+  mobileData.includes('subtitle: {') && mobileData.includes("Academic architecture study"),
+  "Tree Habitat mobile project must include a subtitle for the student architecture context",
+);
+assert(
+  mobileData.includes('category: "Study"') && mobileData.includes('stageLabel: "Education"'),
+  "Tree Habitat mobile project must stay under the Education student-stage group",
+);
+assert(mobileData.includes('mediaKind: "image"'), "Tree Habitat mobile project must use image media instead of a model");
+assert(!mobileData.includes('title: "Tree Habitat"') || !mobileData.includes('en: "3D preview reserved"'), "Tree Habitat mobile project must not reserve a 3D preview");
+for (const tag of ["ACADEMIC ARCHITECTURE", "STUDENT WORK", "SPECULATIVE HABITAT"]) {
+  assert(mobileData.includes(`"${tag}"`), `Tree Habitat mobile project must include ${tag} tag`);
+}
+assert(mobileData.includes("student-era architecture project"), "Tree Habitat mobile copy must identify the work as student-era");
+assert(mobileData.includes("学生阶段建筑作品"), "Tree Habitat mobile copy must include the Chinese student-work framing");
+assert(
+  mobileData.includes('"/exhibits/arch_treehabitat/img/FL-1.jpg"') &&
+    mobileData.includes('"/exhibits/arch_treehabitat/img/FL-26.jpg'),
+  "Tree Habitat mobile project must include exhibit image URLs",
+);
 
 for (const forbiddenMarker of [
   "archiveAutoPaused",
