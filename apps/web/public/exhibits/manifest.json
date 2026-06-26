@@ -1,61 +1,6 @@
 {
   "exhibits": [
     {
-      "exhibitId": "demo_box",
-      "focusGlbUrl": "/exhibits/demo_box/focus_demo_box.glb",
-      "type": "audio",
-      "scene": {
-        "anchor": "ANCHOR_DEMO_BOX",
-        "models": {
-          "lod0": "/exhibits/demo_box/demo_box.lod0.glb",
-          "lod1": "/exhibits/demo_box/demo_box.lod1.glb",
-          "lod2": "/exhibits/demo_box/demo_box.lod2.glb"
-        },
-        "scale": 1,
-        "placement": {
-          "snap": "floor",
-          "heightOffset": 0,
-          "yawOffsetDeg": 0
-        },
-        "load": {
-          "lod0Distance": 8,
-          "lod1Distance": 22,
-          "lod2Distance": 45,
-          "unloadDistance": 60
-        }
-      },
-      "buttons": {
-        "btn_play": { "action": "play" },
-        "btn_pause": { "action": "pause" },
-        "btn_end": { "action": "end" }
-      }
-    },
-    {
-      "exhibitId": "demo_bass",
-      "focusGlbUrl": "/exhibits/demo_bass/focus_demo_bass.glb",
-      "type": "model3d",
-      "scene": {
-        "anchor": "ANCHOR_DEMO_BASS",
-        "models": {
-          "lod0": "/exhibits/demo_bass/demo_bass.lod0.glb",
-          "lod1": "/exhibits/demo_bass/demo_bass.lod1.glb",
-          "lod2": "/exhibits/demo_bass/demo_bass.lod2.glb"
-        },
-        "scale": 1,
-        "placement": {
-          "snap": "floor",
-          "heightOffset": 0,
-          "yawOffsetDeg": 0
-        },
-        "load": {
-          "lod0Distance": 8,
-          "lod1Distance": 22,
-          "lod2Distance": 45,
-          "unloadDistance": 60
-        }
-      }
-    },
-    {
       "exhibitId": "arch_treehabitat",
       "focusGlbUrl": "/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
       "type": "model3d",

@@ -10,7 +10,9 @@ import {
   useState,
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
+  type SyntheticEvent,
   type RefObject,
+  type CSSProperties,
 } from "react";
 import type { ExhibitManifestItem } from "./manifest";
 import type { ExhibitButtonAction } from "./manifest";
@@ -266,6 +268,13 @@ function getFocusTags(exhibit: ExhibitManifestItem) {
   return Array.from(new Set(tags));
 }
 
+type FocusImageFrameSize = {
+  normalWidth: number;
+  normalHeight: number;
+  expandedWidth: number;
+  expandedHeight: number;
+};
+
 type ErrorBoundaryProps = { children: ReactNode; url: string };
 type ErrorBoundaryState = { error: Error | null };
 
@@ -319,12 +328,18 @@ export function FocusOverlay({
     index: 0,
   });
   const [mediaTransitionDirection, setMediaTransitionDirection] = useState<1 | -1>(1);
+  const [imageExpanded, setImageExpanded] = useState(false);
+  const [imageHovering, setImageHovering] = useState(false);
+  const [imageFrameSize, setImageFrameSize] = useState<FocusImageFrameSize | null>(null);
   const imageDragStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const activeImageRef = useRef<HTMLImageElement | null>(null);
+  const preloadedFocusImagesRef = useRef<HTMLImageElement[]>([]);
   const activeMediaIndex =
     activeMediaState.exhibitId === exhibit.exhibitId
       ? Math.min(activeMediaState.index, mediaItems.length - 1)
       : 0;
   const activeMedia = mediaItems[activeMediaIndex] ?? mediaItems[0];
+  const imageFrameReady = activeMedia.kind !== "image" || imageFrameSize !== null;
   const fallbackFocusTags = useMemo(() => getFocusTags(exhibit), [exhibit]);
   const focusTags = content?.tags ?? fallbackFocusTags;
   const hasOrbitInteracted =
@@ -333,6 +348,21 @@ export function FocusOverlay({
   useEffect(() => {
     useGLTF.preload(exhibit.focusGlbUrl, GLTF_DRACO_DECODER_PATH);
   }, [exhibit.focusGlbUrl]);
+
+  useEffect(() => {
+    const preloadImages = mediaItems.flatMap((item) => {
+      if (item.kind !== "image") return [];
+      const image = new Image();
+      image.decoding = "async";
+      image.loading = "eager";
+      image.src = item.url;
+      return image;
+    });
+    preloadedFocusImagesRef.current = preloadImages;
+    return () => {
+      preloadedFocusImagesRef.current = [];
+    };
+  }, [mediaItems]);
 
   useEffect(() => {
     let cancelled = false;
@@ -402,6 +432,10 @@ export function FocusOverlay({
   const handleBlankClick = useFocusDoubleClickHandler(handleBlankDoubleClick);
   const handleMediaStep = useCallback(
     (direction: -1 | 1) => {
+      setImageExpanded(false);
+      setImageHovering(false);
+      setImageFrameSize(null);
+      imageDragStartRef.current = null;
       setMediaTransitionDirection(direction);
       setActiveMediaState((current) => {
         const currentIndex = current.exhibitId === exhibit.exhibitId ? current.index : 0;
@@ -416,6 +450,10 @@ export function FocusOverlay({
 
   const handleMediaSelect = useCallback(
     (index: number) => {
+      setImageExpanded(false);
+      setImageHovering(false);
+      setImageFrameSize(null);
+      imageDragStartRef.current = null;
       const currentIndex =
         activeMediaState.exhibitId === exhibit.exhibitId ? activeMediaState.index : 0;
       if (index !== currentIndex) {
@@ -426,17 +464,100 @@ export function FocusOverlay({
     [activeMediaState.exhibitId, activeMediaState.index, exhibit.exhibitId],
   );
 
+  const measureImageFrame = useCallback((image: HTMLImageElement) => {
+    if (image.naturalWidth <= 0 || image.naturalHeight <= 0) return;
+    const stage = image.closest(".focus-layout__center") as HTMLElement | null;
+    const overlayEl = image.closest(".focus-overlay") as HTMLElement | null;
+    const stageRect = stage?.getBoundingClientRect();
+    if (!stageRect) return;
+
+    const overlayStyle = overlayEl ? window.getComputedStyle(overlayEl) : null;
+    const topSafe = Number.parseFloat(overlayStyle?.getPropertyValue("--focus-top-safe") ?? "") || 92;
+    const bottomSafe = Number.parseFloat(overlayStyle?.getPropertyValue("--focus-bottom-safe") ?? "") || 118;
+    const maxWidth = Math.min(1040, window.innerWidth * 0.74);
+    const maxHeight = Math.max(120, stageRect.height - topSafe - bottomSafe);
+    const aspect = image.naturalWidth / image.naturalHeight;
+    let normalWidth = maxWidth;
+    let normalHeight = normalWidth / aspect;
+
+    if (normalHeight > maxHeight) {
+      normalHeight = maxHeight;
+      normalWidth = normalHeight * aspect;
+    }
+
+    const targetExpandedArea = window.innerWidth * window.innerHeight * 0.6;
+    const maxExpandedWidth = window.innerWidth * 0.9;
+    const maxExpandedHeight = window.innerHeight * 0.86;
+    let expandedWidth = Math.sqrt(targetExpandedArea * aspect);
+    let expandedHeight = expandedWidth / aspect;
+
+    if (expandedWidth > maxExpandedWidth) {
+      expandedWidth = maxExpandedWidth;
+      expandedHeight = expandedWidth / aspect;
+    }
+
+    if (expandedHeight > maxExpandedHeight) {
+      expandedHeight = maxExpandedHeight;
+      expandedWidth = expandedHeight * aspect;
+    }
+
+    setImageFrameSize({
+      normalWidth: Math.round(normalWidth),
+      normalHeight: Math.round(normalHeight),
+      expandedWidth: Math.round(expandedWidth),
+      expandedHeight: Math.round(expandedHeight),
+    });
+  }, []);
+
+  useEffect(() => {
+    const image = activeImageRef.current;
+    if (!image || activeMedia.kind !== "image") return;
+    measureImageFrame(image);
+
+    const onResize = () => measureImageFrame(image);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [activeMedia.kind, activeMedia.url, measureImageFrame]);
+
+  const updateImagePointerMotion = useCallback((target: HTMLDivElement, x: number, y: number) => {
+    const rect = target.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const originX = ((x - rect.left) / rect.width) * 100;
+    const originY = ((y - rect.top) / rect.height) * 100;
+
+    target.style.setProperty("--focus-image-origin-x", `${originX.toFixed(2)}%`);
+    target.style.setProperty("--focus-image-origin-y", `${originY.toFixed(2)}%`);
+  }, []);
+
+  const resetImagePointerMotion = useCallback((target: HTMLDivElement) => {
+    target.style.setProperty("--focus-image-origin-x", "50%");
+    target.style.setProperty("--focus-image-origin-y", "50%");
+  }, []);
+
   const handleImagePointerDown = useCallback(
-    (e: ReactPointerEvent<HTMLImageElement>) => {
-      if (activeMedia.kind !== "image") return;
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (activeMedia.kind !== "image" || imageExpanded) return;
+      updateImagePointerMotion(e.currentTarget, e.clientX, e.clientY);
       imageDragStartRef.current = { pointerId: e.pointerId, x: e.clientX, y: e.clientY };
       e.currentTarget.setPointerCapture(e.pointerId);
     },
-    [activeMedia.kind],
+    [activeMedia.kind, imageExpanded, updateImagePointerMotion],
+  );
+
+  const handleImagePointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (activeMedia.kind !== "image" || imageExpanded) return;
+      updateImagePointerMotion(e.currentTarget, e.clientX, e.clientY);
+    },
+    [activeMedia.kind, imageExpanded, updateImagePointerMotion],
   );
 
   const handleImagePointerUp = useCallback(
-    (e: ReactPointerEvent<HTMLImageElement>) => {
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (imageExpanded) {
+        setImageExpanded(false);
+        return;
+      }
       const start = imageDragStartRef.current;
       if (!start || start.pointerId !== e.pointerId) return;
       imageDragStartRef.current = null;
@@ -448,21 +569,71 @@ export function FocusOverlay({
         e.clientX - start.x,
         e.clientY - start.y,
       );
-      if (step === 0) return;
+      if (step === 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        resetImagePointerMotion(e.currentTarget);
+        setImageHovering(false);
+        setImageExpanded(true);
+        return;
+      }
       e.preventDefault();
       e.stopPropagation();
       handleMediaStep(step);
     },
-    [activeMedia.kind, handleMediaStep],
+    [activeMedia.kind, handleMediaStep, imageExpanded, resetImagePointerMotion],
   );
 
-  const handleImagePointerCancel = useCallback((e: ReactPointerEvent<HTMLImageElement>) => {
-    if (imageDragStartRef.current?.pointerId !== e.pointerId) return;
-    imageDragStartRef.current = null;
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
+  const handleImagePointerCancel = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (imageDragStartRef.current?.pointerId !== e.pointerId) return;
+      imageDragStartRef.current = null;
+      resetImagePointerMotion(e.currentTarget);
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    },
+    [resetImagePointerMotion],
+  );
+
+  const handleImagePointerLeave = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      setImageHovering(false);
+      resetImagePointerMotion(e.currentTarget);
+    },
+    [resetImagePointerMotion],
+  );
+
+  const handleImagePointerEnter = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (activeMedia.kind !== "image" || imageExpanded) return;
+      setImageHovering(true);
+      updateImagePointerMotion(e.currentTarget, e.clientX, e.clientY);
+    },
+    [activeMedia.kind, imageExpanded, updateImagePointerMotion],
+  );
+
+  const handleImageLoad = useCallback(
+    (e: SyntheticEvent<HTMLImageElement>) => {
+      activeImageRef.current = e.currentTarget;
+      measureImageFrame(e.currentTarget);
+    },
+    [measureImageFrame],
+  );
+
+  const imageFrameStyle = useMemo(() => {
+    const style: Record<string, string> = {
+      "--focus-image-origin-x": "50%",
+      "--focus-image-origin-y": "50%",
+    };
+    if (imageFrameSize) {
+      style["--focus-image-rendered-width"] = `${imageFrameSize.normalWidth}px`;
+      style["--focus-image-rendered-height"] = `${imageFrameSize.normalHeight}px`;
+      style["--focus-image-expanded-width"] = `${imageFrameSize.expandedWidth}px`;
+      style["--focus-image-expanded-height"] = `${imageFrameSize.expandedHeight}px`;
     }
-  }, []);
+    return style as CSSProperties;
+  }, [imageFrameSize]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -486,6 +657,17 @@ export function FocusOverlay({
           playsInline
           preload="metadata"
           src={videoUrl}
+        />
+      ) : null}
+
+      {imageExpanded ? (
+        <button
+          type="button"
+          className="focus-image-lightbox"
+          aria-label="Close enlarged image"
+          data-cursor="interactive"
+          data-cursor-tone="light"
+          onClick={() => setImageExpanded(false)}
         />
       ) : null}
 
@@ -558,22 +740,35 @@ export function FocusOverlay({
           </FocusModelErrorBoundary>
 
           {activeMedia.kind === "image" ? (
-            <img
+            <div
               key={activeMedia.url}
-              className={`focus-image${contentVisible ? " focus-image--visible" : ""} focus-image--step-${mediaTransitionDirection === 1 ? "next" : "previous"}`}
-              src={activeMedia.url}
-              alt={displayTitle}
-              loading="lazy"
-              decoding="async"
-              draggable={false}
+              className={`focus-image-frame${contentVisible && imageFrameReady ? " focus-image-frame--visible" : ""}${imageHovering ? " focus-image-frame--hovered" : ""}${imageExpanded ? " focus-image-frame--expanded" : ` focus-image-frame--step-${mediaTransitionDirection === 1 ? "next" : "previous"}`}`}
+              style={imageFrameStyle}
               data-cursor="interactive"
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${displayTitle} image`}
               onPointerDown={handleImagePointerDown}
+              onPointerEnter={handleImagePointerEnter}
+              onPointerMove={handleImagePointerMove}
               onPointerUp={handleImagePointerUp}
               onPointerCancel={handleImagePointerCancel}
-            />
+              onPointerLeave={handleImagePointerLeave}
+            >
+              <img
+                ref={activeImageRef}
+                className="focus-image"
+                src={activeMedia.url}
+                alt={displayTitle}
+                loading="eager"
+                decoding="async"
+                draggable={false}
+                onLoad={handleImageLoad}
+              />
+            </div>
           ) : null}
 
-          {mediaItems.length > 1 ? (
+          {mediaItems.length > 1 && !imageExpanded ? (
             <>
               <button
                 type="button"
@@ -600,7 +795,7 @@ export function FocusOverlay({
             </>
           ) : null}
 
-          {mediaItems.length > 1 ? (
+          {mediaItems.length > 1 && !imageExpanded ? (
             <div className="focus-media-dots" aria-label="Focus media pages">
               {mediaItems.map((item, index) => (
                 <button

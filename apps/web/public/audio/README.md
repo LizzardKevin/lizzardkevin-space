@@ -14,4 +14,4 @@
 
 ## 展品音乐 / 视频
 
-见 [`../media/README.md`](../media/README.md)：按 **exhibitId** 放在 `public/media/`，例如 `demo_box.mp3`。
+见 [`../media/README.md`](../media/README.md)：按 **exhibitId** 放在 `public/media/`，例如 `work_001.mp3`。

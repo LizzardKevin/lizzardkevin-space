@@ -338,6 +338,7 @@ export function SpaceCursorOverlay({
         key={clickPulseNonce}
         className={`space-cursor-dot space-cursor-dot--${mode}${returning ? " space-cursor-dot--returning" : ""}${effectiveSyncingToSystem ? " space-cursor-dot--syncing" : ""}`}
       >
+        <span className="space-cursor-halo" />
         <span className="space-cursor-clickPulse" />
         {scrollBursts.map((burst) => (
           <span

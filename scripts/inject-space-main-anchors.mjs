@@ -3,10 +3,7 @@ import path from "node:path";
 
 const glbPath = path.resolve("apps/web/public/models/space_main.glb");
 
-const anchors = [
-  { name: "ANCHOR_DEMO_BOX", translation: [-2.2, 36.838, -48.318] },
-  { name: "ANCHOR_DEMO_BASS", translation: [1.8, 36.838, -48.318] },
-];
+const anchors = [];
 
 function paddedJsonBuffer(json) {
   const jsonText = JSON.stringify(json);

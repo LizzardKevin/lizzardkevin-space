@@ -75,6 +75,13 @@ export function SpaceMovementDebugOverlay() {
           <dd>{exhibitPlacement}</dd>
         </div>
         <div>
+          <dt>fps</dt>
+          <dd>
+            {formatNumber(sample.frameRate.fps, 1)} / frame{" "}
+            {formatNumber(sample.frameRate.frameMs, 1)} ms
+          </dd>
+        </div>
+        <div>
           <dt>pos</dt>
           <dd>
             x {formatNumber(sample.position.x)} / y {formatNumber(sample.position.y)} / z{" "}
@@ -92,6 +99,21 @@ export function SpaceMovementDebugOverlay() {
           <dt>ratio</dt>
           <dd>
             {formatSpeedRatio(sample.speedRatio)} / target {formatNumber(sample.targetSpeed)} m/s
+          </dd>
+        </div>
+        <div>
+          <dt>look</dt>
+          <dd>
+            yaw {formatNumber(sample.lookRotation.yawDeg)} deg / pitch{" "}
+            {formatNumber(sample.lookRotation.pitchDeg)} deg / tick {sample.lookRotation.tick}
+          </dd>
+        </div>
+        <div>
+          <dt>look delta</dt>
+          <dd>
+            yaw {formatNumber(sample.lookRotation.deltaYawDeg)} deg / pitch{" "}
+            {formatNumber(sample.lookRotation.deltaPitchDeg)} deg / total{" "}
+            {formatNumber(sample.lookRotation.deltaTotalDeg)} deg / dt {formatNumber(sample.dt * 1000)} ms
           </dd>
         </div>
         <div>

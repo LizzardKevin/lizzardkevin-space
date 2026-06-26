@@ -1,6 +1,21 @@
 export const SPACE_MOVEMENT_DEBUG_EVENT = "space:movement-debug";
 export const SPACE_RAYCAST_DEBUG_EVENT = "space:raycast-debug";
 export const SPACE_EXHIBIT_PLACEMENT_DEBUG_EVENT = "space:exhibit-placement-debug";
+export const SPACE_MOVEMENT_DEBUG_HISTORY_LIMIT = 600;
+
+export type SpaceLookRotationDebugSample = {
+  tick: number;
+  yawDeg: number;
+  pitchDeg: number;
+  deltaYawDeg: number;
+  deltaPitchDeg: number;
+  deltaTotalDeg: number;
+};
+
+export type SpaceFrameRateDebugSample = {
+  fps: number;
+  frameMs: number;
+};
 
 export type SpaceMovementDebugSample = {
   timestamp: number;
@@ -14,6 +29,8 @@ export type SpaceMovementDebugSample = {
   targetSpeed: number;
   speedRatio: number | null;
   verticalVelocity: number;
+  lookRotation: SpaceLookRotationDebugSample;
+  frameRate: SpaceFrameRateDebugSample;
   dt: number;
 };
 
@@ -31,6 +48,10 @@ export type SpaceExhibitPlacementDebugSample = {
 };
 
 declare global {
+  interface Window {
+    __SPACE_MOVEMENT_DEBUG_SAMPLES__?: SpaceMovementDebugSample[];
+  }
+
   interface WindowEventMap {
     "space:movement-debug": CustomEvent<SpaceMovementDebugSample>;
     "space:raycast-debug": CustomEvent<SpaceRaycastDebugSample>;
@@ -39,6 +60,55 @@ declare global {
 }
 
 const colliderDebugNames = new Map<number, string>();
+
+function radToDeg(value: number) {
+  return (value * 180) / Math.PI;
+}
+
+function normalizeDeltaDeg(value: number) {
+  return ((((value + 180) % 360) + 360) % 360) - 180;
+}
+
+export function buildSpaceLookRotationDebugSample({
+  tick,
+  yawRad,
+  pitchRad,
+  previous,
+}: {
+  tick: number;
+  yawRad: number;
+  pitchRad: number;
+  previous: SpaceLookRotationDebugSample | null;
+}): SpaceLookRotationDebugSample {
+  const yawDeg = radToDeg(yawRad);
+  const pitchDeg = radToDeg(pitchRad);
+  const deltaYawDeg = previous ? normalizeDeltaDeg(yawDeg - previous.yawDeg) : 0;
+  const deltaPitchDeg = previous ? normalizeDeltaDeg(pitchDeg - previous.pitchDeg) : 0;
+
+  return {
+    tick,
+    yawDeg,
+    pitchDeg,
+    deltaYawDeg,
+    deltaPitchDeg,
+    deltaTotalDeg: Math.hypot(deltaYawDeg, deltaPitchDeg),
+  };
+}
+
+export function buildSpaceFrameRateDebugSample({
+  deltaSec,
+  previous,
+}: {
+  deltaSec: number;
+  previous: SpaceFrameRateDebugSample | null;
+}): SpaceFrameRateDebugSample {
+  const rawFrameMs = Number.isFinite(deltaSec) && deltaSec > 0 ? deltaSec * 1000 : 0;
+  const frameMs = previous ? previous.frameMs * 0.82 + rawFrameMs * 0.18 : rawFrameMs;
+  return {
+    fps: frameMs > 0 ? 1000 / frameMs : 0,
+    frameMs,
+  };
+}
 
 export function registerSpaceCollisionDebugCollider(
   collider: { handle: number } | null | undefined,
@@ -62,6 +132,11 @@ export function resolveSpaceCollisionDebugName(collider: { handle: number } | nu
 
 export function publishSpaceMovementDebug(sample: SpaceMovementDebugSample) {
   if (!import.meta.env.DEV || typeof window === "undefined") return;
+  const samples = (window.__SPACE_MOVEMENT_DEBUG_SAMPLES__ ??= []);
+  samples.push(sample);
+  if (samples.length > SPACE_MOVEMENT_DEBUG_HISTORY_LIMIT) {
+    samples.splice(0, samples.length - SPACE_MOVEMENT_DEBUG_HISTORY_LIMIT);
+  }
   window.dispatchEvent(new CustomEvent(SPACE_MOVEMENT_DEBUG_EVENT, { detail: sample }));
 }
 

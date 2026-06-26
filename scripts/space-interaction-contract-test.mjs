@@ -20,9 +20,13 @@ const files = {
   css: readProjectFile("apps/web/src/styles/global.css"),
   debugOverlay: readOptionalProjectFile("apps/web/src/scenes/debug/SpaceMovementDebugOverlay.tsx"),
   debugTelemetry: readOptionalProjectFile("apps/web/src/scenes/debug/spaceMovementDebug.ts"),
+  guardedPointerLock: readProjectFile("apps/web/src/scenes/controls/guardedPointerLock.ts"),
+  guardedPointerLockControls: readProjectFile("apps/web/src/scenes/controls/GuardedPointerLockControls.tsx"),
   hoverHighlight: readProjectFile("apps/web/src/exhibits/ExhibitHoverHighlight.tsx"),
   exhibitRaycast: readProjectFile("apps/web/src/scenes/exhibits/ExhibitRaycast.tsx"),
+  keyboard: readProjectFile("apps/web/src/scenes/controls/useKeyboard.tsx"),
   player: readProjectFile("apps/web/src/scenes/Player/PlayerController.tsx"),
+  pointerLockFailure: readProjectFile("apps/web/src/space/pointerLockFailure.ts"),
   pointerLock: readProjectFile("apps/web/src/space/requestSpacePointerLock.ts"),
   spaceScene: readProjectFile("apps/web/src/scenes/SpaceScene.tsx"),
   footsteps: readProjectFile("apps/web/src/scenes/Player/useFootsteps.ts"),
@@ -44,6 +48,8 @@ function cssBlock(selector) {
 }
 
 const crosshairBurstCss = cssBlock(".crosshair-burst");
+const cursorDotCss = cssBlock(".space-cursor-dot");
+const cursorDragCss = cssBlock(".space-cursor-dot--dragReady,\n.space-cursor-dot--dragging");
 const cursorReturningCss = cssBlock(".space-cursor-dot--returning");
 const cursorSyncingCss = cssBlock(".space-cursor-dot--syncing");
 
@@ -75,6 +81,14 @@ assert(
 );
 assert(cursorReturningCss.includes("left 500ms") && cursorReturningCss.includes("top 500ms"), "returning cursor must animate left/top");
 assert(cursorSyncingCss.includes("left 500ms") && cursorSyncingCss.includes("top 500ms"), "syncing cursor must animate left/top");
+assert(files.cursor.includes("space-cursor-halo"), "custom cursor must render the subtle halo element");
+assert(cursorDotCss.includes("clip-path: circle(50% at 50% 50%)"), "default cursor must keep a stable dot clip-path");
+assert(cursorDotCss.includes("clip-path 120ms ease"), "cursor shape transitions must be short to avoid drag-to-dot flashing");
+assert(cursorDragCss.includes("width: 14px") && cursorDragCss.includes("height: 14px"), "drag cursor should avoid an oversized grab shape");
+assert(
+  cursorDragCss.includes("clip-path: circle(50% at 50% 50%)"),
+  "drag cursor should keep the same circular shape family to avoid grab-to-dot flashing",
+);
 
 assert(crosshairBurstCss.includes("spaceCursorClickPulse"), "empty SPACE click pulse must reuse the cursor click pulse animation");
 assert(files.player.includes("const WALK_SPEED = 2.45;"), "walk speed must return to the documented 2.45 m/s baseline");
@@ -92,11 +106,59 @@ assert(files.player.includes("const dt = PLAYER_PHYSICS_TIME_STEP;"), "player mo
 assert(!files.player.includes("dtRef"), "player movement must not cache dynamic render dt for physics steps");
 assert(!files.player.includes("Math.min(dt, 0.05)"), "player movement must not clamp render dt for physics movement");
 assert(
-  files.spaceScene.includes('import { PointerLockControls } from "@react-three/drei";'),
-  "SPACE must conservatively use the previous Drei PointerLockControls implementation",
+  files.spaceScene.includes('import { GuardedPointerLockControls } from "./controls/GuardedPointerLockControls";'),
+  "SPACE must use the guarded pointer lock controls implementation",
 );
-assert(files.spaceScene.includes('<PointerLockControls selector="#space-canvas" />'), "SPACE must render the previous pointer lock controls");
-assert(!files.spaceScene.includes("GuardedPointerLockControls"), "SPACE must not use the custom pointer controls rollback candidate");
+assert(
+  files.spaceScene.includes('<GuardedPointerLockControls selector="#space-canvas" />'),
+  "SPACE must render guarded pointer lock controls",
+);
+assert(!files.spaceScene.includes("@react-three/drei"), "SPACE must not use raw Drei PointerLockControls");
+assert(
+  files.guardedPointerLock.includes("requestPointerLockWithRawFallback"),
+  "guarded pointer lock must request raw movement with a fallback",
+);
+assert(
+  files.guardedPointerLock.includes("POINTER_LOCK_MAX_DELTA_PX"),
+  "guarded pointer lock must define a maximum mouse delta",
+);
+assert(
+  files.guardedPointerLock.includes("__SPACE_POINTER_LOCK_DEBUG_SAMPLES__"),
+  "guarded pointer lock must retain raw pointer movement debug history in dev",
+);
+assert(
+  files.guardedPointerLock.includes('reason: "spike"'),
+  "guarded pointer lock must drop edge-spike movement events",
+);
+assert(
+  files.guardedPointerLockControls.includes("resolveGuardedPointerDelta"),
+  "guarded pointer lock controls must filter movement before rotating the camera",
+);
+assert(
+  files.guardedPointerLockControls.includes("publishGuardedPointerLockDebugSample"),
+  "guarded pointer lock controls must publish raw/applied pointer movement samples",
+);
+assert(
+  files.pointerLock.includes("requestPointerLockWithRawFallback"),
+  "shared SPACE pointer lock requests must use raw movement fallback",
+);
+assert(
+  files.pointerLockFailure.includes("POINTER_LOCK_RESUME_TIMEOUT_MS = 900"),
+  "pointer lock relock tracking must allow raw-movement fallback enough time to resolve",
+);
+assert(
+  files.pointerLockFailure.includes("isPermanentPointerLockFailure"),
+  "pointer lock failures must distinguish permanent API absence from retryable relock misses",
+);
+assert(
+  files.pointerLock.includes("permanent: isPermanentPointerLockFailure(message)"),
+  "pointer lock failure events must include permanent/retryable classification",
+);
+assert(
+  files.desktop.includes("if (!permanent) return;"),
+  "retryable pointer lock failures must not permanently disable first-person controls",
+);
+assert(files.keyboard.includes('window.addEventListener("blur", onBlur)'), "keyboard state must clear on window blur");
 assert(files.floorCollider.includes("COL_STAIR"), "floor collider cutouts must include COL_STAIR_* regions");
 assert(files.materialScript.includes('name.startswith("ARCH_STAIR_")'), "ARCH_STAIR_* must use the stair material contract");
 assert(files.aoScript.includes('"ARCH_STAIR_"'), "vertex AO bake must include ARCH_STAIR_* visual stairs");
@@ -118,11 +180,22 @@ assert(
 assert(files.player.includes("numComputedCollisions"), "PlayerController must include character-controller collision counts in debug");
 assert(files.player.includes("computedCollision"), "PlayerController must inspect computed collision colliders for debug");
 assert(files.player.includes("speedRatio"), "PlayerController debug samples must include actual/desired speed ratio");
+assert(files.player.includes("buildSpaceLookRotationDebugSample"), "PlayerController debug samples must include tick look rotation angles");
+assert(files.player.includes("buildSpaceFrameRateDebugSample"), "PlayerController debug samples must include render frame rate telemetry");
+assert(files.debugTelemetry.includes("lookRotation"), "movement debug samples must include look rotation angle telemetry");
+assert(files.debugTelemetry.includes("frameRate"), "movement debug samples must include frame rate telemetry");
+assert(
+  files.debugTelemetry.includes("__SPACE_MOVEMENT_DEBUG_SAMPLES__"),
+  "movement debug telemetry must retain tick-frequency history in dev",
+);
 assert(files.debugOverlay.includes("SpaceMovementDebugOverlay"), "dev movement debug overlay component must exist");
 assert(files.debugOverlay.includes("import.meta.env.DEV"), "movement debug overlay must be dev-only");
 assert(files.debugOverlay.includes(">debug<"), "debug overlay title must be generalized to DEBUG");
 assert(files.debugOverlay.includes("contactNames"), "movement debug overlay must show contact collider names");
 assert(files.debugOverlay.includes("speedRatio"), "movement debug overlay must show actual/desired speed ratio");
+assert(files.debugOverlay.includes("<dt>fps</dt>"), "movement debug overlay must show realtime fps");
+assert(files.debugOverlay.includes("look</dt>"), "movement debug overlay must show current look yaw and pitch");
+assert(files.debugOverlay.includes("look delta</dt>"), "movement debug overlay must show per-tick look rotation deltas");
 assert(files.debugOverlay.includes("raycastSample"), "debug overlay must store raycast debug samples");
 assert(files.debugOverlay.includes("mesh</dt>"), "debug overlay must show the currently aimed mesh name");
 assert(files.desktop.includes("<SpaceMovementDebugOverlay />"), "desktop SPACE page must mount the movement debug overlay");

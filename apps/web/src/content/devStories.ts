@@ -52,7 +52,7 @@ export const devStories: DevStory[] = [
       "Blender AO bake 卡在 active Image Texture 节点选择，说明资产流程也需要被明确记录。",
     ],
     next:
-      "继续推进 Blender AO 烘焙，用资产内 AO 替代实时 GTAO；降低 exhibit_demo_box 面数，并规范完整 dist 上传流程。",
+      "继续推进 Blender AO 烘焙，用资产内 AO 替代实时 GTAO；降低早期占位展品面数，并规范完整 dist 上传流程。",
     tags: ["WebGPU", "Toon", "Trimesh", "AO Bake"],
   },
   {
@@ -89,8 +89,8 @@ export const devStories: DevStory[] = [
       "修复 React hooks 新规则造成的 P1 lint 阻断，并拆分 GallerySpawnContext 以满足 Fast Refresh。",
       "把 SpaceDesktopExperience 和 FocusOverlay 改为 lazy 加载，再用 Rolldown groups 拆出 React、Three 和 Rapier vendor。",
       "将 Draco decoder 本地化到 /draco/，避免 useGLTF 从 gstatic 拉取失败。",
-      "修正 demo_box Focus 旋转中心，新增入口点击彩蛋、第一人称跳跃彩蛋和基于脚步声生成的起跳/落地音。",
-      "用最新 CSV 重新生成 exhibit-asset-tracker.xlsx，让 demo_box 与 demo_bass 在资产表中一致。",
+      "修正早期占位 Focus 旋转中心，新增入口点击彩蛋、第一人称跳跃彩蛋和基于脚步声生成的起跳/落地音。",
+      "用最新 CSV 重新生成 exhibit-asset-tracker.xlsx，让早期占位展品在资产表中一致。",
     ],
     trouble: [
       "lint failure 集中来自 render 阶段 ref 读写、effect 内同步 setState 和 Three/R3F 必要 imperative mutation，需要逐类处理。",

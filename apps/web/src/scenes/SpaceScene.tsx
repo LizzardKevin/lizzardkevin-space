@@ -1,9 +1,9 @@
-import { PointerLockControls } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
 import { ExhibitHoverHighlight } from "../exhibits/ExhibitHoverHighlight";
 import { ExhibitTargetLabel } from "../exhibits/ExhibitTargetLabel";
 import { ExhibitRaycast } from "./exhibits/ExhibitRaycast";
+import { GuardedPointerLockControls } from "./controls/GuardedPointerLockControls";
 import { PlayerController } from "./Player/PlayerController";
 import { ENABLE_GALLERY_GLB, ENABLE_GALLERY_WALL_ART, GALLERY_WALL_ART } from "./gallery/galleryConfig";
 import { GalleryModel } from "./gallery/GalleryModel";
@@ -43,7 +43,7 @@ function SpaceSceneContent({
 
   return (
     <>
-      {pointerControlsEnabled ? <PointerLockControls selector="#space-canvas" /> : null}
+      {pointerControlsEnabled ? <GuardedPointerLockControls selector="#space-canvas" /> : null}
 
       {ENABLE_GALLERY_GLB ? <SafetyGround y={safetyGroundY} centerX={safetyCenterX} centerZ={safetyCenterZ} /> : null}
       {ENABLE_GALLERY_GLB ? (

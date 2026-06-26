@@ -1,96 +1,10 @@
 {
-  "generatedAt": "2026-06-24T23:34:37.526Z",
+  "generatedAt": "2026-06-25T09:00:19.221Z",
   "source": {
     "spaceMain": "/models/space_main.glb",
     "manifest": "/exhibits/manifest.json"
   },
   "placements": [
-    {
-      "exhibitId": "demo_box",
-      "anchor": "ANCHOR_DEMO_BOX",
-      "anchorTransform": {
-        "position": [
-          -2.200000047683716,
-          36.8380012512207,
-          -48.31800079345703
-        ],
-        "rotation": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ]
-      },
-      "models": {
-        "lod0": "/exhibits/demo_box/demo_box.lod0.glb",
-        "lod1": "/exhibits/demo_box/demo_box.lod1.glb",
-        "lod2": "/exhibits/demo_box/demo_box.lod2.glb"
-      },
-      "scale": 1,
-      "placement": {
-        "snap": "floor",
-        "heightOffset": 0,
-        "yawOffsetDeg": 0
-      },
-      "load": {
-        "lod0Distance": 8,
-        "lod1Distance": 22,
-        "lod2Distance": 45,
-        "unloadDistance": 60
-      },
-      "snap": {
-        "status": "runtime",
-        "floorName": null
-      }
-    },
-    {
-      "exhibitId": "demo_bass",
-      "anchor": "ANCHOR_DEMO_BASS",
-      "anchorTransform": {
-        "position": [
-          1.7999999523162842,
-          36.8380012512207,
-          -48.31800079345703
-        ],
-        "rotation": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ]
-      },
-      "models": {
-        "lod0": "/exhibits/demo_bass/demo_bass.lod0.glb",
-        "lod1": "/exhibits/demo_bass/demo_bass.lod1.glb",
-        "lod2": "/exhibits/demo_bass/demo_bass.lod2.glb"
-      },
-      "scale": 1,
-      "placement": {
-        "snap": "floor",
-        "heightOffset": 0,
-        "yawOffsetDeg": 0
-      },
-      "load": {
-        "lod0Distance": 8,
-        "lod1Distance": 22,
-        "lod2Distance": 45,
-        "unloadDistance": 60
-      },
-      "snap": {
-        "status": "runtime",
-        "floorName": null
-      }
-    },
     {
       "exhibitId": "arch_treehabitat",
       "anchor": "ANCHOR_ARCH_TREEHABITAT",
