@@ -25,6 +25,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Blender backup files
+*.blend1
+
 # Local test distribution zip
 release/
 

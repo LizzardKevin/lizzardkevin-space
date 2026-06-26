@@ -34,3 +34,9 @@
 *.zip binary
 *.7z binary
 *.rar binary
+
+# GitHub Linguist classification for generated/vendor assets.
+apps/web/public/draco/** linguist-vendored
+apps/web/public/exhibits/generated-*.json linguist-generated
+apps/web/public/exhibits/**/*.report.json linguist-generated
+docs/assets/exhibit-asset-tracker* linguist-generated
