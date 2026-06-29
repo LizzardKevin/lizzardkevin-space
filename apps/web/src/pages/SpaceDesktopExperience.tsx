@@ -26,6 +26,8 @@ import {
 } from "../scenes/gallery/galleryConfig";
 import { GalleryAtmosphere } from "../scenes/gallery/GalleryAtmosphere";
 import { spawnToCameraPosition } from "../scenes/gallery/resolveGallerySpawn";
+import { SPACE_ONBOARDING_DEMO_EXHIBIT_ID } from "../scenes/onboarding/spaceOnboardingConfig";
+import { SpaceOnboardingFocusDemo } from "../scenes/onboarding/SpaceOnboardingFocusDemo";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -49,15 +51,6 @@ type SpacePointerLockFailedEvent = CustomEvent<{
   message: string;
   permanent?: boolean;
 }>;
-
-function SpaceGuide({ message, visible }: { message: string; visible: boolean }) {
-  if (!visible || !message) return null;
-  return (
-    <p className="space-guide" aria-live="polite">
-      {message}
-    </p>
-  );
-}
 
 function JumpHint({ message, visible }: { message: string; visible: boolean }) {
   if (!visible || !message) return null;
@@ -91,6 +84,8 @@ export function SpaceDesktopExperience({
   const [jumpHintVisible, setJumpHintVisible] = useState(false);
   const [pointerLocked, setPointerLocked] = useState(false);
   const [pointerLockUnavailable, setPointerLockUnavailable] = useState(false);
+  const [onboardingFocusOpen, setOnboardingFocusOpen] = useState(false);
+  const [onboardingFocusClosing, setOnboardingFocusClosing] = useState(false);
 
   const { entered, fading: entryIsFading } = entry;
 
@@ -171,9 +166,46 @@ export function SpaceDesktopExperience({
   }, []);
 
   const focusOverlayExhibit = focused ?? focusClosing;
+  const onboardingFocusVisible = onboardingFocusOpen || onboardingFocusClosing;
+  const focusSurfaceOpen = focusOverlayExhibit !== null || onboardingFocusVisible;
+
+  const handleBeginDismissOnboardingFocus = useCallback(
+    (opts?: { fromEscape?: boolean }) => {
+      flushSync(() => {
+        if (!opts?.fromEscape) {
+          setSuppressNextExhibitClick(true);
+        }
+        setOnboardingFocusOpen(false);
+        setOnboardingFocusClosing(true);
+      });
+      if (overlay.isOverlayOpen) return;
+      if (opts?.fromEscape) {
+        resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: overlay.isOverlayOpen });
+        return;
+      }
+      if (entered) resumeSpaceFirstPersonWithCursorReturn();
+      else engageSpaceFirstPerson({ entered, overlayOpen: false });
+    },
+    [entered, overlay.isOverlayOpen],
+  );
+
+  const handleFinishDismissOnboardingFocus = useCallback(() => {
+    setOnboardingFocusClosing(false);
+  }, []);
 
   const handleFocusExhibit = useCallback(
     (id: string) => {
+      if (id === SPACE_ONBOARDING_DEMO_EXHIBIT_ID) {
+        flushSync(() => {
+          setExhibitTarget(null);
+          setOnboardingFocusClosing(false);
+          setOnboardingFocusOpen(true);
+        });
+        if (document.pointerLockElement) {
+          document.exitPointerLock();
+        }
+        return;
+      }
       if (manifest === null) {
         setToast("展品信息加载中…");
         return;
@@ -194,10 +226,17 @@ export function SpaceDesktopExperience({
     [manifest],
   );
 
-  const isHovering = exhibitTarget !== null && !focused;
+  const isHovering = exhibitTarget !== null && !focusSurfaceOpen;
   const pointerControlsEnabled =
-    (entry.showSplash || entryIsFading || entered) && !overlay.isOverlayOpen && !focused && !pointerLockUnavailable;
-  const controlsEnabled = (entryIsFading || entered) && !overlay.isOverlayOpen && !focused && !pointerLockUnavailable;
+    (entry.showSplash || entryIsFading || entered) &&
+    !overlay.isOverlayOpen &&
+    !focusSurfaceOpen &&
+    !pointerLockUnavailable;
+  const controlsEnabled =
+    (entryIsFading || entered) &&
+    !overlay.isOverlayOpen &&
+    !focusSurfaceOpen &&
+    !pointerLockUnavailable;
 
   const handleEmptyClick = useCallback(() => {
     if (!controlsEnabled) return;
@@ -219,26 +258,11 @@ export function SpaceDesktopExperience({
   const hud = useMemo(
     () => (
       <>
-        <SpaceGuide
-          message={t("space.guide")}
-          visible={entered && !pointerLockUnavailable && !overlay.isOverlayOpen && focusOverlayExhibit === null}
-        />
         <JumpHint message={jumpHintMessage} visible={jumpHintVisible} />
         {pointerLocked ? <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} /> : null}
       </>
     ),
-    [
-      crosshairPulseNonce,
-      focusOverlayExhibit,
-      isHovering,
-      jumpHintMessage,
-      jumpHintVisible,
-      overlay.isOverlayOpen,
-      pointerLocked,
-      pointerLockUnavailable,
-      t,
-      entered,
-    ],
+    [crosshairPulseNonce, isHovering, jumpHintMessage, jumpHintVisible, pointerLocked],
   );
 
   const useShadows = !ENABLE_GALLERY_GLB || ENABLE_GALLERY_RUNTIME_SHADOWS;
@@ -250,7 +274,7 @@ export function SpaceDesktopExperience({
         enabled
         entered={entered}
         overlayOpen={overlay.isOverlayOpen}
-        focusOpen={focusOverlayExhibit !== null}
+        focusOpen={focusSurfaceOpen}
       />
       <SpaceMovementDebugOverlay />
       <Toast
@@ -259,7 +283,7 @@ export function SpaceDesktopExperience({
         onDone={() => setToast(null)}
       />
       {hud}
-      <PlaybackBar elevated={!!focusOverlayExhibit} />
+      <PlaybackBar elevated={focusSurfaceOpen} />
       {webgpuReady === null ? (
         <div
           style={{
@@ -289,10 +313,16 @@ export function SpaceDesktopExperience({
           />
         </Suspense>
       ) : null}
+      {onboardingFocusVisible ? (
+        <SpaceOnboardingFocusDemo
+          onBeginDismiss={handleBeginDismissOnboardingFocus}
+          onClose={handleFinishDismissOnboardingFocus}
+        />
+      ) : null}
       {canRender3d ? (
         <WebGPUErrorBoundary>
           <div
-            className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${focused ? " space-canvasWrap--disabled" : ""}`}
+            className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${focusSurfaceOpen ? " space-canvasWrap--disabled" : ""}`}
           >
             <Canvas
               id="space-canvas"
@@ -362,6 +392,9 @@ export function SpaceDesktopExperience({
                     suppressNextClick={suppressNextExhibitClick}
                     onConsumeSuppressedClick={handleConsumeSuppressedClick}
                     onJumpNotice={handleJumpNotice}
+                    onboardingEnabled={entered && !pointerLockUnavailable}
+                    pointerLocked={pointerLocked}
+                    onboardingFocusVisible={onboardingFocusVisible}
                   />
                 </Physics>
                 <GalleryRenderPipeline />

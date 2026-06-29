@@ -10,6 +10,7 @@ export type ExhibitTarget = {
 
 const EXHIBIT_LABELS: Record<string, string> = {
   arch_treehabitat: "Tree Habitat",
+  space_onboarding_demo: "SPACE GUIDE",
 };
 
 export function formatExhibitLabel(exhibitId: string): string {

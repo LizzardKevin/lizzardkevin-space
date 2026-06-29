@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GALLERY_OUTSIDE_SPAWN_DROP } from "./galleryConfig";
+import { GALLERY_OUTSIDE_SPAWN_DROP } from "./galleryConfig.ts";
 
 export const EYE_OFFSET = 0.7;
 export const PLAYER_CAPSULE_HALF_HEIGHT = 0.65;
@@ -13,6 +13,10 @@ const STAND_FLOOR_CLEARANCE = 0.02;
 const INNER_SPAWN_INSET = 0.08;
 /** Min distance from COL_outer shell faces (wall thickness + clearance). */
 const OUTER_WALL_INSET = 0.55;
+/** Start the spawn grounding ray above the anchor so small marker offsets do not matter. */
+const SPAWN_GROUND_RAY_START_ABOVE_M = 2;
+/** Long enough to reach the current long-corridor floor and future lower-level gallery floors. */
+const SPAWN_GROUND_RAY_DROP_M = 80;
 
 const SPAWN_INNER_COLS = ["COL_inner_1", "COL_inner_2", "COL_inner_3"] as const;
 const SPAWN_OUTER_PREFIX = "COL_outer";
@@ -22,10 +26,11 @@ function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
 }
 
 function isWalkableCol(name: string) {
+  const normalized = name.toLowerCase();
   return (
-    name.startsWith("COL_ground") ||
-    name.startsWith("COL_floor") ||
-    name.startsWith("COL_platform")
+    normalized.startsWith("col_ground") ||
+    normalized.startsWith("col_floor") ||
+    normalized.startsWith("col_platform")
   );
 }
 
@@ -155,6 +160,26 @@ function collectWalkableFloors(root: THREE.Object3D): THREE.Mesh[] {
 
 function bodyYOnFloor(floorTopY: number) {
   return floorTopY + PLAYER_FOOT_OFFSET + STAND_FLOOR_CLEARANCE;
+}
+
+function floorTopFromSpawnAnchorRay(
+  root: THREE.Object3D,
+  x: number,
+  markerY: number,
+  z: number,
+): number | null {
+  root.updateMatrixWorld(true);
+  const floors = collectWalkableFloors(root);
+  if (floors.length === 0) return null;
+
+  const raycaster = new THREE.Raycaster(
+    new THREE.Vector3(x, markerY + SPAWN_GROUND_RAY_START_ABOVE_M, z),
+    new THREE.Vector3(0, -1, 0),
+    0,
+    SPAWN_GROUND_RAY_START_ABOVE_M + SPAWN_GROUND_RAY_DROP_M,
+  );
+  const hit = raycaster.intersectObjects(floors, true)[0];
+  return hit?.point.y ?? null;
 }
 
 function intersectFloorWithShell(floor: THREE.Mesh, outerShell: THREE.Box3 | null): THREE.Box3 {
@@ -312,7 +337,7 @@ export function resolveGallerySpawn(root: THREE.Object3D): [number, number, numb
   if (marker) {
     const p = new THREE.Vector3();
     marker.getWorldPosition(p);
-    const floorTopY = floorTopUnder(root, p.x, p.z) ?? p.y;
+    const floorTopY = floorTopFromSpawnAnchorRay(root, p.x, p.y, p.z) ?? floorTopUnder(root, p.x, p.z) ?? p.y;
     const y = bodyYOnFloor(floorTopY);
     if (isSpawnClear(p.x, y, p.z, innerBoxes, outer)) return [p.x, y, p.z];
   }

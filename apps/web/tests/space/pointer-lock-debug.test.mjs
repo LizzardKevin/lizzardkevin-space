@@ -49,7 +49,7 @@ test("frame rate debug samples report render fps and frame time", async () => {
   assert.ok(smoothed.frameMs > sample.frameMs);
 });
 
-test("guarded pointer lock keeps normal deltas and drops edge spikes", async () => {
+test("guarded pointer lock keeps normal and fast deltas, then drops impossible edge spikes", async () => {
   const controls = await importSourceModule("scenes/controls/guardedPointerLock.ts");
 
   assert.deepEqual(controls.resolveGuardedPointerDelta({ movementX: 18, movementY: -12 }), {
@@ -59,6 +59,12 @@ test("guarded pointer lock keeps normal deltas and drops edge spikes", async () 
     reason: null,
   });
   assert.deepEqual(controls.resolveGuardedPointerDelta({ movementX: 420, movementY: 8 }), {
+    movementX: 420,
+    movementY: 8,
+    dropped: false,
+    reason: null,
+  });
+  assert.deepEqual(controls.resolveGuardedPointerDelta({ movementX: 6000, movementY: 8 }), {
     movementX: 0,
     movementY: 0,
     dropped: true,

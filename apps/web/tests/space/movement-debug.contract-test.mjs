@@ -13,6 +13,7 @@ assert(
 );
 assert(files.player.includes("const PLAYER_PHYSICS_TIME_STEP = 1 / 60;"), "player movement must use the fixed physics timestep");
 assert(files.player.includes("const dt = PLAYER_PHYSICS_TIME_STEP;"), "player movement must not use render-frame dt for physics");
+assert(files.player.includes("const JUMP_ATTEMPT_UNLOCK_COUNT = 5;"), "jump easter egg should unlock after five attempts");
 assert(!files.player.includes("dtRef"), "player movement must not cache dynamic render dt for physics steps");
 assert(!files.player.includes("Math.min(dt, 0.05)"), "player movement must not clamp render dt for physics movement");
 assert(
