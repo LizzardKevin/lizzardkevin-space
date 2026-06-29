@@ -4,7 +4,7 @@ export const ENABLE_GALLERY_GLB = true;
 export const ENABLE_GALLERY_WALL_ART = false;
 
 /** Fallback spawn before GLB resolves (overwritten once gallery loads). */
-export const GALLERY_SPAWN: [number, number, number] = [-0.51, 37.758, -48.318];
+export const GALLERY_SPAWN: [number, number, number] = [-0.51, 36.897, -48.318];
 
 /**
  * First desktop view direction from the resolved spawn marker.
@@ -120,6 +120,7 @@ export const EXHIBIT_TARGET = {
     fontSizePx: 18,
     distanceFactor: 2,
   },
+  labelScreenPaddingPx: 32,
 };
 
 /** Fallback infinite safety floor Y (center of cuboid). Gallery load may refine this. */

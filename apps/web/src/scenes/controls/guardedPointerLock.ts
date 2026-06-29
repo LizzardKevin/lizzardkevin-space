@@ -1,5 +1,6 @@
 export const POINTER_LOCK_MOUSE_SENSITIVITY = 0.002;
-export const POINTER_LOCK_MAX_DELTA_PX = 96;
+export const POINTER_LOCK_MAX_DELTA_PX = 640;
+export const POINTER_LOCK_SPIKE_DELTA_PX = 4096;
 export const POINTER_LOCK_WARMUP_MOVES = 2;
 export const POINTER_LOCK_DEBUG_HISTORY_LIMIT = 600;
 
@@ -42,13 +43,22 @@ export function resolveGuardedPointerDelta({
   if (
     !Number.isFinite(movementX) ||
     !Number.isFinite(movementY) ||
-    Math.abs(movementX) > POINTER_LOCK_MAX_DELTA_PX ||
-    Math.abs(movementY) > POINTER_LOCK_MAX_DELTA_PX
+    Math.abs(movementX) > POINTER_LOCK_SPIKE_DELTA_PX ||
+    Math.abs(movementY) > POINTER_LOCK_SPIKE_DELTA_PX
   ) {
     return { movementX: 0, movementY: 0, dropped: true, reason: "spike" };
   }
 
-  return { movementX, movementY, dropped: false, reason: null };
+  return {
+    movementX: clamp(movementX, -POINTER_LOCK_MAX_DELTA_PX, POINTER_LOCK_MAX_DELTA_PX),
+    movementY: clamp(movementY, -POINTER_LOCK_MAX_DELTA_PX, POINTER_LOCK_MAX_DELTA_PX),
+    dropped: false,
+    reason: null,
+  };
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
 export function requestPointerLockWithRawFallback(

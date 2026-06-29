@@ -11,6 +11,7 @@ import { GallerySpawnProvider } from "./gallery/GallerySpawnProvider";
 import { useGallerySpawn } from "./gallery/useGallerySpawn";
 import { SafetyGround } from "./gallery/SafetyGround";
 import { WallPicture } from "./gallery/WallPicture";
+import { SpaceOnboarding } from "./onboarding/SpaceOnboarding";
 
 function SpaceSceneContent({
   exhibitTarget,
@@ -25,6 +26,9 @@ function SpaceSceneContent({
   suppressNextClick,
   onConsumeSuppressedClick,
   onJumpNotice,
+  onboardingEnabled,
+  pointerLocked,
+  onboardingFocusVisible,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -38,6 +42,9 @@ function SpaceSceneContent({
   suppressNextClick: boolean;
   onConsumeSuppressedClick: () => void;
   onJumpNotice: (message: string) => void;
+  onboardingEnabled: boolean;
+  pointerLocked: boolean;
+  onboardingFocusVisible: boolean;
 }) {
   const { spawn, safetyGroundY, safetyCenterX, safetyCenterZ } = useGallerySpawn();
 
@@ -99,6 +106,11 @@ function SpaceSceneContent({
 
       <ExhibitTargetLabel target={controlsEnabled ? exhibitTarget : null} />
       <ExhibitHoverHighlight target={controlsEnabled ? exhibitTarget : null} />
+      <SpaceOnboarding
+        enabled={onboardingEnabled}
+        pointerLocked={pointerLocked}
+        focusDemoVisible={onboardingFocusVisible}
+      />
       <ExhibitRaycast
         onTargetChange={onTargetChange}
         onFocusExhibit={onFocusExhibit}
@@ -124,6 +136,9 @@ export function SpaceScene({
   suppressNextClick,
   onConsumeSuppressedClick,
   onJumpNotice,
+  onboardingEnabled,
+  pointerLocked,
+  onboardingFocusVisible,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -137,6 +152,9 @@ export function SpaceScene({
   suppressNextClick: boolean;
   onConsumeSuppressedClick: () => void;
   onJumpNotice: (message: string) => void;
+  onboardingEnabled: boolean;
+  pointerLocked: boolean;
+  onboardingFocusVisible: boolean;
 }) {
   if (ENABLE_GALLERY_GLB) {
     return (
@@ -154,6 +172,9 @@ export function SpaceScene({
           suppressNextClick={suppressNextClick}
           onConsumeSuppressedClick={onConsumeSuppressedClick}
           onJumpNotice={onJumpNotice}
+          onboardingEnabled={onboardingEnabled}
+          pointerLocked={pointerLocked}
+          onboardingFocusVisible={onboardingFocusVisible}
         />
       </GallerySpawnProvider>
     );
@@ -173,6 +194,9 @@ export function SpaceScene({
       suppressNextClick={suppressNextClick}
       onConsumeSuppressedClick={onConsumeSuppressedClick}
       onJumpNotice={onJumpNotice}
+      onboardingEnabled={onboardingEnabled}
+      pointerLocked={pointerLocked}
+      onboardingFocusVisible={onboardingFocusVisible}
     />
   );
 }
