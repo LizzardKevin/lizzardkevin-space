@@ -140,7 +140,7 @@ export const GALLERY_LIGHT_EMISSIVE = {
 
 /** Neutral brushed aluminum: darker than floor, high roughness for a matte metal read. */
 export const GALLERY_ALUMINUM_MATERIAL = {
-  color: "#727272",
+  color: "#767676",
   emissive: "#000000",
   metalness: 0.58,
   roughness: 0.86,

@@ -484,7 +484,7 @@ export function SpaceDesktopExperience({
                     quality={quality}
                   />
                 </Physics>
-                <GalleryRenderPipeline bloom={quality.post.bloom} motionBlur={quality.post.motionBlur} />
+                <GalleryRenderPipeline bloom={quality.post.bloom} />
               </Suspense>
             </Canvas>
           </div>

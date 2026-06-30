@@ -11,10 +11,6 @@ export type SpaceQualityConfig = {
       radius: number;
       threshold: number;
     };
-    motionBlur: {
-      enabled: boolean;
-      reason: "requires-velocity-pass";
-    };
   };
   lighting: {
     lightEmissiveIntensity: number;
@@ -25,19 +21,16 @@ export type SpaceQualityConfig = {
 
 export type SpaceVisualSettings = {
   antialias: boolean;
-  motionBlur: boolean;
 };
 
 export const DEFAULT_SPACE_VISUAL_SETTINGS: SpaceVisualSettings = {
   antialias: true,
-  motionBlur: false,
 };
 
 export const SPACE_QUALITY_CONFIG: SpaceQualityConfig = {
   performance: { targetFps: 30 },
   post: {
     bloom: { enabled: true, strength: 0.12, radius: 0.08, threshold: 0.92 },
-    motionBlur: { enabled: false, reason: "requires-velocity-pass" },
   },
   lighting: { lightEmissiveIntensity: 6.2, bulbIntensity: 12, bulbDistance: 9.75 },
 };
@@ -56,7 +49,6 @@ function normalizeSpaceVisualSettings(value: unknown): SpaceVisualSettings {
   const stored = value as Partial<Record<keyof SpaceVisualSettings, unknown>>;
   return {
     antialias: readStoredBoolean(stored.antialias, DEFAULT_SPACE_VISUAL_SETTINGS.antialias),
-    motionBlur: readStoredBoolean(stored.motionBlur, DEFAULT_SPACE_VISUAL_SETTINGS.motionBlur),
   };
 }
 
@@ -113,10 +105,6 @@ export function setSpaceAntialias(antialias: boolean) {
   writeSpaceVisualSettings({ ...currentSettings, antialias });
 }
 
-export function setSpaceMotionBlur(motionBlur: boolean) {
-  writeSpaceVisualSettings({ ...currentSettings, motionBlur });
-}
-
 export function subscribeSpaceVisualSettings(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
@@ -133,14 +121,9 @@ export function useSpaceVisualSettings() {
     setSpaceAntialias(enabled);
   }, []);
 
-  const toggleMotionBlur = useCallback((enabled: boolean) => {
-    setSpaceMotionBlur(enabled);
-  }, []);
-
   return {
     quality: getSpaceQualityConfig(),
     settings,
     toggleAntialias,
-    toggleMotionBlur,
   };
 }
