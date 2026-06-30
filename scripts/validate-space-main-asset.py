@@ -27,8 +27,15 @@ REQUIRED_COLLECTIONS = (
     "VIS_LIGHTING",
     "VIS_METAL_PROPS",
     "VIS_STAIRS",
+    "VIS_TEMP_BLOCKERS",
     "MARKERS",
 )
+
+
+def is_temp_blocker_name(name: str) -> bool:
+    normalized = re.sub(r"\.\d{3}$", "", name.strip()).upper()
+    normalized = re.sub(r"[^A-Z0-9]+", "_", normalized).strip("_")
+    return normalized == "TEMP_BLOCKER" or normalized.startswith("TEMP_BLOCKER_")
 
 
 def collection_for_object(name: str) -> str | None:
@@ -38,6 +45,8 @@ def collection_for_object(name: str) -> str | None:
         return "MARKERS"
     if name.startswith(("ARCH_FLOOR_", "STRUCT_FLOOR_")):
         return "VIS_FLOORS"
+    if is_temp_blocker_name(name):
+        return "VIS_TEMP_BLOCKERS"
     if name.startswith("GLASS_"):
         return "VIS_GLASS"
     if name.startswith("LIGHT_GENERIC_LIGHT_"):
@@ -56,6 +65,8 @@ def collection_for_object(name: str) -> str | None:
 def material_for_object(name: str) -> str | None:
     if name.startswith("COL_"):
         return "mat_collision_helper_transparent_red"
+    if is_temp_blocker_name(name):
+        return "mat_temp_blocker_frosted_milky"
     if name.startswith("LIGHT_GENERIC_LIGHT_"):
         return "mat_led_generic_warm_emissive"
     if name.startswith(("ARCH_STAIR_", "STRUCT_STAIR_")):

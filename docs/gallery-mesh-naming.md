@@ -85,6 +85,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 | `mat_metal_aluminum_soft` | `(0.90, 0.90, 0.90, 1.0)` | `0.74` | `0.18` | `OPAQUE` | - |
 | `mat_glass_frosted_soft` | `(0.74, 0.76, 0.76, 0.42)` | `0.0` | `0.42` | `BLEND` | - |
 | `mat_glass_clear_soft` | `(0.84, 0.86, 0.86, 0.32)` | `0.0` | `0.14` | `BLEND` | - |
+| `mat_temp_blocker_frosted_milky` | `(0.86, 0.85, 0.82, 0.66)` | `0.0` | `0.96` | `BLEND` | - |
 | `mat_led_generic_warm_emissive` | `(1.0, 0.94, 0.78, 1.0)` | `0.0` | `0.30` | `OPAQUE` | color `(1.0, 0.90, 0.66, 1.0)`, strength `2.8` |
 | `mat_collision_helper_transparent_red` | `(1.0, 0.08, 0.02, 0.22)` | `0.0` | `0.35` | `BLEND` | - |
 
@@ -99,6 +100,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 | `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` |
 | `GLASS_CLEAR_*` | `mat_glass_clear_soft` |
 | `GLASS_FROSTED_*`、其他 `GLASS_*` | `mat_glass_frosted_soft` |
+| `TEMP_BLOCKER_*` | `mat_temp_blocker_frosted_milky` |
 | `ARCH_*`、`STRUCT_WALL_*`、`STRUCT_CEILING_*` | `mat_arch_plaster_warm_white` |
 
 **材质脚本导出约定**：
@@ -135,7 +137,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 | `AO_ATTR_NAME` | `Color`，导出为 glTF `COLOR_0` |
 | `AO_TARGET_PREFIXES` | `("ARCH_", "ARCH_STAIR_", "STRUCT_STAIR_", "METAL_ALUMINUM_")` |
 | `AO_RECEIVER_PREFIXES` | `("ARCH_", "ARCH_STAIR_", "STRUCT_STAIR_", "METAL_ALUMINUM_")` |
-| `AO_EXCLUDED_OCCLUDER_PREFIXES` | `("COL_", "GLASS_", "LIGHT_GENERIC_LIGHT_")` |
+| `AO_EXCLUDED_OCCLUDER_PREFIXES` | `("COL_", "GLASS_", "LIGHT_GENERIC_LIGHT_", "TEMP_BLOCKER_")` |
 | `AO_SAMPLES` | `64` |
 | `AO_MIN` | `0.62`，AO 最暗下限，防止压黑 |
 | `AO_STRENGTH` | `0.38` |
@@ -154,6 +156,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 | `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` | 银白阳极氧化铝/格栅：base `(0.90, 0.90, 0.90, 1)`, metallic `0.74`, roughness `0.18` |
 | `GLASS_FROSTED_*`、其他 `GLASS_*` | `mat_glass_frosted_soft` | 磨砂灰蓝透明玻璃，反射更强：base `(0.74, 0.76, 0.76, 0.42)`, roughness `0.42`, alpha blend |
 | `GLASS_CLEAR_*` | `mat_glass_clear_soft` | 更清透、更强反射玻璃：base `(0.84, 0.86, 0.86, 0.32)`, roughness `0.14`, alpha blend |
+| `TEMP_BLOCKER_*` | `mat_temp_blocker_frosted_milky` | Temporary frosted blocker fallback in GLB: neutral milky warm-gray alpha blend, base `(0.86, 0.85, 0.82, 0.66)`, roughness `0.96`. Runtime upgrades these meshes to `runtime_temp_blocker_frosted_physical` using `MeshPhysicalMaterial` transmission, thickness, attenuation, and roughness `1.0` so the blocker reads as frosted rather than merely transparent. |
 | `LIGHT_GENERIC_LIGHT_*` | `mat_led_generic_warm_emissive` | 暖白 LED 发光面：base `(1.0, 0.94, 0.78, 1)`, emissive `(1.0, 0.90, 0.66)`, strength `2.8` |
 | `COL_*` | `mat_collision_helper_transparent_red` | 碰撞辅助材质；运行时由 `prepareGalleryScene` 隐藏 |
 
