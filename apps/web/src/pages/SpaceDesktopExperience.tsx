@@ -19,6 +19,7 @@ import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOve
 import { SpaceScene } from "../scenes/SpaceScene";
 import {
   ENABLE_GALLERY_GLB,
+  ENABLE_GALLERY_RENDERER_ANTIALIAS,
   ENABLE_GALLERY_RUNTIME_SHADOWS,
   ENABLE_GALLERY_TOON,
   GALLERY_SPAWN,
@@ -29,6 +30,7 @@ import { spawnToCameraPosition } from "../scenes/gallery/resolveGallerySpawn";
 import { SPACE_ONBOARDING_DEMO_EXHIBIT_ID } from "../scenes/onboarding/spaceOnboardingConfig";
 import { SpaceOnboardingFocusDemo } from "../scenes/onboarding/SpaceOnboardingFocusDemo";
 import { useTranslation } from "react-i18next";
+import { useSpaceVisualSettings } from "../space/spaceVisualSettings";
 
 import {
   SPACE_POINTER_LOCK_FAILED_EVENT,
@@ -117,6 +119,7 @@ export function SpaceDesktopExperience({
   const [onboardingCompleted, setOnboardingCompleted] = useState(dailyResumePose !== null);
   const latestSpacePoseRef = useRef<SpacePlayerPose | null>(dailyResumePose);
   const lastDailyResumeSaveAtRef = useRef(0);
+  const { quality } = useSpaceVisualSettings();
 
   const { entered, fading: entryIsFading } = entry;
 
@@ -395,7 +398,7 @@ export function SpaceDesktopExperience({
               gl={(props) =>
                 createWebGPURenderer({
                   canvas: props.canvas as HTMLCanvasElement,
-                  antialias: props.antialias,
+                  antialias: ENABLE_GALLERY_RENDERER_ANTIALIAS,
                 })
               }
               camera={{
@@ -463,9 +466,10 @@ export function SpaceDesktopExperience({
                     initialPose={dailyResumePose}
                     onPoseSample={handleSpacePoseSample}
                     onOnboardingCompleted={() => setOnboardingCompleted(true)}
+                    quality={quality}
                   />
                 </Physics>
-                <GalleryRenderPipeline />
+                <GalleryRenderPipeline bloom={quality.post.bloom} />
               </Suspense>
             </Canvas>
           </div>

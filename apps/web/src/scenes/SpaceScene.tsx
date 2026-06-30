@@ -13,6 +13,7 @@ import { SafetyGround } from "./gallery/SafetyGround";
 import { WallPicture } from "./gallery/WallPicture";
 import { SpaceOnboarding } from "./onboarding/SpaceOnboarding";
 import type { SpacePlayerPose } from "../space/spaceDailyResume";
+import type { SpaceQualityConfig } from "../space/spaceVisualSettings";
 
 function SpaceSceneContent({
   exhibitTarget,
@@ -33,6 +34,7 @@ function SpaceSceneContent({
   initialPose,
   onPoseSample,
   onOnboardingCompleted,
+  quality,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -52,6 +54,7 @@ function SpaceSceneContent({
   initialPose?: SpacePlayerPose | null;
   onPoseSample?: (pose: SpacePlayerPose) => void;
   onOnboardingCompleted?: () => void;
+  quality: SpaceQualityConfig;
 }) {
   const { spawn, safetyGroundY, safetyCenterX, safetyCenterZ } = useGallerySpawn();
 
@@ -65,6 +68,7 @@ function SpaceSceneContent({
           loadExhibits={loadExhibits}
           onExhibitsReady={onSceneExhibitsReady}
           onSceneReady={onSceneReady}
+          quality={quality}
         />
       ) : null}
 
@@ -152,6 +156,7 @@ export function SpaceScene({
   initialPose,
   onPoseSample,
   onOnboardingCompleted,
+  quality,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -171,6 +176,7 @@ export function SpaceScene({
   initialPose?: SpacePlayerPose | null;
   onPoseSample?: (pose: SpacePlayerPose) => void;
   onOnboardingCompleted?: () => void;
+  quality: SpaceQualityConfig;
 }) {
   if (ENABLE_GALLERY_GLB) {
     return (
@@ -194,6 +200,7 @@ export function SpaceScene({
           initialPose={initialPose}
           onPoseSample={onPoseSample}
           onOnboardingCompleted={onOnboardingCompleted}
+          quality={quality}
         />
       </GallerySpawnProvider>
     );
@@ -219,6 +226,7 @@ export function SpaceScene({
       initialPose={initialPose}
       onPoseSample={onPoseSample}
       onOnboardingCompleted={onOnboardingCompleted}
+      quality={quality}
     />
   );
 }

@@ -3,16 +3,23 @@ import { bindExhibitIds } from "./bindExhibitIds";
 import {
   ENABLE_GALLERY_OVERRIDE_MATERIALS,
   ENABLE_GALLERY_RUNTIME_SHADOWS,
+  ENABLE_GALLERY_SELECTIVE_STYLIZATION,
   ENABLE_GALLERY_TOON,
   GALLERY_SURFACE_COLOR,
 } from "./galleryConfig";
 import { createGalleryToonMaterial } from "./galleryToonMaterial";
+import { applyGallerySceneMaterialStyle, isGalleryLightMesh } from "./galleryStyleMaterials";
 
 function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
   return !!obj && (obj as THREE.Mesh).isMesh === true;
 }
 
 export type BulbLightSpec = {
+  name: string;
+  position: [number, number, number];
+};
+
+export type GalleryLightHaloSpec = {
   name: string;
   position: [number, number, number];
 };
@@ -63,8 +70,10 @@ export function prepareGalleryScene(root: THREE.Object3D) {
   bindExhibitIds(root);
 
   const bulbs: BulbLightSpec[] = [];
+  const lightHalos: GalleryLightHaloSpec[] = [];
   const seen = new Map<string, THREE.Mesh>();
   const tempBlockerMaterial = createTempBlockerFrostedMaterial();
+  const worldPosition = new THREE.Vector3();
   let assignedTempBlockerMaterial = false;
 
   root.traverse((obj) => {
@@ -93,6 +102,8 @@ export function prepareGalleryScene(root: THREE.Object3D) {
 
     if (ENABLE_GALLERY_OVERRIDE_MATERIALS && !isTempBlocker) {
       applyGallerySurfaceMaterial(obj, GALLERY_SURFACE_COLOR);
+    } else if (ENABLE_GALLERY_SELECTIVE_STYLIZATION && !isTempBlocker) {
+      applyGallerySceneMaterialStyle(obj);
     }
 
     if (isTempBlocker) {
@@ -105,15 +116,24 @@ export function prepareGalleryScene(root: THREE.Object3D) {
     obj.castShadow = ENABLE_GALLERY_RUNTIME_SHADOWS && !isTempBlocker;
     obj.receiveShadow = ENABLE_GALLERY_RUNTIME_SHADOWS && !isTempBlocker;
 
+    if (isGalleryLightMesh(obj.name)) {
+      obj.getWorldPosition(worldPosition);
+      lightHalos.push({
+        name: obj.name,
+        position: [worldPosition.x, worldPosition.y, worldPosition.z],
+      });
+    }
+
     if (obj.name.startsWith("bulb_")) {
+      obj.getWorldPosition(worldPosition);
       bulbs.push({
         name: obj.name,
-        position: [obj.position.x, obj.position.y, obj.position.z],
+        position: [worldPosition.x, worldPosition.y, worldPosition.z],
       });
     }
   });
 
   if (!assignedTempBlockerMaterial) tempBlockerMaterial.dispose();
 
-  return { bulbs };
+  return { bulbs, lightHalos };
 }
