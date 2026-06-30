@@ -2862,12 +2862,15 @@ button {
   color: rgba(255, 255, 255, 0.82);
   cursor: pointer;
   font-size: 12px;
+  font-weight: 600;
   line-height: 1;
   letter-spacing: 0.08em;
+  mix-blend-mode: difference;
   text-decoration: none;
   text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.22),
-    0 0 10px rgba(0, 0, 0, 0.12);
+    0 0 1px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.44),
+    0 0 12px rgba(0, 0, 0, 0.28);
   text-transform: uppercase;
   transform-origin: center;
   transition:
@@ -2905,6 +2908,10 @@ button {
   background: transparent;
   color: rgba(255, 255, 255, 0.66);
   cursor: pointer;
+  filter:
+    drop-shadow(0 0 1px rgba(0, 0, 0, 0.54))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+  mix-blend-mode: difference;
   pointer-events: auto;
   transition:
     color 220ms ease,
