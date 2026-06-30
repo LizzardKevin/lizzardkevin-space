@@ -51,6 +51,17 @@ test("resolveFocusImageFrameSize keeps 1080p image cards inside the center stage
   assert.ok(size.normalWidth <= 794 - 48, "normal image width should fit inside stage gutters");
 });
 
+test("resolveFocusSafeAreaPx resolves Focus CSS clamp safe areas for image measurement", async () => {
+  const { resolveFocusSafeAreaPx } = await importSourceModule("exhibits/focusImageFrameSize.ts");
+
+  assert.equal(resolveFocusSafeAreaPx("92px", 900, 0), 92);
+  assert.equal(resolveFocusSafeAreaPx("9vh", 900, 0), 81);
+  assert.equal(resolveFocusSafeAreaPx("clamp(76px, 7.2vh, 92px)", 900, 0), 76);
+  assert.equal(resolveFocusSafeAreaPx("clamp(88px, 9vh, 118px)", 900, 0), 88);
+  assert.equal(resolveFocusSafeAreaPx("clamp(76px, 7.2vh, 92px)", 1440, 0), 92);
+  assert.equal(resolveFocusSafeAreaPx("not-a-length", 900, 118), 118);
+});
+
 test("fitFocusModelToFrame rotates around the whole model bounding-box center", async () => {
   const { fitFocusModelToFrame } = await importSourceModule("exhibits/focusModelFrame.ts");
 

@@ -5,12 +5,23 @@ import { readSourceFile } from "../helpers/projectPaths.mjs";
 
 test("Focus desktop layout uses the planned ratio and side panels become frameless split-style text", () => {
   const css = readSourceFile("styles/global.css");
+  const overlayRule = cssRule(css, ".focus-overlay");
   const layoutRule = cssRule(css, ".focus-layout");
   const panelShellRule = cssRule(css, ".focus-panel");
   const panelRule = cssRule(css, ".focus-panel__inner");
   const overviewRule = cssRule(css, ".focus-overview");
   const storyRule = cssRule(css, ".focus-story");
 
+  assert.equal(
+    declarationValue(overlayRule, "--focus-top-safe"),
+    "clamp(76px, 7.2vh, 92px)",
+    "Focus top safe area should compress on short desktop viewports without colliding with the return control",
+  );
+  assert.equal(
+    declarationValue(overlayRule, "--focus-bottom-safe"),
+    "clamp(88px, 9vh, 118px)",
+    "Focus bottom safe area should compress on short desktop viewports while keeping media controls off the edge",
+  );
   assert.equal(
     declarationValue(layoutRule, "grid-template-columns"),
     "minmax(300px, 0.8fr) minmax(720px, 1.8fr) minmax(300px, 0.9fr)",
@@ -61,6 +72,56 @@ test("Focus desktop layout uses the planned ratio and side panels become framele
     declarationValue(panelShellRule, "max-height"),
     "min(72vh, 640px)",
     "Focus side panels should use the taller requested desktop height",
+  );
+});
+
+test("Focus small desktop layout compresses side text alongside media", () => {
+  const css = readSourceFile("styles/global.css");
+  const layoutRule = cssRuleInMedia(css, "max-width: 1600px), (max-height: 900px", ".focus-layout");
+  const panelShellRule = cssRuleInMedia(css, "max-width: 1600px), (max-height: 900px", ".focus-panel");
+  const panelRule = cssRuleInMedia(css, "max-width: 1600px), (max-height: 900px", ".focus-panel__inner");
+  const overviewRule = cssRuleInMedia(css, "max-width: 1600px), (max-height: 900px", ".focus-overview,\n  .focus-story");
+  const tagsRule = cssRuleInMedia(css, "max-width: 1600px), (max-height: 900px", ".focus-tags,\n  .focus-details");
+
+  assert.equal(
+    declarationValue(layoutRule, "grid-template-columns"),
+    "minmax(240px, 0.82fr) minmax(360px, 1.28fr) minmax(280px, 0.9fr)",
+    "Small desktop Focus layout should keep side columns useful without starving the measured media stage",
+  );
+  assert.equal(
+    declarationValue(panelShellRule, "max-width"),
+    "min(390px, 92%)",
+    "Small desktop panels should become narrower before crowding the image card",
+  );
+  assert.equal(
+    declarationValue(panelShellRule, "max-height"),
+    "min(68vh, 560px)",
+    "Small desktop panels should leave vertical breathing room for media controls",
+  );
+  assert.equal(
+    declarationValue(panelRule, "max-height"),
+    "min(68vh, 560px)",
+    "Small desktop panel scroll bounds should match the compressed shell",
+  );
+  assert.equal(
+    declarationValue(overviewRule, "max-width"),
+    "38ch",
+    "Small desktop text should tighten line length to avoid pushing against the media stage",
+  );
+  assert.equal(
+    declarationValue(overviewRule, "font-size"),
+    "12px",
+    "Small desktop text should step down slightly for 1080p layouts",
+  );
+  assert.equal(
+    declarationValue(overviewRule, "line-height"),
+    "1.62",
+    "Small desktop text should keep readable leading after the size step-down",
+  );
+  assert.equal(
+    declarationValue(tagsRule, "margin-top"),
+    "22px",
+    "Small desktop metadata groups should tighten vertical rhythm",
   );
 });
 

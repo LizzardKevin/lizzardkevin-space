@@ -43,6 +43,7 @@ import {
 } from "./focusImageCardMotion.ts";
 import {
   resolveFocusImageFrameSize,
+  resolveFocusSafeAreaPx,
   type FocusImageFrameSize,
 } from "./focusImageFrameSize.ts";
 import { preloadFocusImages, type PreloadedFocusImage } from "./focusImagePreload.ts";
@@ -572,8 +573,16 @@ export function FocusOverlay({
     if (!stageRect) return;
 
     const overlayStyle = overlayEl ? window.getComputedStyle(overlayEl) : null;
-    const topSafe = Number.parseFloat(overlayStyle?.getPropertyValue("--focus-top-safe") ?? "") || 92;
-    const bottomSafe = Number.parseFloat(overlayStyle?.getPropertyValue("--focus-bottom-safe") ?? "") || 118;
+    const topSafe = resolveFocusSafeAreaPx(
+      overlayStyle?.getPropertyValue("--focus-top-safe"),
+      window.innerHeight,
+      92,
+    );
+    const bottomSafe = resolveFocusSafeAreaPx(
+      overlayStyle?.getPropertyValue("--focus-bottom-safe"),
+      window.innerHeight,
+      118,
+    );
     setImageFrameSize(
       resolveFocusImageFrameSize({
         naturalWidth: image.naturalWidth,
@@ -770,6 +779,13 @@ export function FocusOverlay({
     () => getFocusImageFrameStyle(imageFrameSize),
     [imageFrameSize],
   );
+  const centerFrameStyle = useMemo(() => {
+    const style: Record<string, string> = {};
+    if (imageFrameSize) {
+      style["--focus-media-half-width"] = `${Math.round(imageFrameSize.normalWidth / 2)}px`;
+    }
+    return style as CSSProperties;
+  }, [imageFrameSize]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -836,7 +852,7 @@ export function FocusOverlay({
           </div>
         </FocusSideColumn>
 
-        <div className="focus-layout__center">
+        <div className="focus-layout__center" style={centerFrameStyle}>
           <FocusBlank
             className={`focus-blank--fill${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-center" : ""}`}
             onBlankClick={handleBlankClick}

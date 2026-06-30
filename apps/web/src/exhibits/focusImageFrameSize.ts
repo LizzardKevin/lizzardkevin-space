@@ -16,6 +16,36 @@ type FocusImageFrameSizeInput = {
   bottomSafe: number;
 };
 
+function resolveFocusCssLengthTokenPx(token: string, viewportHeight: number) {
+  const value = token.trim();
+  const pxMatch = value.match(/^(-?\d+(?:\.\d+)?)px$/);
+  if (pxMatch) return Number(pxMatch[1]);
+  const vhMatch = value.match(/^(-?\d+(?:\.\d+)?)vh$/);
+  if (vhMatch) return (Number(vhMatch[1]) / 100) * viewportHeight;
+  return null;
+}
+
+export function resolveFocusSafeAreaPx(
+  cssValue: string | null | undefined,
+  viewportHeight: number,
+  fallbackPx: number,
+) {
+  if (!cssValue) return fallbackPx;
+  const direct = resolveFocusCssLengthTokenPx(cssValue, viewportHeight);
+  if (direct !== null) return direct;
+
+  const clampMatch = cssValue
+    .trim()
+    .match(/^clamp\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)$/);
+  if (!clampMatch) return fallbackPx;
+
+  const min = resolveFocusCssLengthTokenPx(clampMatch[1], viewportHeight);
+  const preferred = resolveFocusCssLengthTokenPx(clampMatch[2], viewportHeight);
+  const max = resolveFocusCssLengthTokenPx(clampMatch[3], viewportHeight);
+  if (min === null || preferred === null || max === null) return fallbackPx;
+  return Math.min(Math.max(preferred, min), max);
+}
+
 export function resolveFocusImageFrameSize({
   naturalWidth,
   naturalHeight,

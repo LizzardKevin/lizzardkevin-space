@@ -1806,8 +1806,8 @@ button {
 /* --- Focus overlay --- */
 
 .focus-overlay {
-  --focus-top-safe: 92px;
-  --focus-bottom-safe: 118px;
+  --focus-top-safe: clamp(76px, 7.2vh, 92px);
+  --focus-bottom-safe: clamp(88px, 9vh, 118px);
   position: fixed;
   inset: 0;
   z-index: 60;
@@ -2194,6 +2194,7 @@ button {
 }
 
 .focus-layout__center {
+  --focus-media-half-width: min(520px, 37vw);
   grid-area: center;
   position: relative;
   min-height: 0;
@@ -2446,7 +2447,6 @@ button {
 }
 
 .focus-media-arrow {
-  --focus-media-half-width: min(520px, 37vw);
   position: absolute;
   top: 50%;
   z-index: 6;
@@ -2665,6 +2665,36 @@ button {
   }
   to {
     opacity: 1;
+  }
+}
+
+@media (max-width: 1600px), (max-height: 900px) {
+  .focus-layout {
+    grid-template-columns:
+      minmax(240px, 0.82fr)
+      minmax(360px, 1.28fr)
+      minmax(280px, 0.9fr);
+  }
+
+  .focus-panel {
+    max-width: min(390px, 92%);
+    max-height: min(68vh, 560px);
+  }
+
+  .focus-panel__inner {
+    max-height: min(68vh, 560px);
+  }
+
+  .focus-overview,
+  .focus-story {
+    max-width: 38ch;
+    font-size: 12px;
+    line-height: 1.62;
+  }
+
+  .focus-tags,
+  .focus-details {
+    margin-top: 22px;
   }
 }
 

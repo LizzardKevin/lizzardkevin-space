@@ -31,6 +31,12 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
     "Focus images should measure each image's natural dimensions before showing rounded normal and viewport-scale frames",
   );
   assert.ok(
+    overlaySource.includes("centerFrameStyle") &&
+      overlaySource.includes("--focus-media-half-width") &&
+      overlaySource.includes("imageFrameSize.normalWidth / 2"),
+    "Focus media arrows should follow the measured normal image width instead of a viewport-only fallback",
+  );
+  assert.ok(
     overlaySource.includes("preloadedFocusImagesRef") &&
       overlaySource.includes("preloadFocusImages(mediaItems)") &&
       overlaySource.includes("Promise.allSettled") &&
@@ -202,8 +208,8 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.match(
     css,
-    /\.focus-media-arrow\s*{[^}]*--focus-media-half-width:\s*min\(520px,\s*37vw\)/s,
-    "Focus media arrows should position themselves from the image half-width",
+    /\.focus-layout__center\s*{[^}]*--focus-media-half-width:\s*min\(520px,\s*37vw\)/s,
+    "Focus center stage should provide a stable half-width fallback for media arrows",
   );
   assert.match(
     css,
