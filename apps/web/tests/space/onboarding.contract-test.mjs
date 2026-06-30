@@ -29,6 +29,8 @@ const config = readProjectFile(expectedFiles.config);
 const visibility = readProjectFile(expectedFiles.visibility);
 const onboardingScene = readProjectFile(expectedFiles.scene);
 const focusDemo = readProjectFile(expectedFiles.focusDemo);
+const exhibitTarget = readProjectFile("apps/web/src/exhibits/exhibitTarget.ts");
+const targetLabel = readProjectFile("apps/web/src/exhibits/ExhibitTargetLabel.tsx");
 const desktop = files.desktop;
 const focusOverlay = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
 const i18n = readProjectFile("apps/web/src/i18n/i18n.ts");
@@ -37,6 +39,7 @@ const packageJson = readProjectFile("package.json");
 
 const expectedAssetPaths = [
   "apps/web/public/onboarding/space-onboarding-move.png",
+  "apps/web/public/onboarding/space-onboarding-notice.png",
   "apps/web/public/onboarding/space-onboarding-look.png",
   "apps/web/public/onboarding/space-onboarding-demo.png",
   "apps/web/public/onboarding/space-onboarding-esc.png",
@@ -63,6 +66,26 @@ for (const assetPath of expectedAssetPaths) {
 
 assert.match(
   config,
+  /"notice"/,
+  "onboarding should begin with a version notice step",
+);
+assert.match(
+  config,
+  /SPACE_ONBOARDING_NOTICE_VISIBLE_MS\s*=\s*3800/,
+  "opening notice should stay visible before dissolving into the movement tutorial",
+);
+assert.match(
+  config,
+  /imageSrc:\s*"\/onboarding\/space-onboarding-notice\.png"/,
+  "opening notice should use a generated onboarding PNG",
+);
+assert.match(
+  config,
+  /position:\s*\[-0\.55,\s*SPACE_ONBOARDING_EYE_LEVEL_Y,\s*-45\.9\]/,
+  "opening notice should sit farther ahead of the player instead of close to the face",
+);
+assert.match(
+  config,
   /SPACE_ONBOARDING_DEMO_EXHIBIT_ID\s*=\s*"space_onboarding_demo"/,
   "onboarding demo should use a stable synthetic exhibit id",
 );
@@ -73,8 +96,13 @@ assert.match(
 );
 assert.match(
   config,
-  /SPACE_ONBOARDING_DEMO_HIT_SIZE:\s*\[number,\s*number,\s*number\]\s*=\s*\[\s*SPACE_ONBOARDING_SIGNS\.demo\.hitSizeM\[0\],\s*SPACE_ONBOARDING_SIGNS\.demo\.hitSizeM\[1\],\s*0\.12,\s*\]/,
-  "demo hit mesh should derive from the configured text hit area",
+  /SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE:\s*\[number,\s*number\]\s*=\s*\[\s*2\.05,\s*0\.42,\s*\]/,
+  "demo hit mesh should use a tighter text-only hit area instead of the full transparent PNG canvas",
+);
+assert.match(
+  config,
+  /SPACE_ONBOARDING_DEMO_HIT_SIZE:\s*\[number,\s*number\]\s*=\s*SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE/,
+  "demo hit mesh should expose a two-dimensional raycast plane size",
 );
 assert.match(
   config,
@@ -98,8 +126,8 @@ assert.match(
 );
 assert.match(
   config,
-  /position:\s*\[-0\.55,\s*SPACE_ONBOARDING_EYE_LEVEL_Y,\s*-46\.7\]/,
-  "move sign should sit in front of spawn",
+  /position:\s*\[-0\.55,\s*SPACE_ONBOARDING_EYE_LEVEL_Y,\s*-43\.9\]/,
+  "move sign should sit deeper than the opening notice to stretch the corridor tutorial",
 );
 assert.match(
   config,
@@ -137,6 +165,17 @@ assert(
   "onboarding signs should linger and dissolve instead of unmounting instantly",
 );
 assert(
+  onboardingScene.includes("moveStartZRef") &&
+    onboardingScene.includes('sign.id === "move"') &&
+    onboardingScene.includes("moveStartZRef.current = camera.position.z") &&
+    onboardingScene.includes("camera.position.z - moveStartZRef.current"),
+  "WASD movement progress should start from the camera position when the move sign appears, not from spawn before the notice",
+);
+assert(
+  !onboardingScene.includes("camera.position.z - SPACE_ONBOARDING_SPAWN[2]"),
+  "WASD movement progress must not be pre-completed by walking during the opening notice",
+);
+assert(
   onboardingScene.includes("lookHitMeshRef") &&
     onboardingScene.includes("raycaster.intersectObject") &&
     onboardingScene.includes("lookTargeted"),
@@ -148,8 +187,17 @@ assert(
   "onboarding sign visibility should define the short inter-sign delay and dissolve timing",
 );
 assert(
-  visibility.includes("SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS = 250"),
-  "onboarding signs should wait 250ms between a dissolved sign and the next sign",
+  visibility.includes("SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS = 100"),
+  "onboarding signs should wait 100ms between a dissolved sign and the next sign",
+);
+assert(
+  visibility.includes("SPACE_ONBOARDING_NOTICE_ENTER_MS = 260") &&
+    visibility.includes("enterMsForSign"),
+  "opening notice should enter faster than ordinary onboarding signs",
+);
+assert(
+  visibility.includes("SPACE_ONBOARDING_NOTICE_COMPLETE_FALLBACK_MS = 0"),
+  "opening notice should begin dissolving as soon as its viewed timer completes",
 );
 assert(
   visibility.includes("SPACE_ONBOARDING_SIGN_ENTER_MS") &&
@@ -163,6 +211,19 @@ assert(
     onboardingScene.includes("SPACE_ONBOARDING_DEMO_HIT_POSITION") &&
     onboardingScene.includes("userData={demoHitUserData}"),
   "demo sign should expose the synthetic exhibit id through a raycast hit mesh",
+);
+assert(
+  onboardingScene.includes("demoHitMeshRef") &&
+    onboardingScene.includes("planeGeometry args={SPACE_ONBOARDING_DEMO_HIT_SIZE}") &&
+    onboardingScene.includes("demoHitMeshRef.current.quaternion.copy(camera.quaternion)") &&
+    !onboardingScene.includes("<boxGeometry args={SPACE_ONBOARDING_DEMO_HIT_SIZE}"),
+  "demo hit mesh should be a camera-facing plane so aiming only works over the visible text",
+);
+assert(
+  exhibitTarget.includes("computeExhibitLabelAnchor") &&
+    targetLabel.includes("computeExhibitLabelAnchor") &&
+    targetLabel.includes("targetObject"),
+  "SPACE GUIDE and exhibit labels should recompute from the current mesh bounds instead of drifting from a stale anchor",
 );
 assert(
   !onboardingScene.includes("SpaceOnboardingFogBlocker") &&
@@ -195,6 +256,14 @@ assert(!focusOverlay.includes("space-onboarding-focus__exitHint"), "real exhibit
 assert(!focusOverlay.includes("双击空白也可以退出"), "real exhibit focus must not gain the onboarding double-click copy");
 
 assert(i18n.includes("onboarding"), "i18n should contain onboarding copy");
+assert(
+  i18n.includes('notice: "SPACE Gallery ver 0.1 / 目前仅开放部分区域，其余展区正在建设中"'),
+  "Chinese notice copy should explain the ver 0.1 partial gallery state",
+);
+assert(
+  i18n.includes('notice: "SPACE Gallery ver 0.1 / Selected areas are open now. More rooms are under construction."'),
+  "English notice copy should explain the ver 0.1 partial gallery state",
+);
 assert(i18n.includes('esc: "按 Esc 呼出鼠标"'), "Chinese Esc copy should only teach releasing the mouse");
 assert(
   i18n.includes('relock: "点击空白区域重新控制视角"'),
@@ -225,11 +294,44 @@ assert(css.includes(".space-onboarding-sign"), "global CSS should style world on
 assert(css.includes(".space-onboarding-sign__image"), "global CSS should style generated onboarding PNGs");
 assert(css.includes("drop-shadow"), "generated onboarding PNGs should receive runtime glow");
 assert(css.includes("spaceOnboardingTextEnter"), "global CSS should fade onboarding text in");
+assert(css.includes("--space-onboarding-enter-ms"), "global CSS should allow the opening notice to enter faster");
 assert(css.includes("spaceOnboardingTextSwap"), "global CSS should animate Esc/relock text conversion");
 assert(css.includes(".space-onboarding-sign--exiting"), "global CSS should animate onboarding sign exits");
 assert(css.includes("spaceOnboardingDissolve"), "global CSS should dissolve completed onboarding signs");
 assert(css.includes("spaceOnboardingMistDissolve"), "global CSS should dissolve text through a soft mist layer");
 assert(css.includes("cubic-bezier(0.16, 1, 0.3, 1)"), "dissolve animation should use a smooth non-choppy easing");
 assert(css.includes(".space-onboarding-focus"), "global CSS should style the demo focus overlay");
+
+const dailyResume = readProjectFile("apps/web/src/space/spaceDailyResume.ts");
+assert(
+  dailyResume.includes('SPACE_DAILY_RESUME_STORAGE_KEY = "spaceDailyResumeV1"'),
+  "SPACE daily resume should use the planned localStorage key",
+);
+assert(
+  dailyResume.includes("shouldSaveSpaceDailyResume"),
+  "SPACE daily resume should expose the onboarding-complete save gate",
+);
+assert(
+  dailyResume.includes("clearSpaceDailyResume"),
+  "SPACE daily resume should expose a silent reset helper for replaying onboarding",
+);
+assert(
+  desktop.includes("readSpaceDailyResume") &&
+    desktop.includes("writeSpaceDailyResume") &&
+    desktop.includes("onboardingCompleted"),
+  "desktop experience should read daily resume and save only after onboarding completion",
+);
+assert(
+  desktop.includes("dailyResumePose === null"),
+  "desktop experience should disable onboarding when a same-day resume pose exists",
+);
+assert(
+  !desktop.includes("setToast(t(\"space.resume") && !desktop.includes("setToast(\"resume"),
+  "daily resume should stay silent and avoid user-facing toasts",
+);
+assert(
+  files.player.includes("initialPose") && files.player.includes("onPoseSample"),
+  "PlayerController should accept restored poses and publish pose samples",
+);
 
 console.log("space onboarding contract tests passed");

@@ -22,6 +22,15 @@ export function formatExhibitLabel(exhibitId: string): string {
 const _box = new THREE.Box3();
 const _center = new THREE.Vector3();
 
+export function computeExhibitLabelAnchor(
+  object: THREE.Object3D,
+  target: THREE.Vector3 = new THREE.Vector3(),
+): THREE.Vector3 {
+  _box.setFromObject(object);
+  _box.getCenter(_center);
+  return target.set(_center.x, _box.max.y + EXHIBIT_TARGET.labelOffsetY, _center.z);
+}
+
 /** Camera distance to exhibit bbox center (world meters). */
 export function exhibitDistanceFromCamera(camera: THREE.Camera, object: THREE.Object3D): number {
   _box.setFromObject(object);
@@ -34,12 +43,6 @@ export function isExhibitWithinRange(camera: THREE.Camera, object: THREE.Object3
 }
 
 export function buildExhibitTarget(object: THREE.Object3D, exhibitId: string): ExhibitTarget {
-  _box.setFromObject(object);
-  _box.getCenter(_center);
-  const labelAnchor = new THREE.Vector3(
-    _center.x,
-    _box.max.y + EXHIBIT_TARGET.labelOffsetY,
-    _center.z,
-  );
+  const labelAnchor = computeExhibitLabelAnchor(object);
   return { exhibitId, labelAnchor, object };
 }

@@ -4,6 +4,7 @@ export const SPACE_ONBOARDING_DEMO_EXHIBIT_ID = "space_onboarding_demo";
 export const SPACE_ONBOARDING_LOOK_HIT_ID = "space_onboarding_look_target";
 
 export type SpaceOnboardingStepId =
+  | "notice"
   | "move"
   | "look"
   | "demo"
@@ -32,9 +33,21 @@ export const SPACE_ONBOARDING_EYE_LEVEL_Y = Number((SPACE_ONBOARDING_SPAWN[1] + 
 export const SPACE_ONBOARDING_MOVE_DISTANCE_M = 1.4;
 export const SPACE_ONBOARDING_LOOK_RADIANS = (7 * Math.PI) / 180;
 export const SPACE_ONBOARDING_DEMO_GATE_Z = -41.2;
+export const SPACE_ONBOARDING_NOTICE_VISIBLE_MS = 3800;
 export const SPACE_ONBOARDING_DONE_VISIBLE_MS = 4200;
 
 export const SPACE_ONBOARDING_SIGNS: Record<SpaceOnboardingSignStepId, SpaceOnboardingSign> = {
+  notice: {
+    id: "notice",
+    textKey: "space.onboarding.notice",
+    imageSrc: "/onboarding/space-onboarding-notice.png",
+    imageWidthPx: 1500,
+    imageHeightPx: 360,
+    displayWidthPx: 620,
+    hitSizeM: [4.1, 0.95],
+    position: [-0.55, SPACE_ONBOARDING_EYE_LEVEL_Y, -45.9],
+    className: "space-onboarding-sign--notice",
+  },
   move: {
     id: "move",
     textKey: "space.onboarding.move",
@@ -43,7 +56,7 @@ export const SPACE_ONBOARDING_SIGNS: Record<SpaceOnboardingSignStepId, SpaceOnbo
     imageHeightPx: 280,
     displayWidthPx: 423,
     hitSizeM: [2.65, 0.66],
-    position: [-0.55, SPACE_ONBOARDING_EYE_LEVEL_Y, -46.7],
+    position: [-0.55, SPACE_ONBOARDING_EYE_LEVEL_Y, -43.9],
   },
   look: {
     id: "look",
@@ -107,11 +120,11 @@ export const SPACE_ONBOARDING_DEMO_HIT_POSITION: [number, number, number] = [
   SPACE_ONBOARDING_SIGNS.demo.position[1] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[1],
   SPACE_ONBOARDING_SIGNS.demo.position[2] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[2],
 ];
-export const SPACE_ONBOARDING_DEMO_HIT_SIZE: [number, number, number] = [
-  SPACE_ONBOARDING_SIGNS.demo.hitSizeM[0],
-  SPACE_ONBOARDING_SIGNS.demo.hitSizeM[1],
-  0.12,
+export const SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE: [number, number] = [
+  2.05,
+  0.42,
 ];
+export const SPACE_ONBOARDING_DEMO_HIT_SIZE: [number, number] = SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE;
 
 export const SPACE_ONBOARDING_LOOK_HIT_OFFSET: [number, number, number] = [0, -0.02, 0];
 export const SPACE_ONBOARDING_LOOK_HIT_POSITION: [number, number, number] = [

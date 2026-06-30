@@ -4,10 +4,12 @@ import {
 } from "./spaceOnboardingConfig.ts";
 
 export const SPACE_ONBOARDING_SIGN_ENTER_MS = 500;
+export const SPACE_ONBOARDING_NOTICE_ENTER_MS = 260;
 export const SPACE_ONBOARDING_SIGN_DISSOLVE_MS = 950;
 export const SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M = 1;
-export const SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS = 250;
+export const SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS = 100;
 export const SPACE_ONBOARDING_SIGN_OPERATION_COMPLETE_FALLBACK_MS = 1000;
+export const SPACE_ONBOARDING_NOTICE_COMPLETE_FALLBACK_MS = 0;
 export const SPACE_ONBOARDING_SIGN_MIN_LINGER_MS = SPACE_ONBOARDING_SIGN_OPERATION_COMPLETE_FALLBACK_MS;
 
 export type SpaceOnboardingVisibleSignStatus = "enter" | "visible" | "exiting";
@@ -42,6 +44,16 @@ export function createInitialSpaceOnboardingSignQueueState(): SpaceOnboardingSig
 
 function isWithinDissolveLead(id: SpaceOnboardingSignStepId, cameraZ: number): boolean {
   return cameraZ >= SPACE_ONBOARDING_SIGNS[id].position[2] - SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M;
+}
+
+function operationCompleteFallbackMs(id: SpaceOnboardingSignStepId): number {
+  return id === "notice"
+    ? SPACE_ONBOARDING_NOTICE_COMPLETE_FALLBACK_MS
+    : SPACE_ONBOARDING_SIGN_OPERATION_COMPLETE_FALLBACK_MS;
+}
+
+export function enterMsForSign(id: SpaceOnboardingSignStepId): number {
+  return id === "notice" ? SPACE_ONBOARDING_NOTICE_ENTER_MS : SPACE_ONBOARDING_SIGN_ENTER_MS;
 }
 
 function createVisibleSign(
@@ -109,7 +121,7 @@ function advanceSignLifecycle(
   const active = normalized.id === update.activeSignId;
   const entered =
     normalized.status === "enter" &&
-    update.nowMs - normalized.firstSeenAtMs >= SPACE_ONBOARDING_SIGN_ENTER_MS
+    update.nowMs - normalized.firstSeenAtMs >= enterMsForSign(normalized.id)
       ? { ...normalized, status: "visible" as const }
       : normalized;
 
@@ -126,7 +138,7 @@ function advanceSignLifecycle(
   };
 
   const fallbackElapsed =
-    update.nowMs - operationCompletedAtMs >= SPACE_ONBOARDING_SIGN_OPERATION_COMPLETE_FALLBACK_MS;
+    update.nowMs - operationCompletedAtMs >= operationCompleteFallbackMs(completed.id);
   const shouldExit =
     completed.status === "visible" &&
     (isWithinDissolveLead(completed.id, update.cameraZ) || fallbackElapsed);

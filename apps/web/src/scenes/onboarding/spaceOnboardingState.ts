@@ -9,6 +9,7 @@ export type SpaceOnboardingState = {
 };
 
 export type SpaceOnboardingEvent =
+  | { type: "noticeViewed" }
   | { type: "moveProgress"; distanceM: number }
   | { type: "lookChanged"; radians: number }
   | { type: "lookTargeted" }
@@ -20,7 +21,7 @@ export type SpaceOnboardingEvent =
   | { type: "doneViewed" };
 
 export function createInitialSpaceOnboardingState(): SpaceOnboardingState {
-  return { step: "move", completed: false };
+  return { step: "notice", completed: false };
 }
 
 function next(step: SpaceOnboardingStepId): SpaceOnboardingState {
@@ -34,6 +35,10 @@ export function reduceSpaceOnboardingState(
   if (state.completed) return state;
 
   switch (state.step) {
+    case "notice":
+      if (event.type === "noticeViewed") return next("move");
+      return state;
+
     case "move":
       if (event.type === "moveProgress" && event.distanceM >= SPACE_ONBOARDING_MOVE_DISTANCE_M) {
         return next("look");

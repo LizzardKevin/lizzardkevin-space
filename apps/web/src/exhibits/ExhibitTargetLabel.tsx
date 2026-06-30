@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { EXHIBIT_TARGET } from "../scenes/gallery/galleryConfig";
-import { formatExhibitLabel, type ExhibitTarget } from "./exhibitTarget";
+import { computeExhibitLabelAnchor, formatExhibitLabel, type ExhibitTarget } from "./exhibitTarget";
 import {
   clampExhibitLabelScreenPoint,
   type ExhibitLabelScreenPoint,
@@ -43,8 +43,8 @@ export function ExhibitTargetLabel({ target }: { target: ExhibitTarget | null })
 
   useFrame(() => {
     if (!display) return;
-    const anchor = target?.labelAnchor ?? display.labelAnchor;
-    projectedAnchor.copy(anchor).project(camera);
+    const targetObject = target?.object ?? display.object;
+    computeExhibitLabelAnchor(targetObject, projectedAnchor).project(camera);
     const next = clampExhibitLabelScreenPoint(
       {
         x: Math.round((projectedAnchor.x * 0.5 + 0.5) * size.width),

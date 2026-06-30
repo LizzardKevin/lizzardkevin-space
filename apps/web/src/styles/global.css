@@ -1508,6 +1508,7 @@ button {
 
 .space-onboarding-sign {
   --space-onboarding-sign-image-width: 360px;
+  --space-onboarding-enter-ms: 500ms;
   --space-onboarding-glow-strong: rgba(255, 255, 255, 0.86);
   --space-onboarding-glow-soft: rgba(185, 220, 255, 0.48);
   --space-onboarding-mist: rgba(255, 255, 255, 0.26);
@@ -1578,8 +1579,8 @@ button {
 
 .space-onboarding-sign--entering {
   animation:
-    spaceOnboardingTextEnter 500ms cubic-bezier(0.22, 1, 0.36, 1) both,
-    spaceOnboardingFloat 4.8s ease-in-out 500ms infinite;
+    spaceOnboardingTextEnter var(--space-onboarding-enter-ms) cubic-bezier(0.22, 1, 0.36, 1) both,
+    spaceOnboardingFloat 4.8s ease-in-out var(--space-onboarding-enter-ms) infinite;
 }
 
 .space-onboarding-sign--swapping {
