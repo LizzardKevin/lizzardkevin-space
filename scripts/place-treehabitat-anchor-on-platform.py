@@ -157,6 +157,16 @@ def top_face_center(obj: bpy.types.Object, bounds: dict[str, float]) -> Vector:
     )
 
 
+def top_bounds_center(bounds: dict[str, float]) -> Vector:
+    return Vector(
+        (
+            (bounds["min_x"] + bounds["max_x"]) / 2.0,
+            (bounds["min_y"] + bounds["max_y"]) / 2.0,
+            bounds["max_z"],
+        ),
+    )
+
+
 def set_mesh_to_world_box(
     obj: bpy.types.Object,
     *,
@@ -255,7 +265,7 @@ def main() -> None:
     collider_before = world_bounds(collider)
     snap_before = world_bounds(snap_collider) if len(snap_collider.data.vertices) > 0 else None
     anchor_before = Vector(anchor.location)
-    anchor_target = top_face_center(platform, platform_bounds)
+    anchor_target = top_bounds_center(platform_bounds)
 
     anchor.location = anchor_target
     anchor.rotation_euler = (0.0, 0.0, 0.0)
