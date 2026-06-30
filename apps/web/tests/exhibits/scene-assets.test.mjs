@@ -7,26 +7,6 @@ import { readGlbJson } from "../helpers/glb.mjs";
 
 const publicDir = publicPath();
 
-function assertClose(actual, expected, message) {
-  assert.ok(Math.abs(actual - expected) < 0.000001, `${message}: expected ${expected}, got ${actual}`);
-}
-
-function findNode(json, name) {
-  return (json.nodes ?? []).find((node) => node.name === name);
-}
-
-function firstPositionBounds(json, node) {
-  assert.notEqual(node?.mesh, undefined, `${node?.name ?? "node"} must reference a mesh`);
-  const mesh = json.meshes[node.mesh];
-  const primitive = mesh?.primitives?.[0];
-  const accessorIndex = primitive?.attributes?.POSITION;
-  assert.notEqual(accessorIndex, undefined, `${node.name} must expose POSITION bounds`);
-  const accessor = json.accessors[accessorIndex];
-  assert.ok(Array.isArray(accessor?.min), `${node.name} POSITION accessor needs min`);
-  assert.ok(Array.isArray(accessor?.max), `${node.name} POSITION accessor needs max`);
-  return { min: accessor.min, max: accessor.max };
-}
-
 test("scene exhibit manifest points active exhibits at anchors and three LOD models", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
@@ -36,7 +16,11 @@ test("scene exhibit manifest points active exhibits at anchors and three LOD mod
   assert.ok(!ids.includes("demo_box"));
   assert.ok(!ids.includes("demo_bass"));
 
-  for (const exhibitId of ["arch_treehabitat"]) {
+  for (const exhibitId of [
+    "arch_treehabitat",
+    "arch_uabb_exhibit",
+    "arch_3d_printing_architecture",
+  ]) {
     const exhibit = manifest.exhibits.find((item) => item.exhibitId === exhibitId);
     assert.ok(exhibit?.scene, `${exhibitId} needs scene placement config`);
     assert.match(exhibit.scene.anchor, /^ANCHOR_/);
@@ -77,50 +61,66 @@ test("Tree Habitat focus images stay below the 2MB loading budget", () => {
   }
 });
 
-test("Tree Habitat snaps directly to its named platform collider", () => {
+test("world-coordinate exhibit GLBs use the runtime world-origin anchor without floor snapping", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
   );
-  const exhibit = manifest.exhibits.find((item) => item.exhibitId === "arch_treehabitat");
-  const json = readGlbJson(path.join(publicDir, "models/space_main.glb"));
-  const anchor = findNode(json, "ANCHOR_ARCH_TREEHABITAT");
-  const snapCollider = findNode(json, "COL_PLATFORM_TREEHABITAT_SNAP");
-  const snapBounds = firstPositionBounds(json, snapCollider);
-  const snapCenterX = (snapBounds.min[0] + snapBounds.max[0]) / 2;
-  const snapCenterZ = (snapBounds.min[2] + snapBounds.max[2]) / 2;
-  const snapTopY = snapBounds.max[1];
+  const ids = ["arch_treehabitat", "arch_uabb_exhibit", "arch_3d_printing_architecture"];
 
-  assert.equal(exhibit?.scene?.placement?.heightOffset, 0);
-  assert.deepEqual(anchor?.translation?.length, 3);
-  assertClose(anchor.translation[0], snapCenterX, "Tree Habitat anchor X should hit snap collider center");
-  assertClose(anchor.translation[1], snapTopY, "Tree Habitat anchor Y should sit on snap collider top");
-  assertClose(anchor.translation[2], snapCenterZ, "Tree Habitat anchor Z should hit snap collider center");
+  for (const exhibitId of ids) {
+    const exhibit = manifest.exhibits.find((item) => item.exhibitId === exhibitId);
+    assert.equal(exhibit?.scene?.anchor, "ANCHOR_WORLD_ORIGIN", `${exhibitId} anchor`);
+    assert.deepEqual(exhibit?.scene?.distanceAnchor?.length, 3, `${exhibitId} needs a LOD distance anchor`);
+    assert.ok(
+      exhibit.scene.distanceAnchor.some((value) => Math.abs(value) > 0.001),
+      `${exhibitId} distance anchor should track the authored model bounds, not the world origin`,
+    );
+    assert.equal(exhibit?.scene?.placement?.snap, "none", `${exhibitId} should keep authored world coordinates`);
+    assert.equal(exhibit?.scene?.placement?.heightOffset, 0, `${exhibitId} height offset`);
+  }
 });
 
-test("Tree Habitat content sample has portfolio metadata and no pipeline copy", () => {
-  const content = JSON.parse(
-    fs.readFileSync(path.join(publicDir, "exhibits/arch_treehabitat/content.json"), "utf8"),
+test("UABB aliases unresolved LOD levels to a single runtime GLB until real simplification is produced", () => {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
   );
+  const exhibit = manifest.exhibits.find((item) => item.exhibitId === "arch_uabb_exhibit");
+  const modelUrls = Object.values(exhibit?.scene?.models ?? {});
 
-  assert.equal(typeof content.subtitle, "string");
-  assert.match(content.subtitle.trim(), /\S/);
-  assert.ok(Array.isArray(content.metadata));
-  for (const item of content.metadata) {
-    assert.equal(typeof item.label, "string");
-    assert.equal(typeof item.value, "string");
-    assert.match(item.label.trim(), /\S/);
-    assert.match(item.value.trim(), /\S/);
+  assert.deepEqual(new Set(modelUrls).size, 1);
+  assert.equal(modelUrls[0], "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb");
+});
+
+test("active exhibit content samples have portfolio metadata and no pipeline copy", () => {
+  for (const exhibitId of [
+    "arch_treehabitat",
+    "arch_uabb_exhibit",
+    "arch_3d_printing_architecture",
+  ]) {
+    const content = JSON.parse(
+      fs.readFileSync(path.join(publicDir, `exhibits/${exhibitId}/content.json`), "utf8"),
+    );
+
+    assert.equal(typeof content.subtitle, "string");
+    assert.match(content.subtitle.trim(), /\S/);
+    assert.ok(Array.isArray(content.metadata));
+    for (const item of content.metadata) {
+      assert.equal(typeof item.label, "string");
+      assert.equal(typeof item.value, "string");
+      assert.match(item.label.trim(), /\S/);
+      assert.match(item.value.trim(), /\S/);
+    }
+    assert.deepEqual(
+      content.metadata.map((item) => item.label),
+      ["Year", "Type", "Medium", "Role", "Status"],
+    );
+
+    const exhibitCopy = [content.subtitle, content.overview, content.storyHtml].join(" ");
+    assert.doesNotMatch(
+      exhibitCopy,
+      /\b(?:LOD|pipeline|space_main\.glb|anchor|clicked|highlighted|focus flow)\b/i,
+    );
   }
-  assert.deepEqual(
-    content.metadata.map((item) => item.label),
-    ["Year", "Type", "Medium", "Role", "Status"],
-  );
-
-  const exhibitCopy = [content.subtitle, content.overview, content.storyHtml].join(" ");
-  assert.doesNotMatch(
-    exhibitCopy,
-    /\b(?:LOD|pipeline|space_main\.glb|anchor|clicked|highlighted|focus flow)\b/i,
-  );
 });
 
 test("space_main GLB includes production exhibit anchors and no embedded exhibit meshes", () => {

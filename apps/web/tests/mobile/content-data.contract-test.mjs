@@ -210,6 +210,23 @@ assert(
     mobileData.includes('"/exhibits/arch_treehabitat/img/FL-26.jpg'),
   "Tree Habitat mobile project must include exhibit image URLs",
 );
+assert(mobileData.includes('id: "arch_uabb_exhibit"'), "mobile projects must include UABB Exhibit by exhibit id");
+assert(mobileData.includes('title: "UABB Exhibit"'), "UABB mobile project must use the exhibit title");
+assert(
+  mobileData.includes("Urban research and exhibition model study") &&
+    mobileData.includes("Shenzhen field observation"),
+  "UABB mobile copy must frame the work as urban research and exhibition model study",
+);
+assert(
+  mobileData.includes('id: "arch_3d_printing_architecture"'),
+  "mobile projects must include 3D Printing Architecture by exhibit id",
+);
+assert(
+  mobileData.includes('title: "3D Printing Architecture"') &&
+    mobileData.includes('mediaKind: "video"') &&
+    mobileData.includes("process animation"),
+  "3D Printing Architecture mobile project must describe the model plus process animation",
+);
 
 for (const forbiddenMarker of [
   "archiveAutoPaused",

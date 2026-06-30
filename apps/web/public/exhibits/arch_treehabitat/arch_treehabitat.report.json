@@ -1,10 +1,10 @@
 {
-  "source": "C:\\Users\\lizza\\.codex\\worktrees\\5db0\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.source.glb",
+  "source": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.source.glb",
   "method": "blender-decimate",
   "outputs": [
     {
       "lod": "lod0",
-      "path": "C:\\Users\\lizza\\.codex\\worktrees\\5db0\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod0.glb",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod0.glb",
       "ratio": 1,
       "materialAssignment": {
         "whiteAssigned": 465,
@@ -24,12 +24,12 @@
         "vertexCount": 194458,
         "faceCount": 223054
       },
-      "fileSizeBytes": 8235120,
+      "fileSizeBytes": 8618392,
       "manualReviewRequired": false
     },
     {
       "lod": "lod1",
-      "path": "C:\\Users\\lizza\\.codex\\worktrees\\5db0\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod1.glb",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod1.glb",
       "ratio": 0.45,
       "materialAssignment": {
         "whiteAssigned": 465,
@@ -46,15 +46,15 @@
       "after": {
         "meshCount": 497,
         "materialCount": 2,
-        "vertexCount": 103619,
+        "vertexCount": 103751,
         "faceCount": 100073
       },
-      "fileSizeBytes": 4545760,
+      "fileSizeBytes": 5003456,
       "manualReviewRequired": true
     },
     {
       "lod": "lod2",
-      "path": "C:\\Users\\lizza\\.codex\\worktrees\\5db0\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod2.glb",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod2.glb",
       "ratio": 0.12,
       "materialAssignment": {
         "whiteAssigned": 465,
@@ -71,10 +71,10 @@
       "after": {
         "meshCount": 497,
         "materialCount": 2,
-        "vertexCount": 42349,
-        "faceCount": 28541
+        "vertexCount": 42558,
+        "faceCount": 28651
       },
-      "fileSizeBytes": 1632024,
+      "fileSizeBytes": 1711588,
       "manualReviewRequired": true
     }
   ],

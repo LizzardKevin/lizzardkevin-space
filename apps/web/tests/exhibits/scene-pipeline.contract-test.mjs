@@ -48,7 +48,7 @@ const validate = spawnSync(process.execPath, ["scripts/validate-exhibit-scene-as
 assert.equal(validate.status, 0, validate.stderr || validate.stdout);
 const validation = JSON.parse(validate.stdout);
 assert.equal(validation.errorCount, 0);
-assert.ok(validation.sceneExhibitCount >= 1);
+assert.ok(validation.sceneExhibitCount >= 3);
 assert.ok(validation.anchorNames.includes("ANCHOR_ARCH_TREEHABITAT"));
 
 const cache = spawnSync(process.execPath, ["scripts/generate-exhibit-placement-cache.mjs", "--dry-run"], {
@@ -61,6 +61,24 @@ assert.ok(Array.isArray(placementCache.placements));
 assert.ok(!placementCache.placements.some((placement) => placement.exhibitId === "demo_box"));
 assert.ok(!placementCache.placements.some((placement) => placement.exhibitId === "demo_bass"));
 assert.ok(placementCache.placements.some((placement) => placement.exhibitId === "arch_treehabitat"));
+assert.ok(placementCache.placements.some((placement) => placement.exhibitId === "arch_uabb_exhibit"));
+assert.ok(placementCache.placements.some((placement) => placement.exhibitId === "arch_3d_printing_architecture"));
+assert.ok(
+  placementCache.placements
+    .filter((placement) =>
+      ["arch_treehabitat", "arch_uabb_exhibit", "arch_3d_printing_architecture"].includes(placement.exhibitId),
+    )
+    .every((placement) => placement.anchor === "ANCHOR_WORLD_ORIGIN"),
+  "world-coordinate exhibit GLBs should use the runtime world-origin anchor",
+);
+assert.deepEqual(
+  placementCache.placements.find((placement) => placement.exhibitId === "arch_treehabitat")?.anchorTransform?.position,
+  [0, 0, 0],
+);
+assert.deepEqual(
+  placementCache.placements.find((placement) => placement.exhibitId === "arch_3d_printing_architecture")?.distanceAnchor,
+  [-165.06116, 30.218862, -15.547259],
+);
 assert.equal(placementCache.placements[0].snap.status, "runtime");
 
 const lodHelp = spawnSync(process.execPath, ["scripts/prepare-exhibit-lods.mjs", "--help"], {
@@ -89,6 +107,7 @@ assert.match(spaceDesktopExperience, /loadExhibits/);
 assert.match(spaceDesktopExperience, /onSceneExhibitsReady/);
 assert.match(spaceScene, /loadExhibits/);
 assert.match(galleryModel, /loadExhibits/);
+assert.match(galleryModel, /TempBlockerNotices/);
 
 const lodBlenderScript = readProjectFile("scripts/prepare-exhibit-lods-blender.py");
 assert.match(lodBlenderScript, /mat_treehabitat_white_matte/);

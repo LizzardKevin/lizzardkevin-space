@@ -32,7 +32,8 @@
         ]
       },
       "scene": {
-        "anchor": "ANCHOR_ARCH_TREEHABITAT",
+        "anchor": "ANCHOR_WORLD_ORIGIN",
+        "distanceAnchor": [-12.590655, 26.41809, -5.630336],
         "models": {
           "lod0": "/exhibits/arch_treehabitat/arch_treehabitat.lod0.glb",
           "lod1": "/exhibits/arch_treehabitat/arch_treehabitat.lod1.glb",
@@ -40,7 +41,62 @@
         },
         "scale": 1,
         "placement": {
-          "snap": "floor",
+          "snap": "none",
+          "heightOffset": 0,
+          "yawOffsetDeg": 0
+        },
+        "load": {
+          "lod0Distance": 8,
+          "lod1Distance": 22,
+          "lod2Distance": 45,
+          "unloadDistance": 60
+        }
+      }
+    },
+    {
+      "exhibitId": "arch_uabb_exhibit",
+      "focusGlbUrl": "/exhibits/arch_uabb_exhibit/focus_arch_uabb_exhibit.glb",
+      "type": "model3d",
+      "scene": {
+        "anchor": "ANCHOR_WORLD_ORIGIN",
+        "distanceAnchor": [-19.760264, 23.153265, -1.90665],
+        "models": {
+          "lod0": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
+          "lod1": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
+          "lod2": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb"
+        },
+        "scale": 1,
+        "placement": {
+          "snap": "none",
+          "heightOffset": 0,
+          "yawOffsetDeg": 0
+        },
+        "load": {
+          "lod0Distance": 6,
+          "lod1Distance": 14,
+          "lod2Distance": 30,
+          "unloadDistance": 40
+        }
+      }
+    },
+    {
+      "exhibitId": "arch_3d_printing_architecture",
+      "focusGlbUrl": "/exhibits/arch_3d_printing_architecture/focus_arch_3d_printing_architecture.glb",
+      "type": "model3d",
+      "media": {
+        "videoUrl": "/exhibits/arch_3d_printing_architecture/video/final-clip-without-bgm.mp4"
+      },
+      "scene": {
+        "anchor": "ANCHOR_WORLD_ORIGIN",
+        "distanceAnchor": [-165.06116, 30.218862, -15.547259],
+        "models": {
+          "lod0": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod0.glb",
+          "lod1": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod1.glb",
+          "lod2": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod2.glb"
+        },
+        "scale": 1,
+        "placement": {
+          "snap": "none",
           "heightOffset": 0,
           "yawOffsetDeg": 0
         },

@@ -369,6 +369,82 @@ export const mobileProjectItems: MobileProjectItem[] = [
     ],
   },
   {
+    id: "arch_uabb_exhibit",
+    title: "UABB Exhibit",
+    subtitle: {
+      en: "Urban research and exhibition model study for Shenzhen's everyday spatial systems",
+      zh: "围绕深圳日常空间系统的城市研究与展览模型研究",
+    },
+    indexLabel: "Student Room / Urban Research",
+    category: "Study",
+    stageId: "stage-student",
+    stageLabel: "Education",
+    tags: ["URBAN RESEARCH", "EXHIBITION MODEL", "SHENZHEN", "FIELD OBSERVATION", "PUBLIC INTERFACE"],
+    summary: {
+      en: "An architecture-school research project that turns Shenzhen field observation, public interfaces, informal economies, and mapping work into a spatial exhibition model.",
+      zh: "一个建筑学习阶段的研究项目，把深圳现场观察、公共界面、非正式经济和 mapping 工作转译成一个空间展览模型。",
+    },
+    story: {
+      en: "UABB Exhibit sits between urban research and exhibition design. It studies how ordinary street fragments, commercial rhythms, thresholds, and service spaces can be compressed into a model that reads like a spatial archive.",
+      zh: "UABB Exhibit 位于城市研究与展览设计之间。它研究日常街道片段、商业节奏、门槛空间和服务空间如何被压缩成一个像空间档案一样可阅读的模型。",
+    },
+    signal: {
+      en: "The work should read as research translated into space: observation, mapping, model logic, and exhibition language working together.",
+      zh: "这个作品应被读作被转译为空间的研究：观察、mapping、模型逻辑和展览语言共同工作。",
+    },
+    spaceLayer: {
+      en: "Education layer / Urban research entry for model-based exhibition thinking and future research boards.",
+      zh: "Education layer / Urban research 条目，用于承载基于模型的展览思考和未来研究板内容。",
+    },
+    archiveNote: {
+      en: "Mobile keeps the project text-first while desktop SPACE carries the heavier model artifact.",
+      zh: "移动端先保持文字优先；较重的模型展品由桌面端 SPACE 承载。",
+    },
+    mediaKind: "model",
+    mediaStatus: {
+      en: "desktop model exhibit / mobile text index",
+      zh: "桌面端模型展品 / 移动端文字索引",
+    },
+  },
+  {
+    id: "arch_3d_printing_architecture",
+    title: "3D Printing Architecture",
+    subtitle: {
+      en: "Architecture prototype study pairing a printed spatial model with process animation",
+      zh: "结合 3D 打印空间模型与过程动画的建筑原型研究",
+    },
+    indexLabel: "Student Room / Fabrication Study",
+    category: "Study",
+    stageId: "stage-student",
+    stageLabel: "Education",
+    tags: ["3D PRINTING", "FABRICATION STUDY", "PHYSICAL MODEL", "PROCESS ANIMATION", "ARCHITECTURE PROTOTYPE"],
+    summary: {
+      en: "A model-based architecture prototype where fabrication logic, surface continuity, residential scale, and physical making are presented through a desktop model and one process animation.",
+      zh: "一个以模型为核心的建筑原型：通过桌面端模型和一个过程动画呈现制造逻辑、表皮连续性、居住尺度与实体制作。",
+    },
+    story: {
+      en: "The project treats 3D printing as a design instrument rather than only a final output. The printed model records the feedback loop between digital geometry, fabrication constraints, and spatial intention.",
+      zh: "这个项目把 3D 打印视为设计工具，而不只是最终产出。打印模型记录了数字几何、制造限制与空间意图之间的反馈回路。",
+    },
+    signal: {
+      en: "The work should feel compact and process-led: model first, one animation second, with no extra documentation noise.",
+      zh: "这个作品应该保持紧凑并以过程为主：先看模型，再看一个动画，不加入多余文档噪音。",
+    },
+    spaceLayer: {
+      en: "Education layer / Fabrication entry for physical modeling, 3D printing, and process video.",
+      zh: "Education layer / Fabrication 条目，用于呈现实体模型、3D 打印和过程视频。",
+    },
+    archiveNote: {
+      en: "Mobile describes the artifact; desktop Focus shows the rotatable model and MP4 process animation.",
+      zh: "移动端描述作品；桌面端 Focus 展示可旋转模型和 MP4 过程动画。",
+    },
+    mediaKind: "video",
+    mediaStatus: {
+      en: "desktop model + process animation",
+      zh: "桌面端模型 + 过程动画",
+    },
+  },
+  {
     id: "project-02",
     title: "Project 02",
     indexLabel: "Student Room / Object 02",

@@ -1,0 +1,82 @@
+{
+  "source": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_3d_printing_architecture\\arch_3d_printing_architecture.source.glb",
+  "method": "blender-decimate",
+  "outputs": [
+    {
+      "lod": "lod0",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_3d_printing_architecture\\arch_3d_printing_architecture.lod0.glb",
+      "ratio": 1,
+      "materialAssignment": {
+        "whiteAssigned": 0,
+        "glassAssigned": 0,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": false
+      },
+      "before": {
+        "meshCount": 685,
+        "materialCount": 0,
+        "vertexCount": 375254,
+        "faceCount": 447352
+      },
+      "after": {
+        "meshCount": 685,
+        "materialCount": 0,
+        "vertexCount": 375254,
+        "faceCount": 447352
+      },
+      "fileSizeBytes": 15824920,
+      "manualReviewRequired": false
+    },
+    {
+      "lod": "lod1",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_3d_printing_architecture\\arch_3d_printing_architecture.lod1.glb",
+      "ratio": 0.45,
+      "materialAssignment": {
+        "whiteAssigned": 0,
+        "glassAssigned": 0,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": false
+      },
+      "before": {
+        "meshCount": 685,
+        "materialCount": 0,
+        "vertexCount": 375254,
+        "faceCount": 447352
+      },
+      "after": {
+        "meshCount": 685,
+        "materialCount": 0,
+        "vertexCount": 201674,
+        "faceCount": 201113
+      },
+      "fileSizeBytes": 8793252,
+      "manualReviewRequired": true
+    },
+    {
+      "lod": "lod2",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_3d_printing_architecture\\arch_3d_printing_architecture.lod2.glb",
+      "ratio": 0.12,
+      "materialAssignment": {
+        "whiteAssigned": 0,
+        "glassAssigned": 0,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": false
+      },
+      "before": {
+        "meshCount": 685,
+        "materialCount": 0,
+        "vertexCount": 375254,
+        "faceCount": 447352
+      },
+      "after": {
+        "meshCount": 685,
+        "materialCount": 0,
+        "vertexCount": 87189,
+        "faceCount": 60858
+      },
+      "fileSizeBytes": 3424224,
+      "manualReviewRequired": true
+    }
+  ],
+  "nextStep": "Inspect lod1/lod2 for hard edges, text, thin rods, stair-stepped details, and silhouette loss."
+}

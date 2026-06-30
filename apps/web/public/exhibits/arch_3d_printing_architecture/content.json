@@ -1,0 +1,36 @@
+{
+  "title": "3D Printing Architecture",
+  "subtitle": "Architecture prototype study pairing a printed spatial model with process animation",
+  "overview": "3D Printing Architecture presents a model-based design study where fabrication logic, townhouse scale, surface continuity and physical prototyping sit at the center of the work. The exhibit focuses on the object and its process animation: a compact way to read geometry, making and spatial intention together.",
+  "storyHtml": "<p>This project treats 3D printing as more than a presentation output. The printed model becomes a design instrument: it tests how surfaces meet, how interior and exterior logic can be read through one object, and how fabrication constraints shape architectural decisions.</p><p>The model carries the atmosphere of a compact residential prototype. Openings, massing, thickness and layered edges are legible through the object itself, while the process video gives the work a time-based reading that still images cannot provide.</p><p>In Focus mode, the exhibit intentionally stays simple: a rotatable model and one animation page. That pairing keeps attention on the artifact and the making process without turning the project into a full documentation archive before the surrounding SPACE room is complete.</p><p>The current entry should be read as an architecture and fabrication study. It records an interest in physical modeling, material translation and the feedback loop between digital geometry and a made object.</p>",
+  "tags": [
+    "ARCHITECTURE PROTOTYPE",
+    "3D PRINTING",
+    "FABRICATION STUDY",
+    "PHYSICAL MODEL",
+    "PROCESS ANIMATION",
+    "RESIDENTIAL SCALE"
+  ],
+  "metadata": [
+    {
+      "label": "Year",
+      "value": "Student / prototype era"
+    },
+    {
+      "label": "Type",
+      "value": "Architecture prototype / fabrication study"
+    },
+    {
+      "label": "Medium",
+      "value": "Digital model, 3D printed model, process video"
+    },
+    {
+      "label": "Role",
+      "value": "Design, model, fabrication workflow, video presentation"
+    },
+    {
+      "label": "Status",
+      "value": "Portfolio exhibit draft"
+    }
+  ]
+}
