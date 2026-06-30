@@ -156,7 +156,14 @@ def material_for_object_name(name: str) -> str | None:
         return "mat_glass_clear_soft"
     if name.startswith("GLASS_FROSTED_") or name.startswith("GLASS_"):
         return "mat_glass_frosted_soft"
-    if name.startswith("ARCH_") or name.startswith("STRUCT_WALL_") or name.startswith("STRUCT_CEILING_"):
+    if name.startswith("EXHIBITS_"):
+        return "mat_metal_aluminum_soft"
+    if (
+        name.startswith("ARCH_")
+        or name.startswith("PLASTER_")
+        or name.startswith("STRUCT_WALL_")
+        or name.startswith("STRUCT_CEILING_")
+    ):
         return "mat_arch_plaster_warm_white"
     return None
 
@@ -200,7 +207,14 @@ def collection_for_object_name(name: str) -> str | None:
         return "VIS_METAL_PROPS"
     if name.startswith("ARCH_STAIR_") or name.startswith("STRUCT_STAIR_"):
         return "VIS_STAIRS"
-    if name.startswith("ARCH_") or name.startswith("STRUCT_WALL_") or name.startswith("STRUCT_CEILING_"):
+    if name.startswith("EXHIBITS_"):
+        return "VIS_METAL_PROPS"
+    if (
+        name.startswith("ARCH_")
+        or name.startswith("PLASTER_")
+        or name.startswith("STRUCT_WALL_")
+        or name.startswith("STRUCT_CEILING_")
+    ):
         return "VIS_ARCHITECTURE"
     return None
 

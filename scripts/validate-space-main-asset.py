@@ -46,7 +46,9 @@ def collection_for_object(name: str) -> str | None:
         return "VIS_METAL_PROPS"
     if name.startswith(("ARCH_STAIR_", "STRUCT_STAIR_")):
         return "VIS_STAIRS"
-    if name.startswith(("ARCH_", "STRUCT_WALL_", "STRUCT_CEILING_")):
+    if name.startswith("EXHIBITS_"):
+        return "VIS_METAL_PROPS"
+    if name.startswith(("ARCH_", "PLASTER_", "STRUCT_WALL_", "STRUCT_CEILING_")):
         return "VIS_ARCHITECTURE"
     return None
 
@@ -66,7 +68,9 @@ def material_for_object(name: str) -> str | None:
         return "mat_glass_clear_soft"
     if name.startswith("GLASS_"):
         return "mat_glass_frosted_soft"
-    if name.startswith(("ARCH_", "STRUCT_WALL_", "STRUCT_CEILING_")):
+    if name.startswith("EXHIBITS_"):
+        return "mat_metal_aluminum_soft"
+    if name.startswith(("ARCH_", "PLASTER_", "STRUCT_WALL_", "STRUCT_CEILING_")):
         return "mat_arch_plaster_warm_white"
     return None
 
