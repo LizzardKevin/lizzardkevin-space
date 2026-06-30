@@ -120,11 +120,11 @@ export const SPACE_ONBOARDING_DEMO_HIT_POSITION: [number, number, number] = [
   SPACE_ONBOARDING_SIGNS.demo.position[1] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[1],
   SPACE_ONBOARDING_SIGNS.demo.position[2] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[2],
 ];
-export const SPACE_ONBOARDING_DEMO_HIT_SIZE: [number, number, number] = [
-  SPACE_ONBOARDING_SIGNS.demo.hitSizeM[0],
-  SPACE_ONBOARDING_SIGNS.demo.hitSizeM[1],
-  0.12,
+export const SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE: [number, number] = [
+  2.05,
+  0.42,
 ];
+export const SPACE_ONBOARDING_DEMO_HIT_SIZE: [number, number] = SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE;
 
 export const SPACE_ONBOARDING_LOOK_HIT_OFFSET: [number, number, number] = [0, -0.02, 0];
 export const SPACE_ONBOARDING_LOOK_HIT_POSITION: [number, number, number] = [

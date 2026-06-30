@@ -29,6 +29,8 @@ const config = readProjectFile(expectedFiles.config);
 const visibility = readProjectFile(expectedFiles.visibility);
 const onboardingScene = readProjectFile(expectedFiles.scene);
 const focusDemo = readProjectFile(expectedFiles.focusDemo);
+const exhibitTarget = readProjectFile("apps/web/src/exhibits/exhibitTarget.ts");
+const targetLabel = readProjectFile("apps/web/src/exhibits/ExhibitTargetLabel.tsx");
 const desktop = files.desktop;
 const focusOverlay = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
 const i18n = readProjectFile("apps/web/src/i18n/i18n.ts");
@@ -94,8 +96,13 @@ assert.match(
 );
 assert.match(
   config,
-  /SPACE_ONBOARDING_DEMO_HIT_SIZE:\s*\[number,\s*number,\s*number\]\s*=\s*\[\s*SPACE_ONBOARDING_SIGNS\.demo\.hitSizeM\[0\],\s*SPACE_ONBOARDING_SIGNS\.demo\.hitSizeM\[1\],\s*0\.12,\s*\]/,
-  "demo hit mesh should derive from the configured text hit area",
+  /SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE:\s*\[number,\s*number\]\s*=\s*\[\s*2\.05,\s*0\.42,\s*\]/,
+  "demo hit mesh should use a tighter text-only hit area instead of the full transparent PNG canvas",
+);
+assert.match(
+  config,
+  /SPACE_ONBOARDING_DEMO_HIT_SIZE:\s*\[number,\s*number\]\s*=\s*SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE/,
+  "demo hit mesh should expose a two-dimensional raycast plane size",
 );
 assert.match(
   config,
@@ -204,6 +211,19 @@ assert(
     onboardingScene.includes("SPACE_ONBOARDING_DEMO_HIT_POSITION") &&
     onboardingScene.includes("userData={demoHitUserData}"),
   "demo sign should expose the synthetic exhibit id through a raycast hit mesh",
+);
+assert(
+  onboardingScene.includes("demoHitMeshRef") &&
+    onboardingScene.includes("planeGeometry args={SPACE_ONBOARDING_DEMO_HIT_SIZE}") &&
+    onboardingScene.includes("demoHitMeshRef.current.quaternion.copy(camera.quaternion)") &&
+    !onboardingScene.includes("<boxGeometry args={SPACE_ONBOARDING_DEMO_HIT_SIZE}"),
+  "demo hit mesh should be a camera-facing plane so aiming only works over the visible text",
+);
+assert(
+  exhibitTarget.includes("computeExhibitLabelAnchor") &&
+    targetLabel.includes("computeExhibitLabelAnchor") &&
+    targetLabel.includes("targetObject"),
+  "SPACE GUIDE and exhibit labels should recompute from the current mesh bounds instead of drifting from a stale anchor",
 );
 assert(
   !onboardingScene.includes("SpaceOnboardingFogBlocker") &&

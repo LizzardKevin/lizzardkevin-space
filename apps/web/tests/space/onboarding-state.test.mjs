@@ -96,6 +96,21 @@ test("space onboarding signs align to grounded player eye height", async () => {
   }
 });
 
+test("space onboarding demo hit area targets the visible text instead of the transparent canvas", async () => {
+  const config = await importSourceModule("scenes/onboarding/spaceOnboardingConfig.ts");
+
+  assert.deepEqual(config.SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE, [2.05, 0.42]);
+  assert.deepEqual(config.SPACE_ONBOARDING_DEMO_HIT_SIZE, config.SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE);
+  assert.ok(
+    config.SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE[0] < config.SPACE_ONBOARDING_SIGNS.demo.hitSizeM[0],
+    "demo text hit width should be tighter than the padded PNG canvas",
+  );
+  assert.ok(
+    config.SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE[1] < config.SPACE_ONBOARDING_SIGNS.demo.hitSizeM[1],
+    "demo text hit height should be tighter than the padded PNG canvas",
+  );
+});
+
 test("space onboarding sign timing constants match the approved queue timings", async () => {
   const visibility = await importSourceModule("scenes/onboarding/spaceOnboardingSignVisibility.ts");
 

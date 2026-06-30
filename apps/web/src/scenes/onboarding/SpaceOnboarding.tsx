@@ -103,6 +103,7 @@ export function SpaceOnboarding({
   const previousFocusVisibleRef = useRef(focusDemoVisible);
   const previousPointerLockedRef = useRef(pointerLocked);
   const lookHitMeshRef = useRef<THREE.Mesh>(null);
+  const demoHitMeshRef = useRef<THREE.Mesh>(null);
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const raycastCenter = useMemo(() => new THREE.Vector2(0, 0), []);
 
@@ -172,6 +173,10 @@ export function SpaceOnboarding({
     if (!enabled) return;
     const current = stateRef.current;
     const nowMs = performance.now();
+
+    if (demoHitMeshRef.current) {
+      demoHitMeshRef.current.quaternion.copy(camera.quaternion);
+    }
 
     setSignQueue((currentQueue) =>
       updateSpaceOnboardingSignQueue(currentQueue, {
@@ -244,11 +249,12 @@ export function SpaceOnboarding({
       ) : null}
       {showDemoHit ? (
         <mesh
+          ref={demoHitMeshRef}
           name="space_onboarding_demo_hit"
           position={SPACE_ONBOARDING_DEMO_HIT_POSITION}
           userData={demoHitUserData}
         >
-          <boxGeometry args={SPACE_ONBOARDING_DEMO_HIT_SIZE} />
+          <planeGeometry args={SPACE_ONBOARDING_DEMO_HIT_SIZE} />
           <meshBasicMaterial
             color="#ffffff"
             transparent
