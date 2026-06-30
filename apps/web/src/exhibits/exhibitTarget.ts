@@ -39,7 +39,19 @@ export function exhibitDistanceFromCamera(camera: THREE.Camera, object: THREE.Ob
 }
 
 export function isExhibitWithinRange(camera: THREE.Camera, object: THREE.Object3D): boolean {
-  return exhibitDistanceFromCamera(camera, object) <= EXHIBIT_TARGET.maxDistance;
+  return exhibitDistanceFromCamera(camera, object) <= resolveExhibitTargetMaxDistance(object);
+}
+
+function resolveExhibitTargetMaxDistance(object: THREE.Object3D): number {
+  let current: THREE.Object3D | null = object;
+  while (current) {
+    const maxDistance = current.userData?.exhibitMaxDistance;
+    if (typeof maxDistance === "number" && Number.isFinite(maxDistance) && maxDistance > 0) {
+      return maxDistance;
+    }
+    current = current.parent;
+  }
+  return EXHIBIT_TARGET.maxDistance;
 }
 
 export function buildExhibitTarget(object: THREE.Object3D, exhibitId: string): ExhibitTarget {

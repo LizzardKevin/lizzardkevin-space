@@ -1,5 +1,6 @@
 import { RigidBody } from "@react-three/rapier";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
+import type { ExhibitManifestItem } from "../exhibits/manifest";
 import { ExhibitHoverHighlight } from "../exhibits/ExhibitHoverHighlight";
 import { ExhibitTargetLabel } from "../exhibits/ExhibitTargetLabel";
 import { ExhibitRaycast } from "./exhibits/ExhibitRaycast";
@@ -18,6 +19,7 @@ function SpaceSceneContent({
   exhibitTarget,
   onTargetChange,
   loadExhibits,
+  projectorExhibits,
   onSceneExhibitsReady,
   onSceneReady,
   pointerControlsEnabled,
@@ -37,6 +39,7 @@ function SpaceSceneContent({
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
   loadExhibits: boolean;
+  projectorExhibits: ExhibitManifestItem[] | null;
   onSceneExhibitsReady: () => void;
   onSceneReady?: () => void;
   pointerControlsEnabled: boolean;
@@ -65,6 +68,9 @@ function SpaceSceneContent({
           loadExhibits={loadExhibits}
           onExhibitsReady={onSceneExhibitsReady}
           onSceneReady={onSceneReady}
+          projectorExhibits={projectorExhibits}
+          projectorInteractive={controlsEnabled && !onboardingEnabled}
+          projectorPlaying={controlsEnabled && !onboardingEnabled}
         />
       ) : null}
 
@@ -137,6 +143,7 @@ export function SpaceScene({
   exhibitTarget,
   onTargetChange,
   loadExhibits,
+  projectorExhibits,
   onSceneExhibitsReady,
   onSceneReady,
   pointerControlsEnabled,
@@ -156,6 +163,7 @@ export function SpaceScene({
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
   loadExhibits: boolean;
+  projectorExhibits: ExhibitManifestItem[] | null;
   onSceneExhibitsReady: () => void;
   onSceneReady?: () => void;
   pointerControlsEnabled: boolean;
@@ -179,6 +187,7 @@ export function SpaceScene({
           exhibitTarget={exhibitTarget}
           onTargetChange={onTargetChange}
           loadExhibits={loadExhibits}
+          projectorExhibits={projectorExhibits}
           onSceneExhibitsReady={onSceneExhibitsReady}
           onSceneReady={onSceneReady}
           pointerControlsEnabled={pointerControlsEnabled}
@@ -204,6 +213,7 @@ export function SpaceScene({
       exhibitTarget={exhibitTarget}
       onTargetChange={onTargetChange}
       loadExhibits={loadExhibits}
+      projectorExhibits={projectorExhibits}
       onSceneExhibitsReady={onSceneExhibitsReady}
       onSceneReady={onSceneReady}
       pointerControlsEnabled={pointerControlsEnabled}
