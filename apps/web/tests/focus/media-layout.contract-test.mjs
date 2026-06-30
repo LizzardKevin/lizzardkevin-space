@@ -32,16 +32,18 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.ok(
     overlaySource.includes("preloadedFocusImagesRef") &&
-      overlaySource.includes("new Image()") &&
-      overlaySource.includes('image.loading = "eager"') &&
+      overlaySource.includes("preloadFocusImages(mediaItems)") &&
+      overlaySource.includes("Promise.allSettled") &&
+      overlaySource.includes(".ready") &&
       overlaySource.includes('loading="eager"'),
-    "Focus should eagerly preload all images for the selected exhibit and keep them until the overlay exits",
+    "Focus should eagerly start and decode all images for the selected exhibit when the overlay opens",
   );
   assert.ok(
     overlaySource.includes("mediaTransitionDirection") &&
       overlaySource.includes("focus-image-frame--step-") &&
-      overlaySource.includes("key={activeMedia.url}"),
-    "Focus image page changes should remount with direction-aware animation classes",
+      overlaySource.includes("departingImage") &&
+      overlaySource.includes("focus-image-frame--departing"),
+    "Focus image page changes should render direction-aware incoming and outgoing card layers",
   );
   assert.ok(
     overlaySource.includes("mediaItems.length > 1 && !imageExpanded"),
@@ -58,19 +60,100 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.match(
     css,
-    /\.focus-image-frame\s*{[^}]*border-radius:\s*14px;[^}]*box-shadow:\s*none;[^}]*filter:\s*none;[^}]*overflow:\s*hidden;/s,
-    "Focus image frames should render the actual image as a rounded rectangle without a background shadow",
+    /\.focus-image-frame\s*{[^}]*border-radius:\s*14px;[^}]*box-shadow:\s*0 18px 34px rgba\(12,\s*14,\s*14,\s*0\.07\),\s*0 6px 14px rgba\(12,\s*14,\s*14,\s*0\.04\);[^}]*filter:\s*none;[^}]*overflow:\s*visible;/s,
+    "Focus image frames should render the actual image as a rounded floating card with a compact underside shadow",
   );
   assert.match(
     css,
-    /\.focus-image-frame--hovered\s*{[^}]*--focus-image-lift:\s*-4px;[^}]*--focus-image-scale:\s*1\.006;/s,
-    "Focus images should use a reduced, slower lift only while the cursor is truly over the image frame",
+    /\.focus-image-frame--hovered\s*{[^}]*--focus-image-lift:\s*-6px;[^}]*--focus-image-scale:\s*1\.012;/s,
+    "Focus images should use a stronger lift only while the cursor is truly over the image frame",
   );
-  assert.doesNotMatch(cssRule(css, ".focus-image-frame--visible"), /perspective|rotate[XY]/);
+  assert.ok(
+    overlaySource.includes("resolveFocusImageCardMotion") &&
+      overlaySource.includes('window.addEventListener("pointermove", handleWindowPointerMove') &&
+      overlaySource.includes("enableImageMotionLive") &&
+      overlaySource.includes('target.classList.add("focus-image-frame--live")') &&
+      overlaySource.includes("focus-image-surface") &&
+      overlaySource.includes("focus-image-frame--live") &&
+      overlaySource.includes("imageFrameRef") &&
+      overlaySource.includes("--focus-image-card-rotate-x") &&
+      overlaySource.includes("--focus-image-glass-angle") &&
+      overlaySource.includes("--focus-image-glass-opacity"),
+    "Focus image cards should track the page pointer and switch to live motion while hovered",
+  );
   assert.match(
     css,
-    /\.focus-image-frame--expanded\s*{[^}]*--focus-image-scale:\s*1;[^}]*position:\s*fixed;[^}]*width:\s*var\(--focus-image-expanded-width\);[^}]*height:\s*var\(--focus-image-expanded-height\);[^}]*animation:\s*focusImageExpand 560ms cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\)/s,
-    "Expanded Focus image should use viewport-scale measured dimensions with a nonlinear fixed-layer animation",
+    /\.focus-image-frame\s*{[^}]*--focus-image-motion-transition:\s*360ms cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\);[^}]*--focus-image-card-rotate-x:\s*0deg;[^}]*--focus-image-card-rotate-y:\s*0deg;[^}]*--focus-image-card-drift-x:\s*0px;/s,
+    "Focus image frame should expose centered rigid-card transform variables for the inner surface",
+  );
+  assert.match(
+    cssRule(css, ".focus-image-surface"),
+    /perspective\(1200px\)[\s\S]*rotateX\(var\(--focus-image-card-rotate-x\)\)[\s\S]*rotateY\(var\(--focus-image-card-rotate-y\)\)/,
+    "Focus image surface should tilt as one rigid card in 3D space",
+  );
+  assert.match(
+    cssRule(css, ".focus-image-frame"),
+    /transform 360ms cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\)/,
+    "Focus image hover enter and leave transforms should take twice as long with nonlinear easing",
+  );
+  assert.doesNotMatch(
+    cssRule(css, ".focus-image-frame"),
+    /\b(?:width|height)\s+560ms/,
+    "Normal Focus image card sizing should be instant so the rounded frame never flies in vertically toward the image",
+  );
+  assert.match(
+    cssRule(css, ".focus-image-surface"),
+    /transform var\(--focus-image-motion-transition\)/,
+    "Focus image live pointer tracking should transition only the inner surface",
+  );
+  assert.match(
+    css,
+    /\.focus-image-frame--live\s*{[^}]*--focus-image-motion-transition:\s*0ms linear;/s,
+    "Focus image cards should use truly realtime transform updates once the pointer is over the image",
+  );
+  assert.match(
+    css,
+    /\.focus-image-surface::after\s*{[^}]*pointer-events:\s*none;[^}]*border-radius:\s*inherit;[^}]*background:\s*conic-gradient\(\s*from calc\(var\(--focus-image-glass-angle\) - 90deg\)[^}]*mask:[^}]*linear-gradient\(#000 0 0\) content-box,[^}]*linear-gradient\(#000 0 0\);[^}]*mask-composite:\s*exclude;/s,
+    "Focus image surface should draw a pointer-following glass highlight along the rounded edge ring",
+  );
+  assert.match(
+    css,
+    /\.focus-image-frame--expanded \.focus-image-surface::after\s*{[^}]*opacity:\s*0;/s,
+    "Expanded images should disable the glass edge highlight",
+  );
+  assert.ok(
+    overlaySource.includes("!imageExpanded && imageHovering") &&
+      overlaySource.includes("!imageExpanded && imageMotionLive") &&
+      overlaySource.includes("imageExpandedRef") &&
+      overlaySource.includes("target.classList.contains(\"focus-image-frame--expanded\")") &&
+      overlaySource.includes("if (imageExpandedRef.current) return;") &&
+      overlaySource.includes("resetImagePointerMotion(e.currentTarget)") &&
+      overlaySource.includes("disableImageMotionLive(e.currentTarget)") &&
+      overlaySource.indexOf("resetImagePointerMotion(e.currentTarget)") <
+        overlaySource.indexOf("setImageExpandedState(true)") &&
+      overlaySource.indexOf("disableImageMotionLive(e.currentTarget)") <
+        overlaySource.indexOf("setImageExpandedState(true)"),
+    "Expanded Focus images should synchronously clear hover/live motion and render without floating classes",
+  );
+  assert.doesNotMatch(
+    cssRule(css, ".focus-image"),
+    /perspective|rotate[XY]|transform:/,
+    "Focus image itself should not be separately transformed inside the rigid card",
+  );
+  assert.match(
+    css,
+    /\.focus-image-frame--expanded\s*{[^}]*--focus-image-scale:\s*1;[^}]*position:\s*fixed;[^}]*width:\s*var\(--focus-image-expanded-width\);[^}]*height:\s*var\(--focus-image-expanded-height\);[^}]*animation:\s*focusImageExpand 360ms cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\)/s,
+    "Expanded Focus image should use viewport-scale measured dimensions with a centered nonlinear animation",
+  );
+  assert.doesNotMatch(
+    cssRule(css, ".focus-image-frame--expanded"),
+    /\b(?:width|height)\s+560ms/,
+    "Expanded Focus image sizing should be instant so first-open images do not jump from the upper viewport before centering",
+  );
+  assert.doesNotMatch(
+    css,
+    /@keyframes\s+focusImageExpand[\s\S]*scale\(1\.035\)/,
+    "Expanded Focus image animation should not overshoot past final scale because it pulls the first-open image upward",
   );
   assert.match(
     css,
@@ -94,8 +177,18 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.match(
     css,
-    /@keyframes\s+focusImageInFromRight[\s\S]*@keyframes\s+focusImageInFromLeft/s,
-    "Focus image switches should define left/right entrance animations",
+    /@keyframes\s+focusImageInFromRight[\s\S]*translate\(calc\(-50% \+ 72px\)[\s\S]*@keyframes\s+focusImageInFromLeft[\s\S]*translate\(calc\(-50% - 72px\)/s,
+    "Focus image switches should define lateral card entrance animations, not subtle vertical slides",
+  );
+  assert.match(
+    css,
+    /@keyframes\s+focusImageOutToLeft[\s\S]*translate\(calc\(-50% - 72px\)[\s\S]*@keyframes\s+focusImageOutToRight[\s\S]*translate\(calc\(-50% \+ 72px\)/s,
+    "Focus image switches should define lateral outgoing card animations",
+  );
+  assert.doesNotMatch(
+    css,
+    /focusImage(?:InFromRight|InFromLeft|OutToLeft|OutToRight)[\s\S]{0,220}translateY\(/,
+    "Focus image card switch animations should not fly rounded frames from the top or bottom",
   );
   assert.doesNotMatch(
     css,
@@ -104,8 +197,8 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.match(
     css,
-    /@keyframes\s+focusImageExpand[\s\S]*0%[\s\S]*scale\(0\.96\)[\s\S]*64%[\s\S]*scale\(1\.035\)[\s\S]*100%[\s\S]*scale\(1\)/,
-    "Focus image expand should include a restrained nonlinear overshoot while the frame grows to viewport scale",
+    /@keyframes\s+focusImageExpand[\s\S]*0%[\s\S]*opacity:\s*0\.96[\s\S]*scale\(0\.985\)[\s\S]*100%[\s\S]*opacity:\s*1[\s\S]*scale\(1\)/,
+    "Focus image expand should fade and settle from the center without overshooting the card",
   );
   assert.match(
     css,
