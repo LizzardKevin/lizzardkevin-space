@@ -109,7 +109,10 @@ test("metal aluminum is darker than floor with a matte metallic finish", async (
 
   const material = metal.material;
   assert.equal(`#${material.color.getHexString()}`, GALLERY_ALUMINUM_MATERIAL.color);
-  assert.ok(hexToRgb(GALLERY_ALUMINUM_MATERIAL.color).r < hexToRgb(GALLERY_TOON.stylizedMaterials.floor).r);
+  const metalValue = hexToRgb(GALLERY_ALUMINUM_MATERIAL.color).r;
+  const floorValue = hexToRgb(GALLERY_TOON.stylizedMaterials.floor).r;
+  assert.ok(metalValue < floorValue);
+  assert.ok(floorValue - metalValue <= 10);
   assert.equal(`#${material.emissive.getHexString()}`, GALLERY_ALUMINUM_MATERIAL.emissive);
   assert.equal(material.emissiveIntensity, 0);
   assert.equal(material.metalness, GALLERY_ALUMINUM_MATERIAL.metalness);
