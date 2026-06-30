@@ -17,9 +17,36 @@ export type BulbLightSpec = {
   position: [number, number, number];
 };
 
+const TEMP_BLOCKER_NAME_PATTERN = /^TEMP_BLOCKER(?:_|$)/i;
+
+export function isTempBlockerMeshName(name: string): boolean {
+  return TEMP_BLOCKER_NAME_PATTERN.test(name.replace(/\.\d{3}$/, ""));
+}
+
 function disposeMaterial(material: THREE.Material | THREE.Material[]) {
   if (Array.isArray(material)) material.forEach((m) => m.dispose());
   else material.dispose();
+}
+
+function createTempBlockerFrostedMaterial() {
+  const material = new THREE.MeshPhysicalMaterial({
+    name: "runtime_temp_blocker_frosted_physical",
+    color: new THREE.Color(0xe2ded5),
+    metalness: 0,
+    roughness: 1,
+    transmission: 0.34,
+    thickness: 1.2,
+    attenuationDistance: 0.72,
+    attenuationColor: new THREE.Color(0xf0ece4),
+    ior: 1.18,
+    clearcoat: 0.08,
+    clearcoatRoughness: 1,
+    opacity: 1,
+    side: THREE.DoubleSide,
+  });
+  material.depthWrite = true;
+  material.forceSinglePass = true;
+  return material;
 }
 
 /** Gallery surface: toon cel bands (Firewatch-style) or flat basic fallback. */
@@ -37,6 +64,8 @@ export function prepareGalleryScene(root: THREE.Object3D) {
 
   const bulbs: BulbLightSpec[] = [];
   const seen = new Map<string, THREE.Mesh>();
+  const tempBlockerMaterial = createTempBlockerFrostedMaterial();
+  let assignedTempBlockerMaterial = false;
 
   root.traverse((obj) => {
     if (!isMesh(obj)) return;
@@ -60,12 +89,21 @@ export function prepareGalleryScene(root: THREE.Object3D) {
     }
     seen.set(key, obj);
 
-    if (ENABLE_GALLERY_OVERRIDE_MATERIALS) {
+    const isTempBlocker = isTempBlockerMeshName(obj.name);
+
+    if (ENABLE_GALLERY_OVERRIDE_MATERIALS && !isTempBlocker) {
       applyGallerySurfaceMaterial(obj, GALLERY_SURFACE_COLOR);
     }
 
-    obj.castShadow = ENABLE_GALLERY_RUNTIME_SHADOWS;
-    obj.receiveShadow = ENABLE_GALLERY_RUNTIME_SHADOWS;
+    if (isTempBlocker) {
+      if (obj.material && obj.material !== tempBlockerMaterial) disposeMaterial(obj.material);
+      obj.material = tempBlockerMaterial;
+      assignedTempBlockerMaterial = true;
+      obj.renderOrder = Math.max(obj.renderOrder, 20);
+    }
+
+    obj.castShadow = ENABLE_GALLERY_RUNTIME_SHADOWS && !isTempBlocker;
+    obj.receiveShadow = ENABLE_GALLERY_RUNTIME_SHADOWS && !isTempBlocker;
 
     if (obj.name.startsWith("bulb_")) {
       bulbs.push({
@@ -74,6 +112,8 @@ export function prepareGalleryScene(root: THREE.Object3D) {
       });
     }
   });
+
+  if (!assignedTempBlockerMaterial) tempBlockerMaterial.dispose();
 
   return { bulbs };
 }

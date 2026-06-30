@@ -25,9 +25,12 @@
 | `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` |
 | `GLASS_CLEAR_*` | `mat_glass_clear_soft` |
 | `GLASS_FROSTED_*`、其他 `GLASS_*` | `mat_glass_frosted_soft` |
+| `TEMP_BLOCKER_*` | `mat_temp_blocker_frosted_milky` |
 | `ARCH_*`、`STRUCT_WALL_*`、`STRUCT_CEILING_*` | `mat_arch_plaster_warm_white` |
 
 它的导出目标始终是 `apps/web/public/models/space_main.glb`。
+
+`TEMP_BLOCKER_*` 的 Blender/GLB 材质只是基础 fallback。网页运行时会在 `prepareGalleryScene` 中把这些 mesh 替换为 `runtime_temp_blocker_frosted_physical`，使用 `MeshPhysicalMaterial` 的 transmission、thickness、attenuation 和高 roughness 来做真正的磨砂遮挡效果。
 
 ### 2. Collection 分组
 
@@ -43,6 +46,7 @@
 | `VIS_LIGHTING` | `LIGHT_GENERIC_LIGHT_*` |
 | `VIS_METAL_PROPS` | `METAL_ALUMINUM_*` |
 | `VIS_STAIRS` | `ARCH_STAIR_*`、`STRUCT_STAIR_*` |
+| `VIS_TEMP_BLOCKERS` | `TEMP_BLOCKER_*` temporary frosted view blockers |
 
 如果 Rhino 重导入后生成了临时 import collection，原则很简单：
 
@@ -103,7 +107,7 @@
 
 如果你在 Blender GUI 里手动做，核心原则就是：
 
-1. 视觉结构进 `VIS_ARCHITECTURE`、`VIS_FLOORS`、`VIS_GLASS`、`VIS_LIGHTING`、`VIS_METAL_PROPS`、`VIS_STAIRS`。
+1. 视觉结构进 `VIS_ARCHITECTURE`、`VIS_FLOORS`、`VIS_GLASS`、`VIS_LIGHTING`、`VIS_METAL_PROPS`、`VIS_STAIRS`、`VIS_TEMP_BLOCKERS`。
 2. 碰撞进 `COLLISION_HELPERS`。
 3. `spawn_player_main` 进 `MARKERS`。
 

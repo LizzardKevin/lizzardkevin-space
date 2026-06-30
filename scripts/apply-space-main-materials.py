@@ -30,6 +30,7 @@ REQUIRED_COLLECTIONS = (
     "VIS_LIGHTING",
     "VIS_METAL_PROPS",
     "VIS_STAIRS",
+    "VIS_TEMP_BLOCKERS",
     "MARKERS",
 )
 
@@ -79,6 +80,12 @@ MATERIAL_SPECS = {
         "base_color": (0.84, 0.86, 0.86, 0.32),
         "metallic": 0.0,
         "roughness": 0.14,
+        "blend_method": "BLEND",
+    },
+    "mat_temp_blocker_frosted_milky": {
+        "base_color": (0.86, 0.85, 0.82, 0.66),
+        "metallic": 0.0,
+        "roughness": 0.96,
         "blend_method": "BLEND",
     },
     "mat_led_generic_warm_emissive": {
@@ -144,6 +151,8 @@ def configure_material(name: str, spec: dict) -> bpy.types.Material:
 def material_for_object_name(name: str) -> str | None:
     if name.startswith("COL_"):
         return "mat_collision_helper_transparent_red"
+    if is_temp_blocker_name(name):
+        return "mat_temp_blocker_frosted_milky"
     if name.startswith("LIGHT_GENERIC_LIGHT_"):
         return "mat_led_generic_warm_emissive"
     if name.startswith("ARCH_STAIR_") or name.startswith("STRUCT_STAIR_"):
@@ -170,6 +179,12 @@ def material_for_object_name(name: str) -> str | None:
 
 def strip_blender_duplicate_suffix(name: str) -> str:
     return re.sub(r"\.\d{3}$", "", name.strip())
+
+
+def is_temp_blocker_name(name: str) -> bool:
+    normalized = strip_blender_duplicate_suffix(name).upper()
+    normalized = re.sub(r"[^A-Z0-9]+", "_", normalized).strip("_")
+    return normalized == "TEMP_BLOCKER" or normalized.startswith("TEMP_BLOCKER_")
 
 
 def remove_object(obj: bpy.types.Object) -> None:
@@ -199,6 +214,8 @@ def collection_for_object_name(name: str) -> str | None:
         return "MARKERS"
     if name.startswith("ARCH_FLOOR_") or name.startswith("STRUCT_FLOOR_"):
         return "VIS_FLOORS"
+    if is_temp_blocker_name(name):
+        return "VIS_TEMP_BLOCKERS"
     if name.startswith("GLASS_"):
         return "VIS_GLASS"
     if name.startswith("LIGHT_GENERIC_LIGHT_"):
