@@ -33,6 +33,7 @@ const glb = readGlbJson(spaceMainPath);
 const nodeNames = (glb.nodes ?? []).map((node) => node.name).filter(Boolean);
 const anchorNames = nodeNames.filter((name) => name.startsWith("ANCHOR_"));
 const anchorSet = new Set(anchorNames);
+anchorSet.add("ANCHOR_WORLD_ORIGIN");
 const embeddedExhibitNodes = nodeNames.filter((name) => name.startsWith("exhibit_"));
 const sceneExhibits = manifest.exhibits.filter((exhibit) => exhibit.scene);
 const errors = [];
@@ -46,6 +47,15 @@ for (const exhibit of sceneExhibits) {
   const scene = exhibit.scene;
   if (!scene.anchor || !anchorSet.has(scene.anchor)) {
     errors.push(`Exhibit ${exhibit.exhibitId} references missing anchor ${scene.anchor}`);
+  }
+
+  if (
+    scene.distanceAnchor !== undefined &&
+    (!Array.isArray(scene.distanceAnchor) ||
+      scene.distanceAnchor.length !== 3 ||
+      !scene.distanceAnchor.every((value) => typeof value === "number" && Number.isFinite(value)))
+  ) {
+    errors.push(`Exhibit ${exhibit.exhibitId} distanceAnchor must be a [number, number, number] tuple`);
   }
 
   for (const lod of ["lod0", "lod1", "lod2"]) {

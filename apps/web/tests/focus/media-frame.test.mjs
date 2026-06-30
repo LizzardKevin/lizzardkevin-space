@@ -12,17 +12,19 @@ test("focus media rail loops through model and exhibit images", async () => {
     focusGlbUrl: "/exhibits/work_001/focus_work_001.glb",
     type: "model3d",
     media: {
+      videoUrl: "/media/work_001-process.mp4",
       imageUrls: ["/exhibits/work_001/a.jpg", "/exhibits/work_001/b.jpg"],
     },
   });
 
   assert.deepEqual(items, [
     { kind: "model", url: "/exhibits/work_001/focus_work_001.glb" },
+    { kind: "video", url: "/media/work_001-process.mp4" },
     { kind: "image", url: "/exhibits/work_001/a.jpg" },
     { kind: "image", url: "/exhibits/work_001/b.jpg" },
   ]);
-  assert.equal(nextFocusMediaIndex(0, -1, items.length), 2);
-  assert.equal(nextFocusMediaIndex(2, 1, items.length), 0);
+  assert.equal(nextFocusMediaIndex(0, -1, items.length), 3);
+  assert.equal(nextFocusMediaIndex(3, 1, items.length), 0);
   assert.equal(nextFocusMediaIndex(0, 1, 1), 0);
 
   assert.equal(resolveFocusMediaDragStep("image", -68, 4), 1);

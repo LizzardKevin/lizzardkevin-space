@@ -389,6 +389,7 @@ export function FocusOverlay({
   const [imageFrameSize, setImageFrameSize] = useState<FocusImageFrameSize | null>(null);
   const [departingImage, setDepartingImage] = useState<DepartingFocusImage | null>(null);
   const imageDragStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const focusVideoRef = useRef<HTMLVideoElement | null>(null);
   const activeImageRef = useRef<HTMLImageElement | null>(null);
   const imageFrameRef = useRef<HTMLDivElement | null>(null);
   const imageExpandedRef = useRef(false);
@@ -411,6 +412,17 @@ export function FocusOverlay({
   useEffect(() => {
     useGLTF.preload(exhibit.focusGlbUrl, GLTF_DRACO_DECODER_PATH);
   }, [exhibit.focusGlbUrl]);
+
+  useEffect(() => {
+    const video = focusVideoRef.current;
+    if (!video || activeMedia.kind !== "video") {
+      focusVideoRef.current?.pause();
+      return;
+    }
+    video.muted = true;
+    video.loop = true;
+    void video.play().catch(() => undefined);
+  }, [activeMedia.kind, activeMedia.url]);
 
   useEffect(() => {
     const preloadImages = preloadFocusImages(mediaItems);
@@ -802,16 +814,6 @@ export function FocusOverlay({
       className={`focus-overlay${dimOn ? " focus-overlay--dim" : ""}${blurOn ? " focus-overlay--blur" : ""}`}
       data-cursor-tone="light"
     >
-      {videoUrl ? (
-        <video
-          ref={(el) => playback.attachVideoElement(el)}
-          className={`focus-video${exhibit.type === "video" ? " focus-video--visible" : ""}`}
-          playsInline
-          preload="metadata"
-          src={videoUrl}
-        />
-      ) : null}
-
       {imageExpanded ? (
         <button
           type="button"
@@ -857,6 +859,24 @@ export function FocusOverlay({
             className={`focus-blank--fill${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-center" : ""}`}
             onBlankClick={handleBlankClick}
           />
+
+          {videoUrl ? (
+            <video
+              ref={(el) => {
+                focusVideoRef.current = el;
+                playback.attachVideoElement(el);
+              }}
+              className={`focus-video${contentVisible && activeMedia.kind === "video" ? " focus-video--visible" : ""}`}
+              data-cursor="interactive"
+              controls={activeMedia.kind === "video"}
+              muted={activeMedia.kind === "video"}
+              loop={activeMedia.kind === "video"}
+              playsInline
+              preload="metadata"
+              src={videoUrl}
+              aria-label={`${displayTitle} process animation`}
+            />
+          ) : null}
 
           <FocusModelErrorBoundary url={exhibit.focusGlbUrl}>
             <Suspense fallback={<FocusLoading />}>
@@ -977,8 +997,14 @@ export function FocusOverlay({
                 <button
                   key={`${item.kind}-${item.url}`}
                   type="button"
-                  className={`focus-media-dot${index === activeMediaIndex ? " focus-media-dot--active" : ""}${item.kind === "model" ? " focus-media-dot--model" : ""}`}
-                  aria-label={item.kind === "model" ? "Show 3D model" : `Show image ${index}`}
+                  className={`focus-media-dot${index === activeMediaIndex ? " focus-media-dot--active" : ""}${item.kind === "model" ? " focus-media-dot--model" : ""}${item.kind === "video" ? " focus-media-dot--video" : ""}`}
+                  aria-label={
+                    item.kind === "model"
+                      ? "Show 3D model"
+                      : item.kind === "video"
+                        ? "Show process animation"
+                        : `Show image ${index}`
+                  }
                   aria-current={index === activeMediaIndex ? "true" : undefined}
                   data-cursor="interactive"
                   data-cursor-tone="light"

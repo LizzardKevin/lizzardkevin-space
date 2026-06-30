@@ -59,6 +59,23 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
     overlaySource.includes("focus-media-dots") && overlaySource.includes("focus-media-dot--model"),
     "Focus media should render pagination dots and mark the 3D model page distinctly",
   );
+  assert.ok(
+    overlaySource.includes('activeMedia.kind === "video"') &&
+      overlaySource.includes("focus-video--visible") &&
+      overlaySource.includes('controls={activeMedia.kind === "video"}') &&
+      overlaySource.includes('muted={activeMedia.kind === "video"}') &&
+      overlaySource.includes('loop={activeMedia.kind === "video"}') &&
+      overlaySource.includes('preload="metadata"') &&
+      overlaySource.includes("focus-media-dot--video") &&
+      overlaySource.includes("Show process animation"),
+    "Focus media should expose MP4 animations as a visible video page with controls, metadata-only preload, and a distinct page dot",
+  );
+  assert.ok(
+    overlaySource.indexOf('className="focus-layout__center"') <
+      overlaySource.indexOf("focus-video") &&
+      overlaySource.indexOf("focus-video") < overlaySource.indexOf("<FocusModelErrorBoundary"),
+    "Focus video should live inside the center media stage instead of being positioned against the full overlay",
+  );
   assert.match(
     css,
     /\.focus-image-frame\s*{[^}]*top:\s*calc\([^}]*width:\s*var\(--focus-image-rendered-width\);[^}]*height:\s*var\(--focus-image-rendered-height\);/s,
@@ -180,6 +197,16 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
     css,
     /\.focus-media-dot--model::before\s*{[^}]*rotate\(45deg\)/s,
     "The 3D model page dot should use a distinct diamond mark",
+  );
+  assert.match(
+    css,
+    /\.focus-media-dot--video::before\s*{[^}]*border-left:\s*8px solid rgba\(12,\s*14,\s*14,\s*0\.36\)/s,
+    "The video page dot should use a distinct play mark",
+  );
+  assert.match(
+    css,
+    /\.focus-video--visible\s*{[^}]*width:\s*min\(980px,\s*74vw\);[^}]*height:\s*min\(552px,[^}]*pointer-events:\s*auto;[^}]*object-fit:\s*contain;/s,
+    "Visible Focus videos should occupy the same center-stage media frame as model and image pages",
   );
   assert.match(
     css,

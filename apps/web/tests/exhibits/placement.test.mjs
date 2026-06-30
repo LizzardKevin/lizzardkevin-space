@@ -4,7 +4,9 @@ import * as THREE from "three";
 import { importSourceModule } from "../helpers/projectPaths.mjs";
 
 test("collectExhibitAnchors records ANCHOR world transforms", async () => {
-  const { collectExhibitAnchors } = await importSourceModule("scenes/exhibits/exhibitAnchors.ts");
+  const { collectExhibitAnchors, EXHIBIT_WORLD_ORIGIN_ANCHOR } = await importSourceModule(
+    "scenes/exhibits/exhibitAnchors.ts",
+  );
 
   const root = new THREE.Group();
   root.position.set(1, 2, 3);
@@ -17,7 +19,9 @@ test("collectExhibitAnchors records ANCHOR world transforms", async () => {
 
   const anchors = collectExhibitAnchors(root);
 
-  assert.equal(anchors.size, 1);
+  assert.equal(anchors.size, 2);
+  assert.deepEqual(anchors.get(EXHIBIT_WORLD_ORIGIN_ANCHOR)?.position.toArray(), [0, 0, 0]);
+  assert.deepEqual(anchors.get(EXHIBIT_WORLD_ORIGIN_ANCHOR)?.scale.toArray(), [1, 1, 1]);
   assert.deepEqual(anchors.get("ANCHOR_WORK_001")?.position.toArray(), [5, 7, 9]);
   assert.ok(Math.abs((anchors.get("ANCHOR_WORK_001")?.euler.y ?? 0) - Math.PI / 2) < 0.0001);
 });
@@ -166,6 +170,7 @@ test("normalizeExhibitSceneConfig supplies default placement and load settings",
 
   const scene = normalizeExhibitSceneConfig({
     anchor: "ANCHOR_WORK_001",
+    distanceAnchor: [1, 2, 3],
     models: {
       lod0: "/exhibits/work_001/work_001.lod0.glb",
       lod1: "/exhibits/work_001/work_001.lod1.glb",
@@ -174,6 +179,7 @@ test("normalizeExhibitSceneConfig supplies default placement and load settings",
   });
 
   assert.equal(scene.anchor, "ANCHOR_WORK_001");
+  assert.deepEqual(scene.distanceAnchor, [1, 2, 3]);
   assert.equal(scene.scale, 1);
   assert.deepEqual(scene.placement, { snap: "floor", heightOffset: 0, yawOffsetDeg: 0 });
   assert.deepEqual(scene.load, {

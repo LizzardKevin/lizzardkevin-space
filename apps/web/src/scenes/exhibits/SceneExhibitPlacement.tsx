@@ -47,6 +47,15 @@ function applyAnchorRotation(
   object.quaternion.copy(anchor.quaternion).multiply(yaw);
 }
 
+function resolveExhibitDistancePosition(
+  sceneConfig: ExhibitSceneConfig,
+  anchor: ExhibitAnchorTransform,
+) {
+  return sceneConfig.distanceAnchor
+    ? new THREE.Vector3(...sceneConfig.distanceAnchor)
+    : anchor.position;
+}
+
 function useSceneExhibits(enabled: boolean) {
   const [exhibits, setExhibits] = useState<ExhibitManifestItem[] | null>(null);
 
@@ -74,7 +83,7 @@ function useSceneExhibits(enabled: boolean) {
 function DevSceneModelUrlCheck({ exhibit }: { exhibit: ExhibitManifestItem }) {
   useEffect(() => {
     if (!import.meta.env.DEV || !exhibit.scene) return;
-    Object.values(exhibit.scene.models).forEach((url) => {
+    Array.from(new Set(Object.values(exhibit.scene.models))).forEach((url) => {
       fetch(url, { method: "HEAD" }).then((response) => {
         if (!response.ok) {
           console.error(`Exhibit ${exhibit.exhibitId} LOD file is missing: ${url}`);
@@ -183,15 +192,16 @@ function SceneExhibitController({
 }) {
   const sceneConfig = exhibit.scene;
   const { camera } = useThree();
+  const distancePosition = sceneConfig ? resolveExhibitDistancePosition(sceneConfig, anchor) : anchor.position;
   const initialLod = sceneConfig
-    ? chooseSceneExhibitLod(camera.position.distanceTo(anchor.position), sceneConfig.load, null)
+    ? chooseSceneExhibitLod(camera.position.distanceTo(distancePosition), sceneConfig.load, null)
     : null;
   const [activeLod, setActiveLod] = useState<ExhibitLodKey | null>(initialLod);
   const activeLodRef = useRef<ExhibitLodKey | null>(initialLod);
 
   useFrame(() => {
     if (!sceneConfig) return;
-    const distance = camera.position.distanceTo(anchor.position);
+    const distance = camera.position.distanceTo(distancePosition);
     const next = chooseSceneExhibitLod(distance, sceneConfig.load, activeLodRef.current);
     if (next === activeLodRef.current) return;
     activeLodRef.current = next;
@@ -253,7 +263,7 @@ export function ExhibitPlacement({
     if (!enabled || !exhibits) return;
     exhibits.forEach((exhibit) => {
       if (!exhibit.scene) return;
-      Object.values(exhibit.scene.models).forEach((url) => {
+      Array.from(new Set(Object.values(exhibit.scene.models))).forEach((url) => {
         useGLTF.preload(url, GLTF_DRACO_DECODER_PATH);
       });
     });

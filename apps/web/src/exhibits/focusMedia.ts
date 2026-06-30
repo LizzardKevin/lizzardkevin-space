@@ -2,10 +2,14 @@ import type { ExhibitManifestItem } from "./manifest.ts";
 
 export type FocusMediaItem =
   | { kind: "model"; url: string }
+  | { kind: "video"; url: string }
   | { kind: "image"; url: string };
 
 export function getFocusMediaItems(exhibit: Pick<ExhibitManifestItem, "focusGlbUrl" | "media">) {
   const items: FocusMediaItem[] = [{ kind: "model", url: exhibit.focusGlbUrl }];
+  if (exhibit.media?.videoUrl?.trim()) {
+    items.push({ kind: "video", url: exhibit.media.videoUrl });
+  }
   for (const url of exhibit.media?.imageUrls ?? []) {
     if (url.trim()) items.push({ kind: "image", url });
   }

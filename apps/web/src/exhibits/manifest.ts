@@ -20,6 +20,7 @@ export type ExhibitSceneLoad = {
 
 export type ExhibitSceneConfig = {
   anchor: string;
+  distanceAnchor?: [number, number, number];
   models: ExhibitSceneModels;
   scale: number | [number, number, number];
   placement: ExhibitScenePlacement;
@@ -28,6 +29,7 @@ export type ExhibitSceneConfig = {
 
 export type RawExhibitSceneConfig = {
   anchor: string;
+  distanceAnchor?: [number, number, number];
   models: ExhibitSceneModels;
   scale?: number | [number, number, number];
   placement?: Partial<ExhibitScenePlacement>;
@@ -73,6 +75,7 @@ export const DEFAULT_EXHIBIT_SCENE_PLACEMENT: ExhibitScenePlacement = {
 export function normalizeExhibitSceneConfig(scene: RawExhibitSceneConfig): ExhibitSceneConfig {
   return {
     anchor: scene.anchor,
+    distanceAnchor: scene.distanceAnchor,
     models: scene.models,
     scale: scene.scale ?? 1,
     placement: {
@@ -107,4 +110,3 @@ export async function loadManifest(): Promise<ExhibitManifest> {
     exhibits: raw.exhibits.map(resolveExhibitMedia),
   };
 }
-

@@ -29,6 +29,11 @@ const anchors = new Map(
     .filter((node) => node.name?.startsWith("ANCHOR_"))
     .map((node) => [node.name, decomposeNodeTransform(node)]),
 );
+anchors.set("ANCHOR_WORLD_ORIGIN", {
+  position: [0, 0, 0],
+  rotation: [0, 0, 0, 1],
+  scale: [1, 1, 1],
+});
 
 const placements = manifest.exhibits
   .filter((exhibit) => exhibit.scene)
@@ -36,6 +41,7 @@ const placements = manifest.exhibits
     exhibitId: exhibit.exhibitId,
     anchor: exhibit.scene.anchor,
     anchorTransform: anchors.get(exhibit.scene.anchor) ?? null,
+    distanceAnchor: exhibit.scene.distanceAnchor ?? null,
     models: exhibit.scene.models,
     scale: exhibit.scene.scale ?? 1,
     placement: exhibit.scene.placement ?? { snap: "floor", heightOffset: 0, yawOffsetDeg: 0 },
