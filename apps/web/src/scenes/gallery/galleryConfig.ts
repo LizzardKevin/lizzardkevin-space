@@ -89,8 +89,8 @@ export const ENABLE_GALLERY_RUNTIME_SHADOWS = false;
 /** Require WebGPURenderer for the 3D gallery (no WebGL post-processing fallback). */
 export const ENABLE_GALLERY_WEBGPU = true;
 
-/** 2K performance budget: prefer native resolution over WebGPU MSAA for the main walking canvas. */
-export const ENABLE_GALLERY_RENDERER_ANTIALIAS = false;
+/** 2K/30fps budget: WebGPU native antialias is the lightest AA path for the main walking canvas. */
+export const ENABLE_GALLERY_RENDERER_ANTIALIAS = true;
 
 /** Light bloom on bright window edges / highlights (toon + fog path). */
 export const ENABLE_GALLERY_BLOOM = false;

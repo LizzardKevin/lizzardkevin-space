@@ -19,7 +19,6 @@ import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOve
 import { SpaceScene } from "../scenes/SpaceScene";
 import {
   ENABLE_GALLERY_GLB,
-  ENABLE_GALLERY_RENDERER_ANTIALIAS,
   ENABLE_GALLERY_RUNTIME_SHADOWS,
   ENABLE_GALLERY_TOON,
   GALLERY_SPAWN,
@@ -119,7 +118,11 @@ export function SpaceDesktopExperience({
   const [onboardingCompleted, setOnboardingCompleted] = useState(dailyResumePose !== null);
   const latestSpacePoseRef = useRef<SpacePlayerPose | null>(dailyResumePose);
   const lastDailyResumeSaveAtRef = useRef(0);
-  const { quality } = useSpaceVisualSettings();
+  const { quality, settings } = useSpaceVisualSettings();
+  const [rendererSettings, setRendererSettings] = useState(() => ({
+    antialias: settings.antialias,
+    initialPose: dailyResumePose,
+  }));
 
   const { entered, fading: entryIsFading } = entry;
 
@@ -158,6 +161,16 @@ export function SpaceDesktopExperience({
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    setRendererSettings((current) => {
+      if (current.antialias === settings.antialias) return current;
+      return {
+        antialias: settings.antialias,
+        initialPose: latestSpacePoseRef.current ?? dailyResumePose,
+      };
+    });
+  }, [dailyResumePose, settings.antialias]);
 
   useEffect(() => {
     let cancelled = false;
@@ -393,12 +406,13 @@ export function SpaceDesktopExperience({
             className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${focusSurfaceOpen ? " space-canvasWrap--disabled" : ""}`}
           >
             <Canvas
+              key={rendererSettings.antialias ? "space-canvas-aa" : "space-canvas-raw"}
               id="space-canvas"
               style={{ position: "absolute", inset: 0 }}
               gl={(props) =>
                 createWebGPURenderer({
                   canvas: props.canvas as HTMLCanvasElement,
-                  antialias: ENABLE_GALLERY_RENDERER_ANTIALIAS,
+                  antialias: rendererSettings.antialias,
                 })
               }
               camera={{
@@ -463,13 +477,13 @@ export function SpaceDesktopExperience({
                     onboardingEnabled={entered && !pointerLockUnavailable && dailyResumePose === null && !onboardingCompleted}
                     pointerLocked={pointerLocked}
                     onboardingFocusVisible={onboardingFocusVisible}
-                    initialPose={dailyResumePose}
+                    initialPose={rendererSettings.initialPose}
                     onPoseSample={handleSpacePoseSample}
                     onOnboardingCompleted={() => setOnboardingCompleted(true)}
                     quality={quality}
                   />
                 </Physics>
-                <GalleryRenderPipeline bloom={quality.post.bloom} />
+                <GalleryRenderPipeline bloom={quality.post.bloom} motionBlur={quality.post.motionBlur} />
               </Suspense>
             </Canvas>
           </div>

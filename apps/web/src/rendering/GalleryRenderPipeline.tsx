@@ -20,6 +20,7 @@ type PostFxContext = {
 
 type TslColorNode = ReturnType<typeof vec4>;
 type BloomConfig = SpaceQualityConfig["post"]["bloom"];
+type MotionBlurConfig = SpaceQualityConfig["post"]["motionBlur"];
 
 function buildPostFxOutput(ctx: PostFxContext, bloomConfig: BloomConfig) {
   let out = ctx.sceneColor as unknown as TslColorNode;
@@ -54,7 +55,13 @@ function buildPostFxOutput(ctx: PostFxContext, bloomConfig: BloomConfig) {
  * WebGPU RenderPipeline (Firewatch stack: BaseScene → Bloom → HUD/Overlays).
  * When all post FX are off, skips priority render so R3F default draw shows base colors.
  */
-export function GalleryRenderPipeline({ bloom: bloomConfig }: { bloom: BloomConfig }) {
+export function GalleryRenderPipeline({
+  bloom: bloomConfig,
+  motionBlur: motionBlurConfig,
+}: {
+  bloom: BloomConfig;
+  motionBlur: MotionBlurConfig;
+}) {
   const gl = useThree((state) => state.gl as unknown as WebGPURenderer);
   const scene = useThree((state) => state.scene);
   const camera = useThree((state) => state.camera);
@@ -64,7 +71,8 @@ export function GalleryRenderPipeline({ bloom: bloomConfig }: { bloom: BloomConf
   const bloomRadius = bloomConfig.radius;
   const bloomStrength = bloomConfig.strength;
   const bloomThreshold = bloomConfig.threshold;
-  const postFxEnabled = bloomEnabled || ENABLE_GALLERY_COLOR_GRADE || ENABLE_GALLERY_VIGNETTE;
+  const motionBlurEnabled = motionBlurConfig.enabled;
+  const postFxEnabled = bloomEnabled || motionBlurEnabled || ENABLE_GALLERY_COLOR_GRADE || ENABLE_GALLERY_VIGNETTE;
 
   useLayoutEffect(() => {
     if (!postFxEnabled) {
@@ -101,6 +109,7 @@ export function GalleryRenderPipeline({ bloom: bloomConfig }: { bloom: BloomConf
     bloomRadius,
     bloomStrength,
     bloomThreshold,
+    motionBlurEnabled,
   ]);
 
   useLayoutEffect(() => {

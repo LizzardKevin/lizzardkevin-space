@@ -122,24 +122,22 @@ test("metal aluminum is darker than floor with a matte metallic finish", async (
   assert.equal(channelSpread(`#${material.emissive.getHexString()}`), 0);
 });
 
-test("gallery quality defaults to 2K 30fps with restrained light-only bloom", async () => {
-  const quality = await importSourceModule("space/spaceVisualSettings.ts");
-  const balanced = quality.getSpaceQualityConfig("balanced");
-  const cinematic = quality.getSpaceQualityConfig("cinematic");
-  const performance = quality.getSpaceQualityConfig("performance");
+test("gallery visual settings default to fixed 2K 30fps quality with lightweight AA", async () => {
+  const visual = await importSourceModule("space/spaceVisualSettings.ts");
+  const config = visual.getSpaceQualityConfig();
 
-  assert.equal(quality.DEFAULT_SPACE_VISUAL_SETTINGS.qualityPreset, "balanced");
-  assert.equal(balanced.performance.targetFps, 30);
-  assert.equal(balanced.post.bloom.enabled, true);
-  assert.ok(balanced.post.bloom.strength >= 0.1);
-  assert.ok(balanced.post.bloom.strength <= 0.18);
-  assert.ok(balanced.post.bloom.threshold >= 0.9);
-  assert.equal("celDepthLayer" in balanced, false);
-  assert.ok(balanced.lighting.lightEmissiveIntensity >= 6);
-  assert.ok(cinematic.post.bloom.strength > balanced.post.bloom.strength);
-  assert.ok(cinematic.post.bloom.strength <= 0.25);
-  assert.ok(cinematic.post.bloom.threshold >= 0.88);
-  assert.equal(performance.post.bloom.enabled, false);
+  assert.equal("qualityPreset" in visual.DEFAULT_SPACE_VISUAL_SETTINGS, false);
+  assert.equal(visual.DEFAULT_SPACE_VISUAL_SETTINGS.antialias, true);
+  assert.equal(visual.DEFAULT_SPACE_VISUAL_SETTINGS.motionBlur, false);
+  assert.equal(config.performance.targetFps, 30);
+  assert.equal(config.post.bloom.enabled, true);
+  assert.ok(config.post.bloom.strength >= 0.1);
+  assert.ok(config.post.bloom.strength <= 0.18);
+  assert.ok(config.post.bloom.threshold >= 0.9);
+  assert.equal(config.post.motionBlur.enabled, false);
+  assert.equal(config.post.motionBlur.reason, "requires-velocity-pass");
+  assert.equal("celDepthLayer" in config, false);
+  assert.ok(config.lighting.lightEmissiveIntensity >= 6);
 });
 
 test("legacy full-screen post and optional halos stay off by default", async () => {

@@ -1,7 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
 
-export type SpaceQualityPreset = "performance" | "balanced" | "cinematic";
-
 export type SpaceQualityConfig = {
   performance: {
     targetFps: number;
@@ -13,6 +11,10 @@ export type SpaceQualityConfig = {
       radius: number;
       threshold: number;
     };
+    motionBlur: {
+      enabled: boolean;
+      reason: "requires-velocity-pass";
+    };
   };
   lighting: {
     lightEmissiveIntensity: number;
@@ -22,41 +24,22 @@ export type SpaceQualityConfig = {
 };
 
 export type SpaceVisualSettings = {
-  qualityPreset: SpaceQualityPreset;
+  antialias: boolean;
+  motionBlur: boolean;
 };
-
-export const SPACE_QUALITY_PRESET_ORDER: SpaceQualityPreset[] = [
-  "performance",
-  "balanced",
-  "cinematic",
-];
 
 export const DEFAULT_SPACE_VISUAL_SETTINGS: SpaceVisualSettings = {
-  qualityPreset: "balanced",
+  antialias: true,
+  motionBlur: false,
 };
 
-export const SPACE_QUALITY_CONFIGS: Record<SpaceQualityPreset, SpaceQualityConfig> = {
-  performance: {
-    performance: { targetFps: 30 },
-    post: {
-      bloom: { enabled: false, strength: 0, radius: 0, threshold: 1 },
-    },
-    lighting: { lightEmissiveIntensity: 6.4, bulbIntensity: 12, bulbDistance: 10 },
+export const SPACE_QUALITY_CONFIG: SpaceQualityConfig = {
+  performance: { targetFps: 30 },
+  post: {
+    bloom: { enabled: true, strength: 0.12, radius: 0.08, threshold: 0.92 },
+    motionBlur: { enabled: false, reason: "requires-velocity-pass" },
   },
-  balanced: {
-    performance: { targetFps: 30 },
-    post: {
-      bloom: { enabled: true, strength: 0.12, radius: 0.08, threshold: 0.92 },
-    },
-    lighting: { lightEmissiveIntensity: 6.2, bulbIntensity: 12, bulbDistance: 9.75 },
-  },
-  cinematic: {
-    performance: { targetFps: 30 },
-    post: {
-      bloom: { enabled: true, strength: 0.22, radius: 0.1, threshold: 0.9 },
-    },
-    lighting: { lightEmissiveIntensity: 7, bulbIntensity: 12.8, bulbDistance: 10 },
-  },
+  lighting: { lightEmissiveIntensity: 6.2, bulbIntensity: 12, bulbDistance: 9.75 },
 };
 
 const SPACE_VISUAL_SETTINGS_STORAGE_KEY = "spaceVisualSettings";
@@ -64,17 +47,16 @@ const listeners = new Set<() => void>();
 
 let currentSettings = DEFAULT_SPACE_VISUAL_SETTINGS;
 
-function isSpaceQualityPreset(value: unknown): value is SpaceQualityPreset {
-  return typeof value === "string" && SPACE_QUALITY_PRESET_ORDER.includes(value as SpaceQualityPreset);
+function readStoredBoolean(value: unknown, fallback: boolean) {
+  return typeof value === "boolean" ? value : fallback;
 }
 
 function normalizeSpaceVisualSettings(value: unknown): SpaceVisualSettings {
   if (!value || typeof value !== "object") return DEFAULT_SPACE_VISUAL_SETTINGS;
-  const qualityPreset = (value as { qualityPreset?: unknown }).qualityPreset;
+  const stored = value as Partial<Record<keyof SpaceVisualSettings, unknown>>;
   return {
-    qualityPreset: isSpaceQualityPreset(qualityPreset)
-      ? qualityPreset
-      : DEFAULT_SPACE_VISUAL_SETTINGS.qualityPreset,
+    antialias: readStoredBoolean(stored.antialias, DEFAULT_SPACE_VISUAL_SETTINGS.antialias),
+    motionBlur: readStoredBoolean(stored.motionBlur, DEFAULT_SPACE_VISUAL_SETTINGS.motionBlur),
   };
 }
 
@@ -113,8 +95,8 @@ if (typeof window !== "undefined") {
   });
 }
 
-export function getSpaceQualityConfig(preset: SpaceQualityPreset) {
-  return SPACE_QUALITY_CONFIGS[preset];
+export function getSpaceQualityConfig() {
+  return SPACE_QUALITY_CONFIG;
 }
 
 export function readSpaceVisualSettings() {
@@ -127,8 +109,12 @@ export function writeSpaceVisualSettings(settings: SpaceVisualSettings) {
   emitSpaceVisualSettingsChange();
 }
 
-export function setSpaceQualityPreset(qualityPreset: SpaceQualityPreset) {
-  writeSpaceVisualSettings({ ...currentSettings, qualityPreset });
+export function setSpaceAntialias(antialias: boolean) {
+  writeSpaceVisualSettings({ ...currentSettings, antialias });
+}
+
+export function setSpaceMotionBlur(motionBlur: boolean) {
+  writeSpaceVisualSettings({ ...currentSettings, motionBlur });
 }
 
 export function subscribeSpaceVisualSettings(listener: () => void) {
@@ -143,13 +129,18 @@ export function useSpaceVisualSettings() {
     () => DEFAULT_SPACE_VISUAL_SETTINGS,
   );
 
-  const setQualityPreset = useCallback((qualityPreset: SpaceQualityPreset) => {
-    setSpaceQualityPreset(qualityPreset);
+  const toggleAntialias = useCallback((enabled: boolean) => {
+    setSpaceAntialias(enabled);
+  }, []);
+
+  const toggleMotionBlur = useCallback((enabled: boolean) => {
+    setSpaceMotionBlur(enabled);
   }, []);
 
   return {
-    quality: getSpaceQualityConfig(settings.qualityPreset),
+    quality: getSpaceQualityConfig(),
     settings,
-    setQualityPreset,
+    toggleAntialias,
+    toggleMotionBlur,
   };
 }
