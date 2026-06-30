@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GALLERY_TOON } from "./galleryConfig";
+import { GALLERY_TOON } from "./galleryConfig.ts";
 
 let gradientMap: THREE.DataTexture | null = null;
 let cachedGradientRevision = -1;

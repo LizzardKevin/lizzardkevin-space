@@ -3,16 +3,23 @@ import { bindExhibitIds } from "./bindExhibitIds";
 import {
   ENABLE_GALLERY_OVERRIDE_MATERIALS,
   ENABLE_GALLERY_RUNTIME_SHADOWS,
+  ENABLE_GALLERY_SELECTIVE_STYLIZATION,
   ENABLE_GALLERY_TOON,
   GALLERY_SURFACE_COLOR,
 } from "./galleryConfig";
 import { createGalleryToonMaterial } from "./galleryToonMaterial";
+import { applyGallerySceneMaterialStyle, isGalleryLightMesh } from "./galleryStyleMaterials";
 
 function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
   return !!obj && (obj as THREE.Mesh).isMesh === true;
 }
 
 export type BulbLightSpec = {
+  name: string;
+  position: [number, number, number];
+};
+
+export type GalleryLightHaloSpec = {
   name: string;
   position: [number, number, number];
 };
@@ -36,7 +43,9 @@ export function prepareGalleryScene(root: THREE.Object3D) {
   bindExhibitIds(root);
 
   const bulbs: BulbLightSpec[] = [];
+  const lightHalos: GalleryLightHaloSpec[] = [];
   const seen = new Map<string, THREE.Mesh>();
+  const worldPosition = new THREE.Vector3();
 
   root.traverse((obj) => {
     if (!isMesh(obj)) return;
@@ -62,18 +71,29 @@ export function prepareGalleryScene(root: THREE.Object3D) {
 
     if (ENABLE_GALLERY_OVERRIDE_MATERIALS) {
       applyGallerySurfaceMaterial(obj, GALLERY_SURFACE_COLOR);
+    } else if (ENABLE_GALLERY_SELECTIVE_STYLIZATION) {
+      applyGallerySceneMaterialStyle(obj);
     }
 
     obj.castShadow = ENABLE_GALLERY_RUNTIME_SHADOWS;
     obj.receiveShadow = ENABLE_GALLERY_RUNTIME_SHADOWS;
 
+    if (isGalleryLightMesh(obj.name)) {
+      obj.getWorldPosition(worldPosition);
+      lightHalos.push({
+        name: obj.name,
+        position: [worldPosition.x, worldPosition.y, worldPosition.z],
+      });
+    }
+
     if (obj.name.startsWith("bulb_")) {
+      obj.getWorldPosition(worldPosition);
       bulbs.push({
         name: obj.name,
-        position: [obj.position.x, obj.position.y, obj.position.z],
+        position: [worldPosition.x, worldPosition.y, worldPosition.z],
       });
     }
   });
 
-  return { bulbs };
+  return { bulbs, lightHalos };
 }
