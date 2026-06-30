@@ -3,8 +3,10 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { ColColliders } from "../collision/colColliders";
 import { ExhibitPlacement } from "../exhibits/SceneExhibitPlacement";
+import type { ExhibitManifestItem } from "../../exhibits/manifest";
 import type { SpaceQualityConfig } from "../../space/spaceVisualSettings";
 import { GalleryFloorCollider } from "./GalleryFloorCollider";
+import { SpaceProjectorInstallation } from "../projector/SpaceProjectorInstallation";
 import { useGallerySpawn } from "./useGallerySpawn";
 import {
   ENABLE_GALLERY_LIGHT_HALOS,
@@ -106,11 +108,17 @@ export function GalleryModel({
   onExhibitsReady,
   onSceneReady,
   quality,
+  projectorExhibits,
+  projectorInteractive,
+  projectorPlaying,
 }: {
   loadExhibits: boolean;
   onExhibitsReady: () => void;
   onSceneReady?: () => void;
   quality: SpaceQualityConfig;
+  projectorExhibits: ExhibitManifestItem[] | null;
+  projectorInteractive: boolean;
+  projectorPlaying: boolean;
 }) {
   const gltf = useGLTF(GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH);
   const { spawn, setSpawn, setSafetyGroundY, setSafetyCenter } = useGallerySpawn();
@@ -138,6 +146,12 @@ export function GalleryModel({
       {ENABLE_GALLERY_LIGHT_HALOS ? <GalleryLightHalos lights={lightHalos} /> : null}
       <GalleryFloorCollider root={gltf.scene} />
       <GalleryBulbLights bulbs={bulbs} quality={quality} />
+      <SpaceProjectorInstallation
+        root={gltf.scene}
+        exhibits={projectorExhibits}
+        interactive={projectorInteractive}
+        playing={projectorPlaying}
+      />
       <ExhibitPlacement root={gltf.scene} enabled={loadExhibits} onReady={onExhibitsReady} />
       <ColColliders root={gltf.scene} />
       {!USE_OUTSIDE_GALLERY_SPAWN ? (

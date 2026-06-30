@@ -89,3 +89,22 @@ test("Tree Habitat uses its reader-facing exhibit title", async () => {
 
   assert.equal(formatExhibitLabel("arch_treehabitat"), "Tree Habitat");
 });
+
+test("isExhibitWithinRange honors projector-specific interaction distance", async () => {
+  const { isExhibitWithinRange } = await importSourceModule("exhibits/exhibitTarget.ts");
+  const THREE = await import("three");
+
+  const camera = new THREE.PerspectiveCamera();
+  camera.position.set(0, 0, 0);
+  const screen = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
+  screen.position.set(0, 0, 24);
+  screen.userData.exhibitMaxDistance = 25;
+  screen.updateMatrixWorld(true);
+
+  assert.equal(isExhibitWithinRange(camera, screen), true);
+
+  screen.position.set(0, 0, 26);
+  screen.updateMatrixWorld(true);
+
+  assert.equal(isExhibitWithinRange(camera, screen), false);
+});

@@ -465,6 +465,7 @@ export function SpaceDesktopExperience({
                     exhibitTarget={exhibitTarget}
                     onTargetChange={setExhibitTarget}
                     loadExhibits={loadExhibits}
+                    projectorExhibits={manifest}
                     onSceneExhibitsReady={onSceneExhibitsReady}
                     onSceneReady={onCanvasReady}
                     pointerControlsEnabled={pointerControlsEnabled}
