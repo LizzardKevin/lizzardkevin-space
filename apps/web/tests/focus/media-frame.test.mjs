@@ -32,6 +32,25 @@ test("focus media rail loops through model and exhibit images", async () => {
   assert.equal(resolveFocusMediaDragStep("model", -68, 4), 0);
 });
 
+test("resolveFocusImageFrameSize keeps 1080p image cards inside the center stage", async () => {
+  const { resolveFocusImageFrameSize } = await importSourceModule("exhibits/focusImageFrameSize.ts");
+
+  const size = resolveFocusImageFrameSize({
+    naturalWidth: 2550,
+    naturalHeight: 1650,
+    stageWidth: 794,
+    stageHeight: 1080,
+    viewportWidth: 1920,
+    viewportHeight: 1080,
+    topSafe: 92,
+    bottomSafe: 118,
+  });
+
+  assert.equal(size.normalWidth, 746);
+  assert.equal(size.normalHeight, 483);
+  assert.ok(size.normalWidth <= 794 - 48, "normal image width should fit inside stage gutters");
+});
+
 test("fitFocusModelToFrame rotates around the whole model bounding-box center", async () => {
   const { fitFocusModelToFrame } = await importSourceModule("exhibits/focusModelFrame.ts");
 

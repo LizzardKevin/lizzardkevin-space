@@ -62,6 +62,21 @@ test("Tree Habitat manifest exposes all focus images in natural order", () => {
   assert.deepEqual(exhibit?.media?.imageUrls, expected);
 });
 
+test("Tree Habitat focus images stay below the 2MB loading budget", () => {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
+  );
+  const exhibit = manifest.exhibits.find((item) => item.exhibitId === "arch_treehabitat");
+  const imageUrls = exhibit?.media?.imageUrls ?? [];
+  assert.ok(imageUrls.length > 0, "Tree Habitat needs focus images to validate");
+
+  for (const url of imageUrls) {
+    const filePath = path.join(publicDir, url.replace(/^\//, ""));
+    const size = fs.statSync(filePath).size;
+    assert.ok(size < 2 * 1024 * 1024, `${url} should be under 2MB, got ${size} bytes`);
+  }
+});
+
 test("Tree Habitat snaps directly to its named platform collider", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),

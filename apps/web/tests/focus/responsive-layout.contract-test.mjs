@@ -13,8 +13,8 @@ test("Focus desktop layout uses the planned ratio and side panels become framele
 
   assert.equal(
     declarationValue(layoutRule, "grid-template-columns"),
-    "minmax(280px, 0.9fr) minmax(420px, 1.35fr) minmax(320px, 1fr)",
-    "Focus desktop columns should preserve the planned left/media/right ratio",
+    "minmax(300px, 0.8fr) minmax(720px, 1.8fr) minmax(300px, 0.9fr)",
+    "Focus desktop columns should reserve enough center width for uncropped 1080p image cards",
   );
   assert.equal(
     declarationValue(panelRule, "background"),

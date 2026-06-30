@@ -10,17 +10,29 @@ test("Focus return action mirrors the LizzardKevin centered top return affordanc
   const overlayIndex = overlaySource.indexOf("className={`focus-overlay");
   const layoutIndex = overlaySource.indexOf('className="focus-layout"');
   const centerIndex = overlaySource.indexOf('className="focus-layout__center"');
+  const leftColumnIndex = overlaySource.indexOf('side="left"', layoutIndex);
+  const overviewIndex = overlaySource.indexOf("FocusOverviewPanel", leftColumnIndex);
   const returnIndex = overlaySource.indexOf("focus-return-button", overlayIndex);
-  const titleIndex = overlaySource.indexOf("FocusExhibitTitle", centerIndex);
+  const titleIndex = overlaySource.indexOf("FocusExhibitTitle", leftColumnIndex);
   const returnRule = cssRule(css, ".focus-return-button");
   const titleRule = cssRule(css, ".focus-title");
 
   assert.ok(overlayIndex > 0, "Focus overlay must exist");
   assert.ok(layoutIndex > overlayIndex, "Focus layout must be rendered inside the overlay");
   assert.ok(centerIndex > 0, "Focus layout center must exist");
+  assert.ok(leftColumnIndex > layoutIndex, "Focus left column must be rendered inside the layout");
   assert.ok(returnIndex > overlayIndex, "Return button should be rendered in the focus overlay");
   assert.ok(returnIndex < layoutIndex, "Return button should sit outside the centered media stage");
-  assert.ok(titleIndex > centerIndex, "Exhibit title should remain in the centered stage");
+  assert.ok(titleIndex > leftColumnIndex, "Exhibit title should move into the left text column");
+  assert.ok(
+    titleIndex < overviewIndex,
+    "Exhibit title should sit above the overview/tags/details content",
+  );
+  assert.equal(
+    overlaySource.indexOf("FocusExhibitTitle", centerIndex),
+    -1,
+    "Exhibit title should no longer sit in the centered media stage",
+  );
   assert.ok(overlaySource.includes("focus-return-button__prefix"), "Return button should split 回到 like the tab overlay");
   assert.ok(overlaySource.includes("focus-return-button__space"), "Return button should split space like the tab overlay");
   assert.ok(!overlaySource.includes("‹ RETURN TO SPACE"), "Focus return button should not keep the English return copy");
@@ -37,16 +49,18 @@ test("Focus return action mirrors the LizzardKevin centered top return affordanc
     "Return button should use the same centered transform language as the LizzardKevin overlay",
   );
   assert.doesNotMatch(returnRule, /right\s*:/, "Return button should not stay top-right");
-  assert.equal(declarationValue(titleRule, "position"), "fixed");
-  assert.equal(declarationValue(titleRule, "top"), "72px");
-  assert.equal(declarationValue(titleRule, "left"), "50%");
-  assert.equal(declarationValue(titleRule, "right"), "auto");
-  assert.equal(declarationValue(titleRule, "width"), "min(760px, 82vw)");
-  assert.equal(declarationValue(titleRule, "text-align"), "center");
+  assert.equal(declarationValue(titleRule, "position"), "relative");
+  assert.equal(declarationValue(titleRule, "width"), "100%");
+  assert.equal(declarationValue(titleRule, "max-width"), "430px");
+  assert.equal(declarationValue(titleRule, "text-align"), "left");
+  assert.equal(declarationValue(titleRule, "font-size"), "clamp(52px, 4.1vw, 78px)");
+  assert.equal(declarationValue(titleRule, "line-height"), "0.9");
+  assert.equal(declarationValue(titleRule, "border-top"), "1px solid rgba(12, 14, 14, 0.12)");
+  assert.equal(declarationValue(titleRule, "border-bottom"), "1px solid rgba(12, 14, 14, 0.08)");
   assert.match(
     titleRule,
-    /translate\(-50%, -6px\)/,
-    "Focus title should share the viewport centerline with the return button",
+    /translateY\(-8px\)/,
+    "Focus title should enter like a left-column architectural sheet header",
   );
 });
 
@@ -68,7 +82,7 @@ test("Focus title accepts optional subtitle and overlay forwards loaded copy met
   );
   assert.match(
     css,
-    /\.focus-title__subtitle\s*{[^}]*display:\s*block;[^}]*margin-top:\s*6px;[^}]*font-size:\s*12px;[^}]*font-weight:\s*400;[^}]*letter-spacing:\s*0\.08em;[^}]*text-transform:\s*none;/s,
+    /\.focus-title__subtitle\s*{[^}]*display:\s*block;[^}]*margin-top:\s*16px;[^}]*font-size:\s*12px;[^}]*font-weight:\s*400;[^}]*letter-spacing:\s*0\.12em;[^}]*text-transform:\s*none;/s,
     "Focus subtitle visual styles should be defined by the dedicated CSS class",
   );
   assert.ok(
