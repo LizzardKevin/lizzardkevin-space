@@ -111,6 +111,28 @@ test("space onboarding demo hit area targets the visible text instead of the tra
   );
 });
 
+test("space onboarding resolves localized PNG assets from current language", async () => {
+  const config = await importSourceModule("scenes/onboarding/spaceOnboardingConfig.ts");
+  const moveSign = config.SPACE_ONBOARDING_SIGNS.move;
+
+  assert.equal(
+    config.resolveSpaceOnboardingSignImageSrc(moveSign, "en"),
+    "/onboarding/space-onboarding-move-en.png",
+  );
+  assert.equal(
+    config.resolveSpaceOnboardingSignImageSrc(moveSign, "en-US"),
+    "/onboarding/space-onboarding-move-en.png",
+  );
+  assert.equal(
+    config.resolveSpaceOnboardingSignImageSrc(moveSign, "zh"),
+    "/onboarding/space-onboarding-move.png",
+  );
+  assert.equal(
+    config.resolveSpaceOnboardingSignImageSrc(moveSign, undefined),
+    "/onboarding/space-onboarding-move.png",
+  );
+});
+
 test("space onboarding sign timing constants match the approved queue timings", async () => {
   const visibility = await importSourceModule("scenes/onboarding/spaceOnboardingSignVisibility.ts");
 

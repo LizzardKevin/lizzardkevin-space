@@ -27,6 +27,14 @@ export type SpaceOnboardingSign = {
   className?: string;
 };
 
+export function resolveSpaceOnboardingSignImageSrc(
+  sign: Pick<SpaceOnboardingSign, "imageSrc">,
+  language?: string | null,
+) {
+  if (!language?.toLowerCase().startsWith("en")) return sign.imageSrc;
+  return sign.imageSrc.replace(/\.png$/, "-en.png");
+}
+
 export const SPACE_ONBOARDING_SPAWN: [number, number, number] = [-0.51, 36.897, -48.32];
 export const SPACE_ONBOARDING_EYE_LEVEL_Y = Number((SPACE_ONBOARDING_SPAWN[1] + EYE_OFFSET).toFixed(2));
 

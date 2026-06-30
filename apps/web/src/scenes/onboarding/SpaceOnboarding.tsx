@@ -13,6 +13,7 @@ import {
   SPACE_ONBOARDING_LOOK_HIT_SIZE,
   SPACE_ONBOARDING_NOTICE_VISIBLE_MS,
   SPACE_ONBOARDING_SIGNS,
+  resolveSpaceOnboardingSignImageSrc,
   type SpaceOnboardingSign,
   type SpaceOnboardingSignStepId,
 } from "./spaceOnboardingConfig.ts";
@@ -42,7 +43,11 @@ function SpaceOnboardingSignText({
   sign: SpaceOnboardingSign;
   status: SpaceOnboardingVisibleSign["status"];
 }) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const imageSrc = resolveSpaceOnboardingSignImageSrc(
+    sign,
+    i18n.resolvedLanguage ?? i18n.language,
+  );
   const imageStyle = {
     "--space-onboarding-sign-image-width": `${sign.displayWidthPx}px`,
     "--space-onboarding-enter-ms": `${enterMsForSign(sign.id)}ms`,
@@ -69,7 +74,7 @@ function SpaceOnboardingSignText({
       <div className={className} role="img" aria-label={t(sign.textKey)} style={imageStyle}>
         <img
           className="space-onboarding-sign__image"
-          src={sign.imageSrc}
+          src={imageSrc}
           alt=""
           width={sign.imageWidthPx}
           height={sign.imageHeightPx}
