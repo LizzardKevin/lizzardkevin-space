@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { readInitialLanguage } from "./resolveInitialLanguage";
 
 const resources = {
   zh: {
@@ -52,7 +53,7 @@ const resources = {
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: localStorage.getItem("lang") || "zh",
+  lng: readInitialLanguage(),
   fallbackLng: "en",
   interpolation: { escapeValue: false },
 });

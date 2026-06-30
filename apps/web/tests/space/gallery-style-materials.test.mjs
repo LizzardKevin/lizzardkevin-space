@@ -112,7 +112,8 @@ test("metal aluminum is darker than floor with a matte metallic finish", async (
   const metalValue = hexToRgb(GALLERY_ALUMINUM_MATERIAL.color).r;
   const floorValue = hexToRgb(GALLERY_TOON.stylizedMaterials.floor).r;
   assert.ok(metalValue < floorValue);
-  assert.ok(floorValue - metalValue <= 10);
+  assert.ok(floorValue - metalValue >= 1);
+  assert.ok(floorValue - metalValue <= 3);
   assert.equal(`#${material.emissive.getHexString()}`, GALLERY_ALUMINUM_MATERIAL.emissive);
   assert.equal(material.emissiveIntensity, 0);
   assert.equal(material.metalness, GALLERY_ALUMINUM_MATERIAL.metalness);
@@ -128,14 +129,13 @@ test("gallery visual settings default to fixed 2K 30fps quality with lightweight
 
   assert.equal("qualityPreset" in visual.DEFAULT_SPACE_VISUAL_SETTINGS, false);
   assert.equal(visual.DEFAULT_SPACE_VISUAL_SETTINGS.antialias, true);
-  assert.equal(visual.DEFAULT_SPACE_VISUAL_SETTINGS.motionBlur, false);
+  assert.equal("motionBlur" in visual.DEFAULT_SPACE_VISUAL_SETTINGS, false);
   assert.equal(config.performance.targetFps, 30);
   assert.equal(config.post.bloom.enabled, true);
   assert.ok(config.post.bloom.strength >= 0.1);
   assert.ok(config.post.bloom.strength <= 0.18);
   assert.ok(config.post.bloom.threshold >= 0.9);
-  assert.equal(config.post.motionBlur.enabled, false);
-  assert.equal(config.post.motionBlur.reason, "requires-velocity-pass");
+  assert.equal("motionBlur" in config.post, false);
   assert.equal("celDepthLayer" in config, false);
   assert.ok(config.lighting.lightEmissiveIntensity >= 6);
 });

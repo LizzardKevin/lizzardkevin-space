@@ -9,15 +9,11 @@ const TOPBAR_SETTINGS_COPY = {
   en: {
     language: "Language",
     antialias: "Antialias",
-    motionBlur: "Motion blur",
-    motionBlurNote: "Planned",
     settingsLabel: "SPACE settings",
   },
   zh: {
     language: "语言",
     antialias: "抗锯齿",
-    motionBlur: "动态模糊",
-    motionBlurNote: "预留",
     settingsLabel: "SPACE 设置",
   },
 };
@@ -50,7 +46,7 @@ export function TopBar({
   onCloseTab: () => void;
 }) {
   const { i18n, t } = useTranslation();
-  const { settings, toggleAntialias, toggleMotionBlur } = useSpaceVisualSettings();
+  const { settings, toggleAntialias } = useSpaceVisualSettings();
   const [activeLanguage, setActiveLanguage] = useState<SupportedLanguage>(() =>
     normalizeLanguage(i18n.resolvedLanguage ?? i18n.language),
   );
@@ -147,18 +143,6 @@ export function TopBar({
             </label>
           </div>
 
-          <div className="topbar__settingsRow topbar__settingsRow--checkbox">
-            <span>{copy.motionBlur}</span>
-            <label className="topbar__settingsCheck">
-              <input
-                type="checkbox"
-                checked={settings.motionBlur}
-                onChange={(event) => toggleMotionBlur(event.currentTarget.checked)}
-              />
-              <i aria-hidden="true" />
-              <small>{copy.motionBlurNote}</small>
-            </label>
-          </div>
         </div>
       ) : null}
     </div>
