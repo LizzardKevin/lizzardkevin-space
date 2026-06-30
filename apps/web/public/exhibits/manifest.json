@@ -41,7 +41,7 @@
         "scale": 1,
         "placement": {
           "snap": "floor",
-          "heightOffset": 0.8,
+          "heightOffset": 0,
           "yawOffsetDeg": 0
         },
         "load": {

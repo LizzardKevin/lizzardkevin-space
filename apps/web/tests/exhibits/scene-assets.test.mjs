@@ -7,6 +7,26 @@ import { readGlbJson } from "../helpers/glb.mjs";
 
 const publicDir = publicPath();
 
+function assertClose(actual, expected, message) {
+  assert.ok(Math.abs(actual - expected) < 0.000001, `${message}: expected ${expected}, got ${actual}`);
+}
+
+function findNode(json, name) {
+  return (json.nodes ?? []).find((node) => node.name === name);
+}
+
+function firstPositionBounds(json, node) {
+  assert.notEqual(node?.mesh, undefined, `${node?.name ?? "node"} must reference a mesh`);
+  const mesh = json.meshes[node.mesh];
+  const primitive = mesh?.primitives?.[0];
+  const accessorIndex = primitive?.attributes?.POSITION;
+  assert.notEqual(accessorIndex, undefined, `${node.name} must expose POSITION bounds`);
+  const accessor = json.accessors[accessorIndex];
+  assert.ok(Array.isArray(accessor?.min), `${node.name} POSITION accessor needs min`);
+  assert.ok(Array.isArray(accessor?.max), `${node.name} POSITION accessor needs max`);
+  return { min: accessor.min, max: accessor.max };
+}
+
 test("scene exhibit manifest points active exhibits at anchors and three LOD models", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
@@ -42,13 +62,24 @@ test("Tree Habitat manifest exposes all focus images in natural order", () => {
   assert.deepEqual(exhibit?.media?.imageUrls, expected);
 });
 
-test("Tree Habitat uses a plinth height offset until its platform collider is named as a platform", () => {
+test("Tree Habitat snaps directly to its named platform collider", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
   );
   const exhibit = manifest.exhibits.find((item) => item.exhibitId === "arch_treehabitat");
+  const json = readGlbJson(path.join(publicDir, "models/space_main.glb"));
+  const anchor = findNode(json, "ANCHOR_ARCH_TREEHABITAT");
+  const snapCollider = findNode(json, "COL_PLATFORM_TREEHABITAT_SNAP");
+  const snapBounds = firstPositionBounds(json, snapCollider);
+  const snapCenterX = (snapBounds.min[0] + snapBounds.max[0]) / 2;
+  const snapCenterZ = (snapBounds.min[2] + snapBounds.max[2]) / 2;
+  const snapTopY = snapBounds.max[1];
 
-  assert.equal(exhibit?.scene?.placement?.heightOffset, 0.8);
+  assert.equal(exhibit?.scene?.placement?.heightOffset, 0);
+  assert.deepEqual(anchor?.translation?.length, 3);
+  assertClose(anchor.translation[0], snapCenterX, "Tree Habitat anchor X should hit snap collider center");
+  assertClose(anchor.translation[1], snapTopY, "Tree Habitat anchor Y should sit on snap collider top");
+  assertClose(anchor.translation[2], snapCenterZ, "Tree Habitat anchor Z should hit snap collider center");
 });
 
 test("Tree Habitat content sample has portfolio metadata and no pipeline copy", () => {

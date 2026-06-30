@@ -11,6 +11,20 @@ const expectedScripts = [
   "scripts/prepare-exhibit-lods.mjs",
 ];
 
+function assertClose(actual, expected, message) {
+  assert.ok(
+    Math.abs(actual - expected) < 0.000001,
+    `${message}: expected ${expected}, got ${actual}`,
+  );
+}
+
+function assertColorClose(actual, expected, message) {
+  assert.equal(actual.length, expected.length, `${message}: channel count`);
+  for (let index = 0; index < expected.length; index += 1) {
+    assertClose(actual[index], expected[index], `${message}[${index}]`);
+  }
+}
+
 function assertTreehabitatRuntimeMaterials(file) {
   const json = readGlbJson(projectPath(file));
   const materials = new Map((json.materials ?? []).map((material) => [material.name, material]));
@@ -18,9 +32,9 @@ function assertTreehabitatRuntimeMaterials(file) {
   const glass = materials.get("mat_treehabitat_glass_frosted");
   assert.ok(white, `${file} must include Tree Habitat white material`);
   assert.ok(glass, `${file} must include Tree Habitat glass material`);
-  assert.deepEqual(white.pbrMetallicRoughness.baseColorFactor, [0.96, 0.96, 0.94, 1]);
-  assert.deepEqual(glass.pbrMetallicRoughness.baseColorFactor, [0.68, 0.7, 0.7, 0.4]);
-  assert.equal(glass.pbrMetallicRoughness.roughnessFactor, 0.68);
+  assertColorClose(white.pbrMetallicRoughness.baseColorFactor, [0.96, 0.96, 0.94, 1], `${file} white baseColorFactor`);
+  assertColorClose(glass.pbrMetallicRoughness.baseColorFactor, [0.68, 0.7, 0.7, 0.4], `${file} glass baseColorFactor`);
+  assertClose(glass.pbrMetallicRoughness.roughnessFactor, 0.68, `${file} glass roughnessFactor`);
 }
 
 for (const script of expectedScripts) {

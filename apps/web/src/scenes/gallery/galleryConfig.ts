@@ -14,7 +14,7 @@ export const GALLERY_INITIAL_LOOK_DIRECTION: [number, number, number] = [0, 0, 1
 export const GALLERY_INITIAL_LOOK_DISTANCE = 10;
 
 /** Bump when replacing space_main.glb so dev/browser reloads geometry. */
-export const GALLERY_GLB_REVISION = "20260625-treehabitat-noao-0019";
+export const GALLERY_GLB_REVISION = "20260630-treehabitat-snap-0022";
 
 export const GALLERY_GLB_URL = `/models/space_main.glb?v=${GALLERY_GLB_REVISION}`;
 

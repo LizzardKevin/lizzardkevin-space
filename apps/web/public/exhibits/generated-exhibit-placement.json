@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-25T09:00:19.221Z",
+  "generatedAt": "2026-06-30T08:51:12.209Z",
   "source": {
     "spaceMain": "/models/space_main.glb",
     "manifest": "/exhibits/manifest.json"
@@ -10,9 +10,9 @@
       "anchor": "ANCHOR_ARCH_TREEHABITAT",
       "anchorTransform": {
         "position": [
-          -11.503362655639648,
-          22.94376564025879,
-          -5.594324111938477
+          -12.555134773254395,
+          22.226776123046875,
+          -5.658931255340576
         ],
         "rotation": [
           0,
@@ -34,7 +34,7 @@
       "scale": 1,
       "placement": {
         "snap": "floor",
-        "heightOffset": 0.8,
+        "heightOffset": 0,
         "yawOffsetDeg": 0
       },
       "load": {
