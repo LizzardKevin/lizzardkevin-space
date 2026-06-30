@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GALLERY_LIGHT_EMISSIVE, GALLERY_TOON } from "./galleryConfig.ts";
+import { GALLERY_ALUMINUM_MATERIAL, GALLERY_LIGHT_EMISSIVE, GALLERY_TOON } from "./galleryConfig.ts";
 import { getGalleryToonGradientMap } from "./galleryToonMaterial.ts";
 
 type GalleryMaterialStyleAction = "preserve" | "stylize";
@@ -44,22 +44,10 @@ function hasEmissive(material: THREE.Material): material is MaterialWithEmissive
   return (material as { emissive?: unknown }).emissive instanceof THREE.Color;
 }
 
-function neutralizeColor(color: THREE.Color, lightenAmount = 0) {
-  if (lightenAmount > 0) {
-    const hex = color.getHexString();
-    const r = Number.parseInt(hex.slice(0, 2), 16);
-    const g = Number.parseInt(hex.slice(2, 4), 16);
-    const b = Number.parseInt(hex.slice(4, 6), 16);
-    const gray = Math.round((r + g + b) / 3);
-    const lifted = Math.round(gray + (255 - gray) * lightenAmount);
-    color.setRGB(lifted / 255, lifted / 255, lifted / 255, THREE.SRGBColorSpace);
-    return;
-  }
-
+function neutralizeColor(color: THREE.Color) {
   const hsl = { h: 0, s: 0, l: 0 };
   color.getHSL(hsl);
-  const lightness = hsl.l + (1 - hsl.l) * lightenAmount;
-  color.setHSL(0, 0, lightness);
+  color.setHSL(0, 0, hsl.l);
 }
 
 export function shouldPreserveGalleryMaterial(name: string) {
@@ -116,16 +104,40 @@ export function applyGalleryStylizedMaterial(mesh: THREE.Mesh) {
   return true;
 }
 
-function neutralizeMaterial(material: THREE.Material, lightenAmount = 0) {
+function neutralizeMaterial(material: THREE.Material) {
   let changed = false;
   if (hasColor(material)) {
-    neutralizeColor(material.color, lightenAmount);
+    neutralizeColor(material.color);
     changed = true;
   }
   if (hasEmissive(material)) {
-    neutralizeColor(material.emissive, lightenAmount);
+    neutralizeColor(material.emissive);
     changed = true;
   }
+  if (changed) material.needsUpdate = true;
+  return changed;
+}
+
+function applyGalleryAluminumMaterial(material: THREE.Material) {
+  let changed = false;
+  if (hasColor(material)) {
+    material.color.set(GALLERY_ALUMINUM_MATERIAL.color);
+    changed = true;
+  }
+  if (hasEmissive(material)) {
+    material.emissive.set(GALLERY_ALUMINUM_MATERIAL.emissive);
+    material.emissiveIntensity = 0;
+    changed = true;
+  }
+
+  const standard = material as THREE.MeshStandardMaterial;
+  if (standard.isMeshStandardMaterial || (standard as THREE.MeshPhysicalMaterial).isMeshPhysicalMaterial) {
+    standard.metalness = GALLERY_ALUMINUM_MATERIAL.metalness;
+    standard.roughness = GALLERY_ALUMINUM_MATERIAL.roughness;
+    standard.envMapIntensity = GALLERY_ALUMINUM_MATERIAL.envMapIntensity;
+    changed = true;
+  }
+
   if (changed) material.needsUpdate = true;
   return changed;
 }
@@ -165,11 +177,17 @@ function applyGalleryLightMaterial(mesh: THREE.Mesh) {
 }
 
 export function applyGalleryNeutralMaterialTone(mesh: THREE.Mesh) {
-  const lightenAmount = mesh.name.startsWith("METAL_ALUMINUM_") ? 0.25 : 0;
-  if (Array.isArray(mesh.material)) {
-    return mesh.material.some((material) => neutralizeMaterial(material, lightenAmount));
+  if (mesh.name.startsWith("METAL_ALUMINUM_")) {
+    if (Array.isArray(mesh.material)) {
+      return mesh.material.some((material) => applyGalleryAluminumMaterial(material));
+    }
+    return applyGalleryAluminumMaterial(mesh.material);
   }
-  return neutralizeMaterial(mesh.material, lightenAmount);
+
+  if (Array.isArray(mesh.material)) {
+    return mesh.material.some((material) => neutralizeMaterial(material));
+  }
+  return neutralizeMaterial(mesh.material);
 }
 
 export function applyGallerySceneMaterialStyle(mesh: THREE.Mesh) {

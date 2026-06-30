@@ -138,6 +138,15 @@ export const GALLERY_LIGHT_EMISSIVE = {
   intensity: 6.2,
 };
 
+/** Neutral brushed aluminum: darker than floor, high roughness for a matte metal read. */
+export const GALLERY_ALUMINUM_MATERIAL = {
+  color: "#646464",
+  emissive: "#000000",
+  metalness: 0.72,
+  roughness: 0.82,
+  envMapIntensity: 0.55,
+};
+
 /** Optional additive light sprites; disabled by default to protect 2K/60. */
 export const ENABLE_GALLERY_LIGHT_HALOS = false;
 

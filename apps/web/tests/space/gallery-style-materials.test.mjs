@@ -94,8 +94,11 @@ test("stairs align to floor tone and white plaster aligns to wall tone", async (
   assert.equal(style.getGalleryStylizedMaterial(stair.name).color.getHexString(), "787878");
 });
 
-test("metal aluminum tones lighten by 25 percent while staying neutral", async () => {
+test("metal aluminum is darker than floor with a matte metallic finish", async () => {
   const style = await importSourceModule("scenes/gallery/galleryStyleMaterials.ts");
+  const { GALLERY_ALUMINUM_MATERIAL, GALLERY_TOON } = await importSourceModule(
+    "scenes/gallery/galleryConfig.ts",
+  );
   const metal = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshStandardMaterial({ color: "#404040", emissive: "#202020" }),
@@ -105,8 +108,13 @@ test("metal aluminum tones lighten by 25 percent while staying neutral", async (
   assert.equal(style.applyGallerySceneMaterialStyle(metal), true);
 
   const material = metal.material;
-  assert.equal(`#${material.color.getHexString()}`, "#707070");
-  assert.equal(`#${material.emissive.getHexString()}`, "#585858");
+  assert.equal(`#${material.color.getHexString()}`, GALLERY_ALUMINUM_MATERIAL.color);
+  assert.ok(hexToRgb(GALLERY_ALUMINUM_MATERIAL.color).r < hexToRgb(GALLERY_TOON.stylizedMaterials.floor).r);
+  assert.equal(`#${material.emissive.getHexString()}`, GALLERY_ALUMINUM_MATERIAL.emissive);
+  assert.equal(material.emissiveIntensity, 0);
+  assert.equal(material.metalness, GALLERY_ALUMINUM_MATERIAL.metalness);
+  assert.equal(material.roughness, GALLERY_ALUMINUM_MATERIAL.roughness);
+  assert.equal(material.envMapIntensity, GALLERY_ALUMINUM_MATERIAL.envMapIntensity);
   assert.equal(channelSpread(`#${material.color.getHexString()}`), 0);
   assert.equal(channelSpread(`#${material.emissive.getHexString()}`), 0);
 });
