@@ -12,6 +12,7 @@ import { useGallerySpawn } from "./gallery/useGallerySpawn";
 import { SafetyGround } from "./gallery/SafetyGround";
 import { WallPicture } from "./gallery/WallPicture";
 import { SpaceOnboarding } from "./onboarding/SpaceOnboarding";
+import type { SpacePlayerPose } from "../space/spaceDailyResume";
 
 function SpaceSceneContent({
   exhibitTarget,
@@ -29,6 +30,9 @@ function SpaceSceneContent({
   onboardingEnabled,
   pointerLocked,
   onboardingFocusVisible,
+  initialPose,
+  onPoseSample,
+  onOnboardingCompleted,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -45,6 +49,9 @@ function SpaceSceneContent({
   onboardingEnabled: boolean;
   pointerLocked: boolean;
   onboardingFocusVisible: boolean;
+  initialPose?: SpacePlayerPose | null;
+  onPoseSample?: (pose: SpacePlayerPose) => void;
+  onOnboardingCompleted?: () => void;
 }) {
   const { spawn, safetyGroundY, safetyCenterX, safetyCenterZ } = useGallerySpawn();
 
@@ -102,6 +109,8 @@ function SpaceSceneContent({
         enabled={controlsEnabled}
         spawn={ENABLE_GALLERY_GLB ? spawn : undefined}
         onJumpNotice={onJumpNotice}
+        initialPose={initialPose}
+        onPoseSample={onPoseSample}
       />
 
       <ExhibitTargetLabel target={controlsEnabled ? exhibitTarget : null} />
@@ -110,6 +119,7 @@ function SpaceSceneContent({
         enabled={onboardingEnabled}
         pointerLocked={pointerLocked}
         focusDemoVisible={onboardingFocusVisible}
+        onCompleted={onOnboardingCompleted}
       />
       <ExhibitRaycast
         onTargetChange={onTargetChange}
@@ -139,6 +149,9 @@ export function SpaceScene({
   onboardingEnabled,
   pointerLocked,
   onboardingFocusVisible,
+  initialPose,
+  onPoseSample,
+  onOnboardingCompleted,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -155,6 +168,9 @@ export function SpaceScene({
   onboardingEnabled: boolean;
   pointerLocked: boolean;
   onboardingFocusVisible: boolean;
+  initialPose?: SpacePlayerPose | null;
+  onPoseSample?: (pose: SpacePlayerPose) => void;
+  onOnboardingCompleted?: () => void;
 }) {
   if (ENABLE_GALLERY_GLB) {
     return (
@@ -175,6 +191,9 @@ export function SpaceScene({
           onboardingEnabled={onboardingEnabled}
           pointerLocked={pointerLocked}
           onboardingFocusVisible={onboardingFocusVisible}
+          initialPose={initialPose}
+          onPoseSample={onPoseSample}
+          onOnboardingCompleted={onOnboardingCompleted}
         />
       </GallerySpawnProvider>
     );
@@ -197,6 +216,9 @@ export function SpaceScene({
       onboardingEnabled={onboardingEnabled}
       pointerLocked={pointerLocked}
       onboardingFocusVisible={onboardingFocusVisible}
+      initialPose={initialPose}
+      onPoseSample={onPoseSample}
+      onOnboardingCompleted={onOnboardingCompleted}
     />
   );
 }

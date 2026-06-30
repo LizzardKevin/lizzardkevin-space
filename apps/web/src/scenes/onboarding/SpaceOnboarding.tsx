@@ -11,8 +11,8 @@ import {
   SPACE_ONBOARDING_LOOK_HIT_ID,
   SPACE_ONBOARDING_LOOK_HIT_POSITION,
   SPACE_ONBOARDING_LOOK_HIT_SIZE,
+  SPACE_ONBOARDING_NOTICE_VISIBLE_MS,
   SPACE_ONBOARDING_SIGNS,
-  SPACE_ONBOARDING_SPAWN,
   type SpaceOnboardingSign,
   type SpaceOnboardingSignStepId,
 } from "./spaceOnboardingConfig.ts";
@@ -24,6 +24,7 @@ import {
 } from "./spaceOnboardingState.ts";
 import {
   createInitialSpaceOnboardingSignQueueState,
+  enterMsForSign,
   updateSpaceOnboardingSignQueue,
   type SpaceOnboardingVisibleSign,
   type SpaceOnboardingSignQueueState,
@@ -44,6 +45,7 @@ function SpaceOnboardingSignText({
   const { t } = useTranslation();
   const imageStyle = {
     "--space-onboarding-sign-image-width": `${sign.displayWidthPx}px`,
+    "--space-onboarding-enter-ms": `${enterMsForSign(sign.id)}ms`,
   } as CSSProperties;
   const className = [
     "space-onboarding-sign",
@@ -82,10 +84,12 @@ export function SpaceOnboarding({
   enabled,
   pointerLocked,
   focusDemoVisible,
+  onCompleted,
 }: {
   enabled: boolean;
   pointerLocked: boolean;
   focusDemoVisible: boolean;
+  onCompleted?: () => void;
 }) {
   const camera = useThree((state) => state.camera);
   const [onboardingState, setOnboardingState] =
@@ -94,6 +98,8 @@ export function SpaceOnboarding({
     createInitialSpaceOnboardingSignQueueState,
   );
   const stateRef = useRef(onboardingState);
+  const moveStartZRef = useRef<number | null>(null);
+  const completedCallbackFiredRef = useRef(false);
   const previousFocusVisibleRef = useRef(focusDemoVisible);
   const previousPointerLockedRef = useRef(pointerLocked);
   const lookHitMeshRef = useRef<THREE.Mesh>(null);
@@ -119,7 +125,10 @@ export function SpaceOnboarding({
 
   useEffect(() => {
     stateRef.current = onboardingState;
-  }, [onboardingState]);
+    if (onboardingState.step !== "move") {
+      moveStartZRef.current = null;
+    }
+  }, [camera, onboardingState]);
 
   useEffect(() => {
     const wasVisible = previousFocusVisibleRef.current;
@@ -144,6 +153,21 @@ export function SpaceOnboarding({
     return () => window.clearTimeout(timer);
   }, [dispatch, onboardingState.completed, onboardingState.step]);
 
+  useEffect(() => {
+    if (onboardingState.step !== "notice" || onboardingState.completed) return;
+    const timer = window.setTimeout(
+      () => dispatch({ type: "noticeViewed" }),
+      SPACE_ONBOARDING_NOTICE_VISIBLE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [dispatch, onboardingState.completed, onboardingState.step]);
+
+  useEffect(() => {
+    if (!onboardingState.completed || completedCallbackFiredRef.current) return;
+    completedCallbackFiredRef.current = true;
+    onCompleted?.();
+  }, [onCompleted, onboardingState.completed]);
+
   useFrame(() => {
     if (!enabled) return;
     const current = stateRef.current;
@@ -160,9 +184,14 @@ export function SpaceOnboarding({
     if (current.completed) return;
 
     if (current.step === "move") {
+      const moveSignVisible = signQueue.signs.some((sign) => sign.id === "move");
+      if (!moveSignVisible) return;
+      if (moveStartZRef.current === null) {
+        moveStartZRef.current = camera.position.z;
+      }
       dispatch({
         type: "moveProgress",
-        distanceM: Math.max(0, camera.position.z - SPACE_ONBOARDING_SPAWN[2]),
+        distanceM: Math.max(0, camera.position.z - moveStartZRef.current),
       });
       return;
     }

@@ -31,6 +31,7 @@ import {
   nextLandingStepState,
   walkHeadBobOffset,
 } from "./playerMotion";
+import type { SpacePlayerPose } from "../../space/spaceDailyResume";
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 
@@ -66,10 +67,14 @@ export function PlayerController({
   enabled,
   spawn,
   onJumpNotice,
+  initialPose,
+  onPoseSample,
 }: {
   enabled: boolean;
   spawn?: [number, number, number];
   onJumpNotice: (message: string) => void;
+  initialPose?: SpacePlayerPose | null;
+  onPoseSample?: (pose: SpacePlayerPose) => void;
 }) {
   const { camera } = useThree();
   const keys = useKeyboard();
@@ -86,6 +91,7 @@ export function PlayerController({
   const idleRef = useRef(0);
   const enabledRef = useRef(enabled);
   const onJumpNoticeRef = useRef(onJumpNotice);
+  const onPoseSampleRef = useRef(onPoseSample);
   const spawnKeyRef = useRef<string | null>(null);
   const jumpAttemptCountRef = useRef(0);
   const jumpUnlockedRef = useRef(false);
@@ -124,6 +130,10 @@ export function PlayerController({
   }, [onJumpNotice]);
 
   useEffect(() => {
+    onPoseSampleRef.current = onPoseSample;
+  }, [onPoseSample]);
+
+  useEffect(() => {
     const controller = world.createCharacterController(0.01);
     controller.setSlideEnabled(true);
     controller.enableSnapToGround(0.35);
@@ -138,12 +148,15 @@ export function PlayerController({
 
   useEffect(() => {
     const body = rb.current;
-    if (!body || !spawn) return;
-    const key = spawn.join(",");
+    if (!body || (!spawn && !initialPose)) return;
+    const key = initialPose
+      ? `resume:${initialPose.position.join(",")}:${initialPose.yawRad}:${initialPose.pitchRad}`
+      : spawn!.join(",");
     if (spawnKeyRef.current === key) return;
     spawnKeyRef.current = key;
+    const position = initialPose?.position ?? spawn!;
     const spawnMotion = initialPlayerSpawnMotionState();
-    body.setTranslation({ x: spawn[0], y: spawn[1], z: spawn[2] }, true);
+    body.setTranslation({ x: position[0], y: position[1], z: position[2] }, true);
     body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     verticalVelocity.current = spawnMotion.verticalVelocity;
     horizontalVelocity.current.set(0, 0, 0);
@@ -151,12 +164,17 @@ export function PlayerController({
     landingStepArmedRef.current = spawnMotion.landingStepArmed;
     jumpedThisAirRef.current = false;
     pendingJumpRef.current = false;
-    camera.position.set(spawn[0], spawn[1] + EYE_OFFSET, spawn[2]);
-    camera.lookAt(...initialLookAtFromSpawn(spawn));
+    camera.position.set(position[0], position[1] + EYE_OFFSET, position[2]);
+    if (initialPose) {
+      tmp.lookEuler.set(initialPose.pitchRad, initialPose.yawRad, 0, "YXZ");
+      camera.quaternion.setFromEuler(tmp.lookEuler);
+    } else {
+      camera.lookAt(...initialLookAtFromSpawn(position));
+    }
     lookRotationDebugRef.current = null;
     frameRateDebugRef.current = null;
     movementDebugTickRef.current = 0;
-  }, [spawn, camera]);
+  }, [initialPose, spawn, camera, tmp]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -199,10 +217,26 @@ export function PlayerController({
     const t = body.translation();
     if (!enabledRef.current) {
       camera.position.set(t.x, t.y + EYE_OFFSET, t.z);
+      if (onPoseSampleRef.current) {
+        tmp.lookEuler.setFromQuaternion(camera.quaternion, "YXZ");
+        onPoseSampleRef.current({
+          position: [t.x, t.y, t.z],
+          yawRad: tmp.lookEuler.y,
+          pitchRad: tmp.lookEuler.x,
+        });
+      }
       return;
     }
 
     camera.position.set(t.x, t.y + EYE_OFFSET + bobRef.current + idleRef.current, t.z);
+    if (onPoseSampleRef.current) {
+      tmp.lookEuler.setFromQuaternion(camera.quaternion, "YXZ");
+      onPoseSampleRef.current({
+        position: [t.x, t.y, t.z],
+        yawRad: tmp.lookEuler.y,
+        pitchRad: tmp.lookEuler.x,
+      });
+    }
   });
 
   useBeforePhysicsStep(() => {
@@ -361,7 +395,7 @@ export function PlayerController({
     <RigidBody
       ref={rb}
       type="kinematicPosition"
-      position={spawn ?? [0, 1, 6]}
+      position={initialPose?.position ?? spawn ?? [0, 1, 6]}
       colliders={false}
       enabledRotations={[false, false, false]}
     >

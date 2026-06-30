@@ -20,11 +20,17 @@ test("space onboarding advances through the corridor tutorial in order", async (
   const onboarding = await importSourceModule("scenes/onboarding/spaceOnboardingState.ts");
 
   let state = onboarding.createInitialSpaceOnboardingState();
-  assert.equal(state.step, "move");
+  assert.equal(state.step, "notice");
   assert.equal(state.completed, false);
 
   state = onboarding.reduceSpaceOnboardingState(state, { type: "escUnlocked" });
-  assert.equal(state.step, "move", "Esc cannot progress before the demo focus closes");
+  assert.equal(state.step, "notice", "Esc cannot progress before the demo focus closes");
+
+  state = onboarding.reduceSpaceOnboardingState(state, { type: "moveProgress", distanceM: 8 });
+  assert.equal(state.step, "notice", "walking cannot skip the opening version notice");
+
+  state = onboarding.reduceSpaceOnboardingState(state, { type: "noticeViewed" });
+  assert.equal(state.step, "move");
 
   state = onboarding.reduceSpaceOnboardingState(state, { type: "moveProgress", distanceM: 1.39 });
   assert.equal(state.step, "move");
@@ -65,6 +71,7 @@ test("space onboarding waits for the look sign raycast before showing the demo s
   const onboarding = await importSourceModule("scenes/onboarding/spaceOnboardingState.ts");
 
   let state = onboarding.createInitialSpaceOnboardingState();
+  state = onboarding.reduceSpaceOnboardingState(state, { type: "noticeViewed" });
   state = onboarding.reduceSpaceOnboardingState(state, { type: "moveProgress", distanceM: 1.4 });
   assert.equal(state.step, "look");
 
@@ -93,15 +100,51 @@ test("space onboarding sign timing constants match the approved queue timings", 
   const visibility = await importSourceModule("scenes/onboarding/spaceOnboardingSignVisibility.ts");
 
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_ENTER_MS, 500);
+  assert.equal(visibility.SPACE_ONBOARDING_NOTICE_ENTER_MS, 260);
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_MS, 950);
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M, 1);
-  assert.equal(visibility.SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS, 250);
+  assert.equal(visibility.SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS, 100);
+  assert.equal(visibility.SPACE_ONBOARDING_NOTICE_COMPLETE_FALLBACK_MS, 0);
+});
+
+test("space onboarding notice enters faster than ordinary signs", async () => {
+  const visibility = await importSourceModule("scenes/onboarding/spaceOnboardingSignVisibility.ts");
+
+  let queue = visibility.updateSpaceOnboardingSignQueue(visibility.createInitialSpaceOnboardingSignQueueState(), {
+    activeSignId: "notice",
+    cameraZ: -48.32,
+    nowMs: 0,
+  });
+  assert.deepEqual(queueLabels(queue), ["notice:enter"]);
+
+  queue = visibility.updateSpaceOnboardingSignQueue(queue, {
+    activeSignId: "notice",
+    cameraZ: -48.32,
+    nowMs: visibility.SPACE_ONBOARDING_NOTICE_ENTER_MS,
+  });
+  assert.deepEqual(queueLabels(queue), ["notice:visible"]);
+
+  queue = visibility.updateSpaceOnboardingSignQueue(visibility.createInitialSpaceOnboardingSignQueueState(), {
+    activeSignId: "move",
+    cameraZ: -48.32,
+    nowMs: 0,
+  });
+  queue = visibility.updateSpaceOnboardingSignQueue(queue, {
+    activeSignId: "move",
+    cameraZ: -48.32,
+    nowMs: visibility.SPACE_ONBOARDING_NOTICE_ENTER_MS,
+  });
+  assert.deepEqual(queueLabels(queue), ["move:enter"], "ordinary signs should keep the slower enter timing");
 });
 
 test("space onboarding signs serialize ordinary prompts through enter, exit, and dissolve", async () => {
   const visibility = await importSourceModule("scenes/onboarding/spaceOnboardingSignVisibility.ts");
+  const config = await importSourceModule("scenes/onboarding/spaceOnboardingConfig.ts");
   const enterMs = visibility.SPACE_ONBOARDING_SIGN_ENTER_MS ?? 500;
   const dissolveMs = visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_MS ?? 950;
+  const moveSignZ = config.SPACE_ONBOARDING_SIGNS.move.position[2];
+  const leadM = visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M ?? 1;
+  const moveExitZ = moveSignZ - leadM;
 
   let queue = visibility.updateSpaceOnboardingSignQueue(visibility.createInitialSpaceOnboardingSignQueueState(), {
     activeSignId: "move",
@@ -119,35 +162,35 @@ test("space onboarding signs serialize ordinary prompts through enter, exit, and
 
   queue = visibility.updateSpaceOnboardingSignQueue(queue, {
     activeSignId: "look",
-    cameraZ: -46.92,
+    cameraZ: moveExitZ,
     nowMs: enterMs + 25,
   });
   assert.deepEqual(queueLabels(queue), ["move:exiting"], "the look sign waits until move dissolves");
 
   queue = visibility.updateSpaceOnboardingSignQueue(queue, {
     activeSignId: "look",
-    cameraZ: -46.92,
+    cameraZ: moveExitZ,
     nowMs: enterMs + 25 + dissolveMs - 1,
   });
   assert.deepEqual(queueLabels(queue), ["move:exiting"]);
 
   queue = visibility.updateSpaceOnboardingSignQueue(queue, {
     activeSignId: "look",
-    cameraZ: -46.92,
+    cameraZ: moveExitZ,
     nowMs: enterMs + 25 + dissolveMs,
   });
   assert.deepEqual(queueLabels(queue), [], "the next ordinary sign waits after the previous dissolves");
 
   queue = visibility.updateSpaceOnboardingSignQueue(queue, {
     activeSignId: "look",
-    cameraZ: -46.92,
+    cameraZ: moveExitZ,
     nowMs: enterMs + 25 + dissolveMs + visibility.SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS - 1,
   });
   assert.deepEqual(queueLabels(queue), [], "the next ordinary sign does not appear during the delay");
 
   queue = visibility.updateSpaceOnboardingSignQueue(queue, {
     activeSignId: "look",
-    cameraZ: -46.92,
+    cameraZ: moveExitZ,
     nowMs: enterMs + 25 + dissolveMs + visibility.SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS,
   });
   assert.deepEqual(queueLabels(queue), ["look:enter"], "the next ordinary sign appears after the delay");

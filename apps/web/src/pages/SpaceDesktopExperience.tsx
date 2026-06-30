@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Crosshair } from "../components/Crosshair";
 import { SpaceCursorOverlay } from "../cursor/SpaceCursorOverlay";
@@ -37,6 +37,13 @@ import {
   resumeSpaceFirstPersonWithCursorReturn,
 } from "../space/requestSpacePointerLock";
 import { isPermanentPointerLockFailure } from "../space/pointerLockFailure";
+import {
+  clearSpaceDailyResume,
+  readSpaceDailyResume,
+  shouldSaveSpaceDailyResume,
+  writeSpaceDailyResume,
+  type SpacePlayerPose,
+} from "../space/spaceDailyResume";
 
 const FocusOverlay = lazy(() =>
   import("../exhibits/FocusOverlay").then((module) => ({
@@ -46,6 +53,8 @@ const FocusOverlay = lazy(() =>
 
 const JUMP_HINT_VISIBLE_MS = 5000;
 const SPACE_PHYSICS_TIME_STEP = 1 / 60;
+const SPACE_DAILY_RESUME_SAVE_INTERVAL_MS = 1000;
+const SPACE_DAILY_RESUME_RESET_PARAM = "resetSpaceOnboarding";
 
 type SpacePointerLockFailedEvent = CustomEvent<{
   message: string;
@@ -55,6 +64,24 @@ type SpacePointerLockFailedEvent = CustomEvent<{
 function JumpHint({ message, visible }: { message: string; visible: boolean }) {
   if (!visible || !message) return null;
   return <div className="jump-hint">{message}</div>;
+}
+
+function readInitialDailyResumePose() {
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get(SPACE_DAILY_RESUME_RESET_PARAM) === "1") {
+      clearSpaceDailyResume();
+      params.delete(SPACE_DAILY_RESUME_RESET_PARAM);
+      const nextSearch = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}${window.location.hash}`,
+      );
+      return null;
+    }
+  }
+  return readSpaceDailyResume();
 }
 
 export function SpaceDesktopExperience({
@@ -86,6 +113,10 @@ export function SpaceDesktopExperience({
   const [pointerLockUnavailable, setPointerLockUnavailable] = useState(false);
   const [onboardingFocusOpen, setOnboardingFocusOpen] = useState(false);
   const [onboardingFocusClosing, setOnboardingFocusClosing] = useState(false);
+  const [dailyResumePose] = useState<SpacePlayerPose | null>(() => readInitialDailyResumePose());
+  const [onboardingCompleted, setOnboardingCompleted] = useState(dailyResumePose !== null);
+  const latestSpacePoseRef = useRef<SpacePlayerPose | null>(dailyResumePose);
+  const lastDailyResumeSaveAtRef = useRef(0);
 
   const { entered, fading: entryIsFading } = entry;
 
@@ -168,6 +199,40 @@ export function SpaceDesktopExperience({
   const focusOverlayExhibit = focused ?? focusClosing;
   const onboardingFocusVisible = onboardingFocusOpen || onboardingFocusClosing;
   const focusSurfaceOpen = focusOverlayExhibit !== null || onboardingFocusVisible;
+  const dailyResumeSavingEnabled = shouldSaveSpaceDailyResume({
+    onboardingCompleted,
+    restoredFromDailyResume: dailyResumePose !== null,
+  });
+  const canSaveDailyResume = entered && dailyResumeSavingEnabled && !focusSurfaceOpen;
+
+  const handleSpacePoseSample = useCallback(
+    (pose: SpacePlayerPose) => {
+      latestSpacePoseRef.current = pose;
+      if (!canSaveDailyResume) return;
+      const nowMs = Date.now();
+      if (nowMs - lastDailyResumeSaveAtRef.current < SPACE_DAILY_RESUME_SAVE_INTERVAL_MS) return;
+      writeSpaceDailyResume(undefined, pose, new Date(nowMs));
+      lastDailyResumeSaveAtRef.current = nowMs;
+    },
+    [canSaveDailyResume],
+  );
+
+  useEffect(() => {
+    if (!canSaveDailyResume || !latestSpacePoseRef.current) return;
+    const nowMs = Date.now();
+    writeSpaceDailyResume(undefined, latestSpacePoseRef.current, new Date(nowMs));
+    lastDailyResumeSaveAtRef.current = nowMs;
+  }, [canSaveDailyResume]);
+
+  useEffect(() => {
+    if (!dailyResumeSavingEnabled) return;
+    const saveBeforePageHide = () => {
+      if (!latestSpacePoseRef.current) return;
+      writeSpaceDailyResume(undefined, latestSpacePoseRef.current);
+    };
+    window.addEventListener("pagehide", saveBeforePageHide);
+    return () => window.removeEventListener("pagehide", saveBeforePageHide);
+  }, [dailyResumeSavingEnabled]);
 
   const handleBeginDismissOnboardingFocus = useCallback(
     (opts?: { fromEscape?: boolean }) => {
@@ -392,9 +457,12 @@ export function SpaceDesktopExperience({
                     suppressNextClick={suppressNextExhibitClick}
                     onConsumeSuppressedClick={handleConsumeSuppressedClick}
                     onJumpNotice={handleJumpNotice}
-                    onboardingEnabled={entered && !pointerLockUnavailable}
+                    onboardingEnabled={entered && !pointerLockUnavailable && dailyResumePose === null && !onboardingCompleted}
                     pointerLocked={pointerLocked}
                     onboardingFocusVisible={onboardingFocusVisible}
+                    initialPose={dailyResumePose}
+                    onPoseSample={handleSpacePoseSample}
+                    onOnboardingCompleted={() => setOnboardingCompleted(true)}
                   />
                 </Physics>
                 <GalleryRenderPipeline />
