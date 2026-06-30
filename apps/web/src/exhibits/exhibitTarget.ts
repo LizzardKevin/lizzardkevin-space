@@ -10,6 +10,8 @@ export type ExhibitTarget = {
 
 const EXHIBIT_LABELS: Record<string, string> = {
   arch_treehabitat: "Tree Habitat",
+  arch_uabb_exhibit: "UABB Exhibit",
+  arch_3d_printing_architecture: "3D Printing Architecture",
   space_onboarding_demo: "SPACE GUIDE",
 };
 
@@ -22,10 +24,20 @@ export function formatExhibitLabel(exhibitId: string): string {
 const _box = new THREE.Box3();
 const _center = new THREE.Vector3();
 
+function readExplicitLabelAnchor(object: THREE.Object3D): [number, number, number] | null {
+  const anchor = object.userData?.exhibitLabelAnchor;
+  if (!Array.isArray(anchor) || anchor.length !== 3) return null;
+  if (!anchor.every((value) => typeof value === "number" && Number.isFinite(value))) return null;
+  return anchor as [number, number, number];
+}
+
 export function computeExhibitLabelAnchor(
   object: THREE.Object3D,
   target: THREE.Vector3 = new THREE.Vector3(),
 ): THREE.Vector3 {
+  const explicitAnchor = readExplicitLabelAnchor(object);
+  if (explicitAnchor) return target.set(explicitAnchor[0], explicitAnchor[1], explicitAnchor[2]);
+
   _box.setFromObject(object);
   _box.getCenter(_center);
   return target.set(_center.x, _box.max.y + EXHIBIT_TARGET.labelOffsetY, _center.z);

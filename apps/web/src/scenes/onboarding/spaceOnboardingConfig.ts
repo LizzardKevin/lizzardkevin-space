@@ -41,7 +41,7 @@ export const SPACE_ONBOARDING_EYE_LEVEL_Y = Number((SPACE_ONBOARDING_SPAWN[1] + 
 export const SPACE_ONBOARDING_MOVE_DISTANCE_M = 1.4;
 export const SPACE_ONBOARDING_LOOK_RADIANS = (7 * Math.PI) / 180;
 export const SPACE_ONBOARDING_DEMO_GATE_Z = -41.2;
-export const SPACE_ONBOARDING_NOTICE_VISIBLE_MS = 3800;
+export const SPACE_ONBOARDING_NOTICE_VISIBLE_MS = 2000;
 export const SPACE_ONBOARDING_DONE_VISIBLE_MS = 4200;
 
 export const SPACE_ONBOARDING_SIGNS: Record<SpaceOnboardingSignStepId, SpaceOnboardingSign> = {
@@ -127,6 +127,11 @@ export const SPACE_ONBOARDING_DEMO_HIT_POSITION: [number, number, number] = [
   SPACE_ONBOARDING_SIGNS.demo.position[0] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[0],
   SPACE_ONBOARDING_SIGNS.demo.position[1] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[1],
   SPACE_ONBOARDING_SIGNS.demo.position[2] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[2],
+];
+export const SPACE_ONBOARDING_DEMO_LABEL_ANCHOR: [number, number, number] = [
+  SPACE_ONBOARDING_SIGNS.demo.position[0],
+  Number((SPACE_ONBOARDING_SIGNS.demo.position[1] + 0.58).toFixed(2)),
+  SPACE_ONBOARDING_SIGNS.demo.position[2],
 ];
 export const SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE: [number, number] = [
   2.05,

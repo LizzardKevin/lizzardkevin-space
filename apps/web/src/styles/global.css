@@ -1665,12 +1665,12 @@ button {
   38% {
     opacity: 0.68;
     filter: blur(1.2px);
-    transform: translate3d(0, -3px, 0) scale(1.018);
+    transform: translate3d(0, -2px, 0) scale(1.01);
   }
   100% {
     opacity: 0;
-    filter: blur(7px);
-    transform: translate3d(0, -16px, 0) scale(1.04);
+    filter: blur(3.5px);
+    transform: translate3d(0, -7px, 0) scale(1.018);
   }
 }
 
@@ -1682,8 +1682,8 @@ button {
   }
   100% {
     opacity: 0;
-    filter: blur(7px);
-    transform: translate3d(0, -16px, 0) scale(1.04);
+    filter: blur(3.5px);
+    transform: translate3d(0, -7px, 0) scale(1.018);
   }
 }
 
@@ -1695,13 +1695,13 @@ button {
   }
   26% {
     opacity: 0.78;
-    filter: blur(2px);
-    transform: translate3d(0, -2px, 0) scale(1.04);
+    filter: blur(1.4px);
+    transform: translate3d(0, -1px, 0) scale(0.98);
   }
   100% {
     opacity: 0;
-    filter: blur(10px);
-    transform: translate3d(0, -18px, 0) scale(1.36);
+    filter: blur(5px);
+    transform: translate3d(0, -8px, 0) scale(1.14);
   }
 }
 
@@ -1714,6 +1714,36 @@ button {
     opacity: 0;
     transform: scaleX(0.22);
   }
+}
+
+.space-temp-blocker-notice {
+  width: 220px;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-align: center;
+  text-transform: none;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.5),
+    0 1px 8px rgba(28, 24, 20, 0.42);
+  opacity: 0;
+  filter: blur(2px);
+  transform: translate3d(0, 5px, 0);
+  transition:
+    opacity 260ms ease,
+    filter 260ms ease,
+    transform 260ms ease;
+  pointer-events: none;
+  user-select: none;
+  will-change: opacity, filter, transform;
+}
+
+.space-temp-blocker-notice--active {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate3d(0, 0, 0);
 }
 
 .space-onboarding-focus {

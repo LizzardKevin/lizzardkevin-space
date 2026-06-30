@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import {
   SPACE_ONBOARDING_DEMO_EXHIBIT_ID,
+  SPACE_ONBOARDING_DEMO_LABEL_ANCHOR,
   SPACE_ONBOARDING_DEMO_HIT_POSITION,
   SPACE_ONBOARDING_DEMO_HIT_SIZE,
   SPACE_ONBOARDING_DONE_VISIBLE_MS,
@@ -26,6 +27,7 @@ import {
 import {
   createInitialSpaceOnboardingSignQueueState,
   enterMsForSign,
+  isSpaceOnboardingNoticeClose,
   updateSpaceOnboardingSignQueue,
   type SpaceOnboardingVisibleSign,
   type SpaceOnboardingSignQueueState,
@@ -113,7 +115,10 @@ export function SpaceOnboarding({
   const raycastCenter = useMemo(() => new THREE.Vector2(0, 0), []);
 
   const demoHitUserData = useMemo(
-    () => ({ exhibitId: SPACE_ONBOARDING_DEMO_EXHIBIT_ID }),
+    () => ({
+      exhibitId: SPACE_ONBOARDING_DEMO_EXHIBIT_ID,
+      exhibitLabelAnchor: SPACE_ONBOARDING_DEMO_LABEL_ANCHOR,
+    }),
     [],
   );
   const lookHitUserData = useMemo(
@@ -192,6 +197,13 @@ export function SpaceOnboarding({
     );
 
     if (current.completed) return;
+
+    if (current.step === "notice") {
+      if (isSpaceOnboardingNoticeClose(camera.position.z)) {
+        dispatch({ type: "noticeViewed" });
+      }
+      return;
+    }
 
     if (current.step === "move") {
       const moveSignVisible = signQueue.signs.some((sign) => sign.id === "move");

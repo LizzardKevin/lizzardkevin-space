@@ -6,11 +6,15 @@ import {
 export const SPACE_ONBOARDING_SIGN_ENTER_MS = 500;
 export const SPACE_ONBOARDING_NOTICE_ENTER_MS = 260;
 export const SPACE_ONBOARDING_SIGN_DISSOLVE_MS = 950;
-export const SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M = 1;
+export const SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M = 0.45;
 export const SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS = 100;
 export const SPACE_ONBOARDING_SIGN_OPERATION_COMPLETE_FALLBACK_MS = 1000;
 export const SPACE_ONBOARDING_NOTICE_COMPLETE_FALLBACK_MS = 0;
 export const SPACE_ONBOARDING_SIGN_MIN_LINGER_MS = SPACE_ONBOARDING_SIGN_OPERATION_COMPLETE_FALLBACK_MS;
+
+export function isSpaceOnboardingNoticeClose(cameraZ: number): boolean {
+  return cameraZ >= SPACE_ONBOARDING_SIGNS.notice.position[2] - SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M;
+}
 
 export type SpaceOnboardingVisibleSignStatus = "enter" | "visible" | "exiting";
 

@@ -70,7 +70,10 @@ assert(
   "retryable pointer lock failures must not permanently disable first-person controls",
 );
 assert(files.keyboard.includes('window.addEventListener("blur", onBlur)'), "keyboard state must clear on window blur");
-assert(files.floorCollider.includes("COL_STAIR"), "floor collider cutouts must include COL_STAIR_* regions");
+assert(
+  !files.galleryModel.includes("GalleryFloorCollider"),
+  "SPACE must not mount a generated floor collider; authored COL_* meshes own collision shape",
+);
 assert(files.materialScript.includes('name.startswith("ARCH_STAIR_")'), "ARCH_STAIR_* must use the stair material contract");
 assert(files.aoScript.includes('"ARCH_STAIR_"'), "vertex AO bake must include ARCH_STAIR_* visual stairs");
 
@@ -111,8 +114,14 @@ assert(files.debugOverlay.includes("raycastSample"), "debug overlay must store r
 assert(files.debugOverlay.includes("mesh</dt>"), "debug overlay must show the currently aimed mesh name");
 assert(files.desktop.includes("<SpaceMovementDebugOverlay />"), "desktop SPACE page must mount the movement debug overlay");
 assert(files.css.includes(".space-movement-debug"), "movement debug panel CSS must exist");
-assert(files.colColliders.includes("registerSpaceCollisionDebugCollider"), "COL_* trimesh/cuboid colliders must register debug names");
-assert(files.floorCollider.includes("registerSpaceCollisionDebugCollider"), "floor colliders must register debug names");
+assert(files.colColliders.includes("registerSpaceCollisionDebugCollider"), "COL_* trimesh colliders must register debug names");
+assert(files.colColliders.includes("TrimeshCollider"), "COL_* meshes must use their baked mesh geometry");
+assert(!files.colColliders.includes("CuboidCollider"), "COL_* meshes must not be resized into cuboid colliders");
+assert(!files.colColliders.includes("COL_inner"), "COL_inner meshes must not receive a special runtime sizing path");
+assert(
+  !files.colColliders.includes("prop-fallback") && !files.colColliders.includes("fallback cuboid"),
+  "SPACE collisions must come from explicitly named COL_* meshes, not inferred prop_* fallback colliders",
+);
 assert(files.safetyGround.includes("registerSpaceCollisionDebugCollider"), "safety ground collider must register a debug name");
 
 console.log("space movement debug contract tests passed");

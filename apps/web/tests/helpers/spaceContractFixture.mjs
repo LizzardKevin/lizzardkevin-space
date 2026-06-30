@@ -20,7 +20,7 @@ export const files = {
   footsteps: readProjectFile("apps/web/src/scenes/Player/useFootsteps.ts"),
   desktop: readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx"),
   colColliders: readProjectFile("apps/web/src/scenes/collision/colColliders.tsx"),
-  floorCollider: readProjectFile("apps/web/src/scenes/gallery/GalleryFloorCollider.tsx"),
+  galleryModel: readProjectFile("apps/web/src/scenes/gallery/GalleryModel.tsx"),
   safetyGround: readProjectFile("apps/web/src/scenes/gallery/SafetyGround.tsx"),
   materialScript: readProjectFile("scripts/apply-space-main-materials.py"),
   aoScript: readProjectFile("scripts/bake-space-main-ao.py"),

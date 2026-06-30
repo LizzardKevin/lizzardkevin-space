@@ -22,6 +22,9 @@ const resources = {
           relock: "点击空白区域重新控制视角",
           done: "顺着道路前往SPACE吧",
         },
+        tempBlocker: {
+          notice: "后方空间仍在建设中",
+        },
       },
       mobile: { underConstruction: "移动端网页正在施工中" },
     },
@@ -44,6 +47,9 @@ const resources = {
           esc: "Press Esc to release the mouse",
           relock: "Click an empty area to control the view again",
           done: "Follow the path to SPACE",
+        },
+        tempBlocker: {
+          notice: "More SPACE is under construction",
         },
       },
       mobile: { underConstruction: "Mobile site is under construction" },

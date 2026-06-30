@@ -5,8 +5,8 @@ import { ColColliders } from "../collision/colColliders";
 import { ExhibitPlacement } from "../exhibits/SceneExhibitPlacement";
 import type { ExhibitManifestItem } from "../../exhibits/manifest";
 import type { SpaceQualityConfig } from "../../space/spaceVisualSettings";
-import { GalleryFloorCollider } from "./GalleryFloorCollider";
 import { SpaceProjectorInstallation } from "../projector/SpaceProjectorInstallation";
+import { TempBlockerNotices } from "./TempBlockerNotices";
 import { useGallerySpawn } from "./useGallerySpawn";
 import {
   ENABLE_GALLERY_LIGHT_HALOS,
@@ -144,7 +144,6 @@ export function GalleryModel({
     <group>
       <primitive object={gltf.scene} />
       {ENABLE_GALLERY_LIGHT_HALOS ? <GalleryLightHalos lights={lightHalos} /> : null}
-      <GalleryFloorCollider root={gltf.scene} />
       <GalleryBulbLights bulbs={bulbs} quality={quality} />
       <SpaceProjectorInstallation
         root={gltf.scene}
@@ -152,6 +151,7 @@ export function GalleryModel({
         interactive={projectorInteractive}
         playing={projectorPlaying}
       />
+      <TempBlockerNotices root={gltf.scene} />
       <ExhibitPlacement root={gltf.scene} enabled={loadExhibits} onReady={onExhibitsReady} />
       <ColColliders root={gltf.scene} />
       {!USE_OUTSIDE_GALLERY_SPAWN ? (

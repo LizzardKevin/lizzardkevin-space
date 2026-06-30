@@ -139,9 +139,25 @@ test("space onboarding sign timing constants match the approved queue timings", 
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_ENTER_MS, 500);
   assert.equal(visibility.SPACE_ONBOARDING_NOTICE_ENTER_MS, 260);
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_MS, 950);
-  assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M, 1);
+  assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M, 0.45);
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS, 100);
   assert.equal(visibility.SPACE_ONBOARDING_NOTICE_COMPLETE_FALLBACK_MS, 0);
+});
+
+test("space onboarding opening notice lasts two seconds before advancing", async () => {
+  const config = await importSourceModule("scenes/onboarding/spaceOnboardingConfig.ts");
+
+  assert.equal(config.SPACE_ONBOARDING_NOTICE_VISIBLE_MS, 2000);
+});
+
+test("space onboarding opening notice can advance when the player walks close enough", async () => {
+  const visibility = await importSourceModule("scenes/onboarding/spaceOnboardingSignVisibility.ts");
+  const config = await importSourceModule("scenes/onboarding/spaceOnboardingConfig.ts");
+  const noticeZ = config.SPACE_ONBOARDING_SIGNS.notice.position[2];
+  const leadM = visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M;
+
+  assert.equal(visibility.isSpaceOnboardingNoticeClose(noticeZ - leadM - 0.01), false);
+  assert.equal(visibility.isSpaceOnboardingNoticeClose(noticeZ - leadM), true);
 });
 
 test("space onboarding notice enters faster than ordinary signs", async () => {

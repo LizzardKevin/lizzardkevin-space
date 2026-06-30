@@ -71,8 +71,8 @@ assert.match(
 );
 assert.match(
   config,
-  /SPACE_ONBOARDING_NOTICE_VISIBLE_MS\s*=\s*3800/,
-  "opening notice should stay visible before dissolving into the movement tutorial",
+  /SPACE_ONBOARDING_NOTICE_VISIBLE_MS\s*=\s*2000/,
+  "opening notice should stay visible for two seconds before dissolving into the movement tutorial",
 );
 assert.match(
   config,
@@ -93,6 +93,11 @@ assert.match(
   config,
   /SPACE_ONBOARDING_DEMO_HIT_POSITION/,
   "demo hit mesh should have an explicit position aligned to the glowing text",
+);
+assert.match(
+  config,
+  /SPACE_ONBOARDING_DEMO_LABEL_ANCHOR/,
+  "demo hit mesh should expose a label anchor directly above the visible SPACE GUIDE text",
 );
 assert.match(
   config,
@@ -209,8 +214,15 @@ assert(
 assert(
   onboardingScene.includes("SPACE_ONBOARDING_DEMO_EXHIBIT_ID") &&
     onboardingScene.includes("SPACE_ONBOARDING_DEMO_HIT_POSITION") &&
+    onboardingScene.includes("SPACE_ONBOARDING_DEMO_LABEL_ANCHOR") &&
+    onboardingScene.includes("exhibitLabelAnchor") &&
     onboardingScene.includes("userData={demoHitUserData}"),
-  "demo sign should expose the synthetic exhibit id through a raycast hit mesh",
+  "demo sign should expose the synthetic exhibit id and label anchor through a raycast hit mesh",
+);
+assert(
+  onboardingScene.includes("isSpaceOnboardingNoticeClose") &&
+    onboardingScene.includes('dispatch({ type: "noticeViewed" })'),
+  "opening notice should advance either after the two-second timer or when the visitor walks close enough",
 );
 assert(
   onboardingScene.includes("demoHitMeshRef") &&
@@ -299,6 +311,12 @@ assert(css.includes("spaceOnboardingTextSwap"), "global CSS should animate Esc/r
 assert(css.includes(".space-onboarding-sign--exiting"), "global CSS should animate onboarding sign exits");
 assert(css.includes("spaceOnboardingDissolve"), "global CSS should dissolve completed onboarding signs");
 assert(css.includes("spaceOnboardingMistDissolve"), "global CSS should dissolve text through a soft mist layer");
+assert(
+  css.includes("filter: blur(3.5px)") &&
+    css.includes("translate3d(0, -7px, 0)") &&
+    css.includes("scale(1.018)"),
+  "onboarding sign dissolve should stay inside the PNG transparent bounds instead of blooming past the image outline",
+);
 assert(css.includes("cubic-bezier(0.16, 1, 0.3, 1)"), "dissolve animation should use a smooth non-choppy easing");
 assert(css.includes(".space-onboarding-focus"), "global CSS should style the demo focus overlay");
 
