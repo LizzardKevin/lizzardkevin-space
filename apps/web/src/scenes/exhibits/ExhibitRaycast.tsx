@@ -31,7 +31,7 @@ export function ExhibitRaycast({
   enabled: boolean;
 }) {
   const { camera, scene, gl } = useThree();
-  const lastActiveId = useRef<string | null>(null);
+  const lastActiveKey = useRef<string | null>(null);
   const lastFocused = useRef<string | null>(null);
   const onTargetChangeRef = useRef(onTargetChange);
   const onFocusExhibitRef = useRef(onFocusExhibit);
@@ -59,7 +59,7 @@ export function ExhibitRaycast({
 
   useEffect(() => {
     if (enabled) return;
-    lastActiveId.current = null;
+    lastActiveKey.current = null;
     lastFocused.current = null;
     onTargetChangeRef.current(null);
   }, [enabled]);
@@ -100,9 +100,11 @@ export function ExhibitRaycast({
 
     lastFocused.current = target?.exhibitId ?? null;
 
-    const activeId = target?.exhibitId ?? null;
-    if (activeId !== lastActiveId.current) {
-      lastActiveId.current = activeId;
+    const activeKey = target
+      ? `${target.exhibitId}:${target.interactionKind}:${target.object.uuid}`
+      : null;
+    if (activeKey !== lastActiveKey.current) {
+      lastActiveKey.current = activeKey;
       onTargetChangeRef.current(target);
     }
   });

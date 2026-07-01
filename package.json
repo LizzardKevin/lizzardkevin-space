@@ -17,6 +17,7 @@
     "preview": "npm run preview -w apps/web",
     "lint": "npm run lint -w apps/web",
     "audio:remix-space-bgm": "node scripts/remix-space-background.mjs",
+    "projector:optimize": "node scripts/optimize-projector-selection-images.mjs",
     "exhibits:validate": "node scripts/validate-exhibit-scene-assets.mjs",
     "exhibits:cache": "node scripts/generate-exhibit-placement-cache.mjs",
     "exhibits:lod": "node scripts/prepare-exhibit-lods.mjs",

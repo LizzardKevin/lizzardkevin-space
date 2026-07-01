@@ -1,14 +1,17 @@
 # Tree Habitat projector images
 
-Place selected Tree Habitat projection images in this folder.
+Place original Tree Habitat projection images in `source/`, then run:
 
-The default images are hardlinks to `public/exhibits/arch_treehabitat/img`.
-Replace them when you have a tighter projector-only edit.
+```bash
+npm run projector:optimize
+```
 
-Currently referenced names:
+SPACE loads the matching WebP files from `optimized/`.
 
-- `FL-10.jpg`
-- `FL-12.jpg`
-- `FL-9.jpg`
-- `FL-13.jpg`
-- `FL-17.jpg`
+Currently referenced runtime names:
+
+- `optimized/FL-10.webp`
+- `optimized/FL-12.webp`
+- `optimized/FL-9.webp`
+- `optimized/FL-13.webp`
+- `optimized/FL-17.webp`

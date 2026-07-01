@@ -1406,6 +1406,29 @@ button {
   transform: translateX(-50%);
 }
 
+.projector-controls-hint {
+  position: fixed;
+  left: 50%;
+  top: calc(50% + 96px);
+  z-index: 21;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(8, 10, 10, 0.22);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.42);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  transform: translateX(-50%);
+}
+
 .space-guide {
   position: fixed;
   left: 50%;

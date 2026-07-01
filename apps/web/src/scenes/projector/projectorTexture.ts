@@ -24,3 +24,7 @@ export function useProjectorImageTexture(imageUrl: string) {
 
   return texture;
 }
+
+export function preloadProjectorImageTexture(imageUrl: string) {
+  useTexture.preload(imageUrl);
+}

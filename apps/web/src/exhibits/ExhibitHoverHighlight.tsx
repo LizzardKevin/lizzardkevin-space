@@ -71,6 +71,7 @@ export function ExhibitHoverHighlight({ target }: { target: ExhibitTarget | null
     }
 
     restoreCurrentHover();
+    if (target.suppressHoverHighlight) return;
 
     const meshes: THREE.Mesh[] = [];
     target.object.traverse((obj) => {

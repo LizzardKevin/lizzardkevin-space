@@ -15,6 +15,7 @@ import { WallPicture } from "./gallery/WallPicture";
 import { SpaceOnboarding } from "./onboarding/SpaceOnboarding";
 import type { SpacePlayerPose } from "../space/spaceDailyResume";
 import type { SpaceQualityConfig } from "../space/spaceVisualSettings";
+import type { ProjectorSlideCommand } from "./projector/projectorSlides";
 
 function SpaceSceneContent({
   exhibitTarget,
@@ -25,6 +26,7 @@ function SpaceSceneContent({
   onSceneReady,
   pointerControlsEnabled,
   controlsEnabled,
+  projectorCommand,
   onFocusExhibit,
   onEmptyClick,
   suppressNextClick,
@@ -46,6 +48,7 @@ function SpaceSceneContent({
   onSceneReady?: () => void;
   pointerControlsEnabled: boolean;
   controlsEnabled: boolean;
+  projectorCommand: ProjectorSlideCommand | null;
   onFocusExhibit: (exhibitId: string) => void;
   onEmptyClick: () => void;
   suppressNextClick: boolean;
@@ -74,7 +77,7 @@ function SpaceSceneContent({
           quality={quality}
           projectorExhibits={projectorExhibits}
           projectorInteractive={controlsEnabled && !onboardingEnabled}
-          projectorPlaying={controlsEnabled && !onboardingEnabled}
+          projectorCommand={projectorCommand}
         />
       ) : null}
 
@@ -123,7 +126,11 @@ function SpaceSceneContent({
         onPoseSample={onPoseSample}
       />
 
-      <ExhibitTargetLabel target={controlsEnabled ? exhibitTarget : null} />
+      <ExhibitTargetLabel
+        target={
+          controlsEnabled && exhibitTarget?.interactionKind !== "projector" ? exhibitTarget : null
+        }
+      />
       <ExhibitHoverHighlight target={controlsEnabled ? exhibitTarget : null} />
       <SpaceOnboarding
         enabled={onboardingEnabled}
@@ -152,6 +159,7 @@ export function SpaceScene({
   onSceneReady,
   pointerControlsEnabled,
   controlsEnabled,
+  projectorCommand,
   onFocusExhibit,
   onEmptyClick,
   suppressNextClick,
@@ -173,6 +181,7 @@ export function SpaceScene({
   onSceneReady?: () => void;
   pointerControlsEnabled: boolean;
   controlsEnabled: boolean;
+  projectorCommand: ProjectorSlideCommand | null;
   onFocusExhibit: (exhibitId: string) => void;
   onEmptyClick: () => void;
   suppressNextClick: boolean;
@@ -198,6 +207,7 @@ export function SpaceScene({
           onSceneReady={onSceneReady}
           pointerControlsEnabled={pointerControlsEnabled}
           controlsEnabled={controlsEnabled}
+          projectorCommand={projectorCommand}
           onFocusExhibit={onFocusExhibit}
           onEmptyClick={onEmptyClick}
           suppressNextClick={suppressNextClick}
@@ -225,6 +235,7 @@ export function SpaceScene({
       onSceneReady={onSceneReady}
       pointerControlsEnabled={pointerControlsEnabled}
       controlsEnabled={controlsEnabled}
+      projectorCommand={projectorCommand}
       onFocusExhibit={onFocusExhibit}
       onEmptyClick={onEmptyClick}
       suppressNextClick={suppressNextClick}

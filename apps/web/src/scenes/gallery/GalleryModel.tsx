@@ -6,6 +6,7 @@ import { ExhibitPlacement } from "../exhibits/SceneExhibitPlacement";
 import type { ExhibitManifestItem } from "../../exhibits/manifest";
 import type { SpaceQualityConfig } from "../../space/spaceVisualSettings";
 import { SpaceProjectorInstallation } from "../projector/SpaceProjectorInstallation";
+import type { ProjectorSlideCommand } from "../projector/projectorSlides";
 import { TempBlockerNotices } from "./TempBlockerNotices";
 import { useGallerySpawn } from "./useGallerySpawn";
 import {
@@ -110,7 +111,7 @@ export function GalleryModel({
   quality,
   projectorExhibits,
   projectorInteractive,
-  projectorPlaying,
+  projectorCommand,
 }: {
   loadExhibits: boolean;
   onExhibitsReady: () => void;
@@ -118,7 +119,7 @@ export function GalleryModel({
   quality: SpaceQualityConfig;
   projectorExhibits: ExhibitManifestItem[] | null;
   projectorInteractive: boolean;
-  projectorPlaying: boolean;
+  projectorCommand: ProjectorSlideCommand | null;
 }) {
   const gltf = useGLTF(GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH);
   const { spawn, setSpawn, setSafetyGroundY, setSafetyCenter } = useGallerySpawn();
@@ -149,7 +150,7 @@ export function GalleryModel({
         root={gltf.scene}
         exhibits={projectorExhibits}
         interactive={projectorInteractive}
-        playing={projectorPlaying}
+        command={projectorCommand}
       />
       <TempBlockerNotices root={gltf.scene} />
       <ExhibitPlacement root={gltf.scene} enabled={loadExhibits} onReady={onExhibitsReady} />

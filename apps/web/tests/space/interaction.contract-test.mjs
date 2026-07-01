@@ -4,6 +4,28 @@ import { files } from "../helpers/spaceContractFixture.mjs";
 
 assert(files.hoverHighlight.includes("restoreFrameRef"), "exhibit hover material restore should be deferred off the hot raycast path");
 assert(files.hoverHighlight.includes("requestAnimationFrame"), "exhibit hover material restore should be scheduled with requestAnimationFrame");
+assert(
+  files.hoverHighlight.includes("target.suppressHoverHighlight"),
+  "projector targets must be able to keep cursor feedback without changing mesh emissive material",
+);
+assert(
+  files.spaceScene.includes('exhibitTarget?.interactionKind !== "projector"'),
+  "projector hover should not show the floating exhibit name tag over the screen",
+);
+assert(
+  files.exhibitRaycast.includes("lastActiveKey") &&
+    files.exhibitRaycast.includes("target.object.uuid") &&
+    files.exhibitRaycast.includes("target.interactionKind"),
+  "exhibit raycast target change detection must distinguish projector and exhibit targets that share an exhibitId",
+);
+assert(
+  files.desktop.includes("projector-controls-hint") && files.css.includes(".projector-controls-hint"),
+  "projector hover must expose a small center-bottom Q/E hint outside the 3D mesh",
+);
+assert(
+  files.desktop.includes("event.repeat"),
+  "holding Q/E should not flood projector history through OS key repeat",
+);
 
 assert(files.topbar.includes("isChangingLanguage"), "language toggle must guard against repeated async changes");
 assert(files.topbar.includes("await i18n.changeLanguage(next)"), "language toggle must await i18n language changes");

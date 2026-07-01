@@ -17,6 +17,7 @@ import { WebGPUErrorBoundary } from "../rendering/WebGPUErrorBoundary";
 import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
 import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
 import { SpaceScene } from "../scenes/SpaceScene";
+import type { ProjectorSlideCommand, ProjectorSlideDirection } from "../scenes/projector/projectorSlides";
 import {
   ENABLE_GALLERY_GLB,
   ENABLE_GALLERY_RUNTIME_SHADOWS,
@@ -67,6 +68,16 @@ function JumpHint({ message, visible }: { message: string; visible: boolean }) {
   return <div className="jump-hint">{message}</div>;
 }
 
+function ProjectorControlsHint({ visible }: { visible: boolean }) {
+  if (!visible) return null;
+  return (
+    <div className="projector-controls-hint" aria-hidden>
+      <span>Q 上一张</span>
+      <span>E 下一张</span>
+    </div>
+  );
+}
+
 function readInitialDailyResumePose() {
   if (typeof window !== "undefined") {
     const params = new URLSearchParams(window.location.search);
@@ -110,6 +121,8 @@ export function SpaceDesktopExperience({
   const [suppressNextExhibitClick, setSuppressNextExhibitClick] = useState(false);
   const [jumpHintMessage, setJumpHintMessage] = useState("");
   const [jumpHintVisible, setJumpHintVisible] = useState(false);
+  const [projectorSlideCommand, setProjectorSlideCommand] =
+    useState<ProjectorSlideCommand | null>(null);
   const [pointerLocked, setPointerLocked] = useState(false);
   const [pointerLockUnavailable, setPointerLockUnavailable] = useState(false);
   const [onboardingFocusOpen, setOnboardingFocusOpen] = useState(false);
@@ -118,6 +131,7 @@ export function SpaceDesktopExperience({
   const [onboardingCompleted, setOnboardingCompleted] = useState(dailyResumePose !== null);
   const latestSpacePoseRef = useRef<SpacePlayerPose | null>(dailyResumePose);
   const lastDailyResumeSaveAtRef = useRef(0);
+  const projectorSlideCommandNonceRef = useRef(0);
   const { quality, settings } = useSpaceVisualSettings();
   const [rendererSettings, setRendererSettings] = useState(() => ({
     antialias: settings.antialias,
@@ -318,6 +332,38 @@ export function SpaceDesktopExperience({
     !overlay.isOverlayOpen &&
     !focusSurfaceOpen &&
     !pointerLockUnavailable;
+  const onboardingEnabled =
+    entered && !pointerLockUnavailable && dailyResumePose === null && !onboardingCompleted;
+  const projectorHintVisible =
+    pointerLocked &&
+    controlsEnabled &&
+    !onboardingEnabled &&
+    exhibitTarget?.interactionKind === "projector";
+
+  const requestProjectorSlide = useCallback((direction: ProjectorSlideDirection) => {
+    setProjectorSlideCommand({
+      nonce: ++projectorSlideCommandNonceRef.current,
+      direction,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!projectorHintVisible) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (event.code === "KeyE") {
+        event.preventDefault();
+        requestProjectorSlide("next");
+      }
+      if (event.code === "KeyQ") {
+        event.preventDefault();
+        requestProjectorSlide("previous");
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [projectorHintVisible, requestProjectorSlide]);
 
   const handleEmptyClick = useCallback(() => {
     if (!controlsEnabled) return;
@@ -340,10 +386,18 @@ export function SpaceDesktopExperience({
     () => (
       <>
         <JumpHint message={jumpHintMessage} visible={jumpHintVisible} />
+        <ProjectorControlsHint visible={projectorHintVisible} />
         {pointerLocked ? <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} /> : null}
       </>
     ),
-    [crosshairPulseNonce, isHovering, jumpHintMessage, jumpHintVisible, pointerLocked],
+    [
+      crosshairPulseNonce,
+      isHovering,
+      jumpHintMessage,
+      jumpHintVisible,
+      pointerLocked,
+      projectorHintVisible,
+    ],
   );
 
   const useShadows = !ENABLE_GALLERY_GLB || ENABLE_GALLERY_RUNTIME_SHADOWS;
@@ -470,12 +524,13 @@ export function SpaceDesktopExperience({
                     onSceneReady={onCanvasReady}
                     pointerControlsEnabled={pointerControlsEnabled}
                     controlsEnabled={controlsEnabled}
+                    projectorCommand={projectorSlideCommand}
                     onFocusExhibit={handleFocusExhibit}
                     onEmptyClick={handleEmptyClick}
                     suppressNextClick={suppressNextExhibitClick}
                     onConsumeSuppressedClick={handleConsumeSuppressedClick}
                     onJumpNotice={handleJumpNotice}
-                    onboardingEnabled={entered && !pointerLockUnavailable && dailyResumePose === null && !onboardingCompleted}
+                    onboardingEnabled={onboardingEnabled}
                     pointerLocked={pointerLocked}
                     onboardingFocusVisible={onboardingFocusVisible}
                     initialPose={rendererSettings.initialPose}

@@ -14,7 +14,13 @@ export const PROJECTOR_IMAGE_DIRECTORY: readonly ProjectorImageDirectoryEntry[] 
     exhibitId: "arch_treehabitat",
     title: "Tree Habitat",
     subtitle: "selected images",
-    imageFiles: ["FL-10.jpg", "FL-12.jpg", "FL-9.jpg", "FL-13.jpg", "FL-17.jpg"],
+    imageFiles: [
+      "optimized/FL-10.webp",
+      "optimized/FL-12.webp",
+      "optimized/FL-9.webp",
+      "optimized/FL-13.webp",
+      "optimized/FL-17.webp",
+    ],
   },
 ];
 

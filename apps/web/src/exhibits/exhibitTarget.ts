@@ -3,9 +3,11 @@ import { EXHIBIT_TARGET } from "../scenes/gallery/galleryConfig.ts";
 
 export type ExhibitTarget = {
   exhibitId: string;
+  interactionKind: "exhibit" | "projector";
   /** Label anchor: bbox top center + vertical offset (world space). */
   labelAnchor: THREE.Vector3;
   object: THREE.Object3D;
+  suppressHoverHighlight?: boolean;
 };
 
 const EXHIBIT_LABELS: Record<string, string> = {
@@ -66,7 +68,25 @@ function resolveExhibitTargetMaxDistance(object: THREE.Object3D): number {
   return EXHIBIT_TARGET.maxDistance;
 }
 
+function readExhibitTargetFlags(object: THREE.Object3D) {
+  let current: THREE.Object3D | null = object;
+  let interactionKind: ExhibitTarget["interactionKind"] = "exhibit";
+  let suppressHoverHighlight = false;
+
+  while (current) {
+    if (current.userData?.interactionKind === "projector") {
+      interactionKind = "projector";
+    }
+    if (current.userData?.disableExhibitHoverHighlight === true) {
+      suppressHoverHighlight = true;
+    }
+    current = current.parent;
+  }
+
+  return { interactionKind, suppressHoverHighlight };
+}
+
 export function buildExhibitTarget(object: THREE.Object3D, exhibitId: string): ExhibitTarget {
   const labelAnchor = computeExhibitLabelAnchor(object);
-  return { exhibitId, labelAnchor, object };
+  return { exhibitId, labelAnchor, object, ...readExhibitTargetFlags(object) };
 }
