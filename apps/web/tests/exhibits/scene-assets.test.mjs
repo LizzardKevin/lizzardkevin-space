@@ -7,7 +7,7 @@ import { readGlbJson } from "../helpers/glb.mjs";
 
 const publicDir = publicPath();
 
-test("scene exhibit manifest points active exhibits at anchors and three LOD models", () => {
+test("scene exhibit manifest uses authored world coordinates and three LOD models", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
   );
@@ -23,7 +23,8 @@ test("scene exhibit manifest points active exhibits at anchors and three LOD mod
   ]) {
     const exhibit = manifest.exhibits.find((item) => item.exhibitId === exhibitId);
     assert.ok(exhibit?.scene, `${exhibitId} needs scene placement config`);
-    assert.match(exhibit.scene.anchor, /^ANCHOR_/);
+    assert.equal("anchor" in exhibit.scene, false, `${exhibitId} must not use exhibit anchors`);
+    assert.equal("distanceAnchor" in exhibit.scene, false, `${exhibitId} must not use legacy distance anchors`);
     assert.deepEqual(Object.keys(exhibit.scene.models).sort(), ["lod0", "lod1", "lod2"]);
     for (const url of Object.values(exhibit.scene.models)) {
       assert.ok(fs.existsSync(path.join(publicDir, url)), `${url} must exist`);
@@ -61,7 +62,7 @@ test("Tree Habitat focus images stay below the 2MB loading budget", () => {
   }
 });
 
-test("world-coordinate exhibit GLBs use the runtime world-origin anchor without floor snapping", () => {
+test("world-coordinate exhibit GLBs keep authored placement without anchors or floor snapping", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
   );
@@ -69,11 +70,11 @@ test("world-coordinate exhibit GLBs use the runtime world-origin anchor without 
 
   for (const exhibitId of ids) {
     const exhibit = manifest.exhibits.find((item) => item.exhibitId === exhibitId);
-    assert.equal(exhibit?.scene?.anchor, "ANCHOR_WORLD_ORIGIN", `${exhibitId} anchor`);
-    assert.deepEqual(exhibit?.scene?.distanceAnchor?.length, 3, `${exhibitId} needs a LOD distance anchor`);
+    assert.equal("anchor" in exhibit.scene, false, `${exhibitId} anchor`);
+    assert.deepEqual(exhibit?.scene?.lodCenter?.length, 3, `${exhibitId} needs a LOD center`);
     assert.ok(
-      exhibit.scene.distanceAnchor.some((value) => Math.abs(value) > 0.001),
-      `${exhibitId} distance anchor should track the authored model bounds, not the world origin`,
+      exhibit.scene.lodCenter.some((value) => Math.abs(value) > 0.001),
+      `${exhibitId} LOD center should track the authored model bounds, not the world origin`,
     );
     assert.equal(exhibit?.scene?.placement?.snap, "none", `${exhibitId} should keep authored world coordinates`);
     assert.equal(exhibit?.scene?.placement?.heightOffset, 0, `${exhibitId} height offset`);
@@ -130,11 +131,11 @@ test("active exhibit content samples have portfolio metadata and no pipeline cop
   }
 });
 
-test("space_main GLB includes production exhibit anchors and no embedded exhibit meshes", () => {
+test("space_main GLB has no exhibit anchors or embedded exhibit meshes", () => {
   const json = readGlbJson(path.join(publicDir, "models/space_main.glb"));
   const names = new Set((json.nodes ?? []).map((node) => node.name).filter(Boolean));
 
-  assert.ok(names.has("ANCHOR_ARCH_TREEHABITAT"));
+  assert.ok(![...names].some((name) => name.startsWith("ANCHOR_")));
   assert.ok(![...names].some((name) => name.startsWith("exhibit_")));
 });
 

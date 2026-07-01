@@ -31,9 +31,7 @@ function publicUrlPath(url) {
 const manifest = readJson(manifestPath);
 const glb = readGlbJson(spaceMainPath);
 const nodeNames = (glb.nodes ?? []).map((node) => node.name).filter(Boolean);
-const anchorNames = nodeNames.filter((name) => name.startsWith("ANCHOR_"));
-const anchorSet = new Set(anchorNames);
-anchorSet.add("ANCHOR_WORLD_ORIGIN");
+const exhibitAnchorNames = nodeNames.filter((name) => name.startsWith("ANCHOR_"));
 const embeddedExhibitNodes = nodeNames.filter((name) => name.startsWith("exhibit_"));
 const sceneExhibits = manifest.exhibits.filter((exhibit) => exhibit.scene);
 const errors = [];
@@ -43,19 +41,23 @@ if (embeddedExhibitNodes.length > 0) {
   errors.push(`space_main.glb must not embed exhibit_* nodes: ${embeddedExhibitNodes.join(", ")}`);
 }
 
+if (exhibitAnchorNames.length > 0) {
+  errors.push(`space_main.glb must not include exhibit ANCHOR_* markers: ${exhibitAnchorNames.join(", ")}`);
+}
+
 for (const exhibit of sceneExhibits) {
   const scene = exhibit.scene;
-  if (!scene.anchor || !anchorSet.has(scene.anchor)) {
-    errors.push(`Exhibit ${exhibit.exhibitId} references missing anchor ${scene.anchor}`);
+  if (scene.anchor !== undefined || scene.distanceAnchor !== undefined) {
+    errors.push(`Exhibit ${exhibit.exhibitId} must use world coordinates and must not declare anchor fields`);
   }
 
   if (
-    scene.distanceAnchor !== undefined &&
-    (!Array.isArray(scene.distanceAnchor) ||
-      scene.distanceAnchor.length !== 3 ||
-      !scene.distanceAnchor.every((value) => typeof value === "number" && Number.isFinite(value)))
+    scene.lodCenter !== undefined &&
+    (!Array.isArray(scene.lodCenter) ||
+      scene.lodCenter.length !== 3 ||
+      !scene.lodCenter.every((value) => typeof value === "number" && Number.isFinite(value)))
   ) {
-    errors.push(`Exhibit ${exhibit.exhibitId} distanceAnchor must be a [number, number, number] tuple`);
+    errors.push(`Exhibit ${exhibit.exhibitId} lodCenter must be a [number, number, number] tuple`);
   }
 
   for (const lod of ["lod0", "lod1", "lod2"]) {
@@ -79,7 +81,7 @@ const summary = {
   manifestPath,
   spaceMainPath,
   sceneExhibitCount: sceneExhibits.length,
-  anchorNames,
+  exhibitAnchorNames,
   embeddedExhibitNodes,
   warningCount: warnings.length,
   errorCount: errors.length,
@@ -90,7 +92,7 @@ const summary = {
 if (jsonOutput) console.log(JSON.stringify(summary, null, 2));
 else {
   console.log(`scene exhibits: ${summary.sceneExhibitCount}`);
-  console.log(`anchors: ${anchorNames.join(", ") || "none"}`);
+  console.log(`exhibit anchors: ${exhibitAnchorNames.join(", ") || "none"}`);
   for (const warning of warnings) console.warn(`warning: ${warning}`);
   for (const error of errors) console.error(`error: ${error}`);
 }

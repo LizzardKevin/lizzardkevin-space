@@ -94,10 +94,10 @@ assert.match(
   /SPACE_ONBOARDING_DEMO_HIT_POSITION/,
   "demo hit mesh should have an explicit position aligned to the glowing text",
 );
-assert.match(
+assert.doesNotMatch(
   config,
   /SPACE_ONBOARDING_DEMO_LABEL_ANCHOR/,
-  "demo hit mesh should expose a label anchor directly above the visible SPACE GUIDE text",
+  "demo hit mesh should not define a 3D label anchor because hover labels are cursor-adjacent UI",
 );
 assert.match(
   config,
@@ -214,10 +214,10 @@ assert(
 assert(
   onboardingScene.includes("SPACE_ONBOARDING_DEMO_EXHIBIT_ID") &&
     onboardingScene.includes("SPACE_ONBOARDING_DEMO_HIT_POSITION") &&
-    onboardingScene.includes("SPACE_ONBOARDING_DEMO_LABEL_ANCHOR") &&
-    onboardingScene.includes("exhibitLabelAnchor") &&
+    !onboardingScene.includes("SPACE_ONBOARDING_DEMO_LABEL_ANCHOR") &&
+    !onboardingScene.includes("exhibitLabelAnchor") &&
     onboardingScene.includes("userData={demoHitUserData}"),
-  "demo sign should expose the synthetic exhibit id and label anchor through a raycast hit mesh",
+  "demo sign should expose only the synthetic exhibit id through a raycast hit mesh",
 );
 assert(
   onboardingScene.includes("isSpaceOnboardingNoticeClose") &&
@@ -232,7 +232,8 @@ assert(
   "demo hit mesh should be a camera-facing plane so aiming only works over the visible text",
 );
 assert(
-  exhibitTarget.includes("computeExhibitLabelAnchor") &&
+  !exhibitTarget.includes("computeExhibitLabelAnchor") &&
+    !exhibitTarget.includes("labelAnchor") &&
     targetLabel.includes("resolveExhibitLabelUiPosition") &&
     !targetLabel.includes("computeExhibitLabelAnchor") &&
     !targetLabel.includes("useFrame"),

@@ -10,7 +10,6 @@ import {
 } from "../../exhibits/manifest.ts";
 import { publishSpaceExhibitPlacementDebug } from "../debug/spaceMovementDebug";
 import { GLTF_DRACO_DECODER_PATH } from "../gallery/galleryConfig";
-import { collectExhibitAnchors, type ExhibitAnchorTransform } from "./exhibitAnchors.ts";
 import { applyTreeHabitatSharedMaterials } from "./exhibitMaterialOverrides.ts";
 import {
   bindSceneExhibitId,
@@ -36,25 +35,16 @@ function applySceneScale(object: THREE.Object3D, scale: ExhibitSceneConfig["scal
   else object.scale.setScalar(scale);
 }
 
-function applyAnchorRotation(
-  object: THREE.Object3D,
-  anchor: ExhibitAnchorTransform,
-  yawOffsetDeg: number,
-) {
+function applyWorldRotation(object: THREE.Object3D, yawOffsetDeg: number) {
   const yaw = new THREE.Quaternion().setFromAxisAngle(
     new THREE.Vector3(0, 1, 0),
     THREE.MathUtils.degToRad(yawOffsetDeg),
   );
-  object.quaternion.copy(anchor.quaternion).multiply(yaw);
+  object.quaternion.copy(yaw);
 }
 
-function resolveExhibitDistancePosition(
-  sceneConfig: ExhibitSceneConfig,
-  anchor: ExhibitAnchorTransform,
-) {
-  return sceneConfig.distanceAnchor
-    ? new THREE.Vector3(...sceneConfig.distanceAnchor)
-    : anchor.position;
+function resolveExhibitDistancePosition(sceneConfig: ExhibitSceneConfig) {
+  return sceneConfig.lodCenter ? new THREE.Vector3(...sceneConfig.lodCenter) : new THREE.Vector3();
 }
 
 function useSceneExhibits(enabled: boolean) {
@@ -96,35 +86,14 @@ function DevSceneModelUrlCheck({ exhibit }: { exhibit: ExhibitManifestItem }) {
   return null;
 }
 
-function MissingAnchorWarning({
-  exhibit,
-  onReady,
-}: {
-  exhibit: ExhibitManifestItem;
-  onReady: (exhibitId: string) => void;
-}) {
-  useEffect(() => {
-    onReady(exhibit.exhibitId);
-    if (import.meta.env.DEV && exhibit.scene) {
-      console.error(
-        `Exhibit ${exhibit.exhibitId} references missing anchor ${exhibit.scene.anchor}`,
-      );
-    }
-  }, [exhibit, onReady]);
-
-  return null;
-}
-
 function SceneExhibitModel({
   exhibit,
   lod,
-  anchor,
   root,
   onReady,
 }: {
   exhibit: ExhibitManifestItem;
   lod: ExhibitLodKey;
-  anchor: ExhibitAnchorTransform;
   root: THREE.Object3D;
   onReady: (exhibitId: string) => void;
 }) {
@@ -138,7 +107,7 @@ function SceneExhibitModel({
     applyTreeHabitatSharedMaterials(object, exhibit.exhibitId);
     bindSceneExhibitId(object, exhibit.exhibitId);
     applySceneScale(object, sceneConfig.scale);
-    applyAnchorRotation(object, anchor, sceneConfig.placement.yawOffsetDeg);
+    applyWorldRotation(object, sceneConfig.placement.yawOffsetDeg);
     object.position.set(0, 0, 0);
     object.updateMatrixWorld(true);
 
@@ -147,54 +116,49 @@ function SceneExhibitModel({
       try {
         const snap = resolveExhibitFloorSnap({
           root,
-          anchorPosition: anchor.position,
+          anchorPosition: resolveExhibitDistancePosition(sceneConfig),
           exhibitObject: object,
           heightOffset: sceneConfig.placement.heightOffset,
         });
         object.position.copy(snap.position);
         floorName = snap.floorName;
       } catch (error) {
-        object.position.copy(anchor.position);
         if (import.meta.env.DEV) {
-          console.error(`${anchor.name} has no floor hit within ${EXHIBIT_SNAP_MAX_FLOOR_DROP_M}m`, error);
+          console.error(`${exhibit.exhibitId} has no floor hit within ${EXHIBIT_SNAP_MAX_FLOOR_DROP_M}m`, error);
         }
       }
-    } else {
-      object.position.copy(anchor.position);
     }
 
     object.updateMatrixWorld(true);
     return { object, floorName };
-  }, [anchor, exhibit.exhibitId, gltf.scene, root, sceneConfig]);
+  }, [exhibit.exhibitId, gltf.scene, root, sceneConfig]);
 
   useEffect(() => {
     publishSpaceExhibitPlacementDebug({
       timestamp: performance.now(),
       exhibitId: exhibit.exhibitId,
-      anchorName: anchor.name,
+      placementMode: "world",
       lod,
       floorName: placed.floorName,
     });
     onReady(exhibit.exhibitId);
-  }, [anchor.name, exhibit.exhibitId, lod, onReady, placed.floorName]);
+  }, [exhibit.exhibitId, lod, onReady, placed.floorName]);
 
   return <primitive object={placed.object} />;
 }
 
 function SceneExhibitController({
   exhibit,
-  anchor,
   root,
   onReady,
 }: {
   exhibit: ExhibitManifestItem;
-  anchor: ExhibitAnchorTransform;
   root: THREE.Object3D;
   onReady: (exhibitId: string) => void;
 }) {
   const sceneConfig = exhibit.scene;
   const { camera } = useThree();
-  const distancePosition = sceneConfig ? resolveExhibitDistancePosition(sceneConfig, anchor) : anchor.position;
+  const distancePosition = sceneConfig ? resolveExhibitDistancePosition(sceneConfig) : new THREE.Vector3();
   const initialLod = sceneConfig
     ? chooseSceneExhibitLod(camera.position.distanceTo(distancePosition), sceneConfig.load, null)
     : null;
@@ -211,7 +175,7 @@ function SceneExhibitController({
     publishSpaceExhibitPlacementDebug({
       timestamp: performance.now(),
       exhibitId: exhibit.exhibitId,
-      anchorName: anchor.name,
+      placementMode: "world",
       lod: next,
       floorName: null,
     });
@@ -230,7 +194,6 @@ function SceneExhibitController({
         key={`${exhibit.exhibitId}-${activeLod}`}
         exhibit={exhibit}
         lod={activeLod}
-        anchor={anchor}
         root={root}
         onReady={onReady}
       />
@@ -248,7 +211,6 @@ export function ExhibitPlacement({
   onReady?: () => void;
 }) {
   const exhibits = useSceneExhibits(enabled);
-  const anchors = useMemo(() => collectExhibitAnchors(root), [root]);
   const [readyIds, setReadyIds] = useState<Set<string>>(() => new Set());
   const readyCalledRef = useRef(false);
 
@@ -287,21 +249,10 @@ export function ExhibitPlacement({
       {exhibits.map((exhibit) => {
         const scene = exhibit.scene;
         if (!scene) return null;
-        const anchor = anchors.get(scene.anchor);
-        if (!anchor) {
-          return (
-            <MissingAnchorWarning
-              key={exhibit.exhibitId}
-              exhibit={exhibit}
-              onReady={markExhibitReady}
-            />
-          );
-        }
         return (
           <SceneExhibitController
             key={exhibit.exhibitId}
             exhibit={exhibit}
-            anchor={anchor}
             root={root}
             onReady={markExhibitReady}
           />

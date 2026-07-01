@@ -49,7 +49,7 @@ assert.equal(validate.status, 0, validate.stderr || validate.stdout);
 const validation = JSON.parse(validate.stdout);
 assert.equal(validation.errorCount, 0);
 assert.ok(validation.sceneExhibitCount >= 3);
-assert.ok(validation.anchorNames.includes("ANCHOR_ARCH_TREEHABITAT"));
+assert.deepEqual(validation.exhibitAnchorNames, []);
 
 const cache = spawnSync(process.execPath, ["scripts/generate-exhibit-placement-cache.mjs", "--dry-run"], {
   cwd: projectPath(),
@@ -68,15 +68,15 @@ assert.ok(
     .filter((placement) =>
       ["arch_treehabitat", "arch_uabb_exhibit", "arch_3d_printing_architecture"].includes(placement.exhibitId),
     )
-    .every((placement) => placement.anchor === "ANCHOR_WORLD_ORIGIN"),
-  "world-coordinate exhibit GLBs should use the runtime world-origin anchor",
+    .every((placement) => placement.placementMode === "world" && !("anchor" in placement)),
+  "world-coordinate exhibit GLBs should not use runtime anchors",
 );
 assert.deepEqual(
-  placementCache.placements.find((placement) => placement.exhibitId === "arch_treehabitat")?.anchorTransform?.position,
-  [0, 0, 0],
+  placementCache.placements.find((placement) => placement.exhibitId === "arch_treehabitat")?.lodCenter,
+  [-12.590655, 26.41809, -5.630336],
 );
 assert.deepEqual(
-  placementCache.placements.find((placement) => placement.exhibitId === "arch_3d_printing_architecture")?.distanceAnchor,
+  placementCache.placements.find((placement) => placement.exhibitId === "arch_3d_printing_architecture")?.lodCenter,
   [-165.06116, 30.218862, -15.547259],
 );
 assert.equal(placementCache.placements[0].snap.status, "runtime");
@@ -92,21 +92,11 @@ assert.match(lodHelp.stdout, /lod1/);
 assert.match(lodHelp.stdout, /lod2/);
 
 const materialScript = readProjectFile("scripts/apply-space-main-materials.py");
-const anchorScript = readProjectFile("scripts/inject-space-main-anchors.mjs");
-const treehabitatAnchorScript = readProjectFile("scripts/place-treehabitat-anchor-on-platform.py");
-assert.match(materialScript, /def normalize_anchor_name/);
-assert.match(materialScript, /ANCHOR_/);
-assert.match(materialScript, /ANCHOR-/);
+assert.doesNotMatch(materialScript, /REQUIRED_ANCHOR_MARKERS\s*=\s*\{/);
 assert.match(materialScript, /remove_vertex_color_attributes/);
 assert.doesNotMatch(materialScript, /ANCHOR_DEMO_(?:BOX|BASS)/);
-assert.doesNotMatch(anchorScript, /ANCHOR_DEMO_(?:BOX|BASS)/);
-assert.doesNotMatch(
-  treehabitatAnchorScript,
-  /set_mesh_to_world_box\(\s*collider,/,
-  "Tree Habitat anchor helper must not resize COL_WALL_023; runtime collisions use the authored COL mesh",
-);
-assert.doesNotMatch(treehabitatAnchorScript, /BLOCKER_HEIGHT_M/);
-assert.match(treehabitatAnchorScript, /colliderBounds/);
+assert.equal(existsSync(projectPath("scripts/place-treehabitat-anchor-on-platform.py")), false);
+assert.equal(existsSync(projectPath("scripts/inject-space-main-anchors.mjs")), false);
 
 const spaceDesktopExperience = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
 const focusOverlay = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");

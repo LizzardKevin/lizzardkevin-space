@@ -16,7 +16,6 @@ const STYLIZED_PREFIXES = [
 ];
 
 const PRESERVED_PREFIXES = [
-  "ANCHOR_",
   "COL_",
   "EXHIBITS_",
   "GLASS_",

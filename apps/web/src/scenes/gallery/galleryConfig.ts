@@ -14,7 +14,7 @@ export const GALLERY_INITIAL_LOOK_DIRECTION: [number, number, number] = [0, 0, 1
 export const GALLERY_INITIAL_LOOK_DISTANCE = 10;
 
 /** Bump when replacing space_main.glb so dev/browser reloads geometry. */
-export const GALLERY_GLB_REVISION = "20260701-rhino-refresh-1438";
+export const GALLERY_GLB_REVISION = "20260701-world-exhibits-no-anchors";
 
 export const GALLERY_GLB_URL = `/models/space_main.glb?v=${GALLERY_GLB_REVISION}`;
 
@@ -159,7 +159,6 @@ export const GALLERY_LIGHT_HALO = {
 
 /** Exhibit raycast label + hover highlight tuning. */
 export const EXHIBIT_TARGET = {
-  labelOffsetY: 0.2,
   emissiveColor: "#ffffff",
   emissiveIntensity: 0.06,
   /** Max camera-to-exhibit distance (m) for hover label, highlight, and crosshair feedback. */

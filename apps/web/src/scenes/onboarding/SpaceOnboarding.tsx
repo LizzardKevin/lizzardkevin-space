@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import {
   SPACE_ONBOARDING_DEMO_EXHIBIT_ID,
-  SPACE_ONBOARDING_DEMO_LABEL_ANCHOR,
   SPACE_ONBOARDING_DEMO_HIT_POSITION,
   SPACE_ONBOARDING_DEMO_HIT_SIZE,
   SPACE_ONBOARDING_DONE_VISIBLE_MS,
@@ -117,7 +116,6 @@ export function SpaceOnboarding({
   const demoHitUserData = useMemo(
     () => ({
       exhibitId: SPACE_ONBOARDING_DEMO_EXHIBIT_ID,
-      exhibitLabelAnchor: SPACE_ONBOARDING_DEMO_LABEL_ANCHOR,
     }),
     [],
   );

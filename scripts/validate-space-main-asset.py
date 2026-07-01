@@ -41,7 +41,7 @@ def is_temp_blocker_name(name: str) -> bool:
 def collection_for_object(name: str) -> str | None:
     if name.startswith("COL_"):
         return "COLLISION_HELPERS"
-    if name == "spawn_player_main" or name.startswith("spawn_") or name.startswith("ANCHOR_"):
+    if name == "spawn_player_main" or name.startswith("spawn_"):
         return "MARKERS"
     if name.startswith(("ARCH_FLOOR_", "STRUCT_FLOOR_")):
         return "VIS_FLOORS"
@@ -114,10 +114,6 @@ def is_anchor_name(name: str) -> bool:
     return name.startswith("ANCHOR_")
 
 
-def is_runbook_safe_anchor_name(name: str) -> bool:
-    return is_anchor_name(name) and re.fullmatch(r"ANCHOR_[A-Z0-9_]+", name) is not None
-
-
 def material_names(obj: bpy.types.Object) -> set[str]:
     if obj.type != "MESH":
         return set()
@@ -157,10 +153,8 @@ def validate_scene(
     for obj in bpy.context.scene.objects:
         if is_generic_name(obj.name) or "." in obj.name or "-" in obj.name or " " in obj.name:
             errors.append(f"{label}: object name is not runbook-safe: {obj.name}")
-        if obj.name.lower().startswith("anchor") and not is_runbook_safe_anchor_name(obj.name):
-            errors.append(f"{label}: anchor must use ANCHOR_* uppercase underscore naming: {obj.name}")
-        if is_anchor_name(obj.name) and obj.type != "EMPTY":
-            errors.append(f"{label}: {obj.name} should be an EMPTY anchor, got {obj.type}")
+        if is_anchor_name(obj.name) or obj.name.lower().startswith("anchor"):
+            errors.append(f"{label}: exhibit anchors are not allowed in space_main: {obj.name}")
         expected_material = material_for_object(obj.name)
         if expected_material is not None and expected_material not in material_names(obj):
             errors.append(f"{label}: {obj.name} must use {expected_material}, got {sorted(material_names(obj))}")

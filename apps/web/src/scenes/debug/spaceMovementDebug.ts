@@ -42,7 +42,7 @@ export type SpaceRaycastDebugSample = {
 export type SpaceExhibitPlacementDebugSample = {
   timestamp: number;
   exhibitId: string;
-  anchorName: string;
+  placementMode: "world";
   lod: string | null;
   floorName: string | null;
 };

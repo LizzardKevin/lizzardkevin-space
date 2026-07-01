@@ -4,29 +4,6 @@ import * as THREE from "three";
 import { readGlbJson } from "../helpers/glb.mjs";
 import { importSourceModule, projectPath } from "../helpers/projectPaths.mjs";
 
-test("collectExhibitAnchors records ANCHOR world transforms", async () => {
-  const { collectExhibitAnchors, EXHIBIT_WORLD_ORIGIN_ANCHOR } = await importSourceModule(
-    "scenes/exhibits/exhibitAnchors.ts",
-  );
-
-  const root = new THREE.Group();
-  root.position.set(1, 2, 3);
-  const anchor = new THREE.Object3D();
-  anchor.name = "ANCHOR_WORK_001";
-  anchor.position.set(4, 5, 6);
-  anchor.rotation.y = Math.PI / 2;
-  root.add(anchor);
-  root.updateMatrixWorld(true);
-
-  const anchors = collectExhibitAnchors(root);
-
-  assert.equal(anchors.size, 2);
-  assert.deepEqual(anchors.get(EXHIBIT_WORLD_ORIGIN_ANCHOR)?.position.toArray(), [0, 0, 0]);
-  assert.deepEqual(anchors.get(EXHIBIT_WORLD_ORIGIN_ANCHOR)?.scale.toArray(), [1, 1, 1]);
-  assert.deepEqual(anchors.get("ANCHOR_WORK_001")?.position.toArray(), [5, 7, 9]);
-  assert.ok(Math.abs((anchors.get("ANCHOR_WORK_001")?.euler.y ?? 0) - Math.PI / 2) < 0.0001);
-});
-
 test("chooseSceneExhibitLod applies thresholds and hysteresis", async () => {
   const { chooseSceneExhibitLod } = await importSourceModule("scenes/exhibits/exhibitPlacement.ts");
   const load = {
@@ -223,8 +200,7 @@ test("normalizeExhibitSceneConfig supplies default placement and load settings",
   const { normalizeExhibitSceneConfig } = await importSourceModule("exhibits/manifest.ts");
 
   const scene = normalizeExhibitSceneConfig({
-    anchor: "ANCHOR_WORK_001",
-    distanceAnchor: [1, 2, 3],
+    lodCenter: [1, 2, 3],
     models: {
       lod0: "/exhibits/work_001/work_001.lod0.glb",
       lod1: "/exhibits/work_001/work_001.lod1.glb",
@@ -232,8 +208,8 @@ test("normalizeExhibitSceneConfig supplies default placement and load settings",
     },
   });
 
-  assert.equal(scene.anchor, "ANCHOR_WORK_001");
-  assert.deepEqual(scene.distanceAnchor, [1, 2, 3]);
+  assert.equal("anchor" in scene, false);
+  assert.deepEqual(scene.lodCenter, [1, 2, 3]);
   assert.equal(scene.scale, 1);
   assert.deepEqual(scene.placement, { snap: "floor", heightOffset: 0, yawOffsetDeg: 0 });
   assert.deepEqual(scene.load, {

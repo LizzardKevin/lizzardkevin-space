@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T06:45:33.001Z",
+  "generatedAt": "2026-07-01T07:20:20.809Z",
   "source": {
     "spaceMain": "/models/space_main.glb",
     "manifest": "/exhibits/manifest.json"
@@ -7,26 +7,8 @@
   "placements": [
     {
       "exhibitId": "arch_treehabitat",
-      "anchor": "ANCHOR_WORLD_ORIGIN",
-      "anchorTransform": {
-        "position": [
-          0,
-          0,
-          0
-        ],
-        "rotation": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ]
-      },
-      "distanceAnchor": [
+      "placementMode": "world",
+      "lodCenter": [
         -12.590655,
         26.41809,
         -5.630336
@@ -55,26 +37,8 @@
     },
     {
       "exhibitId": "arch_uabb_exhibit",
-      "anchor": "ANCHOR_WORLD_ORIGIN",
-      "anchorTransform": {
-        "position": [
-          0,
-          0,
-          0
-        ],
-        "rotation": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ]
-      },
-      "distanceAnchor": [
+      "placementMode": "world",
+      "lodCenter": [
         -19.760264,
         23.153265,
         -1.90665
@@ -103,26 +67,8 @@
     },
     {
       "exhibitId": "arch_3d_printing_architecture",
-      "anchor": "ANCHOR_WORLD_ORIGIN",
-      "anchorTransform": {
-        "position": [
-          0,
-          0,
-          0
-        ],
-        "rotation": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ]
-      },
-      "distanceAnchor": [
+      "placementMode": "world",
+      "lodCenter": [
         -165.06116,
         30.218862,
         -15.547259

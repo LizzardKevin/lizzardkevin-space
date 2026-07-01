@@ -1,7 +1,7 @@
 """Replace the space_main architecture meshes from a Rhino-exported GLB.
 
-This preserves only the production player spawn and Tree Habitat anchor from
-the existing Blender source, imports the supplied GLB at its authored/default
+This preserves only the production player spawn from the existing Blender
+source, imports the supplied GLB at its authored/default
 position, reapplies the project material and collection contract, then exports
 the runtime space_main.glb.
 
@@ -30,14 +30,11 @@ TEMP_GLB_PATH = GLB_PATH.with_name("space_main.__rhino_import_tmp__.glb")
 MATERIAL_SCRIPT = REPO_ROOT / "scripts" / "apply-space-main-materials.py"
 
 SPAWN_MARKER_NAME = "spawn_player_main"
-TREEHABITAT_ANCHOR_NAME = "ANCHOR_ARCH_TREEHABITAT"
-PRESERVED_MARKER_NAMES = {SPAWN_MARKER_NAME, TREEHABITAT_ANCHOR_NAME}
+PRESERVED_MARKER_NAMES = {SPAWN_MARKER_NAME}
 
 SPAWN_MARKER_LOCATION = (-0.51, 48.318, 36.838)
-TREEHABITAT_ANCHOR_LOCATION = (-11.503362655639648, 5.594324111938477, 22.94376564025879)
 FALLBACK_MARKERS = {
     SPAWN_MARKER_NAME: SPAWN_MARKER_LOCATION,
-    TREEHABITAT_ANCHOR_NAME: TREEHABITAT_ANCHOR_LOCATION,
 }
 
 NAME_CHARS = re.compile(r"[^A-Za-z0-9_]+")

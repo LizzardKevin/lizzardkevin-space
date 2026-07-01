@@ -4,8 +4,6 @@ import { EXHIBIT_TARGET } from "../scenes/gallery/galleryConfig.ts";
 export type ExhibitTarget = {
   exhibitId: string;
   interactionKind: "exhibit" | "projector";
-  /** Label anchor: bbox top center + vertical offset (world space). */
-  labelAnchor: THREE.Vector3;
   object: THREE.Object3D;
   suppressHoverHighlight?: boolean;
 };
@@ -23,33 +21,17 @@ export function formatExhibitLabel(exhibitId: string): string {
   return exhibitId.replace(/_/g, " ");
 }
 
-const _box = new THREE.Box3();
 const _center = new THREE.Vector3();
+const _box = new THREE.Box3();
 
-function readExplicitLabelAnchor(object: THREE.Object3D): [number, number, number] | null {
-  const anchor = object.userData?.exhibitLabelAnchor;
-  if (!Array.isArray(anchor) || anchor.length !== 3) return null;
-  if (!anchor.every((value) => typeof value === "number" && Number.isFinite(value))) return null;
-  return anchor as [number, number, number];
-}
-
-export function computeExhibitLabelAnchor(
-  object: THREE.Object3D,
-  target: THREE.Vector3 = new THREE.Vector3(),
-): THREE.Vector3 {
-  const explicitAnchor = readExplicitLabelAnchor(object);
-  if (explicitAnchor) return target.set(explicitAnchor[0], explicitAnchor[1], explicitAnchor[2]);
-
+function computeObjectCenter(object: THREE.Object3D, target: THREE.Vector3 = _center): THREE.Vector3 {
   _box.setFromObject(object);
-  _box.getCenter(_center);
-  return target.set(_center.x, _box.max.y + EXHIBIT_TARGET.labelOffsetY, _center.z);
+  return _box.getCenter(target);
 }
 
 /** Camera distance to exhibit bbox center (world meters). */
 export function exhibitDistanceFromCamera(camera: THREE.Camera, object: THREE.Object3D): number {
-  _box.setFromObject(object);
-  _box.getCenter(_center);
-  return camera.position.distanceTo(_center);
+  return camera.position.distanceTo(computeObjectCenter(object));
 }
 
 export function isExhibitWithinRange(camera: THREE.Camera, object: THREE.Object3D): boolean {
@@ -87,6 +69,5 @@ function readExhibitTargetFlags(object: THREE.Object3D) {
 }
 
 export function buildExhibitTarget(object: THREE.Object3D, exhibitId: string): ExhibitTarget {
-  const labelAnchor = computeExhibitLabelAnchor(object);
-  return { exhibitId, labelAnchor, object, ...readExhibitTargetFlags(object) };
+  return { exhibitId, object, ...readExhibitTargetFlags(object) };
 }

@@ -128,11 +128,6 @@ export const SPACE_ONBOARDING_DEMO_HIT_POSITION: [number, number, number] = [
   SPACE_ONBOARDING_SIGNS.demo.position[1] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[1],
   SPACE_ONBOARDING_SIGNS.demo.position[2] + SPACE_ONBOARDING_DEMO_HIT_OFFSET[2],
 ];
-export const SPACE_ONBOARDING_DEMO_LABEL_ANCHOR: [number, number, number] = [
-  SPACE_ONBOARDING_SIGNS.demo.position[0],
-  Number((SPACE_ONBOARDING_SIGNS.demo.position[1] + 0.58).toFixed(2)),
-  SPACE_ONBOARDING_SIGNS.demo.position[2],
-];
 export const SPACE_ONBOARDING_DEMO_TEXT_HIT_SIZE: [number, number] = [
   2.05,
   0.42,

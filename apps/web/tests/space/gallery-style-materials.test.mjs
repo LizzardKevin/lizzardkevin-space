@@ -36,7 +36,6 @@ test("preserves glass metal lights collisions markers and exhibits", async () =>
     "bulb_001",
     "COL_WALL_023",
     "spawn_player_main",
-    "ANCHOR_ARCH_TREEHABITAT",
     "EXHIBITS_FRAME_001",
   ]) {
     assert.equal(style.shouldPreserveGalleryMaterial(name), true, name);
