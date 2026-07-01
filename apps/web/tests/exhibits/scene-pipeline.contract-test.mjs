@@ -9,6 +9,7 @@ const expectedScripts = [
   "scripts/validate-exhibit-scene-assets.mjs",
   "scripts/generate-exhibit-placement-cache.mjs",
   "scripts/prepare-exhibit-lods.mjs",
+  "scripts/reduce-space-main-colliders.py",
 ];
 
 function assertClose(actual, expected, message) {
@@ -77,7 +78,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   placementCache.placements.find((placement) => placement.exhibitId === "arch_3d_printing_architecture")?.lodCenter,
-  [-165.06116, 30.218862, -15.547259],
+  [-0.55, 36.95, -42.0],
 );
 assert.equal(placementCache.placements[0].snap.status, "runtime");
 
@@ -128,6 +129,16 @@ assert.match(
 
 const lodBlenderScript = readProjectFile("scripts/prepare-exhibit-lods-blender.py");
 assert.match(lodBlenderScript, /arch_uabb_exhibit/);
+assert.match(lodBlenderScript, /LOD_TARGET_TRIANGLES/);
+assert.match(lodBlenderScript, /"lod0":\s*150_000/);
+assert.match(lodBlenderScript, /"lod1":\s*80_000/);
+assert.match(lodBlenderScript, /"lod2":\s*30_000/);
+assert.match(lodBlenderScript, /EXHIBIT_WORLD_CENTER_OVERRIDES/);
+assert.match(lodBlenderScript, /EXHIBIT_WORLD_SCALE_OVERRIDES/);
+assert.match(lodBlenderScript, /arch_3d_printing_architecture/);
+assert.match(lodBlenderScript, /assign_default_material_if_missing/);
+assert.match(lodBlenderScript, /reduce_to_triangle_budget/);
+assert.match(lodBlenderScript, /join_mesh_objects_for_lod/);
 assert.match(lodBlenderScript, /window/);
 assert.match(lodBlenderScript, /mat_treehabitat_white_matte/);
 assert.match(lodBlenderScript, /mat_treehabitat_glass_frosted/);
@@ -151,5 +162,15 @@ for (const file of [
 ]) {
   assertTreehabitatRuntimeMaterials(file);
 }
+
+const printingLod = readGlbJson(
+  projectPath("apps/web/public/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod0.glb"),
+);
+assert.ok(
+  (printingLod.materials ?? []).some(
+    (material) => material.name === "mat_arch_3d_printing_architecture_default_matte",
+  ),
+  "3D Printing scene LODs should not rely on unnamed runtime default materials",
+);
 
 console.log("exhibit scene pipeline contract tests passed");

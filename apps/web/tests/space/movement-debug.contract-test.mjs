@@ -118,6 +118,7 @@ assert(files.colColliders.includes("registerSpaceCollisionDebugCollider"), "COL_
 assert(files.colColliders.includes("TrimeshCollider"), "COL_* meshes must use their baked mesh geometry");
 assert(!files.colColliders.includes("CuboidCollider"), "COL_* meshes must not be resized into cuboid colliders");
 assert(!files.colColliders.includes("COL_inner"), "COL_inner meshes must not receive a special runtime sizing path");
+assert(files.materialScript.includes('name.startswith("COL_")'), "material pipeline should preserve authored COL_* meshes");
 assert(
   !files.colColliders.includes("prop-fallback") && !files.colColliders.includes("fallback cuboid"),
   "SPACE collisions must come from explicitly named COL_* meshes, not inferred prop_* fallback colliders",

@@ -1,47 +1,151 @@
 {
   "source": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.source.glb",
-  "sourceFileSizeBytes": 21045448,
-  "method": "blender-decimate-lod0-lod1-with-lod2-fallback-copy",
-  "nextStep": "LOD0 and LOD1 were exported through Blender from the newly named UABB source. Blender decimate for the 0.12 LOD2 target stayed too slow on the 1,866-mesh source, so LOD2 currently reuses the LOD1 GLB as a conservative fallback file. For performance-final UABB, run a dedicated mesh-merge/meshopt LOD2 pass.",
+  "method": "blender-decimate",
   "outputs": [
     {
       "lod": "lod0",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.lod0.glb",
-      "fileSizeBytes": 19039580,
-      "targetFaceRatio": "1.0",
+      "targetTriangles": 150000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 513844,
+          "after": 369413
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.39183786168867907,
+          "before": 369413,
+          "after": 144750
+        }
+      ],
       "materialAssignment": {
         "whiteAssigned": 1810,
         "glassAssigned": 56,
         "fallbackWhiteAssigned": 0,
         "matchedNamedMeshes": true
       },
+      "before": {
+        "meshCount": 1866,
+        "materialCount": 2,
+        "vertexCount": 414204,
+        "faceCount": 513844,
+        "triangleCount": 513844
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 414204,
+        "faceCount": 513844,
+        "triangleCount": 513844
+      },
+      "after": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 148971,
+        "faceCount": 144750,
+        "triangleCount": 144750
+      },
+      "fileSizeBytes": 7456696,
       "manualReviewRequired": false
     },
     {
       "lod": "lod1",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.lod1.glb",
-      "fileSizeBytes": 11105116,
-      "targetFaceRatio": "0.45",
+      "targetTriangles": 80000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 513844,
+          "after": 369413
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.20898019290062883,
+          "before": 369413,
+          "after": 77200
+        }
+      ],
       "materialAssignment": {
         "whiteAssigned": 1810,
         "glassAssigned": 56,
         "fallbackWhiteAssigned": 0,
         "matchedNamedMeshes": true
       },
+      "before": {
+        "meshCount": 1866,
+        "materialCount": 2,
+        "vertexCount": 414204,
+        "faceCount": 513844,
+        "triangleCount": 513844
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 414204,
+        "faceCount": 513844,
+        "triangleCount": 513844
+      },
+      "after": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 92453,
+        "faceCount": 77200,
+        "triangleCount": 77200
+      },
+      "fileSizeBytes": 4405524,
       "manualReviewRequired": true
     },
     {
       "lod": "lod2",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.lod2.glb",
-      "fileSizeBytes": 11105116,
-      "targetFaceRatio": "fallback from lod1 after Blender 0.12 timeout",
+      "targetTriangles": 30000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 513844,
+          "after": 369413
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.07836757233773581,
+          "before": 369413,
+          "after": 28950
+        }
+      ],
       "materialAssignment": {
         "whiteAssigned": 1810,
         "glassAssigned": 56,
         "fallbackWhiteAssigned": 0,
         "matchedNamedMeshes": true
       },
+      "before": {
+        "meshCount": 1866,
+        "materialCount": 2,
+        "vertexCount": 414204,
+        "faceCount": 513844,
+        "triangleCount": 513844
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 414204,
+        "faceCount": 513844,
+        "triangleCount": 513844
+      },
+      "after": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 48963,
+        "faceCount": 28950,
+        "triangleCount": 28950
+      },
+      "fileSizeBytes": 1719324,
       "manualReviewRequired": true
     }
-  ]
+  ],
+  "nextStep": "Inspect lod1/lod2 for hard edges, text, thin rods, stair-stepped details, and silhouette loss."
 }

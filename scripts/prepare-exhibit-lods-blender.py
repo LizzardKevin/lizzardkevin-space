@@ -8,19 +8,29 @@ Called by scripts/prepare-exhibit-lods.mjs:
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 import sys
 
 import bpy
+from mathutils import Vector
 
 
-LOD_RATIOS = {
-    "lod0": 1.0,
-    "lod1": 0.45,
-    "lod2": 0.12,
+LOD_TARGET_TRIANGLES = {
+    "lod0": 150_000,
+    "lod1": 80_000,
+    "lod2": 30_000,
 }
 
 TREEHABITAT_SHARED_MATERIAL_EXHIBIT_IDS = {"arch_treehabitat", "arch_uabb_exhibit"}
+EXHIBIT_WORLD_CENTER_OVERRIDES = {
+    # Blender imports glTF Y-up coordinates as Z-up, so this exports to
+    # the runtime center [-0.55, 36.95, -42.0].
+    "arch_3d_printing_architecture": (-0.55, 42.0, 36.95),
+}
+EXHIBIT_WORLD_SCALE_OVERRIDES = {
+    "arch_3d_printing_architecture": 4.0,
+}
 TREEHABITAT_GLASS_NAMES = (
     "model glass",
     "model_glass",
@@ -48,6 +58,13 @@ TREEHABITAT_MATERIAL_SPECS = {
         "alpha": 0.40,
         "blend_method": "BLEND",
     },
+}
+DEFAULT_MATTE_MATERIAL_SPEC = {
+    "base_color": (0.88, 0.88, 0.86, 1.0),
+    "metallic": 0.0,
+    "roughness": 0.78,
+    "alpha": 1.0,
+    "blend_method": "OPAQUE",
 }
 
 
@@ -169,6 +186,93 @@ def assign_treehabitat_materials(exhibit_id: str) -> dict[str, int | bool]:
     }
 
 
+def assign_default_material_if_missing(exhibit_id: str) -> dict[str, int | bool]:
+    meshes = mesh_objects()
+    needs_default = [obj for obj in meshes if len(obj.data.materials) == 0]
+    if not needs_default:
+        return {"defaultAssigned": 0, "hadMissingMaterials": False}
+
+    material = ensure_principled_material(
+        f"mat_{exhibit_id}_default_matte",
+        DEFAULT_MATTE_MATERIAL_SPEC,
+    )
+    for obj in needs_default:
+        replace_object_material(obj, material)
+
+    return {"defaultAssigned": len(needs_default), "hadMissingMaterials": True}
+
+
+def world_bounds() -> tuple[Vector, Vector]:
+    min_corner = None
+    max_corner = None
+    for obj in mesh_objects():
+        for corner in obj.bound_box:
+            world = obj.matrix_world @ Vector(corner)
+            if min_corner is None:
+                min_corner = world.copy()
+                max_corner = world.copy()
+            else:
+                min_corner.x = min(min_corner.x, world.x)
+                min_corner.y = min(min_corner.y, world.y)
+                min_corner.z = min(min_corner.z, world.z)
+                max_corner.x = max(max_corner.x, world.x)
+                max_corner.y = max(max_corner.y, world.y)
+                max_corner.z = max(max_corner.z, world.z)
+    if min_corner is None or max_corner is None:
+        raise RuntimeError("No mesh bounds available")
+    return min_corner, max_corner
+
+
+def apply_world_center_override(exhibit_id: str) -> dict[str, list[float] | bool]:
+    target = EXHIBIT_WORLD_CENTER_OVERRIDES.get(exhibit_id)
+    if target is None:
+        return {"applied": False}
+
+    min_corner, max_corner = world_bounds()
+    center = (min_corner + max_corner) * 0.5
+    delta = Vector(target) - center
+    for obj in mesh_objects():
+        obj.location += delta
+    bpy.context.view_layer.update()
+
+    next_min, next_max = world_bounds()
+    next_center = (next_min + next_max) * 0.5
+    return {
+        "applied": True,
+        "fromCenter": [round(center.x, 6), round(center.y, 6), round(center.z, 6)],
+        "toCenter": [round(next_center.x, 6), round(next_center.y, 6), round(next_center.z, 6)],
+        "delta": [round(delta.x, 6), round(delta.y, 6), round(delta.z, 6)],
+    }
+
+
+def apply_world_scale_override(exhibit_id: str) -> dict[str, float | bool | list[float]]:
+    scale = EXHIBIT_WORLD_SCALE_OVERRIDES.get(exhibit_id)
+    if scale is None:
+        return {"applied": False}
+
+    min_corner, max_corner = world_bounds()
+    center = (min_corner + max_corner) * 0.5
+    for obj in mesh_objects():
+        obj.location = center + (obj.location - center) * scale
+        obj.scale = obj.scale * scale
+    bpy.context.view_layer.update()
+
+    next_min, next_max = world_bounds()
+    next_center = (next_min + next_max) * 0.5
+    next_size = next_max - next_min
+    return {
+        "applied": True,
+        "scale": scale,
+        "center": [round(next_center.x, 6), round(next_center.y, 6), round(next_center.z, 6)],
+        "size": [round(next_size.x, 6), round(next_size.y, 6), round(next_size.z, 6)],
+    }
+
+
+def triangle_count(obj: bpy.types.Object) -> int:
+    obj.data.calc_loop_triangles()
+    return len(obj.data.loop_triangles)
+
+
 def count_mesh_stats() -> dict[str, int]:
     meshes = mesh_objects()
     return {
@@ -176,22 +280,80 @@ def count_mesh_stats() -> dict[str, int]:
         "materialCount": len(bpy.data.materials),
         "vertexCount": sum(len(obj.data.vertices) for obj in meshes),
         "faceCount": sum(len(obj.data.polygons) for obj in meshes),
+        "triangleCount": sum(triangle_count(obj) for obj in meshes),
     }
 
 
-def apply_decimate(ratio: float) -> None:
-    if ratio >= 0.999:
+def join_mesh_objects_for_lod(exhibit_id: str, lod: str) -> None:
+    meshes = mesh_objects()
+    if len(meshes) <= 1:
         return
+
+    bpy.ops.object.select_all(action="DESELECT")
+    active = meshes[0]
+    bpy.context.view_layer.objects.active = active
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.ops.object.join()
+    joined = bpy.context.object
+    joined.name = f"{exhibit_id}_{lod}_visual"
+    joined.data.name = f"{exhibit_id}_{lod}_visual_mesh"
+    bpy.ops.object.select_all(action="DESELECT")
+
+
+def apply_limited_dissolve(angle_degrees: float) -> None:
     for obj in mesh_objects():
         bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
-        modifier = obj.modifiers.new(name=f"lod_decimate_{ratio:.2f}", type="DECIMATE")
-        modifier.ratio = ratio
+        modifier = obj.modifiers.new(name=f"lod_planar_dissolve_{angle_degrees:.1f}", type="DECIMATE")
+        modifier.decimate_type = "DISSOLVE"
+        modifier.angle_limit = math.radians(angle_degrees)
+        modifier.use_dissolve_boundaries = False
+        try:
+            bpy.ops.object.modifier_apply(modifier=modifier.name)
+        finally:
+            obj.select_set(False)
+
+
+def apply_collapse_decimate(ratio: float) -> None:
+    safe_ratio = max(0.01, min(1.0, ratio))
+    if safe_ratio >= 0.999:
+        return
+    for obj in mesh_objects():
+        if triangle_count(obj) <= 12:
+            continue
+        bpy.context.view_layer.objects.active = obj
+        obj.select_set(True)
+        modifier = obj.modifiers.new(name=f"lod_collapse_{safe_ratio:.3f}", type="DECIMATE")
+        modifier.decimate_type = "COLLAPSE"
+        modifier.ratio = safe_ratio
         modifier.use_collapse_triangulate = True
         try:
             bpy.ops.object.modifier_apply(modifier=modifier.name)
         finally:
             obj.select_set(False)
+
+
+def reduce_to_triangle_budget(target_triangles: int) -> list[dict[str, int | float | str]]:
+    steps: list[dict[str, int | float | str]] = []
+    before = count_mesh_stats()["triangleCount"]
+    apply_limited_dissolve(1.5)
+    after_dissolve = count_mesh_stats()["triangleCount"]
+    steps.append({"type": "limited-dissolve", "angleDegrees": 1.5, "before": before, "after": after_dissolve})
+
+    current = after_dissolve
+    attempt = 0
+    while current > target_triangles and attempt < 4:
+        ratio = (target_triangles / current) * 0.965
+        apply_collapse_decimate(ratio)
+        next_count = count_mesh_stats()["triangleCount"]
+        steps.append({"type": "collapse", "ratio": ratio, "before": current, "after": next_count})
+        if next_count >= current:
+            break
+        current = next_count
+        attempt += 1
+
+    return steps
 
 
 def export_glb(output: Path) -> None:
@@ -223,11 +385,16 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     outputs = []
-    for lod, ratio in LOD_RATIOS.items():
+    for lod, target_triangles in LOD_TARGET_TRIANGLES.items():
         import_source(source)
+        world_scale_override = apply_world_scale_override(exhibit_id)
+        world_center_override = apply_world_center_override(exhibit_id)
         material_assignment = assign_treehabitat_materials(exhibit_id)
+        default_material_assignment = assign_default_material_if_missing(exhibit_id)
         before = count_mesh_stats()
-        apply_decimate(ratio)
+        join_mesh_objects_for_lod(exhibit_id, lod)
+        joined = count_mesh_stats()
+        reduction_steps = reduce_to_triangle_budget(target_triangles)
         after = count_mesh_stats()
         output = output_dir / f"{exhibit_id}.{lod}.glb"
         export_glb(output)
@@ -235,9 +402,14 @@ def main() -> None:
             {
                 "lod": lod,
                 "path": str(output),
-                "ratio": ratio,
+                "targetTriangles": target_triangles,
+                "reductionSteps": reduction_steps,
+                "worldScaleOverride": world_scale_override,
+                "worldCenterOverride": world_center_override,
                 "materialAssignment": material_assignment,
+                "defaultMaterialAssignment": default_material_assignment,
                 "before": before,
+                "joined": joined,
                 "after": after,
                 "fileSizeBytes": output.stat().st_size,
                 "manualReviewRequired": lod != "lod0",

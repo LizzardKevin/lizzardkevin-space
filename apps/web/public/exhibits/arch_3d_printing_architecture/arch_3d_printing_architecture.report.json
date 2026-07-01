@@ -5,76 +5,253 @@
     {
       "lod": "lod0",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_3d_printing_architecture\\arch_3d_printing_architecture.lod0.glb",
-      "ratio": 1,
+      "targetTriangles": 150000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 447352,
+          "after": 332427
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.43543394489617265,
+          "before": 332427,
+          "after": 144713
+        }
+      ],
+      "worldScaleOverride": {
+        "applied": true,
+        "scale": 4,
+        "center": [
+          -165.061157,
+          15.54726,
+          30.218864
+        ],
+        "size": [
+          5.44751,
+          3.083397,
+          1.936707
+        ]
+      },
+      "worldCenterOverride": {
+        "applied": true,
+        "fromCenter": [
+          -165.061157,
+          15.54726,
+          30.218864
+        ],
+        "toCenter": [
+          -0.549988,
+          42,
+          36.950005
+        ],
+        "delta": [
+          164.511154,
+          26.45274,
+          6.731136
+        ]
+      },
       "materialAssignment": {
         "whiteAssigned": 0,
         "glassAssigned": 0,
         "fallbackWhiteAssigned": 0,
         "matchedNamedMeshes": false
       },
+      "defaultMaterialAssignment": {
+        "defaultAssigned": 685,
+        "hadMissingMaterials": true
+      },
       "before": {
         "meshCount": 685,
-        "materialCount": 0,
+        "materialCount": 1,
         "vertexCount": 375254,
-        "faceCount": 447352
+        "faceCount": 447352,
+        "triangleCount": 447352
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 1,
+        "vertexCount": 375254,
+        "faceCount": 447352,
+        "triangleCount": 447352
       },
       "after": {
-        "meshCount": 685,
-        "materialCount": 0,
-        "vertexCount": 375254,
-        "faceCount": 447352
+        "meshCount": 1,
+        "materialCount": 1,
+        "vertexCount": 158498,
+        "faceCount": 144713,
+        "triangleCount": 144713
       },
-      "fileSizeBytes": 15824920,
+      "fileSizeBytes": 7172180,
       "manualReviewRequired": false
     },
     {
       "lod": "lod1",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_3d_printing_architecture\\arch_3d_printing_architecture.lod1.glb",
-      "ratio": 0.45,
+      "targetTriangles": 80000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 447352,
+          "after": 332427
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.23223143727795875,
+          "before": 332427,
+          "after": 77180
+        }
+      ],
+      "worldScaleOverride": {
+        "applied": true,
+        "scale": 4,
+        "center": [
+          -165.061157,
+          15.54726,
+          30.218864
+        ],
+        "size": [
+          5.44751,
+          3.083397,
+          1.936707
+        ]
+      },
+      "worldCenterOverride": {
+        "applied": true,
+        "fromCenter": [
+          -165.061157,
+          15.54726,
+          30.218864
+        ],
+        "toCenter": [
+          -0.549988,
+          42,
+          36.950005
+        ],
+        "delta": [
+          164.511154,
+          26.45274,
+          6.731136
+        ]
+      },
       "materialAssignment": {
         "whiteAssigned": 0,
         "glassAssigned": 0,
         "fallbackWhiteAssigned": 0,
         "matchedNamedMeshes": false
       },
+      "defaultMaterialAssignment": {
+        "defaultAssigned": 685,
+        "hadMissingMaterials": true
+      },
       "before": {
         "meshCount": 685,
-        "materialCount": 0,
+        "materialCount": 1,
         "vertexCount": 375254,
-        "faceCount": 447352
+        "faceCount": 447352,
+        "triangleCount": 447352
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 1,
+        "vertexCount": 375254,
+        "faceCount": 447352,
+        "triangleCount": 447352
       },
       "after": {
-        "meshCount": 685,
-        "materialCount": 0,
-        "vertexCount": 201674,
-        "faceCount": 201113
+        "meshCount": 1,
+        "materialCount": 1,
+        "vertexCount": 102022,
+        "faceCount": 77180,
+        "triangleCount": 77180
       },
-      "fileSizeBytes": 8793252,
+      "fileSizeBytes": 4185744,
       "manualReviewRequired": true
     },
     {
       "lod": "lod2",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_3d_printing_architecture\\arch_3d_printing_architecture.lod2.glb",
-      "ratio": 0.12,
+      "targetTriangles": 30000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 447352,
+          "after": 332427
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.08708678897923453,
+          "before": 332427,
+          "after": 28942
+        }
+      ],
+      "worldScaleOverride": {
+        "applied": true,
+        "scale": 4,
+        "center": [
+          -165.061157,
+          15.54726,
+          30.218864
+        ],
+        "size": [
+          5.44751,
+          3.083397,
+          1.936707
+        ]
+      },
+      "worldCenterOverride": {
+        "applied": true,
+        "fromCenter": [
+          -165.061157,
+          15.54726,
+          30.218864
+        ],
+        "toCenter": [
+          -0.549988,
+          42,
+          36.950005
+        ],
+        "delta": [
+          164.511154,
+          26.45274,
+          6.731136
+        ]
+      },
       "materialAssignment": {
         "whiteAssigned": 0,
         "glassAssigned": 0,
         "fallbackWhiteAssigned": 0,
         "matchedNamedMeshes": false
       },
+      "defaultMaterialAssignment": {
+        "defaultAssigned": 685,
+        "hadMissingMaterials": true
+      },
       "before": {
         "meshCount": 685,
-        "materialCount": 0,
+        "materialCount": 1,
         "vertexCount": 375254,
-        "faceCount": 447352
+        "faceCount": 447352,
+        "triangleCount": 447352
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 1,
+        "vertexCount": 375254,
+        "faceCount": 447352,
+        "triangleCount": 447352
       },
       "after": {
-        "meshCount": 685,
-        "materialCount": 0,
-        "vertexCount": 87189,
-        "faceCount": 60858
+        "meshCount": 1,
+        "materialCount": 1,
+        "vertexCount": 58109,
+        "faceCount": 28942,
+        "triangleCount": 28942
       },
-      "fileSizeBytes": 3424224,
+      "fileSizeBytes": 1233088,
       "manualReviewRequired": true
     }
   ],

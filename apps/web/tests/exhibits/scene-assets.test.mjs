@@ -85,6 +85,20 @@ test("world-coordinate exhibit GLBs keep authored placement without anchors or f
   }
 });
 
+test("3D Printing scene model stays inside the authored walkable gallery envelope", () => {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
+  );
+  const exhibit = manifest.exhibits.find(
+    (item) => item.exhibitId === "arch_3d_printing_architecture",
+  );
+  const [x, y, z] = exhibit.scene.lodCenter;
+
+  assert.ok(x > -30 && x < 30, "3D Printing should not be exported hundreds of meters from the gallery");
+  assert.ok(y > 20 && y < 40, "3D Printing should sit near an authored gallery floor level");
+  assert.ok(z > -55 && z < 25, "3D Printing should remain inside the active gallery footprint");
+});
+
 test("UABB uses generated LOD levels from the named source model", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),

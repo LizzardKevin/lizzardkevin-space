@@ -5,7 +5,15 @@
     {
       "lod": "lod0",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod0.glb",
-      "ratio": 1,
+      "targetTriangles": 150000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 223054,
+          "after": 143390
+        }
+      ],
       "materialAssignment": {
         "whiteAssigned": 465,
         "glassAssigned": 32,
@@ -16,21 +24,44 @@
         "meshCount": 497,
         "materialCount": 2,
         "vertexCount": 194458,
-        "faceCount": 223054
+        "faceCount": 223054,
+        "triangleCount": 223054
       },
-      "after": {
-        "meshCount": 497,
+      "joined": {
+        "meshCount": 1,
         "materialCount": 2,
         "vertexCount": 194458,
-        "faceCount": 223054
+        "faceCount": 223054,
+        "triangleCount": 223054
       },
-      "fileSizeBytes": 8618392,
+      "after": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 141138,
+        "faceCount": 65491,
+        "triangleCount": 143390
+      },
+      "fileSizeBytes": 6208028,
       "manualReviewRequired": false
     },
     {
       "lod": "lod1",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod1.glb",
-      "ratio": 0.45,
+      "targetTriangles": 80000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 223054,
+          "after": 143390
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.5383917985912545,
+          "before": 143390,
+          "after": 77198
+        }
+      ],
       "materialAssignment": {
         "whiteAssigned": 465,
         "glassAssigned": 32,
@@ -41,21 +72,44 @@
         "meshCount": 497,
         "materialCount": 2,
         "vertexCount": 194458,
-        "faceCount": 223054
+        "faceCount": 223054,
+        "triangleCount": 223054
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 194458,
+        "faceCount": 223054,
+        "triangleCount": 223054
       },
       "after": {
-        "meshCount": 497,
+        "meshCount": 1,
         "materialCount": 2,
-        "vertexCount": 103751,
-        "faceCount": 100073
+        "vertexCount": 86479,
+        "faceCount": 77198,
+        "triangleCount": 77198
       },
-      "fileSizeBytes": 5003456,
+      "fileSizeBytes": 4204628,
       "manualReviewRequired": true
     },
     {
       "lod": "lod2",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod2.glb",
-      "ratio": 0.12,
+      "targetTriangles": 30000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 223054,
+          "after": 143390
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.20189692447172047,
+          "before": 143390,
+          "after": 28948
+        }
+      ],
       "materialAssignment": {
         "whiteAssigned": 465,
         "glassAssigned": 32,
@@ -66,15 +120,24 @@
         "meshCount": 497,
         "materialCount": 2,
         "vertexCount": 194458,
-        "faceCount": 223054
+        "faceCount": 223054,
+        "triangleCount": 223054
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 194458,
+        "faceCount": 223054,
+        "triangleCount": 223054
       },
       "after": {
-        "meshCount": 497,
+        "meshCount": 1,
         "materialCount": 2,
-        "vertexCount": 42558,
-        "faceCount": 28651
+        "vertexCount": 42261,
+        "faceCount": 28948,
+        "triangleCount": 28948
       },
-      "fileSizeBytes": 1711588,
+      "fileSizeBytes": 1420620,
       "manualReviewRequired": true
     }
   ],
