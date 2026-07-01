@@ -135,6 +135,7 @@ test("arch UABB exhibit inherits Tree Habitat matte and frosted material treatme
   } = await importSourceModule("scenes/exhibits/exhibitMaterialOverrides.ts");
 
   assert.equal(usesTreeHabitatSharedMaterials("arch_uabb_exhibit"), true);
+  assert.equal(usesTreeHabitatSharedMaterials("arch_3d_printing_architecture"), true);
   assert.equal(usesTreeHabitatSharedMaterials("arch_treehabitat"), false);
   assert.equal(resolveTreeHabitatSharedMaterialKind("facade_WINDOW_001", []), "glass");
   assert.equal(resolveTreeHabitatSharedMaterialKind("facade_wall_001", ["Concrete"]), "white");

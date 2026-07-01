@@ -13,7 +13,6 @@ from pathlib import Path
 import sys
 
 import bpy
-from mathutils import Vector
 
 
 LOD_TARGET_TRIANGLES = {
@@ -22,14 +21,10 @@ LOD_TARGET_TRIANGLES = {
     "lod2": 30_000,
 }
 
-TREEHABITAT_SHARED_MATERIAL_EXHIBIT_IDS = {"arch_treehabitat", "arch_uabb_exhibit"}
-EXHIBIT_WORLD_CENTER_OVERRIDES = {
-    # Blender imports glTF Y-up coordinates as Z-up, so this exports to
-    # the runtime center [-0.55, 36.95, -42.0].
-    "arch_3d_printing_architecture": (-0.55, 42.0, 36.95),
-}
-EXHIBIT_WORLD_SCALE_OVERRIDES = {
-    "arch_3d_printing_architecture": 4.0,
+TREEHABITAT_SHARED_MATERIAL_EXHIBIT_IDS = {
+    "arch_treehabitat",
+    "arch_uabb_exhibit",
+    "arch_3d_printing_architecture",
 }
 TREEHABITAT_GLASS_NAMES = (
     "model glass",
@@ -202,72 +197,6 @@ def assign_default_material_if_missing(exhibit_id: str) -> dict[str, int | bool]
     return {"defaultAssigned": len(needs_default), "hadMissingMaterials": True}
 
 
-def world_bounds() -> tuple[Vector, Vector]:
-    min_corner = None
-    max_corner = None
-    for obj in mesh_objects():
-        for corner in obj.bound_box:
-            world = obj.matrix_world @ Vector(corner)
-            if min_corner is None:
-                min_corner = world.copy()
-                max_corner = world.copy()
-            else:
-                min_corner.x = min(min_corner.x, world.x)
-                min_corner.y = min(min_corner.y, world.y)
-                min_corner.z = min(min_corner.z, world.z)
-                max_corner.x = max(max_corner.x, world.x)
-                max_corner.y = max(max_corner.y, world.y)
-                max_corner.z = max(max_corner.z, world.z)
-    if min_corner is None or max_corner is None:
-        raise RuntimeError("No mesh bounds available")
-    return min_corner, max_corner
-
-
-def apply_world_center_override(exhibit_id: str) -> dict[str, list[float] | bool]:
-    target = EXHIBIT_WORLD_CENTER_OVERRIDES.get(exhibit_id)
-    if target is None:
-        return {"applied": False}
-
-    min_corner, max_corner = world_bounds()
-    center = (min_corner + max_corner) * 0.5
-    delta = Vector(target) - center
-    for obj in mesh_objects():
-        obj.location += delta
-    bpy.context.view_layer.update()
-
-    next_min, next_max = world_bounds()
-    next_center = (next_min + next_max) * 0.5
-    return {
-        "applied": True,
-        "fromCenter": [round(center.x, 6), round(center.y, 6), round(center.z, 6)],
-        "toCenter": [round(next_center.x, 6), round(next_center.y, 6), round(next_center.z, 6)],
-        "delta": [round(delta.x, 6), round(delta.y, 6), round(delta.z, 6)],
-    }
-
-
-def apply_world_scale_override(exhibit_id: str) -> dict[str, float | bool | list[float]]:
-    scale = EXHIBIT_WORLD_SCALE_OVERRIDES.get(exhibit_id)
-    if scale is None:
-        return {"applied": False}
-
-    min_corner, max_corner = world_bounds()
-    center = (min_corner + max_corner) * 0.5
-    for obj in mesh_objects():
-        obj.location = center + (obj.location - center) * scale
-        obj.scale = obj.scale * scale
-    bpy.context.view_layer.update()
-
-    next_min, next_max = world_bounds()
-    next_center = (next_min + next_max) * 0.5
-    next_size = next_max - next_min
-    return {
-        "applied": True,
-        "scale": scale,
-        "center": [round(next_center.x, 6), round(next_center.y, 6), round(next_center.z, 6)],
-        "size": [round(next_size.x, 6), round(next_size.y, 6), round(next_size.z, 6)],
-    }
-
-
 def triangle_count(obj: bpy.types.Object) -> int:
     obj.data.calc_loop_triangles()
     return len(obj.data.loop_triangles)
@@ -387,8 +316,6 @@ def main() -> None:
     outputs = []
     for lod, target_triangles in LOD_TARGET_TRIANGLES.items():
         import_source(source)
-        world_scale_override = apply_world_scale_override(exhibit_id)
-        world_center_override = apply_world_center_override(exhibit_id)
         material_assignment = assign_treehabitat_materials(exhibit_id)
         default_material_assignment = assign_default_material_if_missing(exhibit_id)
         before = count_mesh_stats()
@@ -404,8 +331,6 @@ def main() -> None:
                 "path": str(output),
                 "targetTriangles": target_triangles,
                 "reductionSteps": reduction_steps,
-                "worldScaleOverride": world_scale_override,
-                "worldCenterOverride": world_center_override,
                 "materialAssignment": material_assignment,
                 "defaultMaterialAssignment": default_material_assignment,
                 "before": before,

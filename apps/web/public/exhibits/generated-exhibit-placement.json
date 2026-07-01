@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T10:02:28.486Z",
+  "generatedAt": "2026-07-01T12:17:50.633Z",
   "source": {
     "spaceMain": "/models/space_main.glb",
     "manifest": "/exhibits/manifest.json"
@@ -69,9 +69,9 @@
       "exhibitId": "arch_3d_printing_architecture",
       "placementMode": "world",
       "lodCenter": [
-        -0.55,
-        36.95,
-        -42
+        -12.556294,
+        30.178514,
+        -15.532322
       ],
       "models": {
         "lod0": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod0.glb",

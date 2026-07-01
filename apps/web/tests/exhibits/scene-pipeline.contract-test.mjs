@@ -78,7 +78,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   placementCache.placements.find((placement) => placement.exhibitId === "arch_3d_printing_architecture")?.lodCenter,
-  [-0.55, 36.95, -42.0],
+  [-12.556294, 30.178514, -15.532322],
 );
 assert.equal(placementCache.placements[0].snap.status, "runtime");
 
@@ -133,8 +133,6 @@ assert.match(lodBlenderScript, /LOD_TARGET_TRIANGLES/);
 assert.match(lodBlenderScript, /"lod0":\s*150_000/);
 assert.match(lodBlenderScript, /"lod1":\s*80_000/);
 assert.match(lodBlenderScript, /"lod2":\s*30_000/);
-assert.match(lodBlenderScript, /EXHIBIT_WORLD_CENTER_OVERRIDES/);
-assert.match(lodBlenderScript, /EXHIBIT_WORLD_SCALE_OVERRIDES/);
 assert.match(lodBlenderScript, /arch_3d_printing_architecture/);
 assert.match(lodBlenderScript, /assign_default_material_if_missing/);
 assert.match(lodBlenderScript, /reduce_to_triangle_budget/);
@@ -166,11 +164,8 @@ for (const file of [
 const printingLod = readGlbJson(
   projectPath("apps/web/public/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod0.glb"),
 );
-assert.ok(
-  (printingLod.materials ?? []).some(
-    (material) => material.name === "mat_arch_3d_printing_architecture_default_matte",
-  ),
-  "3D Printing scene LODs should not rely on unnamed runtime default materials",
-);
+const printingMaterialNames = new Set((printingLod.materials ?? []).map((material) => material.name));
+assert.equal(printingMaterialNames.has("mat_treehabitat_white_matte"), true);
+assert.equal(printingMaterialNames.has("mat_treehabitat_glass_frosted"), true);
 
 console.log("exhibit scene pipeline contract tests passed");

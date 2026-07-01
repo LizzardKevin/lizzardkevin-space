@@ -85,7 +85,7 @@
         "videoUrl": "/exhibits/arch_3d_printing_architecture/video/final-clip-without-bgm.mp4"
       },
       "scene": {
-        "lodCenter": [-0.55, 36.95, -42.0],
+        "lodCenter": [-12.556294, 30.178514, -15.532322],
         "models": {
           "lod0": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod0.glb",
           "lod1": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod1.glb",

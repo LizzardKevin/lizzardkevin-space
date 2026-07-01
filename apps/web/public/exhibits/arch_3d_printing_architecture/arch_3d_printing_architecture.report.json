@@ -11,79 +11,47 @@
           "type": "limited-dissolve",
           "angleDegrees": 1.5,
           "before": 447352,
-          "after": 332427
+          "after": 311602
         },
         {
           "type": "collapse",
-          "ratio": 0.43543394489617265,
-          "before": 332427,
-          "after": 144713
+          "ratio": 0.4645348874525837,
+          "before": 311602,
+          "after": 144740
         }
       ],
-      "worldScaleOverride": {
-        "applied": true,
-        "scale": 4,
-        "center": [
-          -165.061157,
-          15.54726,
-          30.218864
-        ],
-        "size": [
-          5.44751,
-          3.083397,
-          1.936707
-        ]
-      },
-      "worldCenterOverride": {
-        "applied": true,
-        "fromCenter": [
-          -165.061157,
-          15.54726,
-          30.218864
-        ],
-        "toCenter": [
-          -0.549988,
-          42,
-          36.950005
-        ],
-        "delta": [
-          164.511154,
-          26.45274,
-          6.731136
-        ]
-      },
       "materialAssignment": {
-        "whiteAssigned": 0,
-        "glassAssigned": 0,
+        "whiteAssigned": 599,
+        "glassAssigned": 86,
         "fallbackWhiteAssigned": 0,
-        "matchedNamedMeshes": false
+        "matchedNamedMeshes": true
       },
       "defaultMaterialAssignment": {
-        "defaultAssigned": 685,
-        "hadMissingMaterials": true
+        "defaultAssigned": 0,
+        "hadMissingMaterials": false
       },
       "before": {
         "meshCount": 685,
-        "materialCount": 1,
+        "materialCount": 2,
         "vertexCount": 375254,
         "faceCount": 447352,
         "triangleCount": 447352
       },
       "joined": {
         "meshCount": 1,
-        "materialCount": 1,
+        "materialCount": 2,
         "vertexCount": 375254,
         "faceCount": 447352,
         "triangleCount": 447352
       },
       "after": {
         "meshCount": 1,
-        "materialCount": 1,
-        "vertexCount": 158498,
-        "faceCount": 144713,
-        "triangleCount": 144713
+        "materialCount": 2,
+        "vertexCount": 160407,
+        "faceCount": 144740,
+        "triangleCount": 144740
       },
-      "fileSizeBytes": 7172180,
+      "fileSizeBytes": 7265956,
       "manualReviewRequired": false
     },
     {
@@ -95,79 +63,47 @@
           "type": "limited-dissolve",
           "angleDegrees": 1.5,
           "before": 447352,
-          "after": 332427
+          "after": 311602
         },
         {
           "type": "collapse",
-          "ratio": 0.23223143727795875,
-          "before": 332427,
-          "after": 77180
+          "ratio": 0.24775193997471132,
+          "before": 311602,
+          "after": 77194
         }
       ],
-      "worldScaleOverride": {
-        "applied": true,
-        "scale": 4,
-        "center": [
-          -165.061157,
-          15.54726,
-          30.218864
-        ],
-        "size": [
-          5.44751,
-          3.083397,
-          1.936707
-        ]
-      },
-      "worldCenterOverride": {
-        "applied": true,
-        "fromCenter": [
-          -165.061157,
-          15.54726,
-          30.218864
-        ],
-        "toCenter": [
-          -0.549988,
-          42,
-          36.950005
-        ],
-        "delta": [
-          164.511154,
-          26.45274,
-          6.731136
-        ]
-      },
       "materialAssignment": {
-        "whiteAssigned": 0,
-        "glassAssigned": 0,
+        "whiteAssigned": 599,
+        "glassAssigned": 86,
         "fallbackWhiteAssigned": 0,
-        "matchedNamedMeshes": false
+        "matchedNamedMeshes": true
       },
       "defaultMaterialAssignment": {
-        "defaultAssigned": 685,
-        "hadMissingMaterials": true
+        "defaultAssigned": 0,
+        "hadMissingMaterials": false
       },
       "before": {
         "meshCount": 685,
-        "materialCount": 1,
+        "materialCount": 2,
         "vertexCount": 375254,
         "faceCount": 447352,
         "triangleCount": 447352
       },
       "joined": {
         "meshCount": 1,
-        "materialCount": 1,
+        "materialCount": 2,
         "vertexCount": 375254,
         "faceCount": 447352,
         "triangleCount": 447352
       },
       "after": {
         "meshCount": 1,
-        "materialCount": 1,
-        "vertexCount": 102022,
-        "faceCount": 77180,
-        "triangleCount": 77180
+        "materialCount": 2,
+        "vertexCount": 105981,
+        "faceCount": 77194,
+        "triangleCount": 77194
       },
-      "fileSizeBytes": 4185744,
+      "fileSizeBytes": 4380848,
       "manualReviewRequired": true
     },
     {
@@ -179,79 +115,47 @@
           "type": "limited-dissolve",
           "angleDegrees": 1.5,
           "before": 447352,
-          "after": 332427
+          "after": 311602
         },
         {
           "type": "collapse",
-          "ratio": 0.08708678897923453,
-          "before": 332427,
-          "after": 28942
+          "ratio": 0.09290697749051675,
+          "before": 311602,
+          "after": 28948
         }
       ],
-      "worldScaleOverride": {
-        "applied": true,
-        "scale": 4,
-        "center": [
-          -165.061157,
-          15.54726,
-          30.218864
-        ],
-        "size": [
-          5.44751,
-          3.083397,
-          1.936707
-        ]
-      },
-      "worldCenterOverride": {
-        "applied": true,
-        "fromCenter": [
-          -165.061157,
-          15.54726,
-          30.218864
-        ],
-        "toCenter": [
-          -0.549988,
-          42,
-          36.950005
-        ],
-        "delta": [
-          164.511154,
-          26.45274,
-          6.731136
-        ]
-      },
       "materialAssignment": {
-        "whiteAssigned": 0,
-        "glassAssigned": 0,
+        "whiteAssigned": 599,
+        "glassAssigned": 86,
         "fallbackWhiteAssigned": 0,
-        "matchedNamedMeshes": false
+        "matchedNamedMeshes": true
       },
       "defaultMaterialAssignment": {
-        "defaultAssigned": 685,
-        "hadMissingMaterials": true
+        "defaultAssigned": 0,
+        "hadMissingMaterials": false
       },
       "before": {
         "meshCount": 685,
-        "materialCount": 1,
+        "materialCount": 2,
         "vertexCount": 375254,
         "faceCount": 447352,
         "triangleCount": 447352
       },
       "joined": {
         "meshCount": 1,
-        "materialCount": 1,
+        "materialCount": 2,
         "vertexCount": 375254,
         "faceCount": 447352,
         "triangleCount": 447352
       },
       "after": {
         "meshCount": 1,
-        "materialCount": 1,
-        "vertexCount": 58109,
-        "faceCount": 28942,
-        "triangleCount": 28942
+        "materialCount": 2,
+        "vertexCount": 61751,
+        "faceCount": 28948,
+        "triangleCount": 28948
       },
-      "fileSizeBytes": 1233088,
+      "fileSizeBytes": 1682228,
       "manualReviewRequired": true
     }
   ],

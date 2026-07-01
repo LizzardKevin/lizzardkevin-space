@@ -3,7 +3,10 @@ import * as THREE from "three";
 export const TREE_HABITAT_WHITE_MATTE_MATERIAL_NAME = "mat_treehabitat_white_matte";
 export const TREE_HABITAT_GLASS_FROSTED_MATERIAL_NAME = "mat_treehabitat_glass_frosted";
 
-const TREE_HABITAT_SHARED_EXHIBIT_IDS = new Set(["arch_uabb_exhibit"]);
+const TREE_HABITAT_SHARED_EXHIBIT_IDS = new Set([
+  "arch_uabb_exhibit",
+  "arch_3d_printing_architecture",
+]);
 const GLASS_NAME_PATTERN = /\b(glass|window|glazing|pane|transparent|translucent)\b/i;
 
 type TreeHabitatSharedMaterialKind = "white" | "glass";
