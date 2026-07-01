@@ -24,11 +24,10 @@ export function clampExhibitLabelScreenPoint(
   paddingPx: number,
   labelSize: ExhibitLabelSize = { width: 0, height: 0 },
 ): ExhibitLabelScreenPoint {
-  const halfWidth = labelSize.width / 2;
   const halfHeight = labelSize.height / 2;
 
   return {
-    x: clamp(point.x, paddingPx + halfWidth, viewport.width - paddingPx - halfWidth),
+    x: point.x,
     y: clamp(point.y, paddingPx + halfHeight, viewport.height - paddingPx - halfHeight),
   };
 }
