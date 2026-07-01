@@ -82,7 +82,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 | `mat_arch_plaster_warm_white` | `(0.92, 0.92, 0.92, 1.0)` | `0.08` | `0.72` | `OPAQUE` | - |
 | `mat_floor_concrete_warm_gray` | `(0.37, 0.37, 0.37, 1.0)` | `0.06` | `0.76` | `OPAQUE` | - |
 | `mat_stair_warm_concrete` | `(0.37, 0.37, 0.37, 1.0)` | `0.06` | `0.76` | `OPAQUE` | - |
-| `mat_metal_aluminum_soft` | `(0.90, 0.90, 0.90, 1.0)` | `0.74` | `0.18` | `OPAQUE` | - |
+| `mat_metal_aluminum_soft` | `(0.90, 0.90, 0.90, 1.0)` | `0.37` | `0.18` | `OPAQUE` | - |
 | `mat_glass_frosted_soft` | `(0.74, 0.76, 0.76, 0.42)` | `0.0` | `0.42` | `BLEND` | - |
 | `mat_glass_clear_soft` | `(0.84, 0.86, 0.86, 0.32)` | `0.0` | `0.14` | `BLEND` | - |
 | `mat_temp_blocker_frosted_milky` | `(0.86, 0.85, 0.82, 0.66)` | `0.0` | `0.96` | `BLEND` | - |
@@ -153,7 +153,7 @@ blender --background BlenderFile/space_main.blend --python scripts/apply-space-m
 | `ARCH_*`、`STRUCT_WALL_*`、`STRUCT_CEILING_*` | `mat_arch_plaster_warm_white` | 中性银白墙/顶，磨砂轻金属涂层：base `(0.92, 0.92, 0.92, 1)`, metallic `0.08`, roughness `0.72` |
 | `ARCH_FLOOR_*`、`STRUCT_FLOOR_*` | `mat_floor_concrete_warm_gray` | 中性深灰磨砂地面，弱反射：base `(0.37, 0.37, 0.37, 1)`, metallic `0.06`, roughness `0.76` |
 | `ARCH_STAIR_*`、`STRUCT_STAIR_*` | `mat_stair_warm_concrete` | 楼梯与地面同色同反射：base `(0.37, 0.37, 0.37, 1)`, metallic `0.06`, roughness `0.76` |
-| `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` | 银白阳极氧化铝/格栅：base `(0.90, 0.90, 0.90, 1)`, metallic `0.74`, roughness `0.18` |
+| `METAL_ALUMINUM_*` | `mat_metal_aluminum_soft` | 银白阳极氧化铝/格栅：base `(0.90, 0.90, 0.90, 1)`, metallic `0.37`, roughness `0.18` |
 | `GLASS_FROSTED_*`、其他 `GLASS_*` | `mat_glass_frosted_soft` | 磨砂灰蓝透明玻璃，反射更强：base `(0.74, 0.76, 0.76, 0.42)`, roughness `0.42`, alpha blend |
 | `GLASS_CLEAR_*` | `mat_glass_clear_soft` | 更清透、更强反射玻璃：base `(0.84, 0.86, 0.86, 0.32)`, roughness `0.14`, alpha blend |
 | `TEMP_BLOCKER_*` | `mat_temp_blocker_frosted_milky` | Temporary frosted blocker fallback in GLB: neutral milky warm-gray alpha blend, base `(0.86, 0.85, 0.82, 0.66)`, roughness `0.96`. Runtime upgrades these meshes to `runtime_temp_blocker_frosted_physical` using `MeshPhysicalMaterial` transmission, thickness, attenuation, and roughness `1.0` so the blocker reads as frosted rather than merely transparent. |

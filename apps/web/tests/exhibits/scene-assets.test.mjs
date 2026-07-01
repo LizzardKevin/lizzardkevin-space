@@ -80,15 +80,22 @@ test("world-coordinate exhibit GLBs use the runtime world-origin anchor without 
   }
 });
 
-test("UABB aliases unresolved LOD levels to a single runtime GLB until real simplification is produced", () => {
+test("UABB uses generated LOD levels from the named source model", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
   );
   const exhibit = manifest.exhibits.find((item) => item.exhibitId === "arch_uabb_exhibit");
-  const modelUrls = Object.values(exhibit?.scene?.models ?? {});
+  const models = exhibit?.scene?.models ?? {};
 
-  assert.deepEqual(new Set(modelUrls).size, 1);
-  assert.equal(modelUrls[0], "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb");
+  assert.deepEqual(models, {
+    lod0: "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
+    lod1: "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod1.glb",
+    lod2: "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod2.glb",
+  });
+
+  const source = readGlbJson(path.join(publicDir, "exhibits/arch_uabb_exhibit/arch_uabb_exhibit.source.glb"));
+  const namedNodes = (source.nodes ?? []).filter((node) => node.name);
+  assert.ok(namedNodes.length > 0, "UABB source GLB should preserve authored mesh/node names");
 });
 
 test("active exhibit content samples have portfolio metadata and no pipeline copy", () => {

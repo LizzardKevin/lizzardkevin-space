@@ -93,27 +93,40 @@ assert.match(lodHelp.stdout, /lod2/);
 
 const materialScript = readProjectFile("scripts/apply-space-main-materials.py");
 const anchorScript = readProjectFile("scripts/inject-space-main-anchors.mjs");
+const treehabitatAnchorScript = readProjectFile("scripts/place-treehabitat-anchor-on-platform.py");
 assert.match(materialScript, /def normalize_anchor_name/);
 assert.match(materialScript, /ANCHOR_/);
 assert.match(materialScript, /ANCHOR-/);
 assert.match(materialScript, /remove_vertex_color_attributes/);
 assert.doesNotMatch(materialScript, /ANCHOR_DEMO_(?:BOX|BASS)/);
 assert.doesNotMatch(anchorScript, /ANCHOR_DEMO_(?:BOX|BASS)/);
+assert.doesNotMatch(
+  treehabitatAnchorScript,
+  /set_mesh_to_world_box\(\s*collider,/,
+  "Tree Habitat anchor helper must not resize COL_WALL_023; runtime collisions use the authored COL mesh",
+);
+assert.doesNotMatch(treehabitatAnchorScript, /BLOCKER_HEIGHT_M/);
+assert.match(treehabitatAnchorScript, /colliderBounds/);
 
 const spaceDesktopExperience = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
+const focusOverlay = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
 const galleryModel = readProjectFile("apps/web/src/scenes/gallery/GalleryModel.tsx");
 const spaceScene = readProjectFile("apps/web/src/scenes/SpaceScene.tsx");
 assert.match(spaceDesktopExperience, /loadExhibits/);
+assert.match(focusOverlay, /applyTreeHabitatSharedMaterials/);
+assert.match(focusOverlay, /exhibitId=\{exhibit\.exhibitId\}/);
 assert.match(spaceDesktopExperience, /onSceneExhibitsReady/);
 assert.match(spaceScene, /loadExhibits/);
 assert.match(galleryModel, /loadExhibits/);
 assert.match(galleryModel, /TempBlockerNotices/);
 
 const lodBlenderScript = readProjectFile("scripts/prepare-exhibit-lods-blender.py");
+assert.match(lodBlenderScript, /arch_uabb_exhibit/);
+assert.match(lodBlenderScript, /window/);
 assert.match(lodBlenderScript, /mat_treehabitat_white_matte/);
 assert.match(lodBlenderScript, /mat_treehabitat_glass_frosted/);
-assert.match(lodBlenderScript, /model white/);
 assert.match(lodBlenderScript, /model glass/);
+assert.match(lodBlenderScript, /else:\s*[\s\S]*replace_object_material\(obj, white\)/);
 assert.match(
   lodBlenderScript,
   /"mat_treehabitat_white_matte":[\s\S]*"base_color":\s*\(0\.96,\s*0\.96,\s*0\.94,\s*1\.0\)/,

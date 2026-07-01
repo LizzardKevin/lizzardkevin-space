@@ -119,6 +119,40 @@ test("default projector selection image files exist in public assets", async () 
   }
 });
 
+test("projector image plane fits source aspect ratio inside the wall screen", async () => {
+  const { fitProjectorImageToScreen } = await importSourceModule(
+    "scenes/projector/projectorLayout.ts",
+  );
+
+  assert.deepEqual(
+    fitProjectorImageToScreen({
+      imageWidth: 1600,
+      imageHeight: 900,
+      screenWidth: 10,
+      screenHeight: 4,
+    }).map((value) => Number(value.toFixed(3))),
+    [7.111, 4],
+  );
+  assert.deepEqual(
+    fitProjectorImageToScreen({
+      imageWidth: 1800,
+      imageHeight: 600,
+      screenWidth: 6,
+      screenHeight: 4,
+    }).map((value) => Number(value.toFixed(3))),
+    [6, 2],
+  );
+  assert.deepEqual(
+    fitProjectorImageToScreen({
+      imageWidth: 900,
+      imageHeight: 1350,
+      screenWidth: 6,
+      screenHeight: 4,
+    }).map((value) => Number(value.toFixed(3))),
+    [2.667, 4],
+  );
+});
+
 test("nextProjectorSlideIndex avoids repeating the active slide", async () => {
   const { nextProjectorSlideIndex } = await importSourceModule(
     "scenes/projector/projectorSlides.ts",

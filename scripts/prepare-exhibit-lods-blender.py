@@ -20,9 +20,18 @@ LOD_RATIOS = {
     "lod2": 0.12,
 }
 
-TREEHABITAT_EXHIBIT_ID = "arch_treehabitat"
-TREEHABITAT_WHITE_NAMES = ("model white", "model_white", "model-white")
-TREEHABITAT_GLASS_NAMES = ("model glass", "model_glass", "model-glass")
+TREEHABITAT_SHARED_MATERIAL_EXHIBIT_IDS = {"arch_treehabitat", "arch_uabb_exhibit"}
+TREEHABITAT_GLASS_NAMES = (
+    "model glass",
+    "model_glass",
+    "model-glass",
+    "glass",
+    "window",
+    "glazing",
+    "pane",
+    "transparent",
+    "translucent",
+)
 
 TREEHABITAT_MATERIAL_SPECS = {
     "mat_treehabitat_white_matte": {
@@ -117,7 +126,7 @@ def contains_any(text: str, needles: tuple[str, ...]) -> bool:
 
 
 def assign_treehabitat_materials(exhibit_id: str) -> dict[str, int | bool]:
-    if exhibit_id != TREEHABITAT_EXHIBIT_ID:
+    if exhibit_id not in TREEHABITAT_SHARED_MATERIAL_EXHIBIT_IDS:
         return {
             "whiteAssigned": 0,
             "glassAssigned": 0,
@@ -141,7 +150,7 @@ def assign_treehabitat_materials(exhibit_id: str) -> dict[str, int | bool]:
         if contains_any(name_text, TREEHABITAT_GLASS_NAMES):
             replace_object_material(obj, glass)
             glass_assigned += 1
-        elif contains_any(name_text, TREEHABITAT_WHITE_NAMES):
+        else:
             replace_object_material(obj, white)
             white_assigned += 1
 

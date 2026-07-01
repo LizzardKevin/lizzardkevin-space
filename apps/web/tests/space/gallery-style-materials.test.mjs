@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as THREE from "three";
-import { importSourceModule, readOptionalProjectFile, readProjectFile } from "../helpers/projectPaths.mjs";
+import { readGlbJson } from "../helpers/glb.mjs";
+import { importSourceModule, projectPath, readOptionalProjectFile, readProjectFile } from "../helpers/projectPaths.mjs";
 
 function hexToRgb(hex) {
   const value = hex.replace("#", "");
@@ -116,11 +117,26 @@ test("metal aluminum is darker than floor with a matte metallic finish", async (
   assert.ok(floorValue - metalValue <= 3);
   assert.equal(`#${material.emissive.getHexString()}`, GALLERY_ALUMINUM_MATERIAL.emissive);
   assert.equal(material.emissiveIntensity, 0);
+  assert.equal(GALLERY_ALUMINUM_MATERIAL.metalness, 0.29);
   assert.equal(material.metalness, GALLERY_ALUMINUM_MATERIAL.metalness);
   assert.equal(material.roughness, GALLERY_ALUMINUM_MATERIAL.roughness);
   assert.equal(material.envMapIntensity, GALLERY_ALUMINUM_MATERIAL.envMapIntensity);
   assert.equal(channelSpread(`#${material.color.getHexString()}`), 0);
   assert.equal(channelSpread(`#${material.emissive.getHexString()}`), 0);
+
+  const materialScript = readProjectFile("scripts/apply-space-main-materials.py");
+  assert.match(
+    materialScript,
+    /"mat_metal_aluminum_soft":[\s\S]*"metallic":\s*0\.37/,
+    "Blender material export should keep scene metal metallic value halved too",
+  );
+
+  const spaceMain = readGlbJson(projectPath("apps/web/public/models/space_main.glb"));
+  const assetMaterial = spaceMain.materials?.find((entry) => entry.name === "mat_metal_aluminum_soft");
+  assert.ok(
+    Math.abs((assetMaterial?.pbrMetallicRoughness?.metallicFactor ?? 0) - 0.37) < 0.000001,
+    "shipped space_main.glb should use the halved metal material too",
+  );
 });
 
 test("gallery visual settings default to fixed 2K 30fps quality with lightweight AA", async () => {

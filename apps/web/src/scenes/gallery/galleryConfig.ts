@@ -142,7 +142,7 @@ export const GALLERY_LIGHT_EMISSIVE = {
 export const GALLERY_ALUMINUM_MATERIAL = {
   color: "#767676",
   emissive: "#000000",
-  metalness: 0.58,
+  metalness: 0.29,
   roughness: 0.86,
   envMapIntensity: 0.72,
 };

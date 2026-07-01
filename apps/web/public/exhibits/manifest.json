@@ -62,8 +62,8 @@
         "distanceAnchor": [-19.760264, 23.153265, -1.90665],
         "models": {
           "lod0": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
-          "lod1": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
-          "lod2": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb"
+          "lod1": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod1.glb",
+          "lod2": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod2.glb"
         },
         "scale": 1,
         "placement": {

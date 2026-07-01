@@ -1,28 +1,46 @@
 {
   "source": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.source.glb",
-  "sourceFileSizeBytes": 35910616,
-  "method": "single-runtime-lod-alias",
-  "nextStep": "Blender decimate was too slow for this 1,800+ mesh import during the polish pass. Runtime lod0/lod1/lod2 currently alias the same GLB URL in manifest.json to avoid downloading three duplicate 35.9MB files; generate real lod1/lod2 before treating UABB as performance-final.",
+  "sourceFileSizeBytes": 21045448,
+  "method": "blender-decimate-lod0-lod1-with-lod2-fallback-copy",
+  "nextStep": "LOD0 and LOD1 were exported through Blender from the newly named UABB source. Blender decimate for the 0.12 LOD2 target stayed too slow on the 1,866-mesh source, so LOD2 currently reuses the LOD1 GLB as a conservative fallback file. For performance-final UABB, run a dedicated mesh-merge/meshopt LOD2 pass.",
   "outputs": [
     {
       "lod": "lod0",
       "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.lod0.glb",
-      "fileSizeBytes": 35910616,
+      "fileSizeBytes": 19039580,
       "targetFaceRatio": "1.0",
+      "materialAssignment": {
+        "whiteAssigned": 1810,
+        "glassAssigned": 56,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": true
+      },
       "manualReviewRequired": false
     },
     {
       "lod": "lod1",
-      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.lod0.glb",
-      "fileSizeBytes": 35910616,
-      "targetFaceRatio": "0.30-0.50",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.lod1.glb",
+      "fileSizeBytes": 11105116,
+      "targetFaceRatio": "0.45",
+      "materialAssignment": {
+        "whiteAssigned": 1810,
+        "glassAssigned": 56,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": true
+      },
       "manualReviewRequired": true
     },
     {
       "lod": "lod2",
-      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.lod0.glb",
-      "fileSizeBytes": 35910616,
-      "targetFaceRatio": "0.05-0.15",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_uabb_exhibit\\arch_uabb_exhibit.lod2.glb",
+      "fileSizeBytes": 11105116,
+      "targetFaceRatio": "fallback from lod1 after Blender 0.12 timeout",
+      "materialAssignment": {
+        "whiteAssigned": 1810,
+        "glassAssigned": 56,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": true
+      },
       "manualReviewRequired": true
     }
   ]

@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import type { ExhibitManifestItem } from "../../exhibits/manifest.ts";
+import { fitProjectorImageToScreen } from "./projectorLayout.ts";
 import { preloadProjectorImageTexture, useProjectorImageTexture } from "./projectorTexture";
 import { buildProjectorSlides, type ProjectorSlide, type ProjectorSlideCommand } from "./projectorSlides";
 import { useProjectorSlideshow } from "./useProjectorSlideshow";
@@ -196,6 +197,15 @@ function ProjectorScreenLayerSurface({
 }) {
   const texture = useProjectorImageTexture(slide.imageUrl);
   const scanlineTexture = useProjectorScanlineTexture();
+  const fittedScreenSize = useMemo(() => {
+    const image = texture.image as { width?: number; height?: number } | undefined;
+    return fitProjectorImageToScreen({
+      imageWidth: image?.width ?? 0,
+      imageHeight: image?.height ?? 0,
+      screenWidth: screenSize[0],
+      screenHeight: screenSize[1],
+    });
+  }, [screenSize, texture]);
 
   useEffect(() => {
     const material = materialRef.current;
@@ -207,7 +217,7 @@ function ProjectorScreenLayerSurface({
   return (
     <group position={position}>
       <mesh name="PROJECTOR_WALL_IMAGE" renderOrder={8} raycast={disableProjectorRaycast}>
-        <planeGeometry args={screenSize} />
+        <planeGeometry args={fittedScreenSize} />
         <meshBasicMaterial
           ref={materialRef}
           map={texture}
@@ -226,8 +236,8 @@ function ProjectorScreenLayerSurface({
         renderOrder={9}
         raycast={disableProjectorRaycast}
       >
-        <planeGeometry args={screenSize} />
-          <meshBasicMaterial
+        <planeGeometry args={fittedScreenSize} />
+        <meshBasicMaterial
           map={scanlineTexture}
           color="#111111"
           transparent

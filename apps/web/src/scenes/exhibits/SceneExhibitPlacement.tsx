@@ -11,6 +11,7 @@ import {
 import { publishSpaceExhibitPlacementDebug } from "../debug/spaceMovementDebug";
 import { GLTF_DRACO_DECODER_PATH } from "../gallery/galleryConfig";
 import { collectExhibitAnchors, type ExhibitAnchorTransform } from "./exhibitAnchors.ts";
+import { applyTreeHabitatSharedMaterials } from "./exhibitMaterialOverrides.ts";
 import {
   bindSceneExhibitId,
   chooseSceneExhibitLod,
@@ -134,6 +135,7 @@ function SceneExhibitModel({
   const placed = useMemo(() => {
     const object = gltf.scene.clone(true);
     cloneObjectMaterials(object);
+    applyTreeHabitatSharedMaterials(object, exhibit.exhibitId);
     bindSceneExhibitId(object, exhibit.exhibitId);
     applySceneScale(object, sceneConfig.scale);
     applyAnchorRotation(object, anchor, sceneConfig.placement.yawOffsetDeg);

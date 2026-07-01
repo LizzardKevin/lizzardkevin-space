@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as THREE from "three";
-import { importSourceModule } from "../helpers/projectPaths.mjs";
+import { readGlbJson } from "../helpers/glb.mjs";
+import { importSourceModule, projectPath } from "../helpers/projectPaths.mjs";
 
 test("collectExhibitAnchors records ANCHOR world transforms", async () => {
   const { collectExhibitAnchors, EXHIBIT_WORLD_ORIGIN_ANCHOR } = await importSourceModule(
@@ -147,6 +148,59 @@ test("bindSceneExhibitId marks root and child meshes for raycast bubbling", asyn
 
   assert.equal(root.userData.exhibitId, "work_001");
   assert.equal(child.userData.exhibitId, "work_001");
+});
+
+test("arch UABB exhibit inherits Tree Habitat matte and frosted material treatment", async () => {
+  const {
+    applyTreeHabitatSharedMaterials,
+    resolveTreeHabitatSharedMaterialKind,
+    usesTreeHabitatSharedMaterials,
+  } = await importSourceModule("scenes/exhibits/exhibitMaterialOverrides.ts");
+
+  assert.equal(usesTreeHabitatSharedMaterials("arch_uabb_exhibit"), true);
+  assert.equal(usesTreeHabitatSharedMaterials("arch_treehabitat"), false);
+  assert.equal(resolveTreeHabitatSharedMaterialKind("facade_WINDOW_001", []), "glass");
+  assert.equal(resolveTreeHabitatSharedMaterialKind("facade_wall_001", ["Concrete"]), "white");
+  assert.equal(resolveTreeHabitatSharedMaterialKind("MODEL_METAL_001", []), "white");
+
+  const root = new THREE.Group();
+  const wall = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshStandardMaterial({ color: "#202020" }),
+  );
+  wall.name = "UABB_CONCRETE_WALL_001";
+  const glass = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshStandardMaterial({ color: "#202020" }),
+  );
+  glass.name = "UABB_GLASS_WINDOW_001";
+  root.add(wall, glass);
+
+  assert.equal(applyTreeHabitatSharedMaterials(root, "arch_uabb_exhibit"), true);
+  assert.equal(wall.material.name, "mat_treehabitat_white_matte");
+  assert.equal(glass.material.name, "mat_treehabitat_glass_frosted");
+  assert.equal(wall.material.metalness, 0);
+  assert.equal(Number(wall.material.color.r.toFixed(2)), 0.96);
+  assert.equal(glass.material.transparent, true);
+  assert.equal(glass.material.opacity, 0.4);
+  assert.equal(glass.material.roughness, 0.68);
+});
+
+test("arch UABB real GLBs preserve named material classes and exported Tree Habitat materials", () => {
+  const source = readGlbJson(
+    projectPath("apps/web/public/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.source.glb"),
+  );
+  const sourceNodeNames = (source.nodes ?? []).map((node) => node.name ?? "");
+  assert.ok(sourceNodeNames.some((name) => /^MODEL_WHITE_/i.test(name)));
+  assert.ok(sourceNodeNames.some((name) => /^MODEL_GLASS_/i.test(name)));
+  assert.ok(sourceNodeNames.some((name) => /^MODEL_METAL_/i.test(name)));
+
+  const lod0 = readGlbJson(
+    projectPath("apps/web/public/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb"),
+  );
+  const materialNames = new Set((lod0.materials ?? []).map((material) => material.name));
+  assert.equal(materialNames.has("mat_treehabitat_white_matte"), true);
+  assert.equal(materialNames.has("mat_treehabitat_glass_frosted"), true);
 });
 
 test("findSceneExhibitRoot returns the whole exhibit root from a child mesh hit", async () => {

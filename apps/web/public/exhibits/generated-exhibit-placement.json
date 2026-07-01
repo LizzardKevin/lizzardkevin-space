@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T20:53:01.230Z",
+  "generatedAt": "2026-07-01T05:18:28.783Z",
   "source": {
     "spaceMain": "/models/space_main.glb",
     "manifest": "/exhibits/manifest.json"
@@ -81,8 +81,8 @@
       ],
       "models": {
         "lod0": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
-        "lod1": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
-        "lod2": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb"
+        "lod1": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod1.glb",
+        "lod2": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod2.glb"
       },
       "scale": 1,
       "placement": {

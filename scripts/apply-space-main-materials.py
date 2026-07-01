@@ -66,7 +66,7 @@ MATERIAL_SPECS = {
     },
     "mat_metal_aluminum_soft": {
         "base_color": (0.90, 0.90, 0.90, 1.0),
-        "metallic": 0.74,
+        "metallic": 0.37,
         "roughness": 0.18,
         "blend_method": "OPAQUE",
     },

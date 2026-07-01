@@ -27,6 +27,7 @@ import {
   type FocusFrameResult,
 } from "./focusModelFrame";
 import { GLTF_DRACO_DECODER_PATH } from "../scenes/gallery/galleryConfig";
+import { applyTreeHabitatSharedMaterials } from "../scenes/exhibits/exhibitMaterialOverrides.ts";
 import { FocusOverviewPanel, FocusSideColumn, FocusStoryPanel } from "./FocusContentPanels";
 import { FocusExhibitTitle } from "./FocusExhibitTitle";
 import { FocusDoubleClickExit } from "./FocusCanvasInput";
@@ -169,18 +170,24 @@ function FocusOrbitControls({
 }
 
 function FocusModel({
+  exhibitId,
   url,
   buttons,
   onButtonAction,
   onFrameComputed,
 }: {
+  exhibitId: string;
   url: string;
   buttons: ExhibitManifestItem["buttons"] | undefined;
   onButtonAction: (action: ExhibitButtonAction) => void;
   onFrameComputed: (frame: FocusFrameResult) => void;
 }) {
   const gltf = useGLTF(url, GLTF_DRACO_DECODER_PATH);
-  const scene = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  const scene = useMemo(() => {
+    const object = gltf.scene.clone(true);
+    applyTreeHabitatSharedMaterials(object, exhibitId);
+    return object;
+  }, [exhibitId, gltf.scene]);
 
   useEffect(() => {
     const frame = fitFocusModelToFrame(scene);
@@ -265,6 +272,7 @@ function FocusSceneContent({
       <group ref={hitRootRef}>
         <FocusModel
           key={exhibit.focusGlbUrl}
+          exhibitId={exhibit.exhibitId}
           url={exhibit.focusGlbUrl}
           buttons={exhibit.buttons}
           onButtonAction={onButtonAction}

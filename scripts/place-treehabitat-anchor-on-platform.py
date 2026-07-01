@@ -27,7 +27,6 @@ VISUAL_PLATFORM_NAME = "ARCH_WALL_PLASTER_WHITE_023"
 TREEHABITAT_ANCHOR_NAME = "ANCHOR_ARCH_TREEHABITAT"
 BLOCKER_COLLIDER_NAME = "COL_WALL_023"
 SNAP_COLLIDER_NAME = "COL_PLATFORM_TREEHABITAT_SNAP"
-BLOCKER_HEIGHT_M = 1.0
 SNAP_COLLIDER_THICKNESS_M = 0.02
 
 
@@ -272,15 +271,6 @@ def main() -> None:
     anchor.scale = (1.0, 1.0, 1.0)
 
     set_mesh_to_world_box(
-        collider,
-        min_x=platform_bounds["min_x"],
-        max_x=platform_bounds["max_x"],
-        min_y=platform_bounds["min_y"],
-        max_y=platform_bounds["max_y"],
-        min_z=platform_bounds["min_z"],
-        max_z=platform_bounds["min_z"] + BLOCKER_HEIGHT_M,
-    )
-    set_mesh_to_world_box(
         snap_collider,
         min_x=platform_bounds["min_x"],
         max_x=platform_bounds["max_x"],
@@ -289,7 +279,7 @@ def main() -> None:
         min_z=platform_bounds["max_z"] - SNAP_COLLIDER_THICKNESS_M,
         max_z=platform_bounds["max_z"],
     )
-    collider_after = world_bounds(collider)
+    collider_bounds = world_bounds(collider)
     snap_after = world_bounds(snap_collider)
 
     apply_material_and_collection_contract()
@@ -305,8 +295,8 @@ def main() -> None:
         "anchorAfterRuntime": runtime_position_from_blender(anchor_target),
         "collider": BLOCKER_COLLIDER_NAME,
         "colliderBeforeBounds": collider_before,
-        "colliderAfterBounds": collider_after,
-        "colliderAfterHeightM": collider_after["max_z"] - collider_after["min_z"],
+        "colliderBounds": collider_bounds,
+        "colliderHeightM": collider_bounds["max_z"] - collider_bounds["min_z"],
         "snapCollider": SNAP_COLLIDER_NAME,
         "snapColliderBeforeBounds": snap_before,
         "snapColliderAfterBounds": snap_after,
