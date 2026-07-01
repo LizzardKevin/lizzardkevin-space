@@ -27,6 +27,18 @@ assert(
   "exhibit raycast target change detection must distinguish projector and exhibit targets that share an exhibitId",
 );
 assert(
+  files.exhibitInteractionRegistryProvider.includes("ExhibitInteractionRegistryProvider") &&
+    files.exhibitInteractionRegistry.includes("useRegisterExhibitInteractionTarget") &&
+    files.spaceScene.includes("ExhibitInteractionRegistryProvider"),
+  "SPACE hover raycast should use a scoped interaction registry instead of full-scene traversal",
+);
+assert(
+  files.exhibitRaycast.includes("useExhibitInteractionTargets") &&
+    files.exhibitRaycast.includes("raycaster.intersectObjects(interactionTargets, true)") &&
+    !files.exhibitRaycast.includes("scene.children"),
+  "ExhibitRaycast should only test registered interaction targets, not every object in the scene",
+);
+assert(
   files.desktop.includes("projector-controls-hint") && files.css.includes(".projector-controls-hint"),
   "projector hover must expose a small center-bottom Q/E hint outside the 3D mesh",
 );

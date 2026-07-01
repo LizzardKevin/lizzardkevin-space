@@ -5,6 +5,7 @@ import { fitProjectorImageToScreen } from "./projectorLayout.ts";
 import { preloadProjectorImageTexture, useProjectorImageTexture } from "./projectorTexture";
 import { buildProjectorSlides, type ProjectorSlide, type ProjectorSlideCommand } from "./projectorSlides";
 import { useProjectorSlideshow } from "./useProjectorSlideshow";
+import { useRegisterExhibitInteractionTarget } from "../exhibits/exhibitInteractionRegistry";
 
 const PROJECTOR_SCREEN_NODE_NAME = "EXHIBITS_Projector_001";
 const PROJECTOR_SCREEN_FRONT_OFFSET = 0.055;
@@ -290,6 +291,7 @@ export function SpaceProjectorInstallation({
       restoreProjectorScreenUserData(screen, previousUserData);
     };
   }, [activeSlide, interactive, screen]);
+  useRegisterExhibitInteractionTarget(screen, Boolean(screen && activeSlide && interactive));
 
   if (!layout || slides.length === 0) return null;
 

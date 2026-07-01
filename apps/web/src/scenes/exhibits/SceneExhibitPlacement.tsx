@@ -11,6 +11,7 @@ import {
 import { publishSpaceExhibitPlacementDebug } from "../debug/spaceMovementDebug";
 import { GLTF_DRACO_DECODER_PATH } from "../gallery/galleryConfig";
 import { applyTreeHabitatSharedMaterials } from "./exhibitMaterialOverrides.ts";
+import { useRegisterExhibitInteractionTarget } from "./exhibitInteractionRegistry";
 import {
   bindSceneExhibitId,
   chooseSceneExhibitLod,
@@ -132,6 +133,7 @@ function SceneExhibitModel({
     object.updateMatrixWorld(true);
     return { object, floorName };
   }, [exhibit.exhibitId, gltf.scene, root, sceneConfig]);
+  useRegisterExhibitInteractionTarget(placed.object);
 
   useEffect(() => {
     publishSpaceExhibitPlacementDebug({

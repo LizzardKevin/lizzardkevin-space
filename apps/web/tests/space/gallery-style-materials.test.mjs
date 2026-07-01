@@ -138,7 +138,7 @@ test("metal aluminum is darker than floor with a matte metallic finish", async (
   );
 });
 
-test("gallery visual settings default to fixed 2K 30fps quality with lightweight AA and no bloom pass", async () => {
+test("gallery visual settings default to fixed 2K 30fps quality with lightweight AA and restrained bloom", async () => {
   const visual = await importSourceModule("space/spaceVisualSettings.ts");
   const config = visual.getSpaceQualityConfig();
 
@@ -146,8 +146,9 @@ test("gallery visual settings default to fixed 2K 30fps quality with lightweight
   assert.equal(visual.DEFAULT_SPACE_VISUAL_SETTINGS.antialias, true);
   assert.equal("motionBlur" in visual.DEFAULT_SPACE_VISUAL_SETTINGS, false);
   assert.equal(config.performance.targetFps, 30);
-  assert.equal(config.post.bloom.enabled, false);
+  assert.equal(config.post.bloom.enabled, true);
   assert.ok(config.post.bloom.strength > 0);
+  assert.ok(config.post.bloom.strength <= 0.08);
   assert.ok(config.post.bloom.threshold >= 0.9);
   assert.equal("motionBlur" in config.post, false);
   assert.equal("celDepthLayer" in config, false);

@@ -4,6 +4,7 @@ import type { ExhibitManifestItem } from "../exhibits/manifest";
 import { ExhibitHoverHighlight } from "../exhibits/ExhibitHoverHighlight";
 import { ExhibitTargetLabel } from "../exhibits/ExhibitTargetLabel";
 import { ExhibitRaycast } from "./exhibits/ExhibitRaycast";
+import { ExhibitInteractionRegistryProvider } from "./exhibits/ExhibitInteractionRegistryProvider";
 import { GuardedPointerLockControls } from "./controls/GuardedPointerLockControls";
 import { PlayerController } from "./Player/PlayerController";
 import { ENABLE_GALLERY_GLB, ENABLE_GALLERY_WALL_ART, GALLERY_WALL_ART } from "./gallery/galleryConfig";
@@ -65,7 +66,7 @@ function SpaceSceneContent({
   const { spawn, safetyGroundY, safetyCenterX, safetyCenterZ } = useGallerySpawn();
 
   return (
-    <>
+    <ExhibitInteractionRegistryProvider>
       {pointerControlsEnabled ? <GuardedPointerLockControls selector="#space-canvas" /> : null}
 
       {ENABLE_GALLERY_GLB ? <SafetyGround y={safetyGroundY} centerX={safetyCenterX} centerZ={safetyCenterZ} /> : null}
@@ -146,7 +147,7 @@ function SpaceSceneContent({
         onConsumeSuppressedClick={onConsumeSuppressedClick}
         enabled={controlsEnabled}
       />
-    </>
+    </ExhibitInteractionRegistryProvider>
   );
 }
 

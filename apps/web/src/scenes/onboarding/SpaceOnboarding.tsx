@@ -31,6 +31,7 @@ import {
   type SpaceOnboardingVisibleSign,
   type SpaceOnboardingSignQueueState,
 } from "./spaceOnboardingSignVisibility.ts";
+import { useRegisterExhibitInteractionRef } from "../exhibits/exhibitInteractionRegistry";
 
 function activeSignIdForState(state: SpaceOnboardingState): SpaceOnboardingSignStepId | null {
   if (state.completed || state.step === "focus") return null;
@@ -227,10 +228,11 @@ export function SpaceOnboarding({
     }
   });
 
-  if (!enabled) return null;
-
   const showLookHit = onboardingState.step === "look";
   const showDemoHit = onboardingState.step === "demo";
+  useRegisterExhibitInteractionRef(demoHitMeshRef, enabled && showDemoHit);
+
+  if (!enabled) return null;
 
   return (
     <group name="space_onboarding">

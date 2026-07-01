@@ -85,12 +85,12 @@ assert(files.debugTelemetry.includes("publishSpaceRaycastDebug"), "debug telemet
 assert(files.player.includes("publishSpaceMovementDebug"), "PlayerController must publish movement debug samples");
 assert(files.exhibitRaycast.includes("publishSpaceRaycastDebug"), "ExhibitRaycast must publish the current pointer raycast mesh name");
 assert(files.exhibitRaycast.includes("hitMeshName"), "ExhibitRaycast debug payload must include the hit mesh name");
-assert(files.exhibitRaycast.includes("isIgnoredDebugRaycastObject"), "raycast debug must define ignored objects");
-assert(files.exhibitRaycast.includes('startsWith("COL_")'), "raycast debug must ignore COL_* objects");
 assert(
-  files.exhibitRaycast.includes("!isIgnoredDebugRaycastObject(hit.object)"),
-  "raycast debug must pick the first non-COL raycast hit",
+  files.exhibitRaycast.includes("useExhibitInteractionTargets") &&
+    files.exhibitRaycast.includes("interactionTargets"),
+  "raycast debug should inspect only registered interaction targets after removing full-scene raycast traversal",
 );
+assert(!files.exhibitRaycast.includes("isIgnoredDebugRaycastObject"), "registry raycasts should not need COL_* debug filtering");
 assert(files.player.includes("numComputedCollisions"), "PlayerController must include character-controller collision counts in debug");
 assert(files.player.includes("computedCollision"), "PlayerController must inspect computed collision colliders for debug");
 assert(files.player.includes("speedRatio"), "PlayerController debug samples must include actual/desired speed ratio");

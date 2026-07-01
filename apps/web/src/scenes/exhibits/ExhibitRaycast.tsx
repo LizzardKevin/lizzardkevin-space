@@ -3,17 +3,11 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { buildExhibitTarget, isExhibitWithinRange, type ExhibitTarget } from "../../exhibits/exhibitTarget";
 import { findSceneExhibitRoot } from "./exhibitPlacement.ts";
+import { useExhibitInteractionTargets } from "./exhibitInteractionRegistry";
 import { publishSpaceRaycastDebug } from "../debug/spaceMovementDebug";
 import { resumeSpaceFirstPersonOnGestureIfPending } from "../../space/requestSpacePointerLock";
 
-function isIgnoredDebugRaycastObject(object: THREE.Object3D) {
-  let current: THREE.Object3D | null = object;
-  while (current) {
-    if (current.name.toUpperCase().startsWith("COL_")) return true;
-    current = current.parent;
-  }
-  return false;
-}
+const EXHIBIT_INTERACTION_RAYCAST_FAR = 30;
 
 export function ExhibitRaycast({
   onTargetChange,
@@ -30,7 +24,8 @@ export function ExhibitRaycast({
   onConsumeSuppressedClick: () => void;
   enabled: boolean;
 }) {
-  const { camera, scene, gl } = useThree();
+  const { camera, gl } = useThree();
+  const interactionTargets = useExhibitInteractionTargets();
   const lastActiveKey = useRef<string | null>(null);
   const lastFocused = useRef<string | null>(null);
   const onTargetChangeRef = useRef(onTargetChange);
@@ -53,7 +48,12 @@ export function ExhibitRaycast({
     onConsumeSuppressedClick,
   ]);
 
-  const raycaster = useMemo(() => new THREE.Raycaster(), []);
+  const raycaster = useMemo(() => {
+    const caster = new THREE.Raycaster();
+    caster.near = 0;
+    caster.far = EXHIBIT_INTERACTION_RAYCAST_FAR;
+    return caster;
+  }, []);
   const center = useMemo(() => new THREE.Vector2(0, 0), []);
   const lastDebugHitMeshName = useRef<string | null>(null);
 
@@ -66,12 +66,20 @@ export function ExhibitRaycast({
 
   useFrame(() => {
     if (!enabled) return;
+    if (interactionTargets.length === 0) {
+      if (lastActiveKey.current !== null) {
+        lastActiveKey.current = null;
+        lastFocused.current = null;
+        onTargetChangeRef.current(null);
+      }
+      return;
+    }
     raycaster.setFromCamera(center, camera);
 
-    const hits = raycaster.intersectObjects(scene.children, true);
+    const hits = raycaster.intersectObjects(interactionTargets, true);
     const frontHit = hits[0]?.object as THREE.Object3D | undefined;
     if (import.meta.env.DEV) {
-      const debugHit = hits.find((hit) => !isIgnoredDebugRaycastObject(hit.object))?.object;
+      const debugHit = hits[0]?.object;
       const hitMeshName = debugHit ? debugHit.name || debugHit.parent?.name || debugHit.uuid : null;
       if (hitMeshName !== lastDebugHitMeshName.current) {
         lastDebugHitMeshName.current = hitMeshName;

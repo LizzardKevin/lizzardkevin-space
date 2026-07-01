@@ -13,6 +13,12 @@ export const files = {
   hoverHighlight: readProjectFile("apps/web/src/exhibits/ExhibitHoverHighlight.tsx"),
   exhibitTargetLabel: readProjectFile("apps/web/src/exhibits/ExhibitTargetLabel.tsx"),
   exhibitRaycast: readProjectFile("apps/web/src/scenes/exhibits/ExhibitRaycast.tsx"),
+  exhibitInteractionRegistry: readOptionalProjectFile(
+    "apps/web/src/scenes/exhibits/exhibitInteractionRegistry.ts",
+  ),
+  exhibitInteractionRegistryProvider: readOptionalProjectFile(
+    "apps/web/src/scenes/exhibits/ExhibitInteractionRegistryProvider.tsx",
+  ),
   keyboard: readProjectFile("apps/web/src/scenes/controls/useKeyboard.tsx"),
   player: readProjectFile("apps/web/src/scenes/Player/PlayerController.tsx"),
   pointerLockFailure: readProjectFile("apps/web/src/space/pointerLockFailure.ts"),
