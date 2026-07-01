@@ -23,6 +23,19 @@ assert(
   "TEMP blocker visibility should be driven by camera distance to the corresponding blocker surface",
 );
 assert(
+  notices.includes("quaternion") && notices.includes("setFromUnitVectors"),
+  "TEMP blocker notices should align to the blocker surface instead of facing the camera",
+);
+assert(!notices.includes("sprite"), "TEMP blocker notices must not billboard toward the camera");
+assert(
+  notices.includes("occlude"),
+  "TEMP blocker notices should be depth-occluded by intervening meshes",
+);
+assert(
+  !notices.includes("zIndexRange={[32, 0]}"),
+  "TEMP blocker notices should not force themselves into the top overlay layer",
+);
+assert(
   notices.includes('style={{ pointerEvents: "none", userSelect: "none" }}'),
   "TEMP blocker notices must not steal pointer lock or raycast clicks",
 );
