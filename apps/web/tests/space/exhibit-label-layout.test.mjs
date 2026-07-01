@@ -2,21 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { importSourceModule } from "../helpers/projectPaths.mjs";
 
-test("exhibit target labels keep projected horizontal position and clamp vertical overflow", async () => {
+test("exhibit target labels render below the center cursor in canvas UI", async () => {
   const layout = await importSourceModule("exhibits/exhibitTargetLabelLayout.ts");
   const viewport = { width: 1920, height: 1080 };
 
   assert.deepEqual(
-    layout.clampExhibitLabelScreenPoint({ x: -140, y: 24 }, viewport, 32, { width: 180, height: 40 }),
-    { x: -140, y: 52 },
+    layout.resolveExhibitLabelUiPosition(viewport, 30),
+    { x: 960, y: 570 },
   );
   assert.deepEqual(
-    layout.clampExhibitLabelScreenPoint({ x: 2180, y: 1220 }, viewport, 32, { width: 180, height: 40 }),
-    { x: 2180, y: 1028 },
-  );
-  assert.deepEqual(
-    layout.clampExhibitLabelScreenPoint({ x: 960, y: 540 }, viewport, 32),
-    { x: 960, y: 540 },
+    layout.resolveExhibitLabelUiPosition({ width: 1366, height: 768 }, 30),
+    { x: 683, y: 414 },
   );
 });
 

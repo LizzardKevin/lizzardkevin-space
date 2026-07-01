@@ -164,16 +164,11 @@ export const EXHIBIT_TARGET = {
   emissiveIntensity: 0.06,
   /** Max camera-to-exhibit distance (m) for hover label, highlight, and crosshair feedback. */
   maxDistance: 5,
-  /**
-   * Html 名牌（transform + sprite）：屏幕大小约 ∝ fontSizePx × distanceFactor（drei 内 scale∝distanceFactor/400）。
-   * distanceFactor 越大字越大；近距糊字靠提高 fontSizePx，再用较小 distanceFactor 保持远距大小。
-   * 参照：原 5px×8；现 18px×2。
-   */
+  /** Canvas UI label shown below the center cursor while hovering an exhibit. */
   labelHtml: {
     fontSizePx: 18,
-    distanceFactor: 2,
+    cursorOffsetYPx: 30,
   },
-  labelScreenPaddingPx: 32,
 };
 
 /** Fallback infinite safety floor Y (center of cuboid). Gallery load may refine this. */

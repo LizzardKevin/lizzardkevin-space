@@ -233,9 +233,10 @@ assert(
 );
 assert(
   exhibitTarget.includes("computeExhibitLabelAnchor") &&
-    targetLabel.includes("computeExhibitLabelAnchor") &&
-    targetLabel.includes("targetObject"),
-  "SPACE GUIDE and exhibit labels should recompute from the current mesh bounds instead of drifting from a stale anchor",
+    targetLabel.includes("resolveExhibitLabelUiPosition") &&
+    !targetLabel.includes("computeExhibitLabelAnchor") &&
+    !targetLabel.includes("useFrame"),
+  "SPACE GUIDE and exhibit labels should render as fixed cursor-adjacent canvas UI instead of drifting from 3D projection",
 );
 assert(
   !onboardingScene.includes("SpaceOnboardingFogBlocker") &&

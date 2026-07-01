@@ -11,6 +11,7 @@ export const files = {
   guardedPointerLock: readProjectFile("apps/web/src/scenes/controls/guardedPointerLock.ts"),
   guardedPointerLockControls: readProjectFile("apps/web/src/scenes/controls/GuardedPointerLockControls.tsx"),
   hoverHighlight: readProjectFile("apps/web/src/exhibits/ExhibitHoverHighlight.tsx"),
+  exhibitTargetLabel: readProjectFile("apps/web/src/exhibits/ExhibitTargetLabel.tsx"),
   exhibitRaycast: readProjectFile("apps/web/src/scenes/exhibits/ExhibitRaycast.tsx"),
   keyboard: readProjectFile("apps/web/src/scenes/controls/useKeyboard.tsx"),
   player: readProjectFile("apps/web/src/scenes/Player/PlayerController.tsx"),

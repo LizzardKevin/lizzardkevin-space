@@ -13,6 +13,14 @@ assert(
   "projector hover should not show the floating exhibit name tag over the screen",
 );
 assert(
+  files.exhibitTargetLabel.includes("resolveExhibitLabelUiPosition") &&
+    !files.exhibitTargetLabel.includes("computeExhibitLabelAnchor") &&
+    files.css.includes(".exhibit-target-label") &&
+    files.css.includes("0 0 8px rgba(255, 255, 255, 0.58)") &&
+    files.css.includes("0 0 22px rgba(255, 255, 255, 0.22)"),
+  "exhibit hover name tag should render as glowing cursor-adjacent canvas UI",
+);
+assert(
   files.exhibitRaycast.includes("lastActiveKey") &&
     files.exhibitRaycast.includes("target.object.uuid") &&
     files.exhibitRaycast.includes("target.interactionKind"),
