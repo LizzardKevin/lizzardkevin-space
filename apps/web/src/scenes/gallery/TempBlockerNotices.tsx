@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import { isTempBlockerMeshName } from "./prepareGalleryScene";
 
-export const TEMP_BLOCKER_NOTICE_DISTANCE_M = 10;
+export const TEMP_BLOCKER_NOTICE_DISTANCE_M = 3;
 
 const TEMP_BLOCKER_NOTICE_SURFACE_OFFSET_M = 0.04;
 const TEMP_BLOCKER_NOTICE_MIN_HEIGHT_M = 1.25;

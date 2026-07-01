@@ -11,8 +11,8 @@ assert(
   "GalleryModel must mount TEMP blocker notices on the loaded space_main scene",
 );
 assert(
-  notices.includes("TEMP_BLOCKER_NOTICE_DISTANCE_M = 10"),
-  "TEMP blocker notice should appear within 10 meters",
+  notices.includes("TEMP_BLOCKER_NOTICE_DISTANCE_M = 3"),
+  "TEMP blocker notice should appear only within 3 meters",
 );
 assert(
   notices.includes("isTempBlockerMeshName") && notices.includes("collectTempBlockerNoticeSpecs"),
