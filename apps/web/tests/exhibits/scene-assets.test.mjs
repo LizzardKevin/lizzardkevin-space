@@ -71,7 +71,11 @@ test("world-coordinate exhibit GLBs keep authored placement without anchors or f
   for (const exhibitId of ids) {
     const exhibit = manifest.exhibits.find((item) => item.exhibitId === exhibitId);
     assert.equal("anchor" in exhibit.scene, false, `${exhibitId} anchor`);
-    assert.deepEqual(exhibit?.scene?.lodCenter?.length, 3, `${exhibitId} needs a LOD center`);
+    assert.equal(exhibit?.scene?.lodCenter?.length, 3, `${exhibitId} needs a LOD center`);
+    assert.ok(
+      exhibit.scene.lodCenter.every((value) => typeof value === "number" && Number.isFinite(value)),
+      `${exhibitId} LOD center should be finite`,
+    );
     assert.ok(
       exhibit.scene.lodCenter.some((value) => Math.abs(value) > 0.001),
       `${exhibitId} LOD center should track the authored model bounds, not the world origin`,

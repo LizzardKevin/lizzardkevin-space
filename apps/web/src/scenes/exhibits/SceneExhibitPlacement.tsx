@@ -1,6 +1,6 @@
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import {
   loadManifest,
@@ -44,7 +44,7 @@ function applyWorldRotation(object: THREE.Object3D, yawOffsetDeg: number) {
 }
 
 function resolveExhibitDistancePosition(sceneConfig: ExhibitSceneConfig) {
-  return sceneConfig.lodCenter ? new THREE.Vector3(...sceneConfig.lodCenter) : new THREE.Vector3();
+  return new THREE.Vector3(...sceneConfig.lodCenter);
 }
 
 function useSceneExhibits(enabled: boolean) {
@@ -171,7 +171,7 @@ function SceneExhibitController({
     const next = chooseSceneExhibitLod(distance, sceneConfig.load, activeLodRef.current);
     if (next === activeLodRef.current) return;
     activeLodRef.current = next;
-    setActiveLod(next);
+    startTransition(() => setActiveLod(next));
     publishSpaceExhibitPlacementDebug({
       timestamp: performance.now(),
       exhibitId: exhibit.exhibitId,
@@ -190,13 +190,15 @@ function SceneExhibitController({
   return (
     <>
       <DevSceneModelUrlCheck exhibit={exhibit} />
-      <SceneExhibitModel
-        key={`${exhibit.exhibitId}-${activeLod}`}
-        exhibit={exhibit}
-        lod={activeLod}
-        root={root}
-        onReady={onReady}
-      />
+      <Suspense fallback={null}>
+        <SceneExhibitModel
+          key={`${exhibit.exhibitId}-${activeLod}`}
+          exhibit={exhibit}
+          lod={activeLod}
+          root={root}
+          onReady={onReady}
+        />
+      </Suspense>
     </>
   );
 }
@@ -222,16 +224,6 @@ export function ExhibitPlacement({
       return next;
     });
   }, []);
-
-  useEffect(() => {
-    if (!enabled || !exhibits) return;
-    exhibits.forEach((exhibit) => {
-      if (!exhibit.scene) return;
-      Array.from(new Set(Object.values(exhibit.scene.models))).forEach((url) => {
-        useGLTF.preload(url, GLTF_DRACO_DECODER_PATH);
-      });
-    });
-  }, [enabled, exhibits]);
 
   useEffect(() => {
     if (!enabled || !exhibits) return;

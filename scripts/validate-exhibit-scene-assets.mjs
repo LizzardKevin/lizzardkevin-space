@@ -52,10 +52,9 @@ for (const exhibit of sceneExhibits) {
   }
 
   if (
-    scene.lodCenter !== undefined &&
-    (!Array.isArray(scene.lodCenter) ||
+    !Array.isArray(scene.lodCenter) ||
       scene.lodCenter.length !== 3 ||
-      !scene.lodCenter.every((value) => typeof value === "number" && Number.isFinite(value)))
+      !scene.lodCenter.every((value) => typeof value === "number" && Number.isFinite(value))
   ) {
     errors.push(`Exhibit ${exhibit.exhibitId} lodCenter must be a [number, number, number] tuple`);
   }

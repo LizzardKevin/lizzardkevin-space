@@ -19,7 +19,7 @@ export type ExhibitSceneLoad = {
 };
 
 export type ExhibitSceneConfig = {
-  lodCenter?: [number, number, number];
+  lodCenter: [number, number, number];
   models: ExhibitSceneModels;
   scale: number | [number, number, number];
   placement: ExhibitScenePlacement;
@@ -27,7 +27,7 @@ export type ExhibitSceneConfig = {
 };
 
 export type RawExhibitSceneConfig = {
-  lodCenter?: [number, number, number];
+  lodCenter: [number, number, number];
   models: ExhibitSceneModels;
   scale?: number | [number, number, number];
   placement?: Partial<ExhibitScenePlacement>;

@@ -30,7 +30,7 @@ export const DEFAULT_SPACE_VISUAL_SETTINGS: SpaceVisualSettings = {
 export const SPACE_QUALITY_CONFIG: SpaceQualityConfig = {
   performance: { targetFps: 30 },
   post: {
-    bloom: { enabled: true, strength: 0.12, radius: 0.08, threshold: 0.92 },
+    bloom: { enabled: false, strength: 0.12, radius: 0.08, threshold: 0.92 },
   },
   lighting: { lightEmissiveIntensity: 6.2, bulbIntensity: 12, bulbDistance: 9.75 },
 };

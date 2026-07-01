@@ -101,6 +101,7 @@ assert.equal(existsSync(projectPath("scripts/inject-space-main-anchors.mjs")), f
 const spaceDesktopExperience = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
 const focusOverlay = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
 const galleryModel = readProjectFile("apps/web/src/scenes/gallery/GalleryModel.tsx");
+const sceneExhibitPlacement = readProjectFile("apps/web/src/scenes/exhibits/SceneExhibitPlacement.tsx");
 const spaceScene = readProjectFile("apps/web/src/scenes/SpaceScene.tsx");
 assert.match(spaceDesktopExperience, /loadExhibits/);
 assert.match(focusOverlay, /applyTreeHabitatSharedMaterials/);
@@ -109,6 +110,21 @@ assert.match(spaceDesktopExperience, /onSceneExhibitsReady/);
 assert.match(spaceScene, /loadExhibits/);
 assert.match(galleryModel, /loadExhibits/);
 assert.match(galleryModel, /TempBlockerNotices/);
+assert.doesNotMatch(
+  sceneExhibitPlacement,
+  /useGLTF\.preload/,
+  "scene exhibits should load the active LOD only instead of preloading every scene model",
+);
+assert.match(
+  sceneExhibitPlacement,
+  /<Suspense fallback=\{null\}>/,
+  "active LOD loads should suspend only the individual exhibit, not the whole SPACE scene",
+);
+assert.match(
+  sceneExhibitPlacement,
+  /startTransition\(\(\) => setActiveLod\(next\)\)/,
+  "LOD switches should keep the previous revealed exhibit while the next GLB resolves",
+);
 
 const lodBlenderScript = readProjectFile("scripts/prepare-exhibit-lods-blender.py");
 assert.match(lodBlenderScript, /arch_uabb_exhibit/);
