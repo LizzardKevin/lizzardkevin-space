@@ -33,3 +33,4 @@ release/
 
 # Local temp / scratch
 .tmp_py/
+work/
