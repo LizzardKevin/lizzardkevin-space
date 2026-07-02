@@ -43,7 +43,8 @@ export type SpaceExhibitPlacementDebugSample = {
   timestamp: number;
   exhibitId: string;
   placementMode: "world";
-  lod: string | null;
+  variant: "space";
+  mounted: boolean;
   floorName: string | null;
 };
 

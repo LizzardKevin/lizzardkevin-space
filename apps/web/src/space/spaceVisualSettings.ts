@@ -24,7 +24,7 @@ export type SpaceVisualSettings = {
 };
 
 export const DEFAULT_SPACE_VISUAL_SETTINGS: SpaceVisualSettings = {
-  antialias: true,
+  antialias: false,
 };
 
 export const SPACE_QUALITY_CONFIG: SpaceQualityConfig = {

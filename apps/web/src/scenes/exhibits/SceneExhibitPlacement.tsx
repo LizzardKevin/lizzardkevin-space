@@ -1,10 +1,9 @@
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Suspense, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import {
   loadManifest,
-  type ExhibitLodKey,
   type ExhibitManifestItem,
   type ExhibitSceneConfig,
 } from "../../exhibits/manifest.ts";
@@ -14,8 +13,8 @@ import { applyTreeHabitatSharedMaterials } from "./exhibitMaterialOverrides.ts";
 import { useRegisterExhibitInteractionTarget } from "./exhibitInteractionRegistry";
 import {
   bindSceneExhibitId,
-  chooseSceneExhibitLod,
   EXHIBIT_SNAP_MAX_FLOOR_DROP_M,
+  isSceneExhibitInRange,
   resolveExhibitFloorSnap,
 } from "./exhibitPlacement.ts";
 
@@ -45,7 +44,7 @@ function applyWorldRotation(object: THREE.Object3D, yawOffsetDeg: number) {
 }
 
 function resolveExhibitDistancePosition(sceneConfig: ExhibitSceneConfig) {
-  return new THREE.Vector3(...sceneConfig.lodCenter);
+  return new THREE.Vector3(...sceneConfig.distanceCenter);
 }
 
 function useSceneExhibits(enabled: boolean) {
@@ -75,12 +74,10 @@ function useSceneExhibits(enabled: boolean) {
 function DevSceneModelUrlCheck({ exhibit }: { exhibit: ExhibitManifestItem }) {
   useEffect(() => {
     if (!import.meta.env.DEV || !exhibit.scene) return;
-    Array.from(new Set(Object.values(exhibit.scene.models))).forEach((url) => {
-      fetch(url, { method: "HEAD" }).then((response) => {
-        if (!response.ok) {
-          console.error(`Exhibit ${exhibit.exhibitId} LOD file is missing: ${url}`);
-        }
-      });
+    fetch(exhibit.scene.modelUrl, { method: "HEAD" }).then((response) => {
+      if (!response.ok) {
+        console.error(`Exhibit ${exhibit.exhibitId} SPACE model file is missing: ${exhibit.scene?.modelUrl}`);
+      }
     });
   }, [exhibit]);
 
@@ -89,18 +86,16 @@ function DevSceneModelUrlCheck({ exhibit }: { exhibit: ExhibitManifestItem }) {
 
 function SceneExhibitModel({
   exhibit,
-  lod,
   root,
   onReady,
 }: {
   exhibit: ExhibitManifestItem;
-  lod: ExhibitLodKey;
   root: THREE.Object3D;
   onReady: (exhibitId: string) => void;
 }) {
   const sceneConfig = exhibit.scene!;
 
-  const url = sceneConfig.models[lod];
+  const url = sceneConfig.modelUrl;
   const gltf = useGLTF(url, GLTF_DRACO_DECODER_PATH);
   const placed = useMemo(() => {
     const object = gltf.scene.clone(true);
@@ -140,11 +135,12 @@ function SceneExhibitModel({
       timestamp: performance.now(),
       exhibitId: exhibit.exhibitId,
       placementMode: "world",
-      lod,
+      variant: "space",
+      mounted: true,
       floorName: placed.floorName,
     });
     onReady(exhibit.exhibitId);
-  }, [exhibit.exhibitId, lod, onReady, placed.floorName]);
+  }, [exhibit.exhibitId, onReady, placed.floorName]);
 
   return <primitive object={placed.object} />;
 }
@@ -161,42 +157,42 @@ function SceneExhibitController({
   const sceneConfig = exhibit.scene;
   const { camera } = useThree();
   const distancePosition = sceneConfig ? resolveExhibitDistancePosition(sceneConfig) : new THREE.Vector3();
-  const initialLod = sceneConfig
-    ? chooseSceneExhibitLod(camera.position.distanceTo(distancePosition), sceneConfig.load, null)
-    : null;
-  const [activeLod, setActiveLod] = useState<ExhibitLodKey | null>(initialLod);
-  const activeLodRef = useRef<ExhibitLodKey | null>(initialLod);
+  const initialInRange = sceneConfig
+    ? isSceneExhibitInRange(camera.position.distanceTo(distancePosition), sceneConfig.load)
+    : false;
+  const [inRange, setInRange] = useState(initialInRange);
+  const inRangeRef = useRef(initialInRange);
 
   useFrame(() => {
     if (!sceneConfig) return;
     const distance = camera.position.distanceTo(distancePosition);
-    const next = chooseSceneExhibitLod(distance, sceneConfig.load, activeLodRef.current);
-    if (next === activeLodRef.current) return;
-    activeLodRef.current = next;
-    startTransition(() => setActiveLod(next));
+    const next = isSceneExhibitInRange(distance, sceneConfig.load);
+    if (next === inRangeRef.current) return;
+    inRangeRef.current = next;
+    setInRange(next);
     publishSpaceExhibitPlacementDebug({
       timestamp: performance.now(),
       exhibitId: exhibit.exhibitId,
       placementMode: "world",
-      lod: next,
+      variant: "space",
+      mounted: next,
       floorName: null,
     });
   });
 
   useEffect(() => {
-    if (activeLod === null) onReady(exhibit.exhibitId);
-  }, [activeLod, exhibit.exhibitId, onReady]);
+    if (!inRange) onReady(exhibit.exhibitId);
+  }, [inRange, exhibit.exhibitId, onReady]);
 
-  if (!sceneConfig || !activeLod) return null;
+  if (!sceneConfig || !inRange) return null;
 
   return (
     <>
       <DevSceneModelUrlCheck exhibit={exhibit} />
       <Suspense fallback={null}>
         <SceneExhibitModel
-          key={`${exhibit.exhibitId}-${activeLod}`}
+          key={exhibit.exhibitId}
           exhibit={exhibit}
-          lod={activeLod}
           root={root}
           onReady={onReady}
         />

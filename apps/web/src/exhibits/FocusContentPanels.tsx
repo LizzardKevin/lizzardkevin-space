@@ -1,20 +1,17 @@
 import type { ReactNode } from "react";
 import type { ExhibitContentMetadataItem } from "./exhibitContent";
-import { SHOW_FOCUS_BLANK_DEBUG } from "./focusConfig";
+import { SHOW_FOCUS_BLANK_DEBUG, SHOW_FOCUS_TEXT_PANEL_DEBUG } from "./focusConfig";
 import { FocusRichText } from "./FocusRichText";
 
 function FocusSideBlank({
   placement,
-  onBlankClick,
 }: {
   placement: "top" | "bottom";
-  onBlankClick: () => void;
 }) {
   return (
     <div
       className={`focus-blank focus-blank--side-${placement}${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-side" : ""}`}
       data-focus-blank="true"
-      onClick={onBlankClick}
       aria-hidden
     />
   );
@@ -22,18 +19,16 @@ function FocusSideBlank({
 
 export function FocusSideColumn({
   side,
-  onBlankClick,
   children,
 }: {
   side: "left" | "right";
-  onBlankClick: () => void;
   children: ReactNode;
 }) {
   return (
     <div className={`focus-layout__side focus-layout__side--${side}`}>
-      <FocusSideBlank placement="top" onBlankClick={onBlankClick} />
+      <FocusSideBlank placement="top" />
       <div className="focus-side-panel-slot">{children}</div>
-      <FocusSideBlank placement="bottom" onBlankClick={onBlankClick} />
+      <FocusSideBlank placement="bottom" />
     </div>
   );
 }
@@ -55,7 +50,8 @@ export function FocusOverviewPanel({
 
   return (
     <aside
-      className={`focus-panel focus-panel--left${visible ? " focus-panel--visible" : ""}`}
+      className={`focus-panel focus-panel--left${visible ? " focus-panel--visible" : ""}${SHOW_FOCUS_TEXT_PANEL_DEBUG ? " focus-panel--debug" : ""}`}
+      data-panel-debug-label="TEXT PANEL / OVERVIEW"
       aria-label="展品概述"
       onClick={(e) => e.stopPropagation()}
     >
@@ -112,7 +108,8 @@ export function FocusStoryPanel({
 
   return (
     <aside
-      className={`focus-panel focus-panel--right${visible ? " focus-panel--visible" : ""}`}
+      className={`focus-panel focus-panel--right${visible ? " focus-panel--visible" : ""}${SHOW_FOCUS_TEXT_PANEL_DEBUG ? " focus-panel--debug" : ""}`}
+      data-panel-debug-label="TEXT PANEL / STORY"
       aria-label="展品故事"
       onClick={(e) => e.stopPropagation()}
     >

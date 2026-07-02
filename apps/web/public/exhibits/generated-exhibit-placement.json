@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T12:17:50.633Z",
+  "generatedAt": "2026-07-01T19:27:47.102Z",
   "source": {
     "spaceMain": "/models/space_main.glb",
     "manifest": "/exhibits/manifest.json"
@@ -8,16 +8,12 @@
     {
       "exhibitId": "arch_treehabitat",
       "placementMode": "world",
-      "lodCenter": [
+      "distanceCenter": [
         -12.590655,
         26.41809,
         -5.630336
       ],
-      "models": {
-        "lod0": "/exhibits/arch_treehabitat/arch_treehabitat.lod0.glb",
-        "lod1": "/exhibits/arch_treehabitat/arch_treehabitat.lod1.glb",
-        "lod2": "/exhibits/arch_treehabitat/arch_treehabitat.lod2.glb"
-      },
+      "modelUrl": "/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
       "scale": 1,
       "placement": {
         "snap": "none",
@@ -25,9 +21,6 @@
         "yawOffsetDeg": 0
       },
       "load": {
-        "lod0Distance": 8,
-        "lod1Distance": 22,
-        "lod2Distance": 45,
         "unloadDistance": 60
       },
       "snap": {
@@ -38,16 +31,12 @@
     {
       "exhibitId": "arch_uabb_exhibit",
       "placementMode": "world",
-      "lodCenter": [
+      "distanceCenter": [
         -19.760264,
         23.153265,
         -1.90665
       ],
-      "models": {
-        "lod0": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
-        "lod1": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod1.glb",
-        "lod2": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod2.glb"
-      },
+      "modelUrl": "/exhibits/arch_uabb_exhibit/space_arch_uabb_exhibit.glb",
       "scale": 1,
       "placement": {
         "snap": "none",
@@ -55,9 +44,6 @@
         "yawOffsetDeg": 0
       },
       "load": {
-        "lod0Distance": 6,
-        "lod1Distance": 14,
-        "lod2Distance": 30,
         "unloadDistance": 40
       },
       "snap": {
@@ -68,16 +54,12 @@
     {
       "exhibitId": "arch_3d_printing_architecture",
       "placementMode": "world",
-      "lodCenter": [
+      "distanceCenter": [
         -12.556294,
         30.178514,
         -15.532322
       ],
-      "models": {
-        "lod0": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod0.glb",
-        "lod1": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod1.glb",
-        "lod2": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod2.glb"
-      },
+      "modelUrl": "/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
       "scale": 1,
       "placement": {
         "snap": "none",
@@ -85,9 +67,6 @@
         "yawOffsetDeg": 0
       },
       "load": {
-        "lod0Distance": 8,
-        "lod1Distance": 22,
-        "lod2Distance": 45,
         "unloadDistance": 60
       },
       "snap": {

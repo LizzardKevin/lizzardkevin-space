@@ -57,7 +57,9 @@ export function SpaceMovementDebugOverlay() {
   const contacts = sample.contactNames.length > 0 ? sample.contactNames.join(", ") : "none";
   const hitMeshName = raycastSample?.hitMeshName ?? "none";
   const exhibitPlacement = placementSample
-    ? `${placementSample.exhibitId} / ${placementSample.placementMode} / ${placementSample.lod ?? "none"} / ${
+    ? `${placementSample.exhibitId} / ${placementSample.placementMode} / ${placementSample.variant} / ${
+        placementSample.mounted ? "mounted" : "unmounted"
+      } / ${
         placementSample.floorName ?? "no floor"
       }`
     : "none";

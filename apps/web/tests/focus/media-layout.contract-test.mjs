@@ -22,6 +22,28 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
     "Focus images should support drag navigation, real-image hover, and expanded viewing",
   );
   assert.ok(
+    !/className=\{`focus-image-frame[\s\S]{0,900}data-cursor="interactive"/.test(overlaySource) &&
+      !/className=\{`focus-image-frame[\s\S]{0,900}role="button"/.test(overlaySource) &&
+      !/className=\{`focus-image-frame[\s\S]{0,900}tabIndex=\{0\}/.test(overlaySource) &&
+      overlaySource.includes("focus-image-hitbox") &&
+      overlaySource.includes('data-cursor="interactive"'),
+    "Focus cursor hover should only enlarge over the actual image hitbox, not the outer image frame",
+  );
+  assert.ok(
+    overlaySource.includes("focusCanvasInteractive") &&
+      overlaySource.includes('data-cursor={focusCanvasInteractive ? "drag-model" : undefined}') &&
+      css.includes(".focus-canvas:not(.focus-canvas--visible) canvas"),
+    "Focus model canvas should expose drag cursor only while the model page is active",
+  );
+  assert.ok(
+    overlaySource.includes("shouldHandleFocusOverlayBlankClick") &&
+      overlaySource.includes("FOCUS_DOUBLE_CLICK_IGNORED_SELECTOR") &&
+      overlaySource.includes(".focus-image-frame") &&
+      overlaySource.includes(".focus-panel") &&
+      overlaySource.includes("onClickCapture={handleFocusOverlayClick}"),
+    "Focus blank double-click exit should be handled outside image, text panels, and other media controls",
+  );
+  assert.ok(
     overlaySource.includes("naturalWidth") &&
       overlaySource.includes("--focus-image-rendered-width") &&
       overlaySource.includes("--focus-image-rendered-height") &&
@@ -72,8 +94,8 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.ok(
     overlaySource.indexOf('className="focus-layout__center"') <
-      overlaySource.indexOf("focus-video") &&
-      overlaySource.indexOf("focus-video") < overlaySource.indexOf("<FocusModelErrorBoundary"),
+      overlaySource.indexOf('className={`focus-video') &&
+      overlaySource.indexOf('className={`focus-video') < overlaySource.indexOf("<FocusModelErrorBoundary"),
     "Focus video should live inside the center media stage instead of being positioned against the full overlay",
   );
   assert.match(

@@ -206,8 +206,8 @@ for (const tag of ["ACADEMIC ARCHITECTURE", "STUDENT WORK", "SPECULATIVE HABITAT
 assert(mobileData.includes("student-era architecture project"), "Tree Habitat mobile copy must identify the work as student-era");
 assert(mobileData.includes("学生阶段建筑作品"), "Tree Habitat mobile copy must include the Chinese student-work framing");
 assert(
-  mobileData.includes('"/exhibits/arch_treehabitat/img/FL-1.jpg"') &&
-    mobileData.includes('"/exhibits/arch_treehabitat/img/FL-26.jpg'),
+  mobileData.includes('"/exhibits/arch_treehabitat/img/FL-1.webp"') &&
+    mobileData.includes('"/exhibits/arch_treehabitat/img/FL-26.webp'),
   "Tree Habitat mobile project must include exhibit image URLs",
 );
 assert(mobileData.includes('id: "arch_uabb_exhibit"'), "mobile projects must include UABB Exhibit by exhibit id");

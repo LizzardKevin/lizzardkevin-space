@@ -6,38 +6,34 @@
       "type": "model3d",
       "media": {
         "imageUrls": [
-          "/exhibits/arch_treehabitat/img/FL-1.jpg",
-          "/exhibits/arch_treehabitat/img/FL-2.jpg",
-          "/exhibits/arch_treehabitat/img/FL-3.jpg",
-          "/exhibits/arch_treehabitat/img/FL-6.jpg",
-          "/exhibits/arch_treehabitat/img/FL-8.jpg",
-          "/exhibits/arch_treehabitat/img/FL-9.jpg",
-          "/exhibits/arch_treehabitat/img/FL-10.jpg",
-          "/exhibits/arch_treehabitat/img/FL-11.jpg",
-          "/exhibits/arch_treehabitat/img/FL-12.jpg",
-          "/exhibits/arch_treehabitat/img/FL-13.jpg",
-          "/exhibits/arch_treehabitat/img/FL-14.jpg",
-          "/exhibits/arch_treehabitat/img/FL-15.jpg",
-          "/exhibits/arch_treehabitat/img/FL-16.jpg",
-          "/exhibits/arch_treehabitat/img/FL-17.jpg",
-          "/exhibits/arch_treehabitat/img/FL-18.jpg",
-          "/exhibits/arch_treehabitat/img/FL-19.jpg",
-          "/exhibits/arch_treehabitat/img/FL-20.jpg",
-          "/exhibits/arch_treehabitat/img/FL-21.jpg",
-          "/exhibits/arch_treehabitat/img/FL-22.jpg",
-          "/exhibits/arch_treehabitat/img/FL-23.jpg",
-          "/exhibits/arch_treehabitat/img/FL-24.jpg",
-          "/exhibits/arch_treehabitat/img/FL-25.jpg",
-          "/exhibits/arch_treehabitat/img/FL-26.jpg"
+          "/exhibits/arch_treehabitat/img/FL-1.webp",
+          "/exhibits/arch_treehabitat/img/FL-2.webp",
+          "/exhibits/arch_treehabitat/img/FL-3.webp",
+          "/exhibits/arch_treehabitat/img/FL-6.webp",
+          "/exhibits/arch_treehabitat/img/FL-8.webp",
+          "/exhibits/arch_treehabitat/img/FL-9.webp",
+          "/exhibits/arch_treehabitat/img/FL-10.webp",
+          "/exhibits/arch_treehabitat/img/FL-11.webp",
+          "/exhibits/arch_treehabitat/img/FL-12.webp",
+          "/exhibits/arch_treehabitat/img/FL-13.webp",
+          "/exhibits/arch_treehabitat/img/FL-14.webp",
+          "/exhibits/arch_treehabitat/img/FL-15.webp",
+          "/exhibits/arch_treehabitat/img/FL-16.webp",
+          "/exhibits/arch_treehabitat/img/FL-17.webp",
+          "/exhibits/arch_treehabitat/img/FL-18.webp",
+          "/exhibits/arch_treehabitat/img/FL-19.webp",
+          "/exhibits/arch_treehabitat/img/FL-20.webp",
+          "/exhibits/arch_treehabitat/img/FL-21.webp",
+          "/exhibits/arch_treehabitat/img/FL-22.webp",
+          "/exhibits/arch_treehabitat/img/FL-23.webp",
+          "/exhibits/arch_treehabitat/img/FL-24.webp",
+          "/exhibits/arch_treehabitat/img/FL-25.webp",
+          "/exhibits/arch_treehabitat/img/FL-26.webp"
         ]
       },
       "scene": {
-        "lodCenter": [-12.590655, 26.41809, -5.630336],
-        "models": {
-          "lod0": "/exhibits/arch_treehabitat/arch_treehabitat.lod0.glb",
-          "lod1": "/exhibits/arch_treehabitat/arch_treehabitat.lod1.glb",
-          "lod2": "/exhibits/arch_treehabitat/arch_treehabitat.lod2.glb"
-        },
+        "distanceCenter": [-12.590655, 26.41809, -5.630336],
+        "modelUrl": "/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
         "scale": 1,
         "placement": {
           "snap": "none",
@@ -45,9 +41,6 @@
           "yawOffsetDeg": 0
         },
         "load": {
-          "lod0Distance": 8,
-          "lod1Distance": 22,
-          "lod2Distance": 45,
           "unloadDistance": 60
         }
       }
@@ -56,13 +49,24 @@
       "exhibitId": "arch_uabb_exhibit",
       "focusGlbUrl": "/exhibits/arch_uabb_exhibit/focus_arch_uabb_exhibit.glb",
       "type": "model3d",
+      "media": {
+        "imageUrls": [
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-01-grid.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-02-page-002.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-03-page-003.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-04-page-004.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-05-page-005.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-06-page-006.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-07-page-007.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-08-page-008.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-09-page-009.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-10-page-010.webp",
+          "/exhibits/arch_uabb_exhibit/img/uabb-board-11-page-011.webp"
+        ]
+      },
       "scene": {
-        "lodCenter": [-19.760264, 23.153265, -1.90665],
-        "models": {
-          "lod0": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb",
-          "lod1": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod1.glb",
-          "lod2": "/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod2.glb"
-        },
+        "distanceCenter": [-19.760264, 23.153265, -1.90665],
+        "modelUrl": "/exhibits/arch_uabb_exhibit/space_arch_uabb_exhibit.glb",
         "scale": 1,
         "placement": {
           "snap": "none",
@@ -70,9 +74,6 @@
           "yawOffsetDeg": 0
         },
         "load": {
-          "lod0Distance": 6,
-          "lod1Distance": 14,
-          "lod2Distance": 30,
           "unloadDistance": 40
         }
       }
@@ -85,12 +86,8 @@
         "videoUrl": "/exhibits/arch_3d_printing_architecture/video/final-clip-without-bgm.mp4"
       },
       "scene": {
-        "lodCenter": [-12.556294, 30.178514, -15.532322],
-        "models": {
-          "lod0": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod0.glb",
-          "lod1": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod1.glb",
-          "lod2": "/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod2.glb"
-        },
+        "distanceCenter": [-12.556294, 30.178514, -15.532322],
+        "modelUrl": "/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
         "scale": 1,
         "placement": {
           "snap": "none",
@@ -98,9 +95,6 @@
           "yawOffsetDeg": 0
         },
         "load": {
-          "lod0Distance": 8,
-          "lod1Distance": 22,
-          "lod2Distance": 45,
           "unloadDistance": 60
         }
       }

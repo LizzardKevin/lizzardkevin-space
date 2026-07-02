@@ -52,10 +52,10 @@ test("buildProjectorSlides uses only the wall projection image directory", async
       exhibitId: "arch_treehabitat",
       media: {
         imageUrls: [
-          "/exhibits/arch_treehabitat/img/FL-1.jpg",
-          "/exhibits/arch_treehabitat/img/FL-10.jpg",
+          "/exhibits/arch_treehabitat/img/FL-1.webp",
+          "/exhibits/arch_treehabitat/img/FL-10.webp",
           "",
-          "/exhibits/arch_treehabitat/img/FL-12.jpg",
+          "/exhibits/arch_treehabitat/img/FL-12.webp",
         ],
       },
     },
@@ -204,9 +204,9 @@ test("buildProjectorSlides puts the strongest projection image first when presen
       exhibitId: "arch_treehabitat",
       media: {
         imageUrls: [
-          "/exhibits/arch_treehabitat/img/FL-1.jpg",
-          "/exhibits/arch_treehabitat/img/FL-10.jpg",
-          "/exhibits/arch_treehabitat/img/FL-2.jpg",
+          "/exhibits/arch_treehabitat/img/FL-1.webp",
+          "/exhibits/arch_treehabitat/img/FL-10.webp",
+          "/exhibits/arch_treehabitat/img/FL-2.webp",
         ],
       },
     },
@@ -228,10 +228,10 @@ test("buildProjectorSlides keeps the projection pool curated when curated images
       exhibitId: "arch_treehabitat",
       media: {
         imageUrls: [
-          "/exhibits/arch_treehabitat/img/FL-1.jpg",
-          "/exhibits/arch_treehabitat/img/FL-9.jpg",
-          "/exhibits/arch_treehabitat/img/FL-10.jpg",
-          "/exhibits/arch_treehabitat/img/FL-12.jpg",
+          "/exhibits/arch_treehabitat/img/FL-1.webp",
+          "/exhibits/arch_treehabitat/img/FL-9.webp",
+          "/exhibits/arch_treehabitat/img/FL-10.webp",
+          "/exhibits/arch_treehabitat/img/FL-12.webp",
         ],
       },
     },
@@ -258,7 +258,7 @@ test("buildProjectorSlides supports directory entries for multiple exhibits", as
     [
       {
         exhibitId: "arch_treehabitat",
-        media: { imageUrls: ["/exhibits/arch_treehabitat/img/FL-10.jpg"] },
+        media: { imageUrls: ["/exhibits/arch_treehabitat/img/FL-10.webp"] },
       },
       {
         exhibitId: "photo_study",

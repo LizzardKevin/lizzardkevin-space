@@ -52,27 +52,20 @@ for (const exhibit of sceneExhibits) {
   }
 
   if (
-    !Array.isArray(scene.lodCenter) ||
-      scene.lodCenter.length !== 3 ||
-      !scene.lodCenter.every((value) => typeof value === "number" && Number.isFinite(value))
+    !Array.isArray(scene.distanceCenter) ||
+      scene.distanceCenter.length !== 3 ||
+      !scene.distanceCenter.every((value) => typeof value === "number" && Number.isFinite(value))
   ) {
-    errors.push(`Exhibit ${exhibit.exhibitId} lodCenter must be a [number, number, number] tuple`);
+    errors.push(`Exhibit ${exhibit.exhibitId} distanceCenter must be a [number, number, number] tuple`);
   }
 
-  for (const lod of ["lod0", "lod1", "lod2"]) {
-    const url = scene.models?.[lod];
-    if (!url) {
-      errors.push(`Exhibit ${exhibit.exhibitId} is missing ${lod} URL`);
-      continue;
-    }
-    const filePath = publicUrlPath(url);
-    if (!filePath || !fs.existsSync(filePath)) {
-      errors.push(`Exhibit ${exhibit.exhibitId} LOD file is missing: ${url}`);
-    }
+  if (scene.models !== undefined || scene.lodCenter !== undefined) {
+    errors.push(`Exhibit ${exhibit.exhibitId} must not declare legacy LOD scene fields`);
   }
 
-  if (scene.load?.lod2Distance > scene.load?.unloadDistance) {
-    warnings.push(`Exhibit ${exhibit.exhibitId} lod2Distance exceeds unloadDistance`);
+  const filePath = scene.modelUrl ? publicUrlPath(scene.modelUrl) : null;
+  if (!scene.modelUrl || !filePath || !fs.existsSync(filePath)) {
+    errors.push(`Exhibit ${exhibit.exhibitId} SPACE model file is missing: ${scene.modelUrl}`);
   }
 }
 

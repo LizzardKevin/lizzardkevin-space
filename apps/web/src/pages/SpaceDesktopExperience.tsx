@@ -57,6 +57,7 @@ const JUMP_HINT_VISIBLE_MS = 5000;
 const SPACE_PHYSICS_TIME_STEP = 1 / 60;
 const SPACE_DAILY_RESUME_SAVE_INTERVAL_MS = 1000;
 const SPACE_DAILY_RESUME_RESET_PARAM = "resetSpaceOnboarding";
+const SPACE_DEBUG_FOCUS_PARAM = "debugFocus";
 
 type SpacePointerLockFailedEvent = CustomEvent<{
   message: string;
@@ -96,6 +97,11 @@ function readInitialDailyResumePose() {
   return readSpaceDailyResume();
 }
 
+function readDevFocusExhibitId() {
+  if (!import.meta.env.DEV || typeof window === "undefined") return null;
+  return new URLSearchParams(window.location.search).get(SPACE_DEBUG_FOCUS_PARAM);
+}
+
 export function SpaceDesktopExperience({
   entry,
   overlay,
@@ -128,10 +134,12 @@ export function SpaceDesktopExperience({
   const [onboardingFocusOpen, setOnboardingFocusOpen] = useState(false);
   const [onboardingFocusClosing, setOnboardingFocusClosing] = useState(false);
   const [dailyResumePose] = useState<SpacePlayerPose | null>(() => readInitialDailyResumePose());
+  const [devFocusExhibitId] = useState<string | null>(() => readDevFocusExhibitId());
   const [onboardingCompleted, setOnboardingCompleted] = useState(dailyResumePose !== null);
   const latestSpacePoseRef = useRef<SpacePlayerPose | null>(dailyResumePose);
   const lastDailyResumeSaveAtRef = useRef(0);
   const projectorSlideCommandNonceRef = useRef(0);
+  const devFocusOpenedRef = useRef(false);
   const { quality, settings } = useSpaceVisualSettings();
   const [rendererSettings, setRendererSettings] = useState(() => ({
     antialias: settings.antialias,
@@ -199,6 +207,17 @@ export function SpaceDesktopExperience({
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!devFocusExhibitId || manifest === null || focused || devFocusOpenedRef.current) return;
+    const found = manifest.find((item) => item.exhibitId === devFocusExhibitId);
+    if (!found) return;
+    devFocusOpenedRef.current = true;
+    const timer = window.setTimeout(() => {
+      setFocused((current) => current ?? found);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [devFocusExhibitId, focused, manifest]);
 
   const handleBeginDismissFocus = useCallback(
     (opts?: { fromEscape?: boolean }) => {
@@ -461,6 +480,7 @@ export function SpaceDesktopExperience({
           >
             <Canvas
               key={rendererSettings.antialias ? "space-canvas-aa" : "space-canvas-raw"}
+              frameloop={focusSurfaceOpen ? "never" : "always"}
               id="space-canvas"
               style={{ position: "absolute", inset: 0 }}
               gl={(props) =>

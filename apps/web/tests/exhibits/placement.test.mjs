@@ -4,21 +4,13 @@ import * as THREE from "three";
 import { readGlbJson } from "../helpers/glb.mjs";
 import { importSourceModule, projectPath } from "../helpers/projectPaths.mjs";
 
-test("chooseSceneExhibitLod applies thresholds and hysteresis", async () => {
-  const { chooseSceneExhibitLod } = await importSourceModule("scenes/exhibits/exhibitPlacement.ts");
-  const load = {
-    lod0Distance: 8,
-    lod1Distance: 22,
-    lod2Distance: 45,
-    unloadDistance: 60,
-  };
+test("isSceneExhibitInRange keeps a single SPACE model mounted within unload distance", async () => {
+  const { isSceneExhibitInRange } = await importSourceModule("scenes/exhibits/exhibitPlacement.ts");
+  const load = { unloadDistance: 60 };
 
-  assert.equal(chooseSceneExhibitLod(6, load, null), "lod0");
-  assert.equal(chooseSceneExhibitLod(12, load, null), "lod1");
-  assert.equal(chooseSceneExhibitLod(30, load, null), "lod2");
-  assert.equal(chooseSceneExhibitLod(62, load, "lod2"), null);
-  assert.equal(chooseSceneExhibitLod(9.5, load, "lod0"), "lod0");
-  assert.equal(chooseSceneExhibitLod(10.5, load, "lod0"), "lod1");
+  assert.equal(isSceneExhibitInRange(6, load), true);
+  assert.equal(isSceneExhibitInRange(60, load), true);
+  assert.equal(isSceneExhibitInRange(60.01, load), false);
 });
 
 test("resolveExhibitFloorSnap drops exhibit bounding box onto floor hit", async () => {
@@ -173,10 +165,10 @@ test("arch UABB real GLBs preserve named material classes and exported Tree Habi
   assert.ok(sourceNodeNames.some((name) => /^MODEL_GLASS_/i.test(name)));
   assert.ok(sourceNodeNames.some((name) => /^MODEL_METAL_/i.test(name)));
 
-  const lod0 = readGlbJson(
-    projectPath("apps/web/public/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.lod0.glb"),
+  const space = readGlbJson(
+    projectPath("apps/web/public/exhibits/arch_uabb_exhibit/space_arch_uabb_exhibit.glb"),
   );
-  const materialNames = new Set((lod0.materials ?? []).map((material) => material.name));
+  const materialNames = new Set((space.materials ?? []).map((material) => material.name));
   assert.equal(materialNames.has("mat_treehabitat_white_matte"), true);
   assert.equal(materialNames.has("mat_treehabitat_glass_frosted"), true);
 });
@@ -201,22 +193,15 @@ test("normalizeExhibitSceneConfig supplies default placement and load settings",
   const { normalizeExhibitSceneConfig } = await importSourceModule("exhibits/manifest.ts");
 
   const scene = normalizeExhibitSceneConfig({
-    lodCenter: [1, 2, 3],
-    models: {
-      lod0: "/exhibits/work_001/work_001.lod0.glb",
-      lod1: "/exhibits/work_001/work_001.lod1.glb",
-      lod2: "/exhibits/work_001/work_001.lod2.glb",
-    },
+    distanceCenter: [1, 2, 3],
+    modelUrl: "/exhibits/work_001/space_work_001.glb",
   });
 
   assert.equal("anchor" in scene, false);
-  assert.deepEqual(scene.lodCenter, [1, 2, 3]);
+  assert.equal("models" in scene, false);
+  assert.deepEqual(scene.distanceCenter, [1, 2, 3]);
+  assert.equal(scene.modelUrl, "/exhibits/work_001/space_work_001.glb");
   assert.equal(scene.scale, 1);
   assert.deepEqual(scene.placement, { snap: "floor", heightOffset: 0, yawOffsetDeg: 0 });
-  assert.deepEqual(scene.load, {
-    lod0Distance: 8,
-    lod1Distance: 22,
-    lod2Distance: 45,
-    unloadDistance: 60,
-  });
+  assert.deepEqual(scene.load, { unloadDistance: 60 });
 });

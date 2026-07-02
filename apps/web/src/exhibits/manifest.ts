@@ -1,9 +1,6 @@
 import { exhibitAudioUrl, exhibitVideoUrl } from "./exhibitMediaPaths.ts";
 
 export type ExhibitType = "model3d" | "image" | "audio" | "video";
-export type ExhibitLodKey = "lod0" | "lod1" | "lod2";
-
-export type ExhibitSceneModels = Record<ExhibitLodKey, string>;
 
 export type ExhibitScenePlacement = {
   snap: "floor" | "none";
@@ -12,23 +9,20 @@ export type ExhibitScenePlacement = {
 };
 
 export type ExhibitSceneLoad = {
-  lod0Distance: number;
-  lod1Distance: number;
-  lod2Distance: number;
   unloadDistance: number;
 };
 
 export type ExhibitSceneConfig = {
-  lodCenter: [number, number, number];
-  models: ExhibitSceneModels;
+  distanceCenter: [number, number, number];
+  modelUrl: string;
   scale: number | [number, number, number];
   placement: ExhibitScenePlacement;
   load: ExhibitSceneLoad;
 };
 
 export type RawExhibitSceneConfig = {
-  lodCenter: [number, number, number];
-  models: ExhibitSceneModels;
+  distanceCenter: [number, number, number];
+  modelUrl: string;
   scale?: number | [number, number, number];
   placement?: Partial<ExhibitScenePlacement>;
   load?: Partial<ExhibitSceneLoad>;
@@ -58,9 +52,6 @@ export type ExhibitManifestItem = {
 export type ExhibitManifest = { exhibits: ExhibitManifestItem[] };
 
 export const DEFAULT_EXHIBIT_SCENE_LOAD: ExhibitSceneLoad = {
-  lod0Distance: 8,
-  lod1Distance: 22,
-  lod2Distance: 45,
   unloadDistance: 60,
 };
 
@@ -72,8 +63,8 @@ export const DEFAULT_EXHIBIT_SCENE_PLACEMENT: ExhibitScenePlacement = {
 
 export function normalizeExhibitSceneConfig(scene: RawExhibitSceneConfig): ExhibitSceneConfig {
   return {
-    lodCenter: scene.lodCenter,
-    models: scene.models,
+    distanceCenter: scene.distanceCenter,
+    modelUrl: scene.modelUrl,
     scale: scene.scale ?? 1,
     placement: {
       ...DEFAULT_EXHIBIT_SCENE_PLACEMENT,

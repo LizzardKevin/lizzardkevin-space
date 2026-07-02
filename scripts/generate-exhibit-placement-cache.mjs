@@ -14,14 +14,11 @@ const placements = manifest.exhibits
   .map((exhibit) => ({
     exhibitId: exhibit.exhibitId,
     placementMode: "world",
-    lodCenter: exhibit.scene.lodCenter,
-    models: exhibit.scene.models,
+    distanceCenter: exhibit.scene.distanceCenter,
+    modelUrl: exhibit.scene.modelUrl,
     scale: exhibit.scene.scale ?? 1,
     placement: exhibit.scene.placement ?? { snap: "floor", heightOffset: 0, yawOffsetDeg: 0 },
     load: exhibit.scene.load ?? {
-      lod0Distance: 8,
-      lod1Distance: 22,
-      lod2Distance: 45,
       unloadDistance: 60,
     },
     snap: {

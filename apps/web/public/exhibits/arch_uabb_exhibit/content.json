@@ -1,36 +1,37 @@
 {
-  "title": "UABB Exhibit",
-  "subtitle": "Urban research and exhibition model study for Shenzhen's everyday spatial systems",
-  "overview": "UABB Exhibit collects an architecture-school research project around Shenzhen's urban texture, informal economies, public interfaces and exhibition storytelling. The model is presented as a spatial archive: a way to turn observation, mapping, drawing and physical assembly into a readable exhibit rather than a single finished building proposal.",
-  "storyHtml": "<p>This work sits between urban research and exhibition design. It begins from observation: dense commercial streets, improvised thresholds, shopfront rhythms, service spaces and the layered public life that makes Shenzhen feel fast, practical and constantly rewritten.</p><p>The project translates those findings into an exhibit object. Instead of treating the city as a distant plan, the model compresses fragments of street life into a field that can be read up close. Scale, repetition and sectional cuts become tools for showing how ordinary urban systems produce atmosphere.</p><p>In SPACE, UABB Exhibit is treated as a study in representation. It is less about a single architectural answer and more about how research can become spatial: how PDFs, field notes, mappings and models can form an exhibition language for a city that resists simple summary.</p><p>The current desktop exhibit prioritizes the model as a primary artifact. Additional boards, captions and research material can be layered later once the installation has its own dedicated room.</p>",
+  "title": "UABB: Huaqiangbei Stall Typology",
+  "subtitle": "An exhibition proposal for the 10th Bi-City Biennale of Urbanism/Architecture, reading Huaqiangbei through the micro-architecture of electronics-market stalls",
+  "overview": "This exhibit documents a UABB presentation proposal centered on Huaqiangbei's electronics markets. The work treats the stall as the smallest readable unit of a much larger urban and economic system: a place where display, repair, storage, negotiation and global supply chains are compressed into dense, improvised interiors.",
+  "storyHtml": "<p>The project begins with Huaqiangbei not as an abstract technology district, but as a field of repeated spatial acts. Counters, shelves, repair desks, escalator edges, screen partitions and island displays become a catalogue of how electronic commerce occupies architecture from the inside.</p><p>For the 10th Bi-City Biennale of Urbanism/Architecture, the proposal translates this research into an exhibition language. Field photographs, typology drawings and model fragments describe how each stall mediates two logics at once: face-to-face market exchange and the distributed networks of global electronics production.</p><p>The study focuses on the stall's flexibility. A single booth can become a storefront, inventory room, technical workstation, visual interface and social threshold. Its shape is constantly adjusted by merchandise, owners, circulation, maintenance work and the building's inherited structure.</p><p>Inside SPACE, the UABB exhibit is shown as both model and archive. The 3D object carries the atmosphere of a compressed market field, while the board images unfold the research sequence: context, typological catalogue, representational system and related observations from Shenzhen's streets.</p>",
   "tags": [
+    "UABB",
+    "HUAQIANGBEI",
+    "STALL TYPOLOGY",
     "URBAN RESEARCH",
-    "EXHIBITION MODEL",
-    "SHENZHEN",
-    "PUBLIC INTERFACE",
+    "ELECTRONICS MARKET",
     "FIELD OBSERVATION",
-    "ARCHITECTURE STUDY"
+    "EXHIBITION PROPOSAL"
   ],
   "metadata": [
     {
       "label": "Year",
-      "value": "Student / research era"
+      "value": "2025"
     },
     {
       "label": "Type",
-      "value": "Urban research / exhibition model"
+      "value": "UABB exhibition proposal / urban typology research"
     },
     {
       "label": "Medium",
-      "value": "Digital model, research drawings, exhibition study"
+      "value": "Field photography, typology drawings, research boards, digital model"
     },
     {
       "label": "Role",
-      "value": "Research, modeling, spatial presentation"
+      "value": "Research, mapping, modeling, exhibition narrative"
     },
     {
       "label": "Status",
-      "value": "Portfolio exhibit draft"
+      "value": "Biennale exhibit archive"
     }
   ]
 }

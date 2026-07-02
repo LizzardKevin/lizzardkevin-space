@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
+  type MouseEvent as ReactMouseEvent,
   type SyntheticEvent,
   type RefObject,
   type CSSProperties,
@@ -20,7 +21,12 @@ import { usePlayback } from "../media/usePlayback";
 import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
 import { loadExhibitContent, type ExhibitContent } from "./exhibitContent";
-import { FOCUS_FRAME, FOCUS_TURNTABLE_RAD_PER_SEC, SHOW_FOCUS_BLANK_DEBUG } from "./focusConfig";
+import {
+  FOCUS_FRAME,
+  FOCUS_TURNTABLE_RAD_PER_SEC,
+  SHOW_FOCUS_BLANK_DEBUG,
+  SHOW_FOCUS_IMAGE_FRAME_DEBUG,
+} from "./focusConfig";
 import {
   bindFocusButtonActions,
   fitFocusModelToFrame,
@@ -80,19 +86,33 @@ function getFocusImageFrameStyle(imageFrameSize: FocusImageFrameSize | null) {
 
 function FocusBlank({
   className,
-  onBlankClick,
 }: {
   className: string;
-  onBlankClick: () => void;
 }) {
   return (
     <div
       className={className}
       data-focus-blank="true"
-      onClick={onBlankClick}
       aria-hidden
     />
   );
+}
+
+const FOCUS_DOUBLE_CLICK_IGNORED_SELECTOR = [
+  ".focus-image-frame",
+  ".focus-image-lightbox",
+  ".focus-panel",
+  ".focus-video",
+  ".focus-canvas",
+  ".focus-return-button",
+  ".focus-media-arrow",
+  ".focus-media-dot",
+  "[data-cursor='interactive']",
+  "[data-cursor='drag-model']",
+].join(",");
+
+function shouldHandleFocusOverlayBlankClick(target: EventTarget | null) {
+  return target instanceof Element && !target.closest(FOCUS_DOUBLE_CLICK_IGNORED_SELECTOR);
 }
 
 /** 世界空间固定灯光，不随相机/展品旋转。 */
@@ -510,6 +530,13 @@ export function FocusOverlay({
   }, [contentVisible, requestClose]);
 
   const handleBlankClick = useFocusDoubleClickHandler(handleBlankDoubleClick);
+  const handleFocusOverlayClick = useCallback(
+    (e: ReactMouseEvent<HTMLDivElement>) => {
+      if (!shouldHandleFocusOverlayBlankClick(e.target)) return;
+      handleBlankClick();
+    },
+    [handleBlankClick],
+  );
 
   const setImageExpandedState = useCallback((expanded: boolean) => {
     imageExpandedRef.current = expanded;
@@ -806,6 +833,10 @@ export function FocusOverlay({
     }
     return style as CSSProperties;
   }, [imageFrameSize]);
+  const imageFrameDebugLabel = imageFrameSize
+    ? `FRAME ${Math.round(imageFrameSize.normalWidth)} x ${Math.round(imageFrameSize.normalHeight)}`
+    : "FRAME measuring";
+  const focusCanvasInteractive = contentVisible && activeMedia.kind === "model";
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -821,6 +852,7 @@ export function FocusOverlay({
       aria-modal="true"
       className={`focus-overlay${dimOn ? " focus-overlay--dim" : ""}${blurOn ? " focus-overlay--blur" : ""}`}
       data-cursor-tone="light"
+      onClickCapture={handleFocusOverlayClick}
     >
       {imageExpanded ? (
         <button
@@ -845,7 +877,7 @@ export function FocusOverlay({
       </button>
 
       <div className="focus-layout">
-        <FocusSideColumn side="left" onBlankClick={handleBlankClick}>
+        <FocusSideColumn side="left">
           <div className="focus-left-stack">
             <FocusExhibitTitle
               title={displayTitle}
@@ -865,7 +897,6 @@ export function FocusOverlay({
         <div className="focus-layout__center" style={centerFrameStyle}>
           <FocusBlank
             className={`focus-blank--fill${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-center" : ""}`}
-            onBlankClick={handleBlankClick}
           />
 
           {videoUrl ? (
@@ -890,8 +921,8 @@ export function FocusOverlay({
             <Suspense fallback={<FocusLoading />}>
               <Canvas
                 id="focus-canvas"
-                data-cursor="drag-model"
-                className={`focus-canvas${contentVisible && activeMedia.kind === "model" ? " focus-canvas--visible" : ""}`}
+                data-cursor={focusCanvasInteractive ? "drag-model" : undefined}
+                className={`focus-canvas${focusCanvasInteractive ? " focus-canvas--visible" : ""}`}
                 gl={(props) =>
                   createWebGPURenderer({
                     canvas: props.canvas as HTMLCanvasElement,
@@ -923,8 +954,9 @@ export function FocusOverlay({
           {departingImage ? (
             <div
               key={`departing-${departingImage.url}-${departingImage.id}`}
-              className={`focus-image-frame focus-image-frame--visible focus-image-frame--departing focus-image-frame--depart-${departingImage.direction === 1 ? "left" : "right"}`}
+              className={`focus-image-frame focus-image-frame--visible focus-image-frame--departing focus-image-frame--depart-${departingImage.direction === 1 ? "left" : "right"}${SHOW_FOCUS_IMAGE_FRAME_DEBUG ? " focus-image-frame--debug" : ""}`}
               style={departingImage.style}
+              data-frame-debug-label="DEPARTING FRAME"
               aria-hidden
             >
               <div className="focus-image-surface">
@@ -944,12 +976,9 @@ export function FocusOverlay({
             <div
               ref={imageFrameRef}
               key={activeMedia.url}
-              className={`focus-image-frame${contentVisible && imageFrameReady ? " focus-image-frame--visible" : ""}${!imageExpanded && imageHovering ? " focus-image-frame--hovered" : ""}${!imageExpanded && imageMotionLive ? " focus-image-frame--live" : ""}${imageExpanded ? " focus-image-frame--expanded" : ` focus-image-frame--step-${mediaTransitionDirection === 1 ? "next" : "previous"}`}`}
+              className={`focus-image-frame${contentVisible && imageFrameReady ? " focus-image-frame--visible" : ""}${!imageExpanded && imageHovering ? " focus-image-frame--hovered" : ""}${!imageExpanded && imageMotionLive ? " focus-image-frame--live" : ""}${imageExpanded ? " focus-image-frame--expanded" : ` focus-image-frame--step-${mediaTransitionDirection === 1 ? "next" : "previous"}`}${SHOW_FOCUS_IMAGE_FRAME_DEBUG ? " focus-image-frame--debug" : ""}`}
               style={imageFrameStyle}
-              data-cursor="interactive"
-              role="button"
-              tabIndex={0}
-              aria-label={`Open ${displayTitle} image`}
+              data-frame-debug-label={imageFrameDebugLabel}
               onPointerDown={handleImagePointerDown}
               onPointerEnter={handleImagePointerEnter}
               onPointerMove={handleImagePointerMove}
@@ -967,6 +996,13 @@ export function FocusOverlay({
                   decoding="async"
                   draggable={false}
                   onLoad={handleImageLoad}
+                />
+                <span
+                  className="focus-image-hitbox"
+                  data-cursor="interactive"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open ${displayTitle} image`}
                 />
               </div>
             </div>
@@ -1032,7 +1068,7 @@ export function FocusOverlay({
           </p>
         </div>
 
-        <FocusSideColumn side="right" onBlankClick={handleBlankClick}>
+        <FocusSideColumn side="right">
           <FocusStoryPanel
             storyHtml={content?.storyHtml ?? null}
             loading={contentLoading}

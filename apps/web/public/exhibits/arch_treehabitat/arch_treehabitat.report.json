@@ -3,8 +3,60 @@
   "method": "blender-decimate",
   "outputs": [
     {
-      "lod": "lod0",
-      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod0.glb",
+      "variant": "space",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\space_arch_treehabitat.glb",
+      "targetTriangles": 50000,
+      "reductionSteps": [
+        {
+          "type": "limited-dissolve",
+          "angleDegrees": 1.5,
+          "before": 223054,
+          "after": 143390
+        },
+        {
+          "type": "collapse",
+          "ratio": 0.33649487411953416,
+          "before": 143390,
+          "after": 48248
+        }
+      ],
+      "materialAssignment": {
+        "whiteAssigned": 465,
+        "glassAssigned": 32,
+        "fallbackWhiteAssigned": 0,
+        "matchedNamedMeshes": true
+      },
+      "defaultMaterialAssignment": {
+        "defaultAssigned": 0,
+        "hadMissingMaterials": false
+      },
+      "before": {
+        "meshCount": 497,
+        "materialCount": 2,
+        "vertexCount": 194458,
+        "faceCount": 223054,
+        "triangleCount": 223054
+      },
+      "joined": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 194458,
+        "faceCount": 223054,
+        "triangleCount": 223054
+      },
+      "after": {
+        "meshCount": 1,
+        "materialCount": 2,
+        "vertexCount": 59580,
+        "faceCount": 48248,
+        "triangleCount": 48248
+      },
+      "fileSizeBytes": 2717672,
+      "manualReviewRequired": true
+    },
+    {
+      "variant": "focus",
+      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\focus_arch_treehabitat.glb",
       "targetTriangles": 150000,
       "reductionSteps": [
         {
@@ -19,6 +71,10 @@
         "glassAssigned": 32,
         "fallbackWhiteAssigned": 0,
         "matchedNamedMeshes": true
+      },
+      "defaultMaterialAssignment": {
+        "defaultAssigned": 0,
+        "hadMissingMaterials": false
       },
       "before": {
         "meshCount": 497,
@@ -43,103 +99,7 @@
       },
       "fileSizeBytes": 6208028,
       "manualReviewRequired": false
-    },
-    {
-      "lod": "lod1",
-      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod1.glb",
-      "targetTriangles": 80000,
-      "reductionSteps": [
-        {
-          "type": "limited-dissolve",
-          "angleDegrees": 1.5,
-          "before": 223054,
-          "after": 143390
-        },
-        {
-          "type": "collapse",
-          "ratio": 0.5383917985912545,
-          "before": 143390,
-          "after": 77198
-        }
-      ],
-      "materialAssignment": {
-        "whiteAssigned": 465,
-        "glassAssigned": 32,
-        "fallbackWhiteAssigned": 0,
-        "matchedNamedMeshes": true
-      },
-      "before": {
-        "meshCount": 497,
-        "materialCount": 2,
-        "vertexCount": 194458,
-        "faceCount": 223054,
-        "triangleCount": 223054
-      },
-      "joined": {
-        "meshCount": 1,
-        "materialCount": 2,
-        "vertexCount": 194458,
-        "faceCount": 223054,
-        "triangleCount": 223054
-      },
-      "after": {
-        "meshCount": 1,
-        "materialCount": 2,
-        "vertexCount": 86479,
-        "faceCount": 77198,
-        "triangleCount": 77198
-      },
-      "fileSizeBytes": 4204628,
-      "manualReviewRequired": true
-    },
-    {
-      "lod": "lod2",
-      "path": "C:\\Users\\lizza\\.codex\\worktrees\\e46a\\LizzardKevin SPACE\\apps\\web\\public\\exhibits\\arch_treehabitat\\arch_treehabitat.lod2.glb",
-      "targetTriangles": 30000,
-      "reductionSteps": [
-        {
-          "type": "limited-dissolve",
-          "angleDegrees": 1.5,
-          "before": 223054,
-          "after": 143390
-        },
-        {
-          "type": "collapse",
-          "ratio": 0.20189692447172047,
-          "before": 143390,
-          "after": 28948
-        }
-      ],
-      "materialAssignment": {
-        "whiteAssigned": 465,
-        "glassAssigned": 32,
-        "fallbackWhiteAssigned": 0,
-        "matchedNamedMeshes": true
-      },
-      "before": {
-        "meshCount": 497,
-        "materialCount": 2,
-        "vertexCount": 194458,
-        "faceCount": 223054,
-        "triangleCount": 223054
-      },
-      "joined": {
-        "meshCount": 1,
-        "materialCount": 2,
-        "vertexCount": 194458,
-        "faceCount": 223054,
-        "triangleCount": 223054
-      },
-      "after": {
-        "meshCount": 1,
-        "materialCount": 2,
-        "vertexCount": 42261,
-        "faceCount": 28948,
-        "triangleCount": 28948
-      },
-      "fileSizeBytes": 1420620,
-      "manualReviewRequired": true
     }
   ],
-  "nextStep": "Inspect lod1/lod2 for hard edges, text, thin rods, stair-stepped details, and silhouette loss."
+  "nextStep": "Inspect SPACE silhouettes and Focus detail loss around thin rods, windows, model edges, and stair-stepped details."
 }

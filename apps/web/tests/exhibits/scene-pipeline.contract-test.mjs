@@ -8,7 +8,7 @@ import { readGlbJson } from "../helpers/glb.mjs";
 const expectedScripts = [
   "scripts/validate-exhibit-scene-assets.mjs",
   "scripts/generate-exhibit-placement-cache.mjs",
-  "scripts/prepare-exhibit-lods.mjs",
+  "scripts/prepare-exhibit-models.mjs",
   "scripts/reduce-space-main-colliders.py",
 ];
 
@@ -73,24 +73,23 @@ assert.ok(
   "world-coordinate exhibit GLBs should not use runtime anchors",
 );
 assert.deepEqual(
-  placementCache.placements.find((placement) => placement.exhibitId === "arch_treehabitat")?.lodCenter,
+  placementCache.placements.find((placement) => placement.exhibitId === "arch_treehabitat")?.distanceCenter,
   [-12.590655, 26.41809, -5.630336],
 );
 assert.deepEqual(
-  placementCache.placements.find((placement) => placement.exhibitId === "arch_3d_printing_architecture")?.lodCenter,
+  placementCache.placements.find((placement) => placement.exhibitId === "arch_3d_printing_architecture")?.distanceCenter,
   [-12.556294, 30.178514, -15.532322],
 );
 assert.equal(placementCache.placements[0].snap.status, "runtime");
 
-const lodHelp = spawnSync(process.execPath, ["scripts/prepare-exhibit-lods.mjs", "--help"], {
+const modelHelp = spawnSync(process.execPath, ["scripts/prepare-exhibit-models.mjs", "--help"], {
   cwd: projectPath(),
   encoding: "utf8",
 });
-assert.equal(lodHelp.status, 0, lodHelp.stderr || lodHelp.stdout);
-assert.match(lodHelp.stdout, /work_001\.source\.glb/);
-assert.match(lodHelp.stdout, /lod0/);
-assert.match(lodHelp.stdout, /lod1/);
-assert.match(lodHelp.stdout, /lod2/);
+assert.equal(modelHelp.status, 0, modelHelp.stderr || modelHelp.stdout);
+assert.match(modelHelp.stdout, /work_001\.source\.glb/);
+assert.match(modelHelp.stdout, /space_work_001\.glb/);
+assert.match(modelHelp.stdout, /focus_work_001\.glb/);
 
 const materialScript = readProjectFile("scripts/apply-space-main-materials.py");
 assert.doesNotMatch(materialScript, /REQUIRED_ANCHOR_MARKERS\s*=\s*\{/);
@@ -114,57 +113,54 @@ assert.match(galleryModel, /TempBlockerNotices/);
 assert.doesNotMatch(
   sceneExhibitPlacement,
   /useGLTF\.preload/,
-  "scene exhibits should load the active LOD only instead of preloading every scene model",
+  "scene exhibits should not preload all exhibit models",
 );
 assert.match(
   sceneExhibitPlacement,
   /<Suspense fallback=\{null\}>/,
-  "active LOD loads should suspend only the individual exhibit, not the whole SPACE scene",
+  "scene model loads should suspend only the individual exhibit, not the whole SPACE scene",
 );
-assert.match(
+assert.doesNotMatch(
   sceneExhibitPlacement,
-  /startTransition\(\(\) => setActiveLod\(next\)\)/,
-  "LOD switches should keep the previous revealed exhibit while the next GLB resolves",
+  /activeLod|setActiveLod|chooseSceneExhibitLod|lod0|lod1|lod2/,
+  "scene placement must not keep LOD switching code",
 );
 
-const lodBlenderScript = readProjectFile("scripts/prepare-exhibit-lods-blender.py");
-assert.match(lodBlenderScript, /arch_uabb_exhibit/);
-assert.match(lodBlenderScript, /LOD_TARGET_TRIANGLES/);
-assert.match(lodBlenderScript, /"lod0":\s*150_000/);
-assert.match(lodBlenderScript, /"lod1":\s*80_000/);
-assert.match(lodBlenderScript, /"lod2":\s*30_000/);
-assert.match(lodBlenderScript, /arch_3d_printing_architecture/);
-assert.match(lodBlenderScript, /assign_default_material_if_missing/);
-assert.match(lodBlenderScript, /reduce_to_triangle_budget/);
-assert.match(lodBlenderScript, /join_mesh_objects_for_lod/);
-assert.match(lodBlenderScript, /window/);
-assert.match(lodBlenderScript, /mat_treehabitat_white_matte/);
-assert.match(lodBlenderScript, /mat_treehabitat_glass_frosted/);
-assert.match(lodBlenderScript, /model glass/);
-assert.match(lodBlenderScript, /else:\s*[\s\S]*replace_object_material\(obj, white\)/);
+const exhibitBlenderScript = readProjectFile("scripts/prepare-exhibit-models-blender.py");
+assert.match(exhibitBlenderScript, /arch_uabb_exhibit/);
+assert.match(exhibitBlenderScript, /MODEL_TARGET_TRIANGLES/);
+assert.match(exhibitBlenderScript, /"space":\s*50_000/);
+assert.match(exhibitBlenderScript, /"focus":\s*150_000/);
+assert.match(exhibitBlenderScript, /arch_3d_printing_architecture/);
+assert.match(exhibitBlenderScript, /assign_default_material_if_missing/);
+assert.match(exhibitBlenderScript, /reduce_to_triangle_budget/);
+assert.match(exhibitBlenderScript, /join_mesh_objects_for_variant/);
+assert.match(exhibitBlenderScript, /window/);
+assert.match(exhibitBlenderScript, /mat_treehabitat_white_matte/);
+assert.match(exhibitBlenderScript, /mat_treehabitat_glass_frosted/);
+assert.match(exhibitBlenderScript, /model glass/);
+assert.match(exhibitBlenderScript, /else:\s*[\s\S]*replace_object_material\(obj, white\)/);
 assert.match(
-  lodBlenderScript,
+  exhibitBlenderScript,
   /"mat_treehabitat_white_matte":[\s\S]*"base_color":\s*\(0\.96,\s*0\.96,\s*0\.94,\s*1\.0\)/,
   "Tree Habitat model white material should be slightly brighter",
 );
 assert.match(
-  lodBlenderScript,
+  exhibitBlenderScript,
   /"mat_treehabitat_glass_frosted":[\s\S]*"base_color":\s*\(0\.68,\s*0\.70,\s*0\.70,\s*0\.40\)/,
   "Tree Habitat model glass material should be slightly greyer",
 );
 for (const file of [
   "apps/web/public/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
-  "apps/web/public/exhibits/arch_treehabitat/arch_treehabitat.lod0.glb",
-  "apps/web/public/exhibits/arch_treehabitat/arch_treehabitat.lod1.glb",
-  "apps/web/public/exhibits/arch_treehabitat/arch_treehabitat.lod2.glb",
+  "apps/web/public/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
 ]) {
   assertTreehabitatRuntimeMaterials(file);
 }
 
-const printingLod = readGlbJson(
-  projectPath("apps/web/public/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.lod0.glb"),
+const printingSpace = readGlbJson(
+  projectPath("apps/web/public/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"),
 );
-const printingMaterialNames = new Set((printingLod.materials ?? []).map((material) => material.name));
+const printingMaterialNames = new Set((printingSpace.materials ?? []).map((material) => material.name));
 assert.equal(printingMaterialNames.has("mat_treehabitat_white_matte"), true);
 assert.equal(printingMaterialNames.has("mat_treehabitat_glass_frosted"), true);
 

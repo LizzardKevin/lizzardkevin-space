@@ -15,10 +15,13 @@ assert(
 assert(
   files.exhibitTargetLabel.includes("resolveExhibitLabelUiPosition") &&
     !files.exhibitTargetLabel.includes("computeExhibitLabelAnchor") &&
+    !files.exhibitTargetLabel.includes("requestAnimationFrame") &&
+    !files.exhibitTargetLabel.includes("exhibit-target-label--float") &&
+    !files.css.includes("exhibit-target-label--float") &&
     files.css.includes(".exhibit-target-label") &&
     files.css.includes("0 0 8px rgba(255, 255, 255, 0.58)") &&
     files.css.includes("0 0 22px rgba(255, 255, 255, 0.22)"),
-  "exhibit hover name tag should render as glowing cursor-adjacent canvas UI",
+  "exhibit hover name tag should render immediately as glowing cursor-adjacent canvas UI",
 );
 assert(
   files.exhibitRaycast.includes("lastActiveKey") &&
@@ -36,11 +39,32 @@ assert(
   files.exhibitRaycast.includes("useExhibitInteractionTargets") &&
     files.exhibitRaycast.includes("raycaster.intersectObjects(interactionTargets, true)") &&
     !files.exhibitRaycast.includes("scene.children"),
-  "ExhibitRaycast should only test registered interaction targets, not every object in the scene",
+  "ExhibitRaycast should test registered real exhibit meshes, not every object in the scene",
+);
+assert(
+  files.desktop.includes('frameloop={focusSurfaceOpen ? "never" : "always"}'),
+  "SPACE Canvas must pause its render loop while Focus or onboarding Focus is open",
+);
+assert(
+  !files.sceneExhibitPlacement.includes("exhibitInteractionRoot") &&
+    !files.sceneExhibitPlacement.includes("interaction_proxy") &&
+    !files.exhibitRaycast.includes("exhibitInteractionRoot"),
+  "SPACE exhibit hover raycast should not use the reverted proxy target path",
 );
 assert(
   files.desktop.includes("projector-controls-hint") && files.css.includes(".projector-controls-hint"),
   "projector hover must expose a small center-bottom Q/E hint outside the 3D mesh",
+);
+const projectorHintRule = cssRule(files.css, ".projector-controls-hint");
+assert.doesNotMatch(
+  projectorHintRule,
+  /\bbackground\s*:/,
+  "projector Q/E hint should be glowing text without a boxed background",
+);
+assert.match(
+  declarationValue(projectorHintRule, "text-shadow"),
+  /0 0 10px rgba\(255, 255, 255, 0\.5\)/,
+  "projector Q/E hint should read as glowing text",
 );
 assert(
   files.desktop.includes("event.repeat"),

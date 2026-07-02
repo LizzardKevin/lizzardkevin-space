@@ -13,6 +13,7 @@ export const files = {
   hoverHighlight: readProjectFile("apps/web/src/exhibits/ExhibitHoverHighlight.tsx"),
   exhibitTargetLabel: readProjectFile("apps/web/src/exhibits/ExhibitTargetLabel.tsx"),
   exhibitRaycast: readProjectFile("apps/web/src/scenes/exhibits/ExhibitRaycast.tsx"),
+  sceneExhibitPlacement: readProjectFile("apps/web/src/scenes/exhibits/SceneExhibitPlacement.tsx"),
   exhibitInteractionRegistry: readOptionalProjectFile(
     "apps/web/src/scenes/exhibits/exhibitInteractionRegistry.ts",
   ),

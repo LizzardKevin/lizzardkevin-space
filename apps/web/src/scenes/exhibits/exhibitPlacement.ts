@@ -1,7 +1,6 @@
 import * as THREE from "three";
-import type { ExhibitLodKey, ExhibitSceneLoad } from "../../exhibits/manifest.ts";
+import type { ExhibitSceneLoad } from "../../exhibits/manifest.ts";
 
-export const EXHIBIT_LOD_HYSTERESIS_M = 2;
 export const EXHIBIT_SNAP_RAY_HEIGHT_M = 4;
 export const EXHIBIT_SNAP_MAX_FLOOR_DROP_M = 8;
 
@@ -31,32 +30,8 @@ export function isExhibitFloorSnapTarget(object: THREE.Object3D) {
   return FLOOR_NAME_PREFIXES.some((prefix) => name.startsWith(prefix));
 }
 
-export function chooseSceneExhibitLod(
-  distance: number,
-  load: ExhibitSceneLoad,
-  current: ExhibitLodKey | null,
-  hysteresis = EXHIBIT_LOD_HYSTERESIS_M,
-): ExhibitLodKey | null {
-  if (current === "lod0" && distance <= load.lod0Distance + hysteresis) return "lod0";
-  if (
-    current === "lod1" &&
-    distance > load.lod0Distance - hysteresis &&
-    distance <= load.lod1Distance + hysteresis
-  ) {
-    return "lod1";
-  }
-  if (
-    current === "lod2" &&
-    distance > load.lod1Distance - hysteresis &&
-    distance <= load.unloadDistance
-  ) {
-    return "lod2";
-  }
-
-  if (distance <= load.lod0Distance) return "lod0";
-  if (distance <= load.lod1Distance) return "lod1";
-  if (distance <= load.unloadDistance) return "lod2";
-  return null;
+export function isSceneExhibitInRange(distance: number, load: ExhibitSceneLoad): boolean {
+  return distance <= load.unloadDistance;
 }
 
 export function bindSceneExhibitId(root: THREE.Object3D, exhibitId: string) {
