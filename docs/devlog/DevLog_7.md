@@ -25,13 +25,10 @@
 
 ### 2) `COL_*` 接触名称反查
 
-- `GalleryFloorCollider` 注册由 `COL_ground` / `COL_floor` 切分出来的薄 box floor collider：
-  - 名称格式类似 `COL_floor_xxx#0`。
-  - 这样可以判断玩家是否踩在主要地面分片上。
-- `ColColliders` 注册其它 `COL_*`：
-  - `COL_inner_*` 使用 cuboid。
-  - `COL_STAIR_*` / `COL_PLATFORM_*` / 墙体等非 floor collider 使用 trimesh。
-  - `prop_*` fallback cuboid 会显示 `COL_xxx (fallback from prop_xxx)`。
+- `ColColliders` 注册运行时使用的 `COL_*` mesh collider：
+  - 以原始 GLB 里的 `COL_*` 授权碰撞网格为准。
+  - debug 面板显示对应 `COL_*` 名称，方便回到 Blender 检查具体节点。
+  - 当前版本不再额外挂载 `GalleryFloorCollider` 或从 `prop_*` 推断 fallback cuboid。
 - `SafetyGround` 注册为 `SAFETY_GROUND`：
   - 如果 debug 面板显示碰到了它，说明玩家已经掉到兜底地面，而不是正常展厅 floor。
 
@@ -86,14 +83,14 @@
 本轮已执行：
 
 ```text
-node scripts/space-interaction-contract-test.mjs
+npm run test:node
 npm exec -w apps/web tsc -- --noEmit -p tsconfig.app.json
 npm run lint
 npm run build:chunks
 Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173/
 ```
 
-- SPACE interaction contract：通过。
+- node unit / scene pipeline contracts：通过。
 - TypeScript：通过。
 - ESLint：通过。
 - production build + chunk contract：通过。
@@ -116,6 +113,5 @@ Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173/
 - 移动 debug telemetry：`apps/web/src/scenes/debug/spaceMovementDebug.ts`
 - 移动 debug overlay：`apps/web/src/scenes/debug/SpaceMovementDebugOverlay.tsx`
 - `COL_*` collider 生成：`apps/web/src/scenes/collision/colColliders.tsx`
-- floor collider 切分：`apps/web/src/scenes/gallery/GalleryFloorCollider.tsx`
 - safety ground：`apps/web/src/scenes/gallery/SafetyGround.tsx`
-- SPACE interaction contract：`scripts/space-interaction-contract-test.mjs`
+- SPACE movement debug contract：`apps/web/tests/space/movement-debug.contract-test.mjs`

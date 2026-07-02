@@ -18,7 +18,13 @@ fi
 
 if git remote get-url origin >/dev/null 2>&1; then
   echo "已有 origin：$(git remote get-url origin)"
-  echo "推送: git push -u origin main"
+  if [[ "${2:-}" != "--push-existing" ]]; then
+    echo "为避免误推已有远端，本脚本不会自动 push。"
+    echo "确认当前分支和 main 后手动执行：git push -u origin main"
+    echo "如确实要由脚本推送已有 origin，可运行：bash scripts/github-bootstrap.sh ${REPO_NAME} --push-existing"
+    exit 1
+  fi
+  echo "确认参数 --push-existing，推送: git push -u origin main"
   git push -u origin main
   exit 0
 fi

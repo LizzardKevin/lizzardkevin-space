@@ -58,6 +58,7 @@ const cache = spawnSync(process.execPath, ["scripts/generate-exhibit-placement-c
 });
 assert.equal(cache.status, 0, cache.stderr || cache.stdout);
 const placementCache = JSON.parse(cache.stdout);
+assert.equal("generatedAt" in placementCache, false, "placement cache should stay deterministic");
 assert.ok(Array.isArray(placementCache.placements));
 assert.ok(!placementCache.placements.some((placement) => placement.exhibitId === "demo_box"));
 assert.ok(!placementCache.placements.some((placement) => placement.exhibitId === "demo_bass"));
@@ -119,6 +120,16 @@ assert.match(
   sceneExhibitPlacement,
   /<Suspense fallback=\{null\}>/,
   "scene model loads should suspend only the individual exhibit, not the whole SPACE scene",
+);
+assert.match(
+  sceneExhibitPlacement,
+  /disposeSceneExhibitMaterials/,
+  "scene exhibit clones should dispose owned material clones on unmount",
+);
+assert.match(
+  sceneExhibitPlacement,
+  /return \(\) => disposeSceneExhibitMaterials\(placed\.object\)/,
+  "scene exhibit material cleanup should run from an unmount effect",
 );
 assert.doesNotMatch(
   sceneExhibitPlacement,

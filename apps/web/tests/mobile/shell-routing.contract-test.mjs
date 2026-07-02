@@ -44,6 +44,8 @@ assert(files.mobileExperience.includes('zh: []'), "Chinese mode must not configu
 assert(!files.mobileExperience.includes("BOOT_DURATION_MS"), "mobile boot must not use a fixed 3000ms timeout");
 assert(files.mobileExperience.includes("mobileTerminalLanguage"), "mobile language preference must use localStorage");
 assert(files.mobileExperience.includes("mobileTerminalTheme"), "mobile theme preference must use localStorage");
+assert(files.mobileExperience.includes("safeReadStorageItem"), "mobile terminal storage reads must be guarded");
+assert(files.mobileExperience.includes("safeWriteStorageItem"), "mobile terminal storage writes must be guarded");
 assert(files.mobileExperience.includes('const THEME_STORAGE_KEY = "mobileTerminalThemeV2"'), "mobile theme preference must ignore the legacy dark-mode storage key");
 assert(!files.mobileExperience.includes('const THEME_STORAGE_KEY = "mobileTerminalTheme";'), "mobile theme preference must not keep reading the legacy theme key");
 assert(files.mobileExperience.includes('aria-label="Terminal settings"'), "mobile settings button must expose an accessible label");

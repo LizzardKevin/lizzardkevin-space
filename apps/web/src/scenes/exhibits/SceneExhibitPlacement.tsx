@@ -30,6 +30,19 @@ function cloneObjectMaterials(root: THREE.Object3D) {
   });
 }
 
+function disposeSceneExhibitMaterials(root: THREE.Object3D) {
+  const materials = new Set<THREE.Material>();
+  root.traverse((object) => {
+    if (!isMesh(object)) return;
+    if (Array.isArray(object.material)) {
+      object.material.forEach((material) => materials.add(material));
+      return;
+    }
+    materials.add(object.material);
+  });
+  materials.forEach((material) => material.dispose());
+}
+
 function applySceneScale(object: THREE.Object3D, scale: ExhibitSceneConfig["scale"]) {
   if (Array.isArray(scale)) object.scale.set(scale[0], scale[1], scale[2]);
   else object.scale.setScalar(scale);
@@ -141,6 +154,10 @@ function SceneExhibitModel({
     });
     onReady(exhibit.exhibitId);
   }, [exhibit.exhibitId, onReady, placed.floorName]);
+
+  useEffect(() => {
+    return () => disposeSceneExhibitMaterials(placed.object);
+  }, [placed.object]);
 
   return <primitive object={placed.object} />;
 }

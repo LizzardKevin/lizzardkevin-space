@@ -71,15 +71,31 @@ type ThemeRevealState = {
 
 type TerminalFoldState = Record<string, boolean>;
 
+function safeReadStorageItem(key: string) {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeWriteStorageItem(key: string, value: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Terminal preferences are cosmetic; restricted storage should not block the mobile site.
+  }
+}
+
 function readStoredLanguage(): MobileTerminalLanguage {
-  if (typeof window === "undefined") return DEFAULT_TERMINAL_LANGUAGE;
-  const value = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  const value = safeReadStorageItem(LANGUAGE_STORAGE_KEY);
   return value === "zh" || value === "en" ? value : DEFAULT_TERMINAL_LANGUAGE;
 }
 
 function readStoredTheme(): MobileTerminalTheme {
-  if (typeof window === "undefined") return DEFAULT_TERMINAL_THEME;
-  const value = window.localStorage.getItem(THEME_STORAGE_KEY);
+  const value = safeReadStorageItem(THEME_STORAGE_KEY);
   return value === "dark" || value === "light" ? value : DEFAULT_TERMINAL_THEME;
 }
 
@@ -199,13 +215,13 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
 
   const setLanguage = (next: MobileTerminalLanguage) => {
     setLanguageState(next);
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
+    safeWriteStorageItem(LANGUAGE_STORAGE_KEY, next);
     void loadTerminalFonts(next);
   };
 
   const setTheme = (next: MobileTerminalTheme, event?: MouseEvent<HTMLButtonElement>) => {
     if (next === theme) return;
-    window.localStorage.setItem(THEME_STORAGE_KEY, next);
+    safeWriteStorageItem(THEME_STORAGE_KEY, next);
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion || !event) {
