@@ -15,8 +15,8 @@ const profileSubtitles: Record<string, string> = {
 };
 
 function firstSentence(text: string) {
-  const [lead] = text.split("。");
-  return lead ? `${lead}。` : text;
+  const match = text.match(/^.*?[。.!?！？]/);
+  return match?.[0] ?? text;
 }
 
 const profileOverview: SplitArchiveItem = {
@@ -78,11 +78,11 @@ const devItems: SplitArchiveItem[] = [...devStories].reverse().map((story) => ({
   summary: firstSentence(story.summary),
   tags: story.tags,
   detailGroups: [
-    { title: "Built", items: story.built },
-    { title: "Trouble / Rollback", items: story.trouble },
+    { title: "What I tuned", items: story.built },
+    { title: "What got weird", items: story.trouble },
   ],
   note: {
-    title: "Next",
+    title: "Next note",
     body: story.next,
   },
 }));
@@ -102,9 +102,9 @@ export const splitArchivePanels: Record<"lizzardkevin" | "devStories", SplitArch
     tab: "devStories",
     label: "DevStories",
     title: "DevStories",
-    eyebrow: "Dark process archive",
+    eyebrow: "Personal build diary",
     description:
-      "A compact process ledger for SPACE decisions, reversals, constraints, and next moves.",
+      "Loose notes on how SPACE keeps growing, including the bits I tuned, the things that got strange, and what I want to try next.",
     items: devItems,
     defaultItemId: devItems[0]?.id ?? "",
   },
