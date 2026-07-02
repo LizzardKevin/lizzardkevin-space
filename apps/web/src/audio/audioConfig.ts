@@ -1,18 +1,20 @@
+import { publicAssetUrl } from "../platform/publicAssets.ts";
+
 /** 空间环境音与 SFX 资源路径（可替换为同名 .mp3）。 */
 export const AUDIO_PATHS = {
   zoneAmbientUrls: {} as Partial<Record<string, string>>,
   zoneBgmUrls: {
-    architecture: "/audio/space_background_looped.mp3",
+    architecture: publicAssetUrl("/audio/space_background_looped.mp3"),
   } as Partial<Record<string, string>>,
   footstepUrls: [
-    "/audio/footstep_01.wav",
-    "/audio/footstep_02.wav",
-    "/audio/footstep_03.wav",
-    "/audio/footstep_04.wav",
-    "/audio/footstep_05.wav",
+    publicAssetUrl("/audio/footstep_01.wav"),
+    publicAssetUrl("/audio/footstep_02.wav"),
+    publicAssetUrl("/audio/footstep_03.wav"),
+    publicAssetUrl("/audio/footstep_04.wav"),
+    publicAssetUrl("/audio/footstep_05.wav"),
   ],
-  jumpStartUrl: "/audio/jump_start.wav",
-  jumpLandUrl: "/audio/jump_land.wav",
+  jumpStartUrl: publicAssetUrl("/audio/jump_start.wav"),
+  jumpLandUrl: publicAssetUrl("/audio/jump_land.wav"),
 } as const;
 
 export const DEFAULT_VOLUMES = {

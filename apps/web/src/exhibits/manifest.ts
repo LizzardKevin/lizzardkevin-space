@@ -1,4 +1,5 @@
 import { exhibitAudioUrl, exhibitVideoUrl } from "./exhibitMediaPaths.ts";
+import { publicAssetUrl } from "../platform/publicAssets.ts";
 
 export type ExhibitType = "model3d" | "image" | "audio" | "video";
 
@@ -85,13 +86,28 @@ function resolveExhibitMedia(item: ExhibitManifestItem): ExhibitManifestItem {
   if (item.type === "video" && !media.videoUrl) {
     media.videoUrl = exhibitVideoUrl(item.exhibitId);
   }
+  if (media.audioUrl) media.audioUrl = publicAssetUrl(media.audioUrl);
+  if (media.videoUrl) media.videoUrl = publicAssetUrl(media.videoUrl);
+  if (media.imageUrls) media.imageUrls = media.imageUrls.map(publicAssetUrl);
   const hasMedia = media.audioUrl || media.videoUrl || (media.imageUrls?.length ?? 0) > 0;
-  const resolved = hasMedia ? { ...item, media } : item;
-  return item.scene ? { ...resolved, scene: normalizeExhibitSceneConfig(item.scene) } : resolved;
+  const resolved: ExhibitManifestItem = {
+    ...item,
+    focusGlbUrl: publicAssetUrl(item.focusGlbUrl),
+    ...(hasMedia ? { media } : {}),
+  };
+  return item.scene
+    ? {
+        ...resolved,
+        scene: {
+          ...normalizeExhibitSceneConfig(item.scene),
+          modelUrl: publicAssetUrl(item.scene.modelUrl),
+        },
+      }
+    : resolved;
 }
 
 export async function loadManifest(): Promise<ExhibitManifest> {
-  const res = await fetch("/exhibits/manifest.json", { cache: "no-cache" });
+  const res = await fetch(publicAssetUrl("/exhibits/manifest.json"), { cache: "no-cache" });
   if (!res.ok) throw new Error(`Failed to load manifest: ${res.status}`);
   const raw = (await res.json()) as ExhibitManifest;
   return {

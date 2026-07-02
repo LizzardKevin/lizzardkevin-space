@@ -1,4 +1,5 @@
 import { EYE_OFFSET } from "../gallery/resolveGallerySpawn.ts";
+import { publicAssetUrl } from "../../platform/publicAssets.ts";
 
 export const SPACE_ONBOARDING_DEMO_EXHIBIT_ID = "space_onboarding_demo";
 export const SPACE_ONBOARDING_LOOK_HIT_ID = "space_onboarding_look_target";
@@ -31,8 +32,10 @@ export function resolveSpaceOnboardingSignImageSrc(
   sign: Pick<SpaceOnboardingSign, "imageSrc">,
   language?: string | null,
 ) {
-  if (!language?.toLowerCase().startsWith("en")) return sign.imageSrc;
-  return sign.imageSrc.replace(/\.png$/, "-en.png");
+  const imageSrc = !language?.toLowerCase().startsWith("en")
+    ? sign.imageSrc
+    : sign.imageSrc.replace(/\.png$/, "-en.png");
+  return publicAssetUrl(imageSrc);
 }
 
 export const SPACE_ONBOARDING_SPAWN: [number, number, number] = [-0.51, 36.897, -48.32];

@@ -14,6 +14,8 @@ function readText(url) {
 }
 
 function assetPathFromHtmlPath(htmlPath) {
+  const assetsIndex = htmlPath.indexOf("/assets/");
+  if (assetsIndex >= 0) return htmlPath.slice(assetsIndex + 1);
   return htmlPath.replace(/^\.\//, "").replace(/^\//, "");
 }
 

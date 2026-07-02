@@ -1,3 +1,5 @@
+import { publicAssetUrl } from "../../platform/publicAssets.ts";
+
 export type ProjectorImageDirectoryEntry = {
   exhibitId: string;
   title: string;
@@ -32,5 +34,7 @@ export function buildProjectorSelectionImageUrl(
   directoryEntry: ProjectorImageDirectoryEntry,
   fileName: string,
 ) {
-  return `${PROJECTOR_IMAGE_DIRECTORY_PUBLIC_PATH}/${directoryEntry.exhibitId}/${fileName}`;
+  return publicAssetUrl(
+    `${PROJECTOR_IMAGE_DIRECTORY_PUBLIC_PATH}/${directoryEntry.exhibitId}/${fileName}`,
+  );
 }

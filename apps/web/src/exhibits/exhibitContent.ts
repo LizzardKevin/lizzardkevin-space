@@ -1,3 +1,5 @@
+import { publicAssetUrl } from "../platform/publicAssets.ts";
+
 export type ExhibitContentMetadataItem = {
   label: string;
   value: string;
@@ -13,7 +15,7 @@ export type ExhibitContent = {
 };
 
 export function exhibitContentUrl(exhibitId: string): string {
-  return `/exhibits/${exhibitId}/content.json`;
+  return publicAssetUrl(`/exhibits/${exhibitId}/content.json`);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

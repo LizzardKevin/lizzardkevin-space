@@ -1,3 +1,5 @@
+import { publicAssetUrl } from "../../platform/publicAssets.ts";
+
 export const ENABLE_GALLERY_GLB = true;
 
 /** Set true after placing public/media/art_01.jpg (or update GALLERY_WALL_ART.imageUrl). */
@@ -16,10 +18,10 @@ export const GALLERY_INITIAL_LOOK_DISTANCE = 10;
 /** Bump when replacing space_main.glb so dev/browser reloads geometry. */
 export const GALLERY_GLB_REVISION = "20260701-world-exhibits-no-anchors";
 
-export const GALLERY_GLB_URL = `/models/space_main.glb?v=${GALLERY_GLB_REVISION}`;
+export const GALLERY_GLB_URL = publicAssetUrl(`/models/space_main.glb?v=${GALLERY_GLB_REVISION}`);
 
 /** Local Draco decoder path for compressed GLB files; avoids runtime fetches to gstatic. */
-export const GLTF_DRACO_DECODER_PATH = "/draco/";
+export const GLTF_DRACO_DECODER_PATH = publicAssetUrl("/draco/");
 
 /** Temporary: spawn outside COL_outer and drop onto the floor. */
 export const USE_OUTSIDE_GALLERY_SPAWN = false;
@@ -175,7 +177,7 @@ export const GALLERY_SAFETY_GROUND_Y = -10;
 
 /** Procedural wall art — drop image at public/media/art_01.jpg */
 export const GALLERY_WALL_ART = {
-  imageUrl: "/media/art_01.jpg",
+  imageUrl: publicAssetUrl("/media/art_01.jpg"),
   position: [0, 2, -5.85] as [number, number, number],
   rotation: [0, 0, 0] as [number, number, number],
   maxWidth: 1.2,

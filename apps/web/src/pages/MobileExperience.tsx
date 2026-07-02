@@ -12,6 +12,7 @@ import {
   type MobileTerminalLanguage,
   type MobileTerminalTheme,
 } from "../mobile/mobileArchiveData";
+import { publicAssetUrl } from "../platform/publicAssets.ts";
 
 const BOOT_MIN_DURATION_MS = 3000;
 const BOOT_MAX_DURATION_MS = 10000;
@@ -652,7 +653,7 @@ function ProjectDetailView({
               {project.imageUrls?.map((url, index) => (
                 <img
                   key={url}
-                  src={url}
+                  src={publicAssetUrl(url)}
                   alt={`${project.title} image ${index + 1}`}
                   loading="lazy"
                   decoding="async"
