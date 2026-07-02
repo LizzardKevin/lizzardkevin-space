@@ -102,6 +102,21 @@ export const mobileTerminalCopy = {
       light: "Light",
       dark: "Dark",
     },
+    aria: {
+      settings: "Terminal settings",
+      sections: "Mobile terminal sections",
+      museum: "Mobile terminal museum",
+      loading: "Mobile terminal loading",
+      idle: "Mobile terminal idle",
+    },
+    projectDetails: {
+      currentSignal: "Current Signal",
+      spaceLayer: "SPACE Layer",
+      archiveNote: "Archive Note",
+      tags: "tags",
+      media: "media",
+      imageAlt: "image",
+    },
     projects: {
       command: "$ open Projects",
       lede:
@@ -201,6 +216,21 @@ export const mobileTerminalCopy = {
       light: "白底",
       dark: "黑底",
     },
+    aria: {
+      settings: "终端设置",
+      sections: "移动端 terminal 栏目",
+      museum: "移动端 terminal 博物馆",
+      loading: "移动端 terminal 加载中",
+      idle: "移动端 terminal 待机",
+    },
+    projectDetails: {
+      currentSignal: "当前信号",
+      spaceLayer: "SPACE 层级",
+      archiveNote: "档案备注",
+      tags: "标签",
+      media: "媒体",
+      imageAlt: "图片",
+    },
     projects: {
       command: "$ open Projects",
       lede: "适合手机快速阅读的展厅索引。真实媒体完成前，项目详情先保持文字优先。",
@@ -292,6 +322,21 @@ export const mobileTerminalCopy = {
       chinese: string;
       light: string;
       dark: string;
+    };
+    aria: {
+      settings: string;
+      sections: string;
+      museum: string;
+      loading: string;
+      idle: string;
+    };
+    projectDetails: {
+      currentSignal: string;
+      spaceLayer: string;
+      archiveNote: string;
+      tags: string;
+      media: string;
+      imageAlt: string;
     };
     projects: { command: string; lede: string };
     skills: { command: string; lede: string };

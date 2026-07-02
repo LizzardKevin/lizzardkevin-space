@@ -48,7 +48,7 @@ assert(files.mobileExperience.includes("safeReadStorageItem"), "mobile terminal 
 assert(files.mobileExperience.includes("safeWriteStorageItem"), "mobile terminal storage writes must be guarded");
 assert(files.mobileExperience.includes('const THEME_STORAGE_KEY = "mobileTerminalThemeV2"'), "mobile theme preference must ignore the legacy dark-mode storage key");
 assert(!files.mobileExperience.includes('const THEME_STORAGE_KEY = "mobileTerminalTheme";'), "mobile theme preference must not keep reading the legacy theme key");
-assert(files.mobileExperience.includes('aria-label="Terminal settings"'), "mobile settings button must expose an accessible label");
+assert(files.mobileExperience.includes("aria-label={copy.aria.settings}"), "mobile settings button must expose a localized accessible label");
 assert(files.mobileExperience.includes('aria-pressed={theme === "light"}'), "settings panel must expose a Light theme toggle");
 assert(files.mobileExperience.includes('aria-pressed={theme === "dark"}'), "settings panel must expose a Dark theme toggle");
 assert(
@@ -61,7 +61,13 @@ assert(
   "settings panel must render as an overlay sibling outside the animated header",
 );
 assert(files.mobileExperience.includes("mobileTerminalCopy"), "mobile experience must use localized terminal copy");
-assert(files.mobileExperience.includes('DEFAULT_TERMINAL_LANGUAGE: MobileTerminalLanguage = "en"'), "mobile terminal language must default to English");
+assert(
+  /import\s*\{[^}]*readInitialLanguage[^}]*\}\s*from "\.\.\/i18n\/resolveInitialLanguage"/.test(files.mobileExperience) &&
+    files.mobileExperience.indexOf('safeReadStorageItem("lang")') <
+      files.mobileExperience.indexOf("safeReadStorageItem(LANGUAGE_STORAGE_KEY)") &&
+    files.mobileExperience.includes("readInitialLanguage()"),
+  "mobile terminal language must follow the shared initial language fallback",
+);
 assert(files.mobileExperience.includes('DEFAULT_TERMINAL_THEME: MobileTerminalTheme = "light"'), "mobile terminal theme must default to light mode");
 assert(files.mobileExperience.includes("terminalRootRef"), "mobile experience must keep a root ref for scroll-driven CSS variables");
 assert(files.mobileExperience.includes("--terminal-collapse"), "mobile scroll must write the terminal collapse CSS variable");

@@ -34,6 +34,7 @@ import {
 import type { SpacePlayerPose } from "../../space/spaceDailyResume";
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
+export type SpaceJumpNoticeKey = "space.jumpQuiet" | "space.jumpUnlocked";
 
 const WALK_SPEED = 2.45;
 const SPRINT_SPEED = FOOTSTEP_SPRINT_SPEED;
@@ -41,8 +42,6 @@ const JUMP_HEIGHT_M = 0.4;
 const JUMP_DURATION_SCALE = 0.8;
 const JUMP_GRAVITY_SCALE = 1 / (JUMP_DURATION_SCALE * JUMP_DURATION_SCALE);
 const JUMP_ATTEMPT_UNLOCK_COUNT = 5;
-const FIRST_JUMP_WARNING = "在展厅要保持安静，不允许跳跃";
-const JUMP_UNLOCK_MESSAGE = "真拿你没办法～";
 /** Higher = reaches target speed faster when starting / changing direction. */
 const MOVE_ACCEL = 11;
 /** Higher = stops faster when keys are released. */
@@ -72,7 +71,7 @@ export function PlayerController({
 }: {
   enabled: boolean;
   spawn?: [number, number, number];
-  onJumpNotice: (message: string) => void;
+  onJumpNotice: (messageKey: SpaceJumpNoticeKey) => void;
   initialPose?: SpacePlayerPose | null;
   onPoseSample?: (pose: SpacePlayerPose) => void;
 }) {
@@ -190,12 +189,12 @@ export function PlayerController({
 
       jumpAttemptCountRef.current += 1;
       if (jumpAttemptCountRef.current === 1) {
-        onJumpNoticeRef.current(FIRST_JUMP_WARNING);
+        onJumpNoticeRef.current("space.jumpQuiet");
       }
       if (jumpAttemptCountRef.current === JUMP_ATTEMPT_UNLOCK_COUNT) {
         jumpUnlockedRef.current = true;
         pendingJumpRef.current = true;
-        onJumpNoticeRef.current(JUMP_UNLOCK_MESSAGE);
+        onJumpNoticeRef.current("space.jumpUnlocked");
       }
     };
 

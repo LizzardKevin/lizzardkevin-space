@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import type { OverlayTab } from "./OverlayState";
 import { FrostedSplitTabs } from "../components/frostedSplit/FrostedSplitTabs";
 import type { SplitArchiveTab } from "../components/frostedSplit/splitArchiveTypes";
@@ -30,6 +31,7 @@ export function OverlayLayer({
   onRequestClose: (opts?: { fromEscape?: boolean }) => void;
   onClosed: () => void;
 }) {
+  const { t } = useTranslation();
   const spaceWordRef = useRef<HTMLSpanElement>(null);
   const requestedSplitTab = getInitialSplitTab(tab);
   const [splitSelection, setSplitSelection] = useState<{
@@ -110,14 +112,14 @@ export function OverlayLayer({
     >
       <button
         type="button"
-        aria-label="回到space"
+        aria-label={t("overlay.returnLabel")}
         className={`overlay-return-button overlay-return-button--${activeSplitTab} ${returnMorphClass}`}
         data-cursor="interactive"
         data-cursor-tone={activeSplitTab === "lizzardkevin" ? "light" : "dark"}
         style={returnMorphStyle}
         onClick={() => onRequestClose()}
       >
-        <span className="overlay-return-button__prefix">回到</span>
+        <span className="overlay-return-button__prefix">{t("overlay.returnPrefix")}</span>
         <span ref={spaceWordRef} className="overlay-return-button__space">space</span>
       </button>
 

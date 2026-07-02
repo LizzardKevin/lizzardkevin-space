@@ -15,12 +15,14 @@ import {
   type RefObject,
   type CSSProperties,
 } from "react";
+import { useTranslation } from "react-i18next";
 import type { ExhibitManifestItem } from "./manifest";
 import type { ExhibitButtonAction } from "./manifest";
 import { usePlayback } from "../media/usePlayback";
 import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
 import { loadExhibitContent, type ExhibitContent } from "./exhibitContent";
+import { normalizeSupportedLanguage, type SupportedLanguage } from "../i18n/resolveInitialLanguage";
 import {
   FOCUS_FRAME,
   FOCUS_TURNTABLE_RAD_PER_SEC,
@@ -34,7 +36,12 @@ import {
 } from "./focusModelFrame";
 import { GLTF_DRACO_DECODER_PATH } from "../scenes/gallery/galleryConfig";
 import { applyTreeHabitatSharedMaterials } from "../scenes/exhibits/exhibitMaterialOverrides.ts";
-import { FocusOverviewPanel, FocusSideColumn, FocusStoryPanel } from "./FocusContentPanels";
+import {
+  FocusOverviewPanel,
+  FocusSideColumn,
+  FocusStoryPanel,
+  type FocusPanelCopy,
+} from "./FocusContentPanels";
 import { FocusExhibitTitle } from "./FocusExhibitTitle";
 import { FocusDoubleClickExit } from "./FocusCanvasInput";
 import { useFocusDoubleClickHandler } from "./focusDoubleClick";
@@ -63,6 +70,12 @@ type DepartingFocusImage = {
   id: number;
   style: CSSProperties;
   url: string;
+};
+
+type LoadedFocusContent = {
+  exhibitId: string;
+  language: SupportedLanguage;
+  content: ExhibitContent | null;
 };
 
 function getFocusImageFrameStyle(imageFrameSize: FocusImageFrameSize | null) {
@@ -316,10 +329,10 @@ function FocusSceneContent({
   );
 }
 
-function FocusLoading() {
+function FocusLoading({ label }: { label: string }) {
   return (
     <div className="focus-loading" aria-hidden>
-      加载展品…
+      {label}
     </div>
   );
 }
@@ -358,7 +371,7 @@ function resetFocusImageCardMotion(target: HTMLDivElement) {
   writeFocusImageCardMotion(target, defaultFocusImageCardMotion);
 }
 
-type ErrorBoundaryProps = { children: ReactNode; url: string };
+type ErrorBoundaryProps = { children: ReactNode; message: string; url: string };
 type ErrorBoundaryState = { error: Error | null };
 
 class FocusModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -372,7 +385,7 @@ class FocusModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundar
     if (this.state.error) {
       return (
         <div className="focus-error">
-          Focus 模型加载失败
+          {this.props.message}
           <br />
           <span>{this.props.url}</span>
         </div>
@@ -392,18 +405,24 @@ export function FocusOverlay({
   onBeginDismiss: (opts?: { fromEscape?: boolean }) => void;
   onClose: () => void;
 }) {
+  const { i18n, t } = useTranslation();
+  const focusLanguage = normalizeSupportedLanguage(i18n.resolvedLanguage ?? i18n.language);
+  const focusCopy = t("focus.copy", { returnObjects: true }) as FocusPanelCopy;
   const playback = usePlayback();
   const [blurOn, setBlurOn] = useState(false);
   const [dimOn, setDimOn] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
-  const [content, setContent] = useState<ExhibitContent | null>(null);
-  const [contentLoading, setContentLoading] = useState(true);
+  const [loadedContent, setLoadedContent] = useState<LoadedFocusContent | null>(null);
   const [orbitHintState, setOrbitHintState] = useState<{
     exhibitId: string;
     interacted: boolean;
   } | null>(null);
   const closingRef = useRef(false);
-  const displayTitle = resolveFocusDisplayTitle(content, exhibit.exhibitId);
+  const contentMatches =
+    loadedContent?.exhibitId === exhibit.exhibitId && loadedContent.language === focusLanguage;
+  const content = contentMatches ? loadedContent.content : null;
+  const contentLoading = !contentMatches;
+  const displayTitle = resolveFocusDisplayTitle(content, exhibit.exhibitId, focusLanguage);
   const videoUrl = exhibit.media?.videoUrl;
   const mediaItems = useMemo(() => getFocusMediaItems(exhibit), [exhibit]);
   const [activeMediaState, setActiveMediaState] = useState({
@@ -463,16 +482,15 @@ export function FocusOverlay({
 
   useEffect(() => {
     let cancelled = false;
-    loadExhibitContent(exhibit.exhibitId).then((c) => {
+    loadExhibitContent(exhibit.exhibitId, focusLanguage).then((c) => {
       if (!cancelled) {
-        setContent(c);
-        setContentLoading(false);
+        setLoadedContent({ exhibitId: exhibit.exhibitId, language: focusLanguage, content: c });
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [exhibit.exhibitId]);
+  }, [exhibit.exhibitId, focusLanguage]);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => {
@@ -517,12 +535,12 @@ export function FocusOverlay({
       }, 150);
       window.setTimeout(() => onClose(), 450);
     },
-    [onBeginDismiss, onClose, playback],
+    [onBeginDismiss, onClose, playback, setBlurOn, setContentVisible, setDimOn],
   );
 
   const handleOrbitInteract = useCallback(() => {
     setOrbitHintState({ exhibitId: exhibit.exhibitId, interacted: true });
-  }, [exhibit.exhibitId]);
+  }, [exhibit.exhibitId, setOrbitHintState]);
 
   const handleBlankDoubleClick = useCallback(() => {
     if (!contentVisible || closingRef.current) return;
@@ -858,7 +876,7 @@ export function FocusOverlay({
         <button
           type="button"
           className="focus-image-lightbox"
-          aria-label="Close enlarged image"
+          aria-label={t("focus.closeEnlargedImage")}
           data-cursor="interactive"
           data-cursor-tone="light"
           onClick={() => setImageExpandedState(false)}
@@ -868,11 +886,12 @@ export function FocusOverlay({
       <button
         type="button"
         className={`focus-return-button${contentVisible ? " focus-return-button--visible" : ""}`}
+        aria-label={t("focus.returnLabel")}
         data-cursor="interactive"
         data-cursor-tone="light"
         onClick={() => requestClose()}
       >
-        <span className="focus-return-button__prefix">回到</span>
+        <span className="focus-return-button__prefix">{t("focus.returnPrefix")}</span>
         <span className="focus-return-button__space">space</span>
       </button>
 
@@ -885,6 +904,7 @@ export function FocusOverlay({
               visible={contentVisible}
             />
             <FocusOverviewPanel
+              copy={focusCopy}
               overview={content?.overview ?? null}
               loading={contentLoading}
               tags={focusTags}
@@ -913,12 +933,12 @@ export function FocusOverlay({
               playsInline
               preload="metadata"
               src={videoUrl}
-              aria-label={`${displayTitle} process animation`}
+              aria-label={t("focus.processAnimationAria", { title: displayTitle })}
             />
           ) : null}
 
-          <FocusModelErrorBoundary url={exhibit.focusGlbUrl}>
-            <Suspense fallback={<FocusLoading />}>
+          <FocusModelErrorBoundary message={t("focus.modelLoadFailed")} url={exhibit.focusGlbUrl}>
+            <Suspense fallback={<FocusLoading label={t("focus.loadingExhibit")} />}>
               <Canvas
                 id="focus-canvas"
                 frameloop={activeMedia.kind === "model" ? "always" : "never"}
@@ -1003,7 +1023,7 @@ export function FocusOverlay({
                   data-cursor="interactive"
                   role="button"
                   tabIndex={0}
-                  aria-label={`Open ${displayTitle} image`}
+                  aria-label={t("focus.openImage", { title: displayTitle })}
                 />
               </div>
             </div>
@@ -1014,7 +1034,7 @@ export function FocusOverlay({
               <button
                 type="button"
                 className="focus-media-arrow focus-media-arrow--left"
-                aria-label="Previous exhibit image"
+                aria-label={t("focus.previousMedia")}
                 data-cursor="interactive"
                 data-cursor-tone="light"
                 onClick={(e) => {
@@ -1025,7 +1045,7 @@ export function FocusOverlay({
               <button
                 type="button"
                 className="focus-media-arrow focus-media-arrow--right"
-                aria-label="Next exhibit image"
+                aria-label={t("focus.nextMedia")}
                 data-cursor="interactive"
                 data-cursor-tone="light"
                 onClick={(e) => {
@@ -1037,7 +1057,7 @@ export function FocusOverlay({
           ) : null}
 
           {mediaItems.length > 1 && !imageExpanded ? (
-            <div className="focus-media-dots" aria-label="Focus media pages">
+            <div className="focus-media-dots" aria-label={t("focus.mediaPages")}>
               {mediaItems.map((item, index) => (
                 <button
                   key={`${item.kind}-${item.url}`}
@@ -1045,10 +1065,10 @@ export function FocusOverlay({
                   className={`focus-media-dot${index === activeMediaIndex ? " focus-media-dot--active" : ""}${item.kind === "model" ? " focus-media-dot--model" : ""}${item.kind === "video" ? " focus-media-dot--video" : ""}`}
                   aria-label={
                     item.kind === "model"
-                      ? "Show 3D model"
+                      ? t("focus.showModel")
                       : item.kind === "video"
-                        ? "Show process animation"
-                        : `Show image ${index}`
+                        ? t("focus.showVideo")
+                        : t("focus.showImage", { index: index + 1 })
                   }
                   aria-current={index === activeMediaIndex ? "true" : undefined}
                   data-cursor="interactive"
@@ -1065,12 +1085,13 @@ export function FocusOverlay({
           <p
             className={`ui-hint-micro focus-orbit-hint${contentVisible && activeMedia.kind === "model" && !hasOrbitInteracted ? " focus-orbit-hint--visible" : ""}`}
           >
-            drag to orbit
+            {t("focus.dragToOrbit")}
           </p>
         </div>
 
         <FocusSideColumn side="right">
           <FocusStoryPanel
+            copy={focusCopy}
             storyHtml={content?.storyHtml ?? null}
             loading={contentLoading}
             visible={contentVisible}

@@ -1,33 +1,76 @@
 {
-  "title": "3D Printing Architecture",
-  "subtitle": "Architecture prototype study pairing a printed spatial model with process animation",
-  "overview": "3D Printing Architecture presents a student work animation study about how a predesigned building could be assembled through crane-supported construction and 3D-printed cementitious concrete. The exhibit focuses on the model and its process animation: a compact way to read geometry, fabrication sequence and architectural intention together.",
-  "storyHtml": "<p>This project uses model animation to simulate a construction method rather than to claim a finished building system. A crane and printing apparatus work around a predesigned architectural shell, placing 3D-printed cementitious concrete in a controlled sequence while prefab structural pieces and components are inserted where the printed material alone would not be enough.</p><p>The building process is organized around a 0.9-meter construction threshold. Each height band becomes a checkpoint: print the next layer set, stabilize the geometry, coordinate openings and services, then add selected prefab elements before the next stage begins. That rhythm turns the animation into a readable construction diagram instead of a simple object showcase.</p><p>The idea borrows from real 3D concrete printing research, where robotic arms, gantry systems and crane-mounted equipment can extrude material layer by layer from digital toolpaths. It also acknowledges the current practical limit of the technology: printed walls often still need reinforcement, post-installed parts, openings, fixtures and assembly logic to become architecture.</p><p>In Focus mode, the project should feel direct and process-led. The model establishes the designed form, while the animation explains how that form could be rapidly iterated and built through printed cement, staged thresholds and prefab coordination.</p>",
-  "tags": [
-    "student work",
-    "3d printing",
-    "architecture animation"
-  ],
-  "metadata": [
-    {
-      "label": "Year",
-      "value": "2021"
-    },
-    {
-      "label": "Type",
-      "value": "student work / 3D printing architecture animation"
-    },
-    {
-      "label": "Medium",
-      "value": "Digital model, 3D printed model, process video"
-    },
-    {
-      "label": "Role",
-      "value": "Design, model, fabrication workflow, video presentation"
-    },
-    {
-      "label": "Status",
-      "value": "Portfolio exhibit draft"
-    }
-  ]
+  "title": {
+    "en": "3D Printing Architecture",
+    "zh": "3D Printing Architecture"
+  },
+  "subtitle": {
+    "en": "Architecture prototype study pairing a printed spatial model with process animation",
+    "zh": "结合 3D 打印空间模型与过程动画的建筑原型研究"
+  },
+  "overview": {
+    "en": "3D Printing Architecture presents a student work animation study about how a predesigned building could be assembled through crane-supported construction and 3D-printed cementitious concrete. The exhibit focuses on the model and its process animation: a compact way to read geometry, fabrication sequence and architectural intention together.",
+    "zh": "3D Printing Architecture 是一个学生阶段动画研究，想象一个预先设计的建筑如何通过吊车辅助施工和 3D 打印水泥混凝土被快速搭建。展品聚焦于模型和过程动画，让几何、建造顺序和建筑意图能在一个紧凑的界面里一起被阅读。"
+  },
+  "storyHtml": {
+    "en": "<p>This project uses model animation to simulate a construction method rather than to claim a finished building system. A crane and printing apparatus work around a predesigned architectural shell, placing 3D-printed cementitious concrete in a controlled sequence while prefab structural pieces and components are inserted where the printed material alone would not be enough.</p><p>The building process is organized around a 0.9-meter construction threshold. Each height band becomes a checkpoint: print the next layer set, stabilize the geometry, coordinate openings and services, then add selected prefab elements before the next stage begins. That rhythm turns the animation into a readable construction diagram instead of a simple object showcase.</p><p>The idea borrows from real 3D concrete printing research, where robotic arms, gantry systems and crane-mounted equipment can extrude material layer by layer from digital toolpaths. It also acknowledges the current practical limit of the technology: printed walls often still need reinforcement, post-installed parts, openings, fixtures and assembly logic to become architecture.</p><p>In Focus mode, the project should feel direct and process-led. The model establishes the designed form, while the animation explains how that form could be rapidly iterated and built through printed cement, staged thresholds and prefab coordination.</p>",
+    "zh": "<p>这个项目用模型动画模拟一种建造方法，而不是宣称已经完成某种建筑系统。吊车和打印装置围绕预先设计的建筑外壳工作，以受控顺序放置 3D 打印水泥材料，并在仅靠打印材料不足的位置插入预制结构件和组件。</p><p>建造过程围绕 0.9 米的阶段阈值组织。每个高度带都是一个检查点：打印下一组层、稳定几何、协调开口和设备，再在进入下一阶段前加入指定的预制构件。这个节奏让动画更像可阅读的施工图解，而不是单纯展示一个物件。</p><p>概念借用了真实 3D 混凝土打印研究中的方法：机械臂、龙门系统或吊车搭载设备都可以依据数字路径逐层挤出材料。它也承认这项技术当前的现实限制：打印墙体往往仍然需要加固、后置构件、开口、配件和装配逻辑，才能真正成为建筑。</p><p>在 Focus 模式中，这个作品应保持直接并以过程为主。模型先建立被设计的形体，动画则解释这个形体如何通过水泥打印、阶段阈值和预制协调被快速迭代并搭建。</p>"
+  },
+  "tags": {
+    "en": [
+      "student work",
+      "3d printing",
+      "architecture animation"
+    ],
+    "zh": [
+      "学生作品",
+      "3D 打印",
+      "建筑动画"
+    ]
+  },
+  "metadata": {
+    "en": [
+      {
+        "label": "Year",
+        "value": "2021"
+      },
+      {
+        "label": "Type",
+        "value": "student work / 3D printing architecture animation"
+      },
+      {
+        "label": "Medium",
+        "value": "Digital model, 3D printed model, process video"
+      },
+      {
+        "label": "Role",
+        "value": "Design, model, fabrication workflow, video presentation"
+      },
+      {
+        "label": "Status",
+        "value": "Portfolio exhibit draft"
+      }
+    ],
+    "zh": [
+      {
+        "label": "年份",
+        "value": "2021"
+      },
+      {
+        "label": "类型",
+        "value": "学生作品 / 3D 打印建筑动画"
+      },
+      {
+        "label": "媒介",
+        "value": "数字模型、3D 打印模型、过程视频"
+      },
+      {
+        "label": "角色",
+        "value": "设计、建模、制造流程、视频表达"
+      },
+      {
+        "label": "状态",
+        "value": "作品集展品草案"
+      }
+    ]
+  }
 }

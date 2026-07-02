@@ -31,6 +31,36 @@ function countGlbTriangles(filePath) {
   return triangles;
 }
 
+function readExhibitContent(exhibitId) {
+  return JSON.parse(
+    fs.readFileSync(path.join(publicDir, `exhibits/${exhibitId}/content.json`), "utf8"),
+  );
+}
+
+function localizedString(content, field, language) {
+  const value = content[field];
+  if (typeof value === "string") return value;
+  assert.equal(typeof value, "object", `${field} must be a localized object or string`);
+  assert.equal(typeof value[language], "string", `${field}.${language} must be a string`);
+  return value[language];
+}
+
+function localizedStringArray(content, field, language) {
+  const value = content[field];
+  if (Array.isArray(value)) return value;
+  assert.equal(typeof value, "object", `${field} must be a localized object or array`);
+  assert.ok(Array.isArray(value[language]), `${field}.${language} must be an array`);
+  return value[language];
+}
+
+function localizedMetadata(content, language) {
+  const metadata = content.metadata;
+  if (Array.isArray(metadata)) return metadata;
+  assert.equal(typeof metadata, "object", "metadata must be a localized object or array");
+  assert.ok(Array.isArray(metadata[language]), `metadata.${language} must be an array`);
+  return metadata[language];
+}
+
 test("scene exhibit manifest uses authored world coordinates and one SPACE model", () => {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(publicDir, "exhibits/manifest.json"), "utf8"),
@@ -188,25 +218,38 @@ test("active exhibit content samples have portfolio metadata and no pipeline cop
     "arch_uabb_exhibit",
     "arch_3d_printing_architecture",
   ]) {
-    const content = JSON.parse(
-      fs.readFileSync(path.join(publicDir, `exhibits/${exhibitId}/content.json`), "utf8"),
-    );
+    const content = readExhibitContent(exhibitId);
 
-    assert.equal(typeof content.subtitle, "string");
-    assert.match(content.subtitle.trim(), /\S/);
-    assert.ok(Array.isArray(content.metadata));
-    for (const item of content.metadata) {
-      assert.equal(typeof item.label, "string");
-      assert.equal(typeof item.value, "string");
-      assert.match(item.label.trim(), /\S/);
-      assert.match(item.value.trim(), /\S/);
+    for (const field of ["title", "subtitle", "overview", "storyHtml"]) {
+      for (const language of ["en", "zh"]) {
+        assert.match(localizedString(content, field, language).trim(), /\S/, `${exhibitId} ${field}.${language}`);
+      }
     }
+    for (const language of ["en", "zh"]) {
+      const tags = localizedStringArray(content, "tags", language);
+      assert.deepEqual(tags, Array.from(new Set(tags.map((tag) => tag.trim()))), `${exhibitId} tags.${language} must be unique and trimmed`);
+      const metadata = localizedMetadata(content, language);
+      for (const item of metadata) {
+        assert.equal(typeof item.label, "string");
+        assert.equal(typeof item.value, "string");
+        assert.match(item.label.trim(), /\S/);
+        assert.match(item.value.trim(), /\S/);
+      }
+    }
+    const englishMetadata = localizedMetadata(content, "en");
     assert.deepEqual(
-      content.metadata.map((item) => item.label),
+      englishMetadata.map((item) => item.label),
       ["Year", "Type", "Medium", "Role", "Status"],
     );
 
-    const exhibitCopy = [content.subtitle, content.overview, content.storyHtml].join(" ");
+    const exhibitCopy = [
+      localizedString(content, "subtitle", "en"),
+      localizedString(content, "overview", "en"),
+      localizedString(content, "storyHtml", "en"),
+      localizedString(content, "subtitle", "zh"),
+      localizedString(content, "overview", "zh"),
+      localizedString(content, "storyHtml", "zh"),
+    ].join(" ");
     assert.doesNotMatch(
       exhibitCopy,
       /\b(?:LOD|pipeline|space_main\.glb|anchor|clicked|highlighted|focus flow)\b/i,
@@ -243,21 +286,19 @@ test("active exhibit content matches the current exhibit-facing metadata", () =>
   };
 
   for (const [exhibitId, expectedContent] of Object.entries(expected)) {
-    const content = JSON.parse(
-      fs.readFileSync(path.join(publicDir, `exhibits/${exhibitId}/content.json`), "utf8"),
-    );
+    const content = readExhibitContent(exhibitId);
 
-    assert.deepEqual(content.tags, expectedContent.tags, `${exhibitId} tags must match the requested set`);
+    assert.deepEqual(localizedStringArray(content, "tags", "en"), expectedContent.tags, `${exhibitId} tags must match the requested set`);
 
     if (expectedContent.metadata) {
-      const metadata = Object.fromEntries(content.metadata.map((item) => [item.label, item.value]));
+      const metadata = Object.fromEntries(localizedMetadata(content, "en").map((item) => [item.label, item.value]));
       for (const [label, value] of Object.entries(expectedContent.metadata)) {
         assert.equal(metadata[label], value, `${exhibitId} ${label} metadata must match`);
       }
     }
 
     for (const term of expectedContent.storyTerms ?? []) {
-      assert.ok(content.storyHtml.includes(term), `${exhibitId} story must mention ${term}`);
+      assert.ok(localizedString(content, "storyHtml", "en").includes(term), `${exhibitId} story must mention ${term}`);
     }
   }
 });

@@ -302,7 +302,7 @@ assert(
   "Chinese look onboarding copy should ask visitors to aim at the sign",
 );
 assert(
-  i18n.includes('done: "顺着道路前往SPACE吧"'),
+  i18n.includes('done: "顺着道路前往 SPACE 吧"'),
   "Chinese final onboarding copy should invite the visitor toward SPACE",
 );
 assert(i18n.includes('esc: "Press Esc to release the mouse"'), "English Esc copy should only teach release");

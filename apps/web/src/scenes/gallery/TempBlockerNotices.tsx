@@ -75,7 +75,8 @@ function collectTempBlockerNoticeSpecs(root: THREE.Object3D): TempBlockerNoticeS
 }
 
 export function TempBlockerNotices({ root }: { root: THREE.Object3D }) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const noticeLanguage = i18n.resolvedLanguage ?? i18n.language;
   const camera = useThree((state) => state.camera);
   const specs = useMemo(() => collectTempBlockerNoticeSpecs(root), [root]);
   const [activeKey, setActiveKey] = useState("");
@@ -98,6 +99,7 @@ export function TempBlockerNotices({ root }: { root: THREE.Object3D }) {
         return (
           <group key={spec.name} position={spec.position} quaternion={spec.quaternion}>
             <Html
+              key={noticeLanguage}
               transform
               occlude
               center

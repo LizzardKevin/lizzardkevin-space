@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { EXHIBIT_TARGET } from "../scenes/gallery/galleryConfig.ts";
+import type { SupportedLanguage } from "../i18n/resolveInitialLanguage";
 
 export type ExhibitTarget = {
   exhibitId: string;
@@ -8,16 +9,19 @@ export type ExhibitTarget = {
   suppressHoverHighlight?: boolean;
 };
 
-const EXHIBIT_LABELS: Record<string, string> = {
-  arch_treehabitat: "Tree Habitat",
-  arch_uabb_exhibit: "UABB Exhibit",
-  arch_3d_printing_architecture: "3D Printing Architecture",
-  space_onboarding_demo: "SPACE GUIDE",
+const EXHIBIT_LABELS: Record<string, Record<SupportedLanguage, string>> = {
+  arch_treehabitat: { en: "Tree Habitat", zh: "Tree Habitat" },
+  arch_uabb_exhibit: { en: "UABB Exhibit", zh: "UABB 展览研究" },
+  arch_3d_printing_architecture: {
+    en: "3D Printing Architecture",
+    zh: "3D Printing Architecture",
+  },
+  space_onboarding_demo: { en: "SPACE GUIDE", zh: "SPACE 引导" },
 };
 
-export function formatExhibitLabel(exhibitId: string): string {
+export function formatExhibitLabel(exhibitId: string, language: SupportedLanguage = "en"): string {
   const label = EXHIBIT_LABELS[exhibitId];
-  if (label) return label;
+  if (label) return label[language] ?? label.en;
   return exhibitId.replace(/_/g, " ");
 }
 

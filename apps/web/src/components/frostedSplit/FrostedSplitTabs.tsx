@@ -9,7 +9,12 @@ import {
   type PointerEvent,
   type WheelEvent,
 } from "react";
-import { splitArchivePanels } from "./splitArchiveData";
+import { useTranslation } from "react-i18next";
+import {
+  buildSplitArchivePanels,
+  formatOpenPanelLabel,
+  getSplitArchiveChromeCopy,
+} from "./splitArchiveData";
 import type {
   SplitArchiveItem,
   SplitArchivePanel,
@@ -27,6 +32,8 @@ import {
   type WheelPagingDirection,
   type WheelPagingState,
 } from "./wheelPaging";
+import { normalizeSupportedLanguage } from "../../i18n/resolveInitialLanguage";
+import type { SupportedLanguage } from "../../i18n/resolveInitialLanguage";
 
 type FrostedSplitTabsProps = {
   initialTab: SplitArchiveTab;
@@ -87,10 +94,12 @@ function prefersReducedMotion() {
 }
 
 function ArchiveIndex({
+  copy,
   panel,
   selectedItem,
   onSelectItem,
 }: {
+  copy: ReturnType<typeof getSplitArchiveChromeCopy>;
   panel: SplitArchivePanel;
   selectedItem: SplitArchiveItem;
   onSelectItem: (itemId: string) => void;
@@ -110,7 +119,7 @@ function ArchiveIndex({
   return (
     <nav className="frosted-split__index" aria-label={`${panel.title} index`} onKeyDown={onKeyDown}>
       <div className="frosted-split__indexHeader">
-        <span>Index</span>
+        <span>{copy.index}</span>
         <strong>{panel.items.length.toString().padStart(2, "0")}</strong>
       </div>
       <div className="frosted-split__indexList">
@@ -226,7 +235,9 @@ function StageContent({ item }: { item: SplitArchiveItem }) {
 }
 
 function ArchivePanel({
+  language,
   panel,
+  copy,
   active,
   motion,
   selectedItem,
@@ -238,7 +249,9 @@ function ArchivePanel({
   onStagePointerUp,
   onStageWheel,
 }: {
+  language: SupportedLanguage;
   panel: SplitArchivePanel;
+  copy: ReturnType<typeof getSplitArchiveChromeCopy>;
   active: boolean;
   motion: StageMotion;
   selectedItem: SplitArchiveItem;
@@ -273,7 +286,7 @@ function ArchivePanel({
       <button
         type="button"
         className="frosted-split__stripButton"
-        aria-label={`Open ${panel.title}`}
+        aria-label={formatOpenPanelLabel(language, panel.title)}
         onClick={onActivate}
         tabIndex={active ? -1 : 0}
       >
@@ -288,7 +301,7 @@ function ArchivePanel({
         </header>
 
         <div className="frosted-split__body">
-          <ArchiveIndex panel={panel} selectedItem={selectedItem} onSelectItem={onSelectItem} />
+          <ArchiveIndex copy={copy} panel={panel} selectedItem={selectedItem} onSelectItem={onSelectItem} />
 
           <main
             className={`frosted-split__stage${stageMotionClass}`}
@@ -332,6 +345,10 @@ function ArchivePanel({
 }
 
 export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsProps) {
+  const { i18n } = useTranslation();
+  const activeLanguage = normalizeSupportedLanguage(i18n.resolvedLanguage ?? i18n.language);
+  const splitArchivePanels = useMemo(() => buildSplitArchivePanels(activeLanguage), [activeLanguage]);
+  const splitCopy = useMemo(() => getSplitArchiveChromeCopy(activeLanguage), [activeLanguage]);
   const [activeTab, setActiveTab] = useState<SplitArchiveTab>(initialTab);
   const [selectedIds, setSelectedIds] = useState<Record<SplitArchiveTab, string>>(() => ({
     lizzardkevin: getInitialItemId(splitArchivePanels.lizzardkevin),
@@ -371,7 +388,7 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
         splitArchivePanels.devStories.items.find((item) => item.id === selectedIds.devStories) ??
         splitArchivePanels.devStories.items[0],
     };
-  }, [selectedIds]);
+  }, [selectedIds, splitArchivePanels]);
 
   const setSelectedItem = useCallback((tab: SplitArchiveTab, itemId: string) => {
     setSelectedIds((current) => ({
@@ -533,7 +550,7 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
       dragPagingRefs.current[tab] = createDragPagingState();
       queueStageTransition(tab, direction, selectedItem, next);
     },
-    [queueStageTransition, selectedItems, stageMotion],
+    [queueStageTransition, selectedItems, splitArchivePanels, stageMotion],
   );
 
   const handleStageWheel = useCallback(
@@ -571,7 +588,15 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
         if (next) queueStageTransition(tab, outcome.direction, selectedItem, next);
       }
     },
-    [activeTab, queueReboundMotion, queueStageTransition, queueTrackingMotion, selectedItems, stageMotion],
+    [
+      activeTab,
+      queueReboundMotion,
+      queueStageTransition,
+      queueTrackingMotion,
+      selectedItems,
+      splitArchivePanels,
+      stageMotion,
+    ],
   );
 
   const handleStagePointerDown = useCallback(
@@ -617,7 +642,15 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
         if (next) queueStageTransition(tab, outcome.direction, selectedItem, next);
       }
     },
-    [activeTab, queueReboundMotion, queueStageTransition, queueTrackingMotion, selectedItems, stageMotion],
+    [
+      activeTab,
+      queueReboundMotion,
+      queueStageTransition,
+      queueTrackingMotion,
+      selectedItems,
+      splitArchivePanels,
+      stageMotion,
+    ],
   );
 
   const handleStagePointerUp = useCallback(
@@ -641,6 +674,8 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
   return (
     <div className={`frosted-split frosted-split--${activeTab}`}>
       <ArchivePanel
+        language={activeLanguage}
+        copy={splitCopy}
         panel={splitArchivePanels.lizzardkevin}
         active={activeTab === "lizzardkevin"}
         motion={stageMotion.lizzardkevin}
@@ -654,6 +689,8 @@ export function FrostedSplitTabs({ initialTab, onSelectTab }: FrostedSplitTabsPr
         onStageWheel={(event) => handleStageWheel("lizzardkevin", event)}
       />
       <ArchivePanel
+        language={activeLanguage}
+        copy={splitCopy}
         panel={splitArchivePanels.devStories}
         active={activeTab === "devStories"}
         motion={stageMotion.devStories}

@@ -1,3 +1,5 @@
+import type { SupportedLanguage } from "../i18n/resolveInitialLanguage";
+
 export type ProfileLink = {
   label: string;
   value: string;
@@ -16,7 +18,22 @@ export type ProfileSection = {
   tags: string[];
 };
 
-export const lizzardKevinIdentity = {
+type ProfileIdentity = {
+  name: string;
+  displayName: string;
+  roles: string[];
+  location: string;
+  status: string;
+  bio: string;
+};
+
+type ProfileBundle = {
+  identity: ProfileIdentity;
+  links: ProfileLink[];
+  sections: ProfileSection[];
+};
+
+const lizzardKevinIdentityZh: ProfileIdentity = {
   name: "LizzardKevin",
   displayName: "LizzardKevin",
   roles: ["AI 创意设计师", "空间设计师", "摄影师", "贝斯手", "etc."],
@@ -26,7 +43,7 @@ export const lizzardKevinIdentity = {
     "我把建筑训练、空间叙事、摄影观察、乐队经验和 AI 创作方法放在同一个个人档案里。SPACE 会承载更沉浸的展品与作品，而这里保持更传统的简历状态，方便快速理解我是谁、做过什么、还能继续展开什么。",
 };
 
-export const lizzardKevinLinks: ProfileLink[] = [
+const lizzardKevinLinksZh: ProfileLink[] = [
   { label: "Contact", value: "Open for selected collaborations" },
   { label: "Location", value: "New York / Shanghai" },
   { label: "GitHub", value: "LizzardKevin", href: "https://github.com/LizzardKevin" },
@@ -35,7 +52,7 @@ export const lizzardKevinLinks: ProfileLink[] = [
   { label: "Portfolio", value: "SPACE-first work archive" },
 ];
 
-export const lizzardKevinSections: ProfileSection[] = [
+const lizzardKevinSectionsZh: ProfileSection[] = [
   {
     id: "profile-education",
     number: "01",
@@ -163,3 +180,172 @@ export const lizzardKevinSections: ProfileSection[] = [
     tags: ["AI", "WebGPU", "Writing", "Experiments"],
   },
 ];
+
+const lizzardKevinIdentityEn: ProfileIdentity = {
+  name: "LizzardKevin",
+  displayName: "LizzardKevin",
+  roles: ["AI visual creator", "spatial designer", "photographer", "bassist", "etc."],
+  location: "New York / Shanghai",
+  status: "Architecture, creative technology, image-making, music, and personal culture archive.",
+  bio:
+    "I keep architecture training, spatial narrative, photography, band memory, and AI image workflows in the same personal archive. SPACE carries the more immersive exhibits; this page stays closer to a readable profile so visitors can quickly understand who I am, what I have done, and where the archive can grow next.",
+};
+
+const lizzardKevinLinksEn: ProfileLink[] = [
+  { label: "Contact", value: "Open for selected collaborations" },
+  { label: "Location", value: "New York / Shanghai" },
+  { label: "GitHub", value: "LizzardKevin", href: "https://github.com/LizzardKevin" },
+  { label: "Practice", value: "Architecture + creative technology" },
+  { label: "Archive", value: "Interactive SPACE in progress" },
+  { label: "Portfolio", value: "SPACE-first work archive" },
+];
+
+const lizzardKevinSectionsEn: ProfileSection[] = [
+  {
+    id: "profile-education",
+    number: "01",
+    title: "Education",
+    subtitle: "Pratt Institute / Columbia University",
+    summary:
+      "From Pratt's architecture foundation to Columbia's research-led spatial experiments, school shaped how I read scale, sequence, image, and systems.",
+    details: [
+      "Built a shared language across drawings, sections, models, material studies, and narrative presentation.",
+      "Connected research studios, spatial prototypes, and AI-assisted design into one working method.",
+      "Focused on how diagrams, model photography, renderings, and walk-throughs can explain a spatial idea together.",
+    ],
+    fill: [
+      "Pratt becomes a foundation archive for studio intensity, drawing logic, and model language.",
+      "Columbia becomes an experiment archive for spatial research, computation, and AI visual methods.",
+      "Each academic node can connect to SPACE through project images, short statements, and walkable exhibits.",
+    ],
+    spaceUse:
+      "In SPACE, this can become two archive walls: Pratt as foundational training, Columbia as research and experimentation.",
+    tags: ["Pratt", "Columbia", "Studio", "Research"],
+  },
+  {
+    id: "profile-architecture",
+    number: "02",
+    title: "Architecture",
+    subtitle: "Three-year professional stage",
+    summary:
+      "Three years in professional practice brought spatial ideas into collaboration, delivery, constraints, and presentation discipline.",
+    details: [
+      "Worked across concept design, modeling, drawings, visualization, material research, and presentation packages.",
+      "Kept spatial narrative and representation standards clear across changing project types, scales, and phases.",
+      "Use anonymized diagrams, abstracted models, and process notes for confidential work, preserving the professional logic without exposing restricted material.",
+    ],
+    fill: [
+      "Professional projects can become a corridor organized by project phase and role.",
+      "Public material can show images, models, detail fragments, and concise responsibility notes.",
+      "Restricted material can appear as abstract spatial slices, explaining working methods rather than showing confidential drawings.",
+    ],
+    spaceUse:
+      "In SPACE, this can become a professional corridor where each architecture project is an exhibit node; confidential projects stay abstract.",
+    tags: ["Spatial Design", "Professional", "Drawing", "Visualization"],
+  },
+  {
+    id: "profile-photography",
+    number: "03",
+    title: "Photography",
+    subtitle: "Image-making and spatial observation",
+    summary:
+      "Photography is how I practice observation: cities, light, people, speed, and chance feed back into spatial design and AI image work.",
+    details: [
+      "Look for atmosphere in architecture, streets, night scenes, live shows, and travel fragments.",
+      "Organize images as series, so photography becomes an ongoing observation archive rather than a set of isolated portfolio shots.",
+      "Translate composition, contrast, and color habits from photography into the WebGPU gallery and AI image experiments.",
+    ],
+    fill: [
+      "Photo walls can unfold by series, each with place, time, and a short statement.",
+      "The image room should feel closer to a darkroom or city fragment than a generic album grid.",
+      "Public images can connect outward; private images can appear only as curated fragments inside SPACE.",
+    ],
+    spaceUse:
+      "In SPACE, this can become a photo wall, darkroom, or city-slice zone where images stand as their own exhibit area.",
+    tags: ["Photography", "City", "Light", "Archive"],
+  },
+  {
+    id: "profile-music",
+    number: "04",
+    title: "Music / Band",
+    subtitle: "Bass, rehearsal, live performance",
+    summary:
+      "Bass and band memory bring sound, low frequency, and a live-room feeling into the archive; they are also the most natural source for SPACE audio exhibits.",
+    details: [
+      "Draw a sonic identity from rehearsals, demos, live recordings, and performance photos.",
+      "Care about how bass lines support rhythm, space, and stage atmosphere, not only gear lists.",
+      "Connect audio playback, progress bars, and Focus exhibits so work can be heard and viewed at the same time.",
+    ],
+    fill: [
+      "The music area can feel like a rehearsal corner, holding instruments, posters, and audio fragments.",
+      "Playable exhibits can connect demos, live clips, or low-frequency loops.",
+      "Each sound node should keep simple context: scene, track state, role, and recording time.",
+    ],
+    spaceUse:
+      "In SPACE, this can become a rehearsal corner or sound exhibit where clicking plays a demo, live clip, or bass line.",
+    tags: ["Bass", "Band", "Live", "Audio"],
+  },
+  {
+    id: "profile-culture",
+    number: "05",
+    title: "Anime / Culture",
+    subtitle: "Personal references and visual influence",
+    summary:
+      "Personal culture enters the archive as aesthetic source and narrative influence, not as a pile of titles; the point is how it changes my spatial, color, and character imagination.",
+    details: [
+      "Organize animation, manga, games, visual novels, and music projects as personal sources of taste.",
+      "Prioritize original, inspired-by, or experimental work instead of directly reposting official images.",
+      "Track how color, character atmosphere, spatial narrative, and music emotion migrate between media.",
+    ],
+    fill: [
+      "The culture area can behave like a reference archive with original images, posters, AI tests, and text notes.",
+      "Each node explains where an influence comes from and how it enters space, image, or sound work.",
+      "Public presentation should foreground original output; references stay mostly as textual clues.",
+    ],
+    spaceUse:
+      "In SPACE, this can become a cultural influence archive for original work and inspiration notes, not a direct repost wall.",
+    tags: ["Anime", "Culture", "Visual References", "Original Work"],
+  },
+  {
+    id: "profile-experiments",
+    number: "06",
+    title: "Other / Experiments",
+    subtitle: "AI, web, writing, and future work",
+    summary:
+      "This area holds AI, WebGPU, writing, and experiments that do not fit a single category yet; it is the lab where SPACE keeps growing.",
+    details: [
+      "Collect AI image and video work, spatial concept generation, prompt design, and workflow research.",
+      "Treat Three.js, WebGPU, and interactive portfolio work as real creative media, not just technical demos.",
+      "Keep essays, devlogs, research notes, and failed tests visible, so process becomes part of the archive.",
+    ],
+    fill: [
+      "The lab area can keep gaining exhibits: generated results, process screenshots, and design notes.",
+      "DevStories becomes the technical narrative layer, explaining how each build round changes SPACE.",
+      "Collaboration directions can orbit creative technology, spatial design, image-making, exhibition, music, and AI workflow.",
+    ],
+    spaceUse:
+      "In SPACE, this can stay as a living lab where future work expands directly into new exhibit nodes.",
+    tags: ["AI", "WebGPU", "Writing", "Experiments"],
+  },
+];
+
+const lizzardKevinProfileByLanguage = {
+  en: {
+    identity: lizzardKevinIdentityEn,
+    links: lizzardKevinLinksEn,
+    sections: lizzardKevinSectionsEn,
+  },
+  zh: {
+    identity: lizzardKevinIdentityZh,
+    links: lizzardKevinLinksZh,
+    sections: lizzardKevinSectionsZh,
+  },
+} satisfies Record<SupportedLanguage, ProfileBundle>;
+
+export function getLizzardKevinProfile(language: SupportedLanguage): ProfileBundle {
+  return lizzardKevinProfileByLanguage[language] ?? lizzardKevinProfileByLanguage.en;
+}
+
+export const lizzardKevinIdentity = lizzardKevinIdentityZh;
+export const lizzardKevinLinks = lizzardKevinLinksZh;
+export const lizzardKevinSections = lizzardKevinSectionsZh;

@@ -52,15 +52,15 @@ export function EntrySplash({
       setBlankClickCount((count) => {
         const next = count + 1;
         if (next === EASTER_EGG_CLICK_THRESHOLD) {
-          showEasterEgg("这么着急吗，倒是点击文字呀", e.clientX, e.clientY);
+          showEasterEgg(t("space.entry.blankClickNudge"), e.clientX, e.clientY);
         }
         if (next === EASTER_EGG_LARGE_BUTTON_CLICK_THRESHOLD) {
-          showEasterEgg("按钮都这么大了还不点吗？", e.clientX, e.clientY);
+          showEasterEgg(t("space.entry.largeButtonNudge"), e.clientX, e.clientY);
         }
         return next;
       });
     },
-    [fading, hideButton, showEasterEgg],
+    [fading, hideButton, showEasterEgg, t],
   );
 
   const handleSplashPointerMove = useCallback(

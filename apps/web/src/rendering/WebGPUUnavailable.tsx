@@ -1,6 +1,7 @@
-import { WEBGPU_UNSUPPORTED_MESSAGE } from "./webgpuSupport";
+import { useTranslation } from "react-i18next";
 
 export function WebGPUUnavailable() {
+  const { t } = useTranslation();
   return (
     <div
       style={{
@@ -27,9 +28,9 @@ export function WebGPUUnavailable() {
             marginBottom: 12,
           }}
         >
-          WebGPU Required
+          {t("webgpu.required")}
         </div>
-        <p style={{ margin: 0, fontSize: 15 }}>{WEBGPU_UNSUPPORTED_MESSAGE}</p>
+        <p style={{ margin: 0, fontSize: 15 }}>{t("webgpu.unsupported")}</p>
       </div>
     </div>
   );

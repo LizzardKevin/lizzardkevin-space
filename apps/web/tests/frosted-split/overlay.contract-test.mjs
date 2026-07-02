@@ -12,7 +12,12 @@ assert(!files.overlay.includes("useFocusDoubleClickHandler"), "tab overlay must 
 assert(!files.overlay.includes("overlay-close-button"), "tab overlay must not render the top-right close button");
 assert(!files.overlay.includes("overlay-exit-hint"), "tab overlay must not render the bottom-right exit hint");
 assert(files.overlay.includes("overlay-return-button"), "tab overlay must render the center return-to-space button");
-assert(files.overlay.includes("回到space"), "tab overlay return button copy must be 回到space");
+assert(
+  files.overlay.includes("useTranslation") &&
+    files.overlay.includes('t("overlay.returnLabel")') &&
+    files.overlay.includes('t("overlay.returnPrefix")'),
+  "tab overlay return button copy must come from localized overlay resources",
+);
 assert(files.topbar.includes("data-space-word-origin"), "TopBar SPACE word must expose a stable morph origin marker");
 assert(files.app.includes("spaceWordSourceRect"), "App must capture the SPACE word source rect before opening tabs");
 assert(files.overlay.includes("spaceWordSourceRect"), "OverlayLayer must accept the SPACE word source rect");

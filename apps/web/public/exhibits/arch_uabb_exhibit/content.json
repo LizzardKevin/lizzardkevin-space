@@ -1,33 +1,76 @@
 {
-  "title": "UABB: Huaqiangbei Stall Typology",
-  "subtitle": "An exhibition proposal for the 10th Bi-City Biennale of Urbanism/Architecture, reading Huaqiangbei through the micro-architecture of electronics-market stalls",
-  "overview": "This exhibit documents a UABB presentation proposal centered on Huaqiangbei's electronics markets. The work treats the stall as the smallest readable unit of a much larger urban and economic system: a place where display, repair, storage, negotiation and global supply chains are compressed into dense, improvised interiors.",
-  "storyHtml": "<p>The project begins with Huaqiangbei not as an abstract technology district, but as a field of repeated spatial acts. Counters, shelves, repair desks, escalator edges, screen partitions and island displays become a catalogue of how electronic commerce occupies architecture from the inside.</p><p>For the 10th Bi-City Biennale of Urbanism/Architecture, the proposal translates this research into an exhibition language. Field photographs, typology drawings and model fragments describe how each stall mediates two logics at once: face-to-face market exchange and the distributed networks of global electronics production.</p><p>The study focuses on the stall's flexibility. A single booth can become a storefront, inventory room, technical workstation, visual interface and social threshold. Its shape is constantly adjusted by merchandise, owners, circulation, maintenance work and the building's inherited structure.</p><p>Inside SPACE, the UABB exhibit is shown as both model and archive. The 3D object carries the atmosphere of a compressed market field, while the board images unfold the research sequence: context, typological catalogue, representational system and related observations from Shenzhen's streets.</p>",
-  "tags": [
-    "urban research",
-    "field observation",
-    "exhibition proposal"
-  ],
-  "metadata": [
-    {
-      "label": "Year",
-      "value": "2025"
-    },
-    {
-      "label": "Type",
-      "value": "UABB exhibition proposal / urban typology research"
-    },
-    {
-      "label": "Medium",
-      "value": "Field photography, typology drawings, research boards, digital model"
-    },
-    {
-      "label": "Role",
-      "value": "Research, mapping, modeling, exhibition narrative"
-    },
-    {
-      "label": "Status",
-      "value": "Biennale exhibit archive"
-    }
-  ]
+  "title": {
+    "en": "UABB: Huaqiangbei Stall Typology",
+    "zh": "UABB：华强北摊位类型研究"
+  },
+  "subtitle": {
+    "en": "An exhibition proposal for the 10th Bi-City Biennale of Urbanism/Architecture, reading Huaqiangbei through the micro-architecture of electronics-market stalls",
+    "zh": "为第十届深港城市建筑双城双年展提出的展览方案，通过电子市场摊位的微型建筑阅读华强北"
+  },
+  "overview": {
+    "en": "This exhibit documents a UABB presentation proposal centered on Huaqiangbei's electronics markets. The work treats the stall as the smallest readable unit of a much larger urban and economic system: a place where display, repair, storage, negotiation and global supply chains are compressed into dense, improvised interiors.",
+    "zh": "这个展品记录了一个以华强北电子市场为中心的 UABB 展示方案。项目把摊位视为更大城市与经济系统中最小、但可被阅读的单元：展示、维修、储存、议价和全球供应链被压缩进密集而不断调整的室内界面。"
+  },
+  "storyHtml": {
+    "en": "<p>The project begins with Huaqiangbei not as an abstract technology district, but as a field of repeated spatial acts. Counters, shelves, repair desks, escalator edges, screen partitions and island displays become a catalogue of how electronic commerce occupies architecture from the inside.</p><p>For the 10th Bi-City Biennale of Urbanism/Architecture, the proposal translates this research into an exhibition language. Field photographs, typology drawings and model fragments describe how each stall mediates two logics at once: face-to-face market exchange and the distributed networks of global electronics production.</p><p>The study focuses on the stall's flexibility. A single booth can become a storefront, inventory room, technical workstation, visual interface and social threshold. Its shape is constantly adjusted by merchandise, owners, circulation, maintenance work and the building's inherited structure.</p><p>Inside SPACE, the UABB exhibit is shown as both model and archive. The 3D object carries the atmosphere of a compressed market field, while the board images unfold the research sequence: context, typological catalogue, representational system and related observations from Shenzhen's streets.</p>",
+    "zh": "<p>项目并不把华强北当作抽象的科技区，而是从一组重复发生的空间动作开始观察它。柜台、货架、维修桌、电梯边界、屏幕隔断和岛式展示共同形成一份目录，说明电子商业如何从建筑内部占据和改写空间。</p><p>面向第十届深港城市建筑双城双年展，这个方案把现场研究转译为展览语言。现场照片、类型图纸和模型片段共同描述每个摊位如何同时连接两种逻辑：面对面的市场交换，以及分布式的全球电子生产网络。</p><p>研究重点在于摊位的弹性。一个小摊位可以同时成为店面、库存间、技术工作台、视觉界面和社交门槛。它的形态持续被商品、店主、动线、维修工作和既有建筑结构调整。</p><p>在 SPACE 中，UABB 展品同时作为模型和档案出现。3D 物件保留被压缩的市场场域气氛，展板图像则展开研究顺序：语境、类型目录、表达系统，以及来自深圳街道的相关观察。</p>"
+  },
+  "tags": {
+    "en": [
+      "urban research",
+      "field observation",
+      "exhibition proposal"
+    ],
+    "zh": [
+      "城市研究",
+      "现场观察",
+      "展览方案"
+    ]
+  },
+  "metadata": {
+    "en": [
+      {
+        "label": "Year",
+        "value": "2025"
+      },
+      {
+        "label": "Type",
+        "value": "UABB exhibition proposal / urban typology research"
+      },
+      {
+        "label": "Medium",
+        "value": "Field photography, typology drawings, research boards, digital model"
+      },
+      {
+        "label": "Role",
+        "value": "Research, mapping, modeling, exhibition narrative"
+      },
+      {
+        "label": "Status",
+        "value": "Biennale exhibit archive"
+      }
+    ],
+    "zh": [
+      {
+        "label": "年份",
+        "value": "2025"
+      },
+      {
+        "label": "类型",
+        "value": "UABB 展览方案 / 城市类型研究"
+      },
+      {
+        "label": "媒介",
+        "value": "现场摄影、类型图纸、研究展板、数字模型"
+      },
+      {
+        "label": "角色",
+        "value": "研究、mapping、建模、展览叙事"
+      },
+      {
+        "label": "状态",
+        "value": "双年展展品档案"
+      }
+    ]
+  }
 }

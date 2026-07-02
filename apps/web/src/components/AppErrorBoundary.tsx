@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import i18n from "../i18n/i18n";
 
 type Props = {
   children: ReactNode;
@@ -13,7 +14,7 @@ export class AppErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, message: "" };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, message: error.message || "Unknown error" };
+    return { hasError: true, message: error.message || i18n.t("error.unknown") };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
@@ -40,9 +41,9 @@ export class AppErrorBoundary extends Component<Props, State> {
       >
         <div style={{ maxWidth: 480, lineHeight: 1.6 }}>
           <div style={{ fontSize: 12, letterSpacing: "0.08em", opacity: 0.6, marginBottom: 12 }}>
-            APP ERROR
+            {i18n.t("error.appTitle")}
           </div>
-          <p style={{ margin: "0 0 12px" }}>页面加载失败，请刷新或升级浏览器后重试。</p>
+          <p style={{ margin: "0 0 12px" }}>{i18n.t("error.appBody")}</p>
           <p style={{ margin: 0, fontSize: 12, opacity: 0.55 }}>{this.state.message}</p>
         </div>
       </div>

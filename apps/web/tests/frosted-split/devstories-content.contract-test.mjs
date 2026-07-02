@@ -30,8 +30,13 @@ assert(
   "DevStories stage previews must trim after the first Chinese or English sentence",
 );
 
-for (const label of ["What I tuned", "What got weird", "Next note"]) {
-  assert(splitArchiveData.includes(`title: "${label}"`), `DevStories detail label must include ${label}`);
+for (const [copyKey, label] of [
+  ["whatITuned", "What I tuned"],
+  ["whatGotWeird", "What got weird"],
+  ["nextNote", "Next note"],
+]) {
+  assert(splitArchiveData.includes(`${copyKey}: "${label}"`), `DevStories detail copy must include ${label}`);
+  assert(splitArchiveData.includes(`copy.${copyKey}`), `DevStories detail label must render localized ${copyKey}`);
 }
 
 for (const oldLabel of ["Built", "Trouble / Rollback", 'title: "Next"', "process ledger"]) {

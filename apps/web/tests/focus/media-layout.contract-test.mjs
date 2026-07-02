@@ -101,7 +101,7 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
       overlaySource.includes('loop={activeMedia.kind === "video"}') &&
       overlaySource.includes('preload="metadata"') &&
       overlaySource.includes("focus-media-dot--video") &&
-      overlaySource.includes("Show process animation"),
+      overlaySource.includes('"focus.showVideo"'),
     "Focus media should expose MP4 animations as a visible video page with controls, metadata-only preload, and a distinct page dot",
   );
   assert.ok(

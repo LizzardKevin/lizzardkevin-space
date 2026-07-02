@@ -17,6 +17,7 @@ import { WebGPUErrorBoundary } from "../rendering/WebGPUErrorBoundary";
 import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
 import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
 import { SpaceScene } from "../scenes/SpaceScene";
+import type { SpaceJumpNoticeKey } from "../scenes/Player/PlayerController";
 import type { ProjectorSlideCommand, ProjectorSlideDirection } from "../scenes/projector/projectorSlides";
 import {
   ENABLE_GALLERY_GLB,
@@ -64,17 +65,24 @@ type SpacePointerLockFailedEvent = CustomEvent<{
   permanent?: boolean;
 }>;
 
+type SpaceToastKey = "space.pointerLockFailed" | "space.exhibitLoading" | "space.manifestMissing";
+type SpaceToastState = {
+  key: SpaceToastKey;
+  values?: Record<string, string>;
+};
+
 function JumpHint({ message, visible }: { message: string; visible: boolean }) {
   if (!visible || !message) return null;
   return <div className="jump-hint">{message}</div>;
 }
 
 function ProjectorControlsHint({ visible }: { visible: boolean }) {
+  const { t } = useTranslation();
   if (!visible) return null;
   return (
     <div className="projector-controls-hint" aria-hidden>
-      <span>Q 上一张</span>
-      <span>E 下一张</span>
+      <span>{t("space.projector.previous")}</span>
+      <span>{t("space.projector.next")}</span>
     </div>
   );
 }
@@ -122,10 +130,10 @@ export function SpaceDesktopExperience({
   const [focused, setFocused] = useState<ExhibitManifestItem | null>(null);
   /** 退出动效期间仍挂载 Focus，但已恢复 SPACE 第一人称控制 */
   const [focusClosing, setFocusClosing] = useState<ExhibitManifestItem | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<SpaceToastState | null>(null);
   const [crosshairPulseNonce, setCrosshairPulseNonce] = useState(0);
   const [suppressNextExhibitClick, setSuppressNextExhibitClick] = useState(false);
-  const [jumpHintMessage, setJumpHintMessage] = useState("");
+  const [jumpHintKey, setJumpHintKey] = useState<SpaceJumpNoticeKey | null>(null);
   const [jumpHintVisible, setJumpHintVisible] = useState(false);
   const [projectorSlideCommand, setProjectorSlideCommand] =
     useState<ProjectorSlideCommand | null>(null);
@@ -155,17 +163,17 @@ export function SpaceDesktopExperience({
       const permanent = detail?.permanent ?? isPermanentPointerLockFailure(message);
       if (!permanent) return;
       setPointerLockUnavailable(true);
-      setToast(t("space.pointerLockFailed"));
+      setToast({ key: "space.pointerLockFailed" });
     };
     window.addEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, onPointerLockFailed);
     return () => window.removeEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, onPointerLockFailed);
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     if (!jumpHintVisible) return;
     const timer = window.setTimeout(() => setJumpHintVisible(false), JUMP_HINT_VISIBLE_MS);
     return () => window.clearTimeout(timer);
-  }, [jumpHintVisible, jumpHintMessage]);
+  }, [jumpHintVisible, jumpHintKey]);
 
   useEffect(() => {
     const update = () => setPointerLocked(document.pointerLockElement !== null);
@@ -322,12 +330,12 @@ export function SpaceDesktopExperience({
         return;
       }
       if (manifest === null) {
-        setToast("展品信息加载中…");
+        setToast({ key: "space.exhibitLoading" });
         return;
       }
       const found = manifest.find((e) => e.exhibitId === id);
       if (!found) {
-        setToast(`manifest 无此展品: ${id}`);
+        setToast({ key: "space.manifestMissing", values: { id } });
         return;
       }
       flushSync(() => {
@@ -397,10 +405,12 @@ export function SpaceDesktopExperience({
     if (suppressNextExhibitClick) setSuppressNextExhibitClick(false);
   }, [suppressNextExhibitClick]);
 
-  const handleJumpNotice = useCallback((message: string) => {
-    setJumpHintMessage(message);
+  const handleJumpNotice = useCallback((messageKey: SpaceJumpNoticeKey) => {
+    setJumpHintKey(messageKey);
     setJumpHintVisible(true);
   }, []);
+  const jumpHintMessage = jumpHintKey ? t(jumpHintKey) : "";
+  const toastMessage = toast ? (toast.values ? t(toast.key, toast.values) : t(toast.key)) : null;
 
   const hud = useMemo(
     () => (
@@ -433,8 +443,8 @@ export function SpaceDesktopExperience({
       />
       <SpaceMovementDebugOverlay />
       <Toast
-        message={toast}
-        durationMs={toast === t("space.pointerLockFailed") ? 5200 : 2200}
+        message={toastMessage}
+        durationMs={toast?.key === "space.pointerLockFailed" ? 5200 : 2200}
         onDone={() => setToast(null)}
       />
       {hud}
@@ -454,7 +464,7 @@ export function SpaceDesktopExperience({
             letterSpacing: "0.06em",
           }}
         >
-          {t("space.loading", { defaultValue: "正在初始化 WebGPU…" })}
+          {t("space.loading")}
         </div>
       ) : null}
       {webgpuReady === false ? <WebGPUUnavailable /> : null}

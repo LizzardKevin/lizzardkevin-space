@@ -142,7 +142,12 @@ for (const removedType of ["ExpertiseChip", "ExpertiseCategory", "expertiseFilte
 
 assert(files.mobileExperience.includes("selectedProjectId"), "mobile experience must use selectedProjectId state");
 assert(files.mobileExperience.includes("ProjectDetailView"), "project selection must open a detail view");
-assert(files.mobileExperience.includes("<ProjectDetailView project={selectedProject} language={language}"), "project details must render localized project body copy");
+assert(
+  /<ProjectDetailView[\s\S]*copy=\{copy\}[\s\S]*project=\{selectedProject\}[\s\S]*language=\{language\}/.test(
+    files.mobileExperience,
+  ),
+  "project details must render localized project body copy and chrome",
+);
 assert(files.mobileExperience.includes("ProjectsView"), "mobile experience must include a Projects view");
 assert(files.mobileExperience.includes("SkillsDocument"), "mobile experience must include a Skills.md document view");
 assert(files.mobileExperience.includes("copy={copy.skills}"), "Skills.md must receive localized skill copy");
@@ -184,8 +189,8 @@ assert(files.mobileExperience.includes("mobile-terminal-fold mobile-terminal-fol
 assert(files.mobileExperience.includes("mobile-terminal-fold mobile-terminal-fold--soul"), "Soul.md must render markdown-style fold sections");
 assert(files.mobileExperience.includes("mobile-soul-intro"), "Soul.md intro must stay outside collapsible details");
 
-for (const detailLabel of ["Current Signal", "SPACE Layer", "Archive Note"]) {
-  assert(files.mobileExperience.includes(detailLabel), `project detail must render ${detailLabel}`);
+for (const detailLabel of ["currentSignal", "spaceLayer", "archiveNote", "tags", "media", "imageAlt"]) {
+  assert(mobileData.includes(detailLabel), `project detail copy must include localized ${detailLabel}`);
 }
 
 assert(mobileData.includes('id: "arch_treehabitat"'), "mobile projects must include Tree Habitat by exhibit id");

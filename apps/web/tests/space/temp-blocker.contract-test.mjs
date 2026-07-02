@@ -41,6 +41,10 @@ assert(
 );
 assert(!notices.includes("Collider"), "TEMP blocker notices must not create physics colliders");
 assert(
+  notices.includes("i18n.resolvedLanguage ?? i18n.language") && notices.includes("key={noticeLanguage}"),
+  "TEMP blocker notices must remount Html text when the runtime language changes",
+);
+assert(
   i18n.includes('tempBlocker:') &&
     i18n.includes('notice: "后方空间仍在建设中"') &&
     i18n.includes('notice: "More SPACE is under construction"'),

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { importSourceModule } from "../helpers/projectPaths.mjs";
 
-async function loadContentFixture(content) {
+async function loadContentFixture(content, language = "en") {
   const previousFetch = globalThis.fetch;
   globalThis.fetch = async () => ({
     ok: true,
@@ -11,7 +11,7 @@ async function loadContentFixture(content) {
 
   try {
     const { loadExhibitContent } = await importSourceModule("exhibits/exhibitContent.ts");
-    return await loadExhibitContent("sample_exhibit");
+    return await loadExhibitContent("sample_exhibit", language);
   } finally {
     globalThis.fetch = previousFetch;
   }
@@ -59,6 +59,76 @@ test("loadExhibitContent omits invalid optional subtitle and metadata without re
     title: "Sample Exhibit",
     overview: "A compact overview.",
     storyHtml: "<p>A longer story.</p>",
+  });
+});
+
+test("loadExhibitContent resolves bilingual content for the requested language", async () => {
+  const content = await loadContentFixture(
+    {
+      title: { en: "Sample Exhibit", zh: "样本展品" },
+      subtitle: { en: "Material study", zh: "材料研究" },
+      overview: {
+        en: "A compact overview.",
+        zh: "一段简洁概述。",
+      },
+      storyHtml: {
+        en: "<p>A longer story.</p>",
+        zh: "<p>更完整的故事。</p>",
+      },
+      tags: {
+        en: ["student work", "model"],
+        zh: ["学生作品", "模型"],
+      },
+      metadata: {
+        en: [
+          { label: "Year", value: "2026" },
+          { label: "Medium", value: "WebGL" },
+        ],
+        zh: [
+          { label: "年份", value: "2026" },
+          { label: "媒介", value: "WebGL" },
+        ],
+      },
+    },
+    "zh",
+  );
+
+  assert.deepEqual(content, {
+    title: "样本展品",
+    subtitle: "材料研究",
+    overview: "一段简洁概述。",
+    storyHtml: "<p>更完整的故事。</p>",
+    tags: ["学生作品", "模型"],
+    metadata: [
+      { label: "年份", value: "2026" },
+      { label: "媒介", value: "WebGL" },
+    ],
+  });
+});
+
+test("loadExhibitContent falls back to English when localized content is incomplete", async () => {
+  const content = await loadContentFixture(
+    {
+      title: { en: "Sample Exhibit" },
+      subtitle: { en: "Material study", zh: "" },
+      overview: { en: "A compact overview." },
+      storyHtml: { en: "<p>A longer story.</p>" },
+      tags: { en: ["student work"] },
+      metadata: {
+        en: [{ label: "Year", value: "2026" }],
+        zh: [],
+      },
+    },
+    "zh",
+  );
+
+  assert.deepEqual(content, {
+    title: "Sample Exhibit",
+    subtitle: "Material study",
+    overview: "A compact overview.",
+    storyHtml: "<p>A longer story.</p>",
+    tags: ["student work"],
+    metadata: [{ label: "Year", value: "2026" }],
   });
 });
 

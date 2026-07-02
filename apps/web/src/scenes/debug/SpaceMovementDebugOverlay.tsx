@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   SPACE_EXHIBIT_PLACEMENT_DEBUG_EVENT,
   SPACE_MOVEMENT_DEBUG_EVENT,
@@ -17,6 +18,7 @@ function formatSpeedRatio(value: number | null) {
 }
 
 export function SpaceMovementDebugOverlay() {
+  const { t } = useTranslation();
   const [sample, setSample] = useState<SpaceMovementDebugSample | null>(null);
   const [raycastSample, setRaycastSample] = useState<SpaceRaycastDebugSample | null>(null);
   const [placementSample, setPlacementSample] = useState<SpaceExhibitPlacementDebugSample | null>(
@@ -54,82 +56,87 @@ export function SpaceMovementDebugOverlay() {
 
   if (!import.meta.env.DEV || !sample) return null;
 
-  const contacts = sample.contactNames.length > 0 ? sample.contactNames.join(", ") : "none";
-  const hitMeshName = raycastSample?.hitMeshName ?? "none";
+  const noneLabel = t("debug.none");
+  const contacts = sample.contactNames.length > 0 ? sample.contactNames.join(", ") : noneLabel;
+  const hitMeshName = raycastSample?.hitMeshName ?? noneLabel;
   const exhibitPlacement = placementSample
     ? `${placementSample.exhibitId} / ${placementSample.placementMode} / ${placementSample.variant} / ${
-        placementSample.mounted ? "mounted" : "unmounted"
+        placementSample.mounted ? t("debug.mounted") : t("debug.unmounted")
       } / ${
-        placementSample.floorName ?? "no floor"
+        placementSample.floorName ?? t("debug.noFloor")
       }`
-    : "none";
+    : noneLabel;
 
   return (
-    <aside className="space-movement-debug" aria-label="SPACE debug">
-      <div className="space-movement-debug__title">debug</div>
+    <aside className="space-movement-debug" aria-label={t("debug.label")}>
+      <div className="space-movement-debug__title">{t("debug.title")}</div>
       <dl>
         <div>
-          <dt>mesh</dt>
+          <dt>{t("debug.mesh")}</dt>
           <dd>{hitMeshName}</dd>
         </div>
         <div>
-          <dt>exhibit</dt>
+          <dt>{t("debug.exhibit")}</dt>
           <dd>{exhibitPlacement}</dd>
         </div>
         <div>
-          <dt>fps</dt>
+          <dt>{t("debug.fps")}</dt>
           <dd>
-            {formatNumber(sample.frameRate.fps, 1)} / frame{" "}
+            {formatNumber(sample.frameRate.fps, 1)} / {t("debug.frame")}{" "}
             {formatNumber(sample.frameRate.frameMs, 1)} ms
           </dd>
         </div>
         <div>
-          <dt>pos</dt>
+          <dt>{t("debug.position")}</dt>
           <dd>
             x {formatNumber(sample.position.x)} / y {formatNumber(sample.position.y)} / z{" "}
             {formatNumber(sample.position.z)}
           </dd>
         </div>
         <div>
-          <dt>speed</dt>
+          <dt>{t("debug.speed")}</dt>
           <dd>
-            actual {formatNumber(sample.actualSpeed)} m/s / desired{" "}
+            {t("debug.actual")} {formatNumber(sample.actualSpeed)} m/s / {t("debug.desired")}{" "}
             {formatNumber(sample.desiredSpeed)} m/s
           </dd>
         </div>
         <div>
-          <dt>ratio</dt>
+          <dt>{t("debug.ratio")}</dt>
           <dd>
-            {formatSpeedRatio(sample.speedRatio)} / target {formatNumber(sample.targetSpeed)} m/s
+            {formatSpeedRatio(sample.speedRatio)} / {t("debug.target")}{" "}
+            {formatNumber(sample.targetSpeed)} m/s
           </dd>
         </div>
         <div>
-          <dt>look</dt>
+          <dt>{t("debug.look")}</dt>
           <dd>
-            yaw {formatNumber(sample.lookRotation.yawDeg)} deg / pitch{" "}
-            {formatNumber(sample.lookRotation.pitchDeg)} deg / tick {sample.lookRotation.tick}
+            {t("debug.yaw")} {formatNumber(sample.lookRotation.yawDeg)} deg / {t("debug.pitch")}{" "}
+            {formatNumber(sample.lookRotation.pitchDeg)} deg / {t("debug.tick")}{" "}
+            {sample.lookRotation.tick}
           </dd>
         </div>
         <div>
-          <dt>look delta</dt>
+          <dt>{t("debug.lookDelta")}</dt>
           <dd>
-            yaw {formatNumber(sample.lookRotation.deltaYawDeg)} deg / pitch{" "}
-            {formatNumber(sample.lookRotation.deltaPitchDeg)} deg / total{" "}
-            {formatNumber(sample.lookRotation.deltaTotalDeg)} deg / dt {formatNumber(sample.dt * 1000)} ms
+            {t("debug.yaw")} {formatNumber(sample.lookRotation.deltaYawDeg)} deg /{" "}
+            {t("debug.pitch")} {formatNumber(sample.lookRotation.deltaPitchDeg)} deg /{" "}
+            {t("debug.total")} {formatNumber(sample.lookRotation.deltaTotalDeg)} deg /{" "}
+            {t("debug.dt")} {formatNumber(sample.dt * 1000)} ms
           </dd>
         </div>
         <div>
-          <dt>state</dt>
+          <dt>{t("debug.state")}</dt>
           <dd>
-            grounded {sample.grounded ? "yes" : "no"} / collisions {sample.collisionCount}
+            {t("debug.grounded")} {sample.grounded ? t("debug.yes") : t("debug.no")} /{" "}
+            {t("debug.collisions")} {sample.collisionCount}
           </dd>
         </div>
         <div>
-          <dt>vertical</dt>
+          <dt>{t("debug.vertical")}</dt>
           <dd>{formatNumber(sample.verticalVelocity)} m/s</dd>
         </div>
         <div>
-          <dt>contact</dt>
+          <dt>{t("debug.contact")}</dt>
           <dd>{contacts}</dd>
         </div>
       </dl>

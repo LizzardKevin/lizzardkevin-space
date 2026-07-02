@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode, type UIEvent } from "react";
+import { useTranslation } from "react-i18next";
 import type { EntryTransition } from "../entry/entryTypes";
+import { normalizeSupportedLanguage, readInitialLanguage } from "../i18n/resolveInitialLanguage";
 import {
   getProjectItem,
   mobileProjectItems,
@@ -25,7 +27,6 @@ const THEME_REVEAL_DURATION_MS = 620;
 const PROJECT_SNAP_DURATION_MS = 360;
 const SHELL_COLLAPSE_OFFSET_PX = 84;
 const NAV_COLLAPSE_OFFSET_PX = 34;
-const DEFAULT_TERMINAL_LANGUAGE: MobileTerminalLanguage = "en";
 const DEFAULT_TERMINAL_THEME: MobileTerminalTheme = "light";
 const LANGUAGE_STORAGE_KEY = "mobileTerminalLanguage";
 const THEME_STORAGE_KEY = "mobileTerminalThemeV2";
@@ -91,8 +92,10 @@ function safeWriteStorageItem(key: string, value: string) {
 }
 
 function readStoredLanguage(): MobileTerminalLanguage {
-  const value = safeReadStorageItem(LANGUAGE_STORAGE_KEY);
-  return value === "zh" || value === "en" ? value : DEFAULT_TERMINAL_LANGUAGE;
+  const sharedValue = safeReadStorageItem("lang");
+  if (sharedValue === "zh" || sharedValue === "en") return sharedValue;
+  const mobileValue = safeReadStorageItem(LANGUAGE_STORAGE_KEY);
+  return mobileValue === "zh" || mobileValue === "en" ? mobileValue : readInitialLanguage();
 }
 
 function readStoredTheme(): MobileTerminalTheme {
@@ -159,6 +162,7 @@ function getFoldExpanded(foldState: TerminalFoldState, foldId: string) {
 }
 
 export function MobileExperience({ entry }: { entry: EntryTransition }) {
+  const { i18n } = useTranslation();
   const { entered } = entry;
   const terminalRootRef = useRef<HTMLDivElement | null>(null);
   const terminalShellRef = useRef<HTMLElement | null>(null);
@@ -181,7 +185,7 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
   const documentKey = selectedProject
     ? `project-${selectedProject.id}-${language}-${viewLoadKey}`
     : `${activeTab ?? "idle"}-${language}-${viewLoadKey}`;
-  const documentLabel = activeTab ? TERMINAL_LABELS[TAB_ORDER.indexOf(activeTab)] : "Mobile terminal idle";
+  const documentLabel = activeTab ? TERMINAL_LABELS[TAB_ORDER.indexOf(activeTab)] : copy.aria.idle;
 
   useEffect(() => {
     if (!entered) return undefined;
@@ -204,6 +208,20 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
   }, [bootLanguage, entered]);
 
   useEffect(() => {
+    const syncLanguage = (value: string) => {
+      const nextLanguage = normalizeSupportedLanguage(value);
+      setLanguageState(nextLanguage);
+      safeWriteStorageItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+      void loadTerminalFonts(nextLanguage).then((status) => setFontStatus(status));
+    };
+
+    i18n.on("languageChanged", syncLanguage);
+    return () => {
+      i18n.off("languageChanged", syncLanguage);
+    };
+  }, [i18n]);
+
+  useEffect(() => {
     return () => {
       if (themeRevealTimeoutRef.current !== null) {
         window.clearTimeout(themeRevealTimeoutRef.current);
@@ -217,6 +235,8 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
   const setLanguage = (next: MobileTerminalLanguage) => {
     setLanguageState(next);
     safeWriteStorageItem(LANGUAGE_STORAGE_KEY, next);
+    safeWriteStorageItem("lang", next);
+    void i18n.changeLanguage(next);
     void loadTerminalFonts(next);
   };
 
@@ -336,7 +356,11 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
         data-font-status={fontStatus}
         data-language={language}
       >
-        <TerminalBootView command={copy.boot.command || FALLBACK_BOOT_COMMAND} status={copy.boot.status || FALLBACK_BOOT_STATUS} />
+        <TerminalBootView
+          ariaLabel={copy.aria.loading}
+          command={copy.boot.command || FALLBACK_BOOT_COMMAND}
+          status={copy.boot.status || FALLBACK_BOOT_STATUS}
+        />
       </div>
     );
   }
@@ -350,7 +374,11 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
       data-language={language}
     >
       {booting ? (
-        <TerminalBootView command={copy.boot.command || FALLBACK_BOOT_COMMAND} status={copy.boot.status || FALLBACK_BOOT_STATUS} />
+        <TerminalBootView
+          ariaLabel={copy.aria.loading}
+          command={copy.boot.command || FALLBACK_BOOT_COMMAND}
+          status={copy.boot.status || FALLBACK_BOOT_STATUS}
+        />
       ) : (
         <>
           <header className="mobile-terminal-header mobile-terminal-chromeLoad">
@@ -361,7 +389,7 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
             <button
               type="button"
               className="mobile-terminal-settingsButton"
-              aria-label="Terminal settings"
+              aria-label={copy.aria.settings}
               aria-expanded={settingsOpen}
               onClick={() => setSettingsOpen((open) => !open)}
             >
@@ -379,7 +407,7 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
             />
           ) : null}
 
-          <nav className="mobile-terminal-nav mobile-terminal-chromeLoad" aria-label="Mobile terminal sections">
+          <nav className="mobile-terminal-nav mobile-terminal-chromeLoad" aria-label={copy.aria.sections}>
             {mobileTabs.map((tab, index) => (
               <button
                 key={tab.id}
@@ -410,11 +438,17 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
           <main
             ref={terminalShellRef}
             className={`mobile-terminal-shell${activeTab === "contact" ? " mobile-terminal-shell--contact" : ""}`}
-            aria-label="Mobile terminal museum"
+            aria-label={copy.aria.museum}
             onScroll={handleDocumentScroll}
           >
             {selectedProject ? (
-              <ProjectDetailView project={selectedProject} language={language} key={documentKey} onBack={closeProject} />
+              <ProjectDetailView
+                copy={copy}
+                project={selectedProject}
+                language={language}
+                key={documentKey}
+                onBack={closeProject}
+              />
             ) : (
               <section
                 key={documentKey}
@@ -457,11 +491,19 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
   );
 }
 
-function TerminalBootView({ command, status }: { command: string; status: string }) {
+function TerminalBootView({
+  ariaLabel,
+  command,
+  status,
+}: {
+  ariaLabel: string;
+  command: string;
+  status: string;
+}) {
   const loadingStatus = status.endsWith("...") ? status.slice(0, -3) : status;
 
   return (
-    <div className="mobile-terminal-boot" aria-label="Mobile terminal loading">
+    <div className="mobile-terminal-boot" aria-label={ariaLabel}>
       <span>{command}</span>
       <strong>
         {loadingStatus}
@@ -614,10 +656,12 @@ function ProjectsView({
 }
 
 function ProjectDetailView({
+  copy,
   project,
   language,
   onBack,
 }: {
+  copy: typeof mobileTerminalCopy.en;
   project: MobileProjectItem;
   language: MobileTerminalLanguage;
   onBack: () => void;
@@ -637,7 +681,7 @@ function ProjectDetailView({
           <h1>{project.title}</h1>
           {subtitle ? <p className="mobile-project-detail__subtitle">{subtitle}</p> : null}
           {project.tags?.length ? (
-            <div className="mobile-project-detail__tags" aria-label={`${project.title} tags`}>
+            <div className="mobile-project-detail__tags" aria-label={`${project.title} ${copy.projectDetails.tags}`}>
               {project.tags?.map((tag) => (
                 <span key={tag}>{tag}</span>
               ))}
@@ -645,7 +689,7 @@ function ProjectDetailView({
           ) : null}
           <p>{project.summary[language]}</p>
         </header>
-        <div className="mobile-project-detail__media" aria-label={`${project.title} media`}>
+        <div className="mobile-project-detail__media" aria-label={`${project.title} ${copy.projectDetails.media}`}>
           <span>{project.mediaKind}</span>
           <strong>{project.mediaStatus[language]}</strong>
           {project.imageUrls?.length ? (
@@ -654,7 +698,7 @@ function ProjectDetailView({
                 <img
                   key={url}
                   src={publicAssetUrl(url)}
-                  alt={`${project.title} image ${index + 1}`}
+                  alt={`${project.title} ${copy.projectDetails.imageAlt} ${index + 1}`}
                   loading="lazy"
                   decoding="async"
                 />
@@ -665,15 +709,15 @@ function ProjectDetailView({
         {story ? <p className="mobile-project-detail__story">{project.story?.[language]}</p> : null}
         <dl className="mobile-project-detail__notes">
           <div>
-            <dt>Current Signal</dt>
+            <dt>{copy.projectDetails.currentSignal}</dt>
             <dd>{project.signal[language]}</dd>
           </div>
           <div>
-            <dt>SPACE Layer</dt>
+            <dt>{copy.projectDetails.spaceLayer}</dt>
             <dd>{project.spaceLayer[language]}</dd>
           </div>
           <div>
-            <dt>Archive Note</dt>
+            <dt>{copy.projectDetails.archiveNote}</dt>
             <dd>{project.archiveNote[language]}</dd>
           </div>
         </dl>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { usePlayback } from "./usePlayback";
 import { PLAYBACK_BAR_REVEAL_MS } from "./playbackBarTiming";
 import type { PlaybackState } from "./PlaybackState";
@@ -17,6 +18,7 @@ function seekFraction(duration: number, clientX: number, rect: DOMRect) {
 }
 
 export function PlaybackBar({ elevated = false }: { elevated?: boolean }) {
+  const { t } = useTranslation();
   const { state, seekTo } = usePlayback();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -120,7 +122,7 @@ export function PlaybackBar({ elevated = false }: { elevated?: boolean }) {
         aria-valuemin={0}
         aria-valuemax={liveDuration}
         aria-valuenow={displayState.currentTime}
-        aria-label="播放进度"
+        aria-label={t("media.playbackProgress")}
         onPointerDown={(e) => {
           e.preventDefault();
           e.stopPropagation();

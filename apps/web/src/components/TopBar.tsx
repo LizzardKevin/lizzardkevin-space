@@ -5,21 +5,16 @@ import { useSpaceVisualSettings } from "../space/spaceVisualSettings";
 
 type SupportedLanguage = "zh" | "en";
 
-const TOPBAR_SETTINGS_COPY = {
-  en: {
-    language: "Language",
-    antialias: "Antialias",
-    settingsLabel: "SPACE settings",
-  },
-  zh: {
-    language: "语言",
-    antialias: "抗锯齿",
-    settingsLabel: "SPACE 设置",
-  },
-};
-
 function normalizeLanguage(language: string | undefined): SupportedLanguage {
   return language?.toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+
+function writeStoredLanguage(language: SupportedLanguage) {
+  try {
+    localStorage.setItem("lang", language);
+  } catch {
+    // Language persistence should never block the visible language switch.
+  }
 }
 
 function TopButton({
@@ -73,7 +68,7 @@ export function TopBar({
       setIsChangingLanguage(true);
       try {
         await i18n.changeLanguage(next);
-        localStorage.setItem("lang", next);
+        writeStoredLanguage(next);
         document.documentElement.lang = next;
         setActiveLanguage(next);
       } finally {
@@ -83,7 +78,9 @@ export function TopBar({
     [activeLanguage, i18n, isChangingLanguage],
   );
 
-  const copy = TOPBAR_SETTINGS_COPY[activeLanguage];
+  const settingsLabel = t("settings.label");
+  const languageLabel = t("settings.language");
+  const antialiasLabel = t("settings.antialias");
 
   return (
     <div className="topbar">
@@ -96,7 +93,7 @@ export function TopBar({
       <button
         type="button"
         aria-expanded={settingsOpen}
-        aria-label={copy.settingsLabel}
+        aria-label={settingsLabel}
         onClick={() => setSettingsOpen((open) => !open)}
         className="topbar__settingsButton"
       >
@@ -108,10 +105,10 @@ export function TopBar({
       </button>
 
       {settingsOpen ? (
-        <div className="topbar__settingsPanel" role="dialog" aria-label={copy.settingsLabel}>
+        <div className="topbar__settingsPanel" role="dialog" aria-label={settingsLabel}>
           <div className="topbar__settingsRow">
-            <span>{copy.language}</span>
-            <div className="topbar__settingsSegment" role="group" aria-label={copy.language}>
+            <span>{languageLabel}</span>
+            <div className="topbar__settingsSegment" role="group" aria-label={languageLabel}>
               <button
                 type="button"
                 aria-pressed={activeLanguage === "en"}
@@ -132,7 +129,7 @@ export function TopBar({
           </div>
 
           <div className="topbar__settingsRow topbar__settingsRow--checkbox">
-            <span>{copy.antialias}</span>
+            <span>{antialiasLabel}</span>
             <label className="topbar__settingsCheck">
               <input
                 type="checkbox"

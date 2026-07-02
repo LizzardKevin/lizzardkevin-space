@@ -1,34 +1,78 @@
 {
-  "title": "Tree Habitat",
-  "subtitle": "Academic architecture study for a speculative vertical habitat",
-  "overview": "Tree Habitat is a student-era architecture project that studies how a dense mixed-use tower could behave less like an isolated object and more like an urban habitat. Set beside Shenzhen's mangrove coast, the proposal uses root, trunk, branch and canopy metaphors to organize circulation, public program, office space, hotel use and planted sky levels into one spatial system.",
-  "storyHtml": "<p>This project belongs to an academic studio context rather than a commercial commission. Its value is in the design question: how can a high-rise combine work, public culture, temporary stay and ecological imagination without becoming only a sealed office object?</p><p>The concept begins with mangrove structure. Mangrove roots stabilize unstable ground, filter edges and create shared habitat. Tree Habitat translates that logic into a split base for traffic and public programs, a dense trunk of work spaces, branching tower bodies and elevated gardens that act as collective pause points.</p><p>The proposal also tests circulation as a spatial ecology. Express elevators, local elevators, transfer floors and bridged commercial levels separate different users while allowing overlap around public and social programs. The drawings and model treat movement, section and program stacking as the main design material.</p><p>On this site, the project is presented as academic architecture: a learning-stage spatial study about ecology, structure, mixed use and representation. The digital model and image sequence are kept as evidence of the design process, not as proof of a completed built project.</p>",
-  "tags": [
-    "student work",
-    "mixed use",
-    "highrise building",
-    "architecture"
-  ],
-  "metadata": [
-    {
-      "label": "Year",
-      "value": "2021"
-    },
-    {
-      "label": "Type",
-      "value": "student work/mixed use highrise"
-    },
-    {
-      "label": "Medium",
-      "value": "Architectural drawings, digital model, image sequence"
-    },
-    {
-      "label": "Role",
-      "value": "Concept, design, model, presentation"
-    },
-    {
-      "label": "Status",
-      "value": "Student portfolio exhibit"
-    }
-  ]
+  "title": {
+    "en": "Tree Habitat",
+    "zh": "Tree Habitat"
+  },
+  "subtitle": {
+    "en": "Academic architecture study for a speculative vertical habitat",
+    "zh": "学生阶段的推想型垂直栖居建筑研究"
+  },
+  "overview": {
+    "en": "Tree Habitat is a student-era architecture project that studies how a dense mixed-use tower could behave less like an isolated object and more like an urban habitat. Set beside Shenzhen's mangrove coast, the proposal uses root, trunk, branch and canopy metaphors to organize circulation, public program, office space, hotel use and planted sky levels into one spatial system.",
+    "zh": "Tree Habitat 是一个学生阶段建筑作品，研究高密度复合塔楼如何不只作为孤立物体，而是成为一种城市栖居系统。项目以深圳红树林海岸为背景，把根、树干、枝杈和树冠的结构隐喻转译为动线、公共功能、办公、酒店和空中绿化的组织方式。"
+  },
+  "storyHtml": {
+    "en": "<p>This project belongs to an academic studio context rather than a commercial commission. Its value is in the design question: how can a high-rise combine work, public culture, temporary stay and ecological imagination without becoming only a sealed office object?</p><p>The concept begins with mangrove structure. Mangrove roots stabilize unstable ground, filter edges and create shared habitat. Tree Habitat translates that logic into a split base for traffic and public programs, a dense trunk of work spaces, branching tower bodies and elevated gardens that act as collective pause points.</p><p>The proposal also tests circulation as a spatial ecology. Express elevators, local elevators, transfer floors and bridged commercial levels separate different users while allowing overlap around public and social programs. The drawings and model treat movement, section and program stacking as the main design material.</p><p>On this site, the project is presented as academic architecture: a learning-stage spatial study about ecology, structure, mixed use and representation. The digital model and image sequence are kept as evidence of the design process, not as proof of a completed built project.</p>",
+    "zh": "<p>这个项目属于建筑 studio 的学术语境，而不是商业委托。它真正关心的是一个设计问题：一栋高层建筑怎样同时容纳工作、公共文化、短暂停留和生态想象，而不只是成为封闭的办公物体？</p><p>概念从红树林结构开始。红树林的根系稳定潮湿而不稳定的边界，过滤空间，也创造共同栖息地。Tree Habitat 把这种逻辑转译为分叉的交通与公共基座、密集的办公树干、分枝的塔楼体量，以及作为集体停顿点的空中花园。</p><p>项目也把动线当作一种空间生态来测试。快速电梯、局部电梯、转换层和桥接商业层区分不同使用者，同时让公共与社交功能处产生重叠。图纸和模型把移动、剖面和功能叠合当作主要设计材料。</p><p>在这个网站里，它被呈现为 academic architecture：一个关于生态、结构、复合功能和表达方式的学习阶段空间研究。数字模型和图像序列是设计过程的证据，而不是对已建成项目的包装。</p>"
+  },
+  "tags": {
+    "en": [
+      "student work",
+      "mixed use",
+      "highrise building",
+      "architecture"
+    ],
+    "zh": [
+      "学生作品",
+      "复合功能",
+      "高层建筑",
+      "建筑"
+    ]
+  },
+  "metadata": {
+    "en": [
+      {
+        "label": "Year",
+        "value": "2021"
+      },
+      {
+        "label": "Type",
+        "value": "student work/mixed use highrise"
+      },
+      {
+        "label": "Medium",
+        "value": "Architectural drawings, digital model, image sequence"
+      },
+      {
+        "label": "Role",
+        "value": "Concept, design, model, presentation"
+      },
+      {
+        "label": "Status",
+        "value": "Student portfolio exhibit"
+      }
+    ],
+    "zh": [
+      {
+        "label": "年份",
+        "value": "2021"
+      },
+      {
+        "label": "类型",
+        "value": "学生作品 / 复合功能高层"
+      },
+      {
+        "label": "媒介",
+        "value": "建筑图纸、数字模型、图像序列"
+      },
+      {
+        "label": "角色",
+        "value": "概念、设计、建模、表达"
+      },
+      {
+        "label": "状态",
+        "value": "学生作品集展品"
+      }
+    ]
+  }
 }

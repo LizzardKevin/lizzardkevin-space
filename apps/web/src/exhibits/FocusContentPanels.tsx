@@ -3,6 +3,19 @@ import type { ExhibitContentMetadataItem } from "./exhibitContent";
 import { SHOW_FOCUS_BLANK_DEBUG, SHOW_FOCUS_TEXT_PANEL_DEBUG } from "./focusConfig";
 import { FocusRichText } from "./FocusRichText";
 
+export type FocusPanelCopy = {
+  overviewAria: string;
+  overviewHeading: string;
+  loading: string;
+  emptyOverview: string;
+  tagsAria: string;
+  tagsHeading: string;
+  detailsAria: string;
+  detailsHeading: string;
+  storyAria: string;
+  storyHeading: string;
+};
+
 function FocusSideBlank({
   placement,
 }: {
@@ -34,12 +47,14 @@ export function FocusSideColumn({
 }
 
 export function FocusOverviewPanel({
+  copy,
   overview,
   loading,
   tags,
   metadata = [],
   visible,
 }: {
+  copy: FocusPanelCopy;
   overview: string | null;
   loading: boolean;
   tags: string[];
@@ -52,21 +67,21 @@ export function FocusOverviewPanel({
     <aside
       className={`focus-panel focus-panel--left${visible ? " focus-panel--visible" : ""}${SHOW_FOCUS_TEXT_PANEL_DEBUG ? " focus-panel--debug" : ""}`}
       data-panel-debug-label="TEXT PANEL / OVERVIEW"
-      aria-label="展品概述"
+      aria-label={copy.overviewAria}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="focus-panel__inner">
-        <h2 className="focus-panel__heading">Overview</h2>
+        <h2 className="focus-panel__heading">{copy.overviewHeading}</h2>
         {loading ? (
-          <p className="focus-panel__placeholder">加载中…</p>
+          <p className="focus-panel__placeholder">{copy.loading}</p>
         ) : overview ? (
           <div className="focus-overview">{overview}</div>
         ) : (
-          <p className="focus-panel__placeholder">暂无概述</p>
+          <p className="focus-panel__placeholder">{copy.emptyOverview}</p>
         )}
         {tags.length > 0 ? (
-          <div className="focus-tags" aria-label="Tags">
-            <h3>Tags</h3>
+          <div className="focus-tags" aria-label={copy.tagsAria}>
+            <h3>{copy.tagsHeading}</h3>
             <div>
               {tags.map((tag) => (
                 <span key={tag}>{tag}</span>
@@ -75,8 +90,8 @@ export function FocusOverviewPanel({
           </div>
         ) : null}
         {hasMetadata ? (
-          <div className="focus-details" aria-label="Details">
-            <h3>Details</h3>
+          <div className="focus-details" aria-label={copy.detailsAria}>
+            <h3>{copy.detailsHeading}</h3>
             <dl>
               {metadata.map((item) => (
                 <div key={`${item.label}:${item.value}`}>
@@ -93,10 +108,12 @@ export function FocusOverviewPanel({
 }
 
 export function FocusStoryPanel({
+  copy,
   storyHtml,
   loading,
   visible,
 }: {
+  copy: FocusPanelCopy;
   storyHtml: string | null;
   loading: boolean;
   visible: boolean;
@@ -110,13 +127,13 @@ export function FocusStoryPanel({
     <aside
       className={`focus-panel focus-panel--right${visible ? " focus-panel--visible" : ""}${SHOW_FOCUS_TEXT_PANEL_DEBUG ? " focus-panel--debug" : ""}`}
       data-panel-debug-label="TEXT PANEL / STORY"
-      aria-label="展品故事"
+      aria-label={copy.storyAria}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="focus-panel__inner">
-        <h2 className="focus-panel__heading">Story</h2>
+        <h2 className="focus-panel__heading">{copy.storyHeading}</h2>
         {loading ? (
-          <p className="focus-panel__placeholder">加载中…</p>
+          <p className="focus-panel__placeholder">{copy.loading}</p>
         ) : storyMarkup ? (
           <FocusRichText html={storyMarkup} />
         ) : null}

@@ -104,14 +104,24 @@ assert(
 );
 assert(files.debugOverlay.includes("SpaceMovementDebugOverlay"), "dev movement debug overlay component must exist");
 assert(files.debugOverlay.includes("import.meta.env.DEV"), "movement debug overlay must be dev-only");
-assert(files.debugOverlay.includes(">debug<"), "debug overlay title must be generalized to DEBUG");
+assert(
+  files.debugOverlay.includes("useTranslation") && files.debugOverlay.includes('t("debug.title")'),
+  "debug overlay title must come from localized debug copy",
+);
 assert(files.debugOverlay.includes("contactNames"), "movement debug overlay must show contact collider names");
 assert(files.debugOverlay.includes("speedRatio"), "movement debug overlay must show actual/desired speed ratio");
-assert(files.debugOverlay.includes("<dt>fps</dt>"), "movement debug overlay must show realtime fps");
-assert(files.debugOverlay.includes("look</dt>"), "movement debug overlay must show current look yaw and pitch");
-assert(files.debugOverlay.includes("look delta</dt>"), "movement debug overlay must show per-tick look rotation deltas");
+for (const debugKey of [
+  "debug.label",
+  "debug.mesh",
+  "debug.exhibit",
+  "debug.fps",
+  "debug.look",
+  "debug.lookDelta",
+  "debug.contact",
+]) {
+  assert(files.debugOverlay.includes(`"${debugKey}"`), `movement debug overlay must read ${debugKey}`);
+}
 assert(files.debugOverlay.includes("raycastSample"), "debug overlay must store raycast debug samples");
-assert(files.debugOverlay.includes("mesh</dt>"), "debug overlay must show the currently aimed mesh name");
 assert(files.desktop.includes("<SpaceMovementDebugOverlay />"), "desktop SPACE page must mount the movement debug overlay");
 assert(files.css.includes(".space-movement-debug"), "movement debug panel CSS must exist");
 assert(files.colColliders.includes("registerSpaceCollisionDebugCollider"), "COL_* trimesh colliders must register debug names");

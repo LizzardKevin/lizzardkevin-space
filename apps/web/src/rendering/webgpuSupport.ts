@@ -1,6 +1,3 @@
-export const WEBGPU_UNSUPPORTED_MESSAGE =
-  "您的浏览器不支持 WebGPU。请使用 Chrome / Edge 113+、Safari 26+ 或 Firefox 141+（Windows）的最新版本。";
-
 export async function isWebGPUSupported(): Promise<boolean> {
   if (typeof navigator === "undefined" || !("gpu" in navigator)) return false;
 

@@ -1,4 +1,5 @@
 import { publicAssetUrl } from "../platform/publicAssets.ts";
+import type { SupportedLanguage } from "../i18n/resolveInitialLanguage";
 
 export type ExhibitContentMetadataItem = {
   label: string;
@@ -14,55 +15,97 @@ export type ExhibitContent = {
   metadata?: ExhibitContentMetadataItem[];
 };
 
+type LocalizedTextRecord = Partial<Record<SupportedLanguage, unknown>>;
+type LocalizedArrayRecord = Partial<Record<SupportedLanguage, unknown>>;
+
 export function exhibitContentUrl(exhibitId: string): string {
   return publicAssetUrl(`/exhibits/${exhibitId}/content.json`);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function parseMetadata(metadata: unknown): ExhibitContentMetadataItem[] | undefined {
-  if (!Array.isArray(metadata)) return undefined;
-  const items = metadata
+function resolveLocalizedValue(
+  value: unknown,
+  language: SupportedLanguage,
+  fallbackLanguage: SupportedLanguage = "en",
+): unknown {
+  if (!isRecord(value)) return value;
+  const localized = value as LocalizedTextRecord | LocalizedArrayRecord;
+  const preferred = localized[language];
+  if (typeof preferred === "string" && preferred.trim().length > 0) return preferred;
+  if (Array.isArray(preferred) && preferred.length > 0) return preferred;
+  const fallback = localized[fallbackLanguage];
+  if (typeof fallback === "string" && fallback.trim().length > 0) return fallback;
+  if (Array.isArray(fallback) && fallback.length > 0) return fallback;
+  return preferred ?? fallback ?? null;
+}
+
+function parseLocalizedString(value: unknown, language: SupportedLanguage): string | null {
+  const resolved = resolveLocalizedValue(value, language);
+  if (typeof resolved !== "string") return null;
+  const trimmed = resolved.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function parseMetadata(metadata: unknown, language: SupportedLanguage): ExhibitContentMetadataItem[] | undefined {
+  const resolved = resolveLocalizedValue(metadata, language);
+  if (!Array.isArray(resolved) && language !== "en") {
+    return parseMetadata(resolveLocalizedValue(metadata, "en"), "en");
+  }
+  if (!Array.isArray(resolved)) return undefined;
+  const items = resolved
     .filter(
-      (item): item is ExhibitContentMetadataItem =>
-        isRecord(item) && typeof item.label === "string" && typeof item.value === "string",
+      (item): item is Record<string, unknown> => isRecord(item),
     )
-    .map(({ label, value }) => ({ label, value }));
+    .map((item) => {
+      const label = parseLocalizedString(item.label, language);
+      const value = parseLocalizedString(item.value, language);
+      return label && value ? { label, value } : null;
+    })
+    .filter((item): item is ExhibitContentMetadataItem => item !== null);
   return items.length > 0 ? items : undefined;
 }
 
-function parseTags(tags: unknown): string[] | undefined {
-  if (!Array.isArray(tags)) return undefined;
-  const items = tags
+function parseTags(tags: unknown, language: SupportedLanguage): string[] | undefined {
+  const resolved = resolveLocalizedValue(tags, language);
+  if (!Array.isArray(resolved) && language !== "en") {
+    return parseTags(resolveLocalizedValue(tags, "en"), "en");
+  }
+  if (!Array.isArray(resolved)) return undefined;
+  const items = resolved
     .filter((tag): tag is string => typeof tag === "string" && tag.trim().length > 0)
     .map((tag) => tag.trim());
   return items.length > 0 ? Array.from(new Set(items)) : undefined;
 }
 
-export async function loadExhibitContent(exhibitId: string): Promise<ExhibitContent | null> {
+export async function loadExhibitContent(
+  exhibitId: string,
+  language: SupportedLanguage = "en",
+): Promise<ExhibitContent | null> {
   try {
     const res = await fetch(exhibitContentUrl(exhibitId), { cache: "no-cache" });
     if (!res.ok) return null;
     const data = (await res.json()) as unknown;
-    if (
-      !isRecord(data) ||
-      typeof data.title !== "string" ||
-      typeof data.overview !== "string" ||
-      typeof data.storyHtml !== "string"
-    ) {
+    if (!isRecord(data)) {
       return null;
     }
+    const title = parseLocalizedString(data.title, language);
+    const overview = parseLocalizedString(data.overview, language);
+    const storyHtml = parseLocalizedString(data.storyHtml, language);
+    if (!title || !overview || !storyHtml) return null;
+
     const content: ExhibitContent = {
-      title: data.title,
-      overview: data.overview,
-      storyHtml: data.storyHtml,
+      title,
+      overview,
+      storyHtml,
     };
-    if (typeof data.subtitle === "string") content.subtitle = data.subtitle;
-    const tags = parseTags(data.tags);
+    const subtitle = parseLocalizedString(data.subtitle, language);
+    if (subtitle) content.subtitle = subtitle;
+    const tags = parseTags(data.tags, language);
     if (tags) content.tags = tags;
-    const metadata = parseMetadata(data.metadata);
+    const metadata = parseMetadata(data.metadata, language);
     if (metadata) content.metadata = metadata;
     return content;
   } catch {

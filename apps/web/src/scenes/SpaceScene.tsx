@@ -6,7 +6,7 @@ import { ExhibitTargetLabel } from "../exhibits/ExhibitTargetLabel";
 import { ExhibitRaycast } from "./exhibits/ExhibitRaycast";
 import { ExhibitInteractionRegistryProvider } from "./exhibits/ExhibitInteractionRegistryProvider";
 import { GuardedPointerLockControls } from "./controls/GuardedPointerLockControls";
-import { PlayerController } from "./Player/PlayerController";
+import { PlayerController, type SpaceJumpNoticeKey } from "./Player/PlayerController";
 import { ENABLE_GALLERY_GLB, ENABLE_GALLERY_WALL_ART, GALLERY_WALL_ART } from "./gallery/galleryConfig";
 import { GalleryModel } from "./gallery/GalleryModel";
 import { GallerySpawnProvider } from "./gallery/GallerySpawnProvider";
@@ -54,7 +54,7 @@ function SpaceSceneContent({
   onEmptyClick: () => void;
   suppressNextClick: boolean;
   onConsumeSuppressedClick: () => void;
-  onJumpNotice: (message: string) => void;
+  onJumpNotice: (messageKey: SpaceJumpNoticeKey) => void;
   onboardingEnabled: boolean;
   pointerLocked: boolean;
   onboardingFocusVisible: boolean;
@@ -187,7 +187,7 @@ export function SpaceScene({
   onEmptyClick: () => void;
   suppressNextClick: boolean;
   onConsumeSuppressedClick: () => void;
-  onJumpNotice: (message: string) => void;
+  onJumpNotice: (messageKey: SpaceJumpNoticeKey) => void;
   onboardingEnabled: boolean;
   pointerLocked: boolean;
   onboardingFocusVisible: boolean;

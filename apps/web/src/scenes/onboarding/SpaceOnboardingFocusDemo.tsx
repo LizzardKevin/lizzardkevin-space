@@ -57,11 +57,12 @@ export function SpaceOnboardingFocusDemo({
       <button
         type="button"
         className={`focus-return-button${visible ? " focus-return-button--visible" : ""}`}
+        aria-label={t("focus.returnLabel")}
         data-cursor="interactive"
         data-cursor-tone="light"
         onClick={() => requestClose()}
       >
-        <span className="focus-return-button__prefix">回到</span>
+        <span className="focus-return-button__prefix">{t("focus.returnPrefix")}</span>
         <span className="focus-return-button__space">space</span>
       </button>
 
