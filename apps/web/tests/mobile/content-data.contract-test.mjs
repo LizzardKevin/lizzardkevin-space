@@ -200,7 +200,7 @@ assert(
 );
 assert(mobileData.includes('mediaKind: "image"'), "Tree Habitat mobile project must use image media instead of a model");
 assert(!mobileData.includes('title: "Tree Habitat"') || !mobileData.includes('en: "3D preview reserved"'), "Tree Habitat mobile project must not reserve a 3D preview");
-for (const tag of ["ACADEMIC ARCHITECTURE", "STUDENT WORK", "SPECULATIVE HABITAT"]) {
+for (const tag of ["student work", "mixed use", "highrise building", "architecture"]) {
   assert(mobileData.includes(`"${tag}"`), `Tree Habitat mobile project must include ${tag} tag`);
 }
 assert(mobileData.includes("student-era architecture project"), "Tree Habitat mobile copy must identify the work as student-era");
@@ -212,6 +212,9 @@ assert(
 );
 assert(mobileData.includes('id: "arch_uabb_exhibit"'), "mobile projects must include UABB Exhibit by exhibit id");
 assert(mobileData.includes('title: "UABB Exhibit"'), "UABB mobile project must use the exhibit title");
+for (const tag of ["urban research", "field observation", "exhibition proposal"]) {
+  assert(mobileData.includes(`"${tag}"`), `UABB mobile project must include ${tag} tag`);
+}
 assert(
   mobileData.includes("Urban research and exhibition model study") &&
     mobileData.includes("Shenzhen field observation"),
@@ -224,9 +227,14 @@ assert(
 assert(
   mobileData.includes('title: "3D Printing Architecture"') &&
     mobileData.includes('mediaKind: "video"') &&
-    mobileData.includes("process animation"),
+    mobileData.includes("architecture animation") &&
+    mobileData.includes("0.9-meter") &&
+    mobileData.includes("3D-printed cement"),
   "3D Printing Architecture mobile project must describe the model plus process animation",
 );
+for (const tag of ["student work", "3d printing", "architecture animation"]) {
+  assert(mobileData.includes(`"${tag}"`), `3D Printing Architecture mobile project must include ${tag} tag`);
+}
 
 for (const forbiddenMarker of [
   "archiveAutoPaused",

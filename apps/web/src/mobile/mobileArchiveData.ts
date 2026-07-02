@@ -316,7 +316,7 @@ export const mobileProjectItems: MobileProjectItem[] = [
     category: "Study",
     stageId: "stage-student",
     stageLabel: "Education",
-    tags: ["ACADEMIC ARCHITECTURE", "STUDENT WORK", "SPECULATIVE HABITAT", "MANGROVE LOGIC", "MIXED USE"],
+    tags: ["student work", "mixed use", "highrise building", "architecture"],
     summary: {
       en: "A student-era architecture project that studies how a dense tower can act as an urban habitat shaped by mangrove structure, mixed use, circulation, and planted sky levels.",
       zh: "一个学生阶段建筑作品，研究高密度塔楼如何借由红树林结构、复合功能、动线和空中绿化，成为一种城市栖居系统。",
@@ -379,7 +379,7 @@ export const mobileProjectItems: MobileProjectItem[] = [
     category: "Study",
     stageId: "stage-student",
     stageLabel: "Education",
-    tags: ["URBAN RESEARCH", "EXHIBITION MODEL", "SHENZHEN", "FIELD OBSERVATION", "PUBLIC INTERFACE"],
+    tags: ["urban research", "field observation", "exhibition proposal"],
     summary: {
       en: "An architecture-school research project that turns Shenzhen field observation, public interfaces, informal economies, and mapping work into a spatial exhibition model.",
       zh: "一个建筑学习阶段的研究项目，把深圳现场观察、公共界面、非正式经济和 mapping 工作转译成一个空间展览模型。",
@@ -417,14 +417,14 @@ export const mobileProjectItems: MobileProjectItem[] = [
     category: "Study",
     stageId: "stage-student",
     stageLabel: "Education",
-    tags: ["3D PRINTING", "FABRICATION STUDY", "PHYSICAL MODEL", "PROCESS ANIMATION", "ARCHITECTURE PROTOTYPE"],
+    tags: ["student work", "3d printing", "architecture animation"],
     summary: {
-      en: "A model-based architecture prototype where fabrication logic, surface continuity, residential scale, and physical making are presented through a desktop model and one process animation.",
-      zh: "一个以模型为核心的建筑原型：通过桌面端模型和一个过程动画呈现制造逻辑、表皮连续性、居住尺度与实体制作。",
+      en: "A 2021 student work where a desktop model and architecture animation simulate crane-supported construction with 3D-printed cement, staged 0.9-meter thresholds, and prefab components.",
+      zh: "一个 2021 年学生作品：通过桌面端模型与建筑动画，模拟吊车辅助、3D 打印水泥、0.9 米阶段控制和预制构件协同的建造方式。",
     },
     story: {
-      en: "The project treats 3D printing as a design instrument rather than only a final output. The printed model records the feedback loop between digital geometry, fabrication constraints, and spatial intention.",
-      zh: "这个项目把 3D 打印视为设计工具，而不只是最终产出。打印模型记录了数字几何、制造限制与空间意图之间的反馈回路。",
+      en: "The process animation imagines a predesigned building that can be rapidly assembled: printed cementitious walls rise in 0.9-meter stages, prefab structural pieces and components are inserted at key moments, and the whole system can be rapidly iterated before a full build.",
+      zh: "过程动画想象一个预先设计好的建筑如何被快速搭建：水泥打印墙体以 0.9 米为阶段逐层生长，预制结构件和组件在关键节点介入，整套系统可以在完整建造前快速迭代。",
     },
     signal: {
       en: "The work should feel compact and process-led: model first, one animation second, with no extra documentation noise.",

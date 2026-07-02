@@ -214,6 +214,54 @@ test("active exhibit content samples have portfolio metadata and no pipeline cop
   }
 });
 
+test("active exhibit content matches the current exhibit-facing metadata", () => {
+  const expected = {
+    arch_treehabitat: {
+      tags: ["student work", "mixed use", "highrise building", "architecture"],
+      metadata: {
+        Year: "2021",
+        Type: "student work/mixed use highrise",
+      },
+    },
+    arch_uabb_exhibit: {
+      tags: ["urban research", "field observation", "exhibition proposal"],
+    },
+    arch_3d_printing_architecture: {
+      tags: ["student work", "3d printing", "architecture animation"],
+      metadata: {
+        Year: "2021",
+      },
+      storyTerms: [
+        "crane",
+        "3D-printed cement",
+        "predesigned",
+        "0.9-meter",
+        "prefab",
+        "rapidly iterated",
+      ],
+    },
+  };
+
+  for (const [exhibitId, expectedContent] of Object.entries(expected)) {
+    const content = JSON.parse(
+      fs.readFileSync(path.join(publicDir, `exhibits/${exhibitId}/content.json`), "utf8"),
+    );
+
+    assert.deepEqual(content.tags, expectedContent.tags, `${exhibitId} tags must match the requested set`);
+
+    if (expectedContent.metadata) {
+      const metadata = Object.fromEntries(content.metadata.map((item) => [item.label, item.value]));
+      for (const [label, value] of Object.entries(expectedContent.metadata)) {
+        assert.equal(metadata[label], value, `${exhibitId} ${label} metadata must match`);
+      }
+    }
+
+    for (const term of expectedContent.storyTerms ?? []) {
+      assert.ok(content.storyHtml.includes(term), `${exhibitId} story must mention ${term}`);
+    }
+  }
+});
+
 test("space_main GLB has no exhibit anchors or embedded exhibit meshes", () => {
   const json = readGlbJson(path.join(publicDir, "models/space_main.glb"));
   const names = new Set((json.nodes ?? []).map((node) => node.name).filter(Boolean));

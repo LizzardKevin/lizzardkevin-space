@@ -1,24 +1,21 @@
 {
   "title": "3D Printing Architecture",
   "subtitle": "Architecture prototype study pairing a printed spatial model with process animation",
-  "overview": "3D Printing Architecture presents a model-based design study where fabrication logic, townhouse scale, surface continuity and physical prototyping sit at the center of the work. The exhibit focuses on the object and its process animation: a compact way to read geometry, making and spatial intention together.",
-  "storyHtml": "<p>This project treats 3D printing as more than a presentation output. The printed model becomes a design instrument: it tests how surfaces meet, how interior and exterior logic can be read through one object, and how fabrication constraints shape architectural decisions.</p><p>The model carries the atmosphere of a compact residential prototype. Openings, massing, thickness and layered edges are legible through the object itself, while the process video gives the work a time-based reading that still images cannot provide.</p><p>In Focus mode, the exhibit intentionally stays simple: a rotatable model and one animation page. That pairing keeps attention on the artifact and the making process without turning the project into a full documentation archive before the surrounding SPACE room is complete.</p><p>The current entry should be read as an architecture and fabrication study. It records an interest in physical modeling, material translation and the feedback loop between digital geometry and a made object.</p>",
+  "overview": "3D Printing Architecture presents a student work animation study about how a predesigned building could be assembled through crane-supported construction and 3D-printed cementitious concrete. The exhibit focuses on the model and its process animation: a compact way to read geometry, fabrication sequence and architectural intention together.",
+  "storyHtml": "<p>This project uses model animation to simulate a construction method rather than to claim a finished building system. A crane and printing apparatus work around a predesigned architectural shell, placing 3D-printed cementitious concrete in a controlled sequence while prefab structural pieces and components are inserted where the printed material alone would not be enough.</p><p>The building process is organized around a 0.9-meter construction threshold. Each height band becomes a checkpoint: print the next layer set, stabilize the geometry, coordinate openings and services, then add selected prefab elements before the next stage begins. That rhythm turns the animation into a readable construction diagram instead of a simple object showcase.</p><p>The idea borrows from real 3D concrete printing research, where robotic arms, gantry systems and crane-mounted equipment can extrude material layer by layer from digital toolpaths. It also acknowledges the current practical limit of the technology: printed walls often still need reinforcement, post-installed parts, openings, fixtures and assembly logic to become architecture.</p><p>In Focus mode, the project should feel direct and process-led. The model establishes the designed form, while the animation explains how that form could be rapidly iterated and built through printed cement, staged thresholds and prefab coordination.</p>",
   "tags": [
-    "ARCHITECTURE PROTOTYPE",
-    "3D PRINTING",
-    "FABRICATION STUDY",
-    "PHYSICAL MODEL",
-    "PROCESS ANIMATION",
-    "RESIDENTIAL SCALE"
+    "student work",
+    "3d printing",
+    "architecture animation"
   ],
   "metadata": [
     {
       "label": "Year",
-      "value": "Student / prototype era"
+      "value": "2021"
     },
     {
       "label": "Type",
-      "value": "Architecture prototype / fabrication study"
+      "value": "student work / 3D printing architecture animation"
     },
     {
       "label": "Medium",
