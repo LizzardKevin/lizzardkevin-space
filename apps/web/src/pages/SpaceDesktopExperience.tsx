@@ -248,6 +248,7 @@ export function SpaceDesktopExperience({
   const focusOverlayExhibit = focused ?? focusClosing;
   const onboardingFocusVisible = onboardingFocusOpen || onboardingFocusClosing;
   const focusSurfaceOpen = focusOverlayExhibit !== null || onboardingFocusVisible;
+  const spaceRenderPaused = focusSurfaceOpen || overlay.isOverlayOpen;
   const dailyResumeSavingEnabled = shouldSaveSpaceDailyResume({
     onboardingCompleted,
     restoredFromDailyResume: dailyResumePose !== null,
@@ -476,11 +477,11 @@ export function SpaceDesktopExperience({
       {canRender3d ? (
         <WebGPUErrorBoundary>
           <div
-            className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${focusSurfaceOpen ? " space-canvasWrap--disabled" : ""}`}
+            className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${spaceRenderPaused ? " space-canvasWrap--disabled" : ""}`}
           >
             <Canvas
               key={rendererSettings.antialias ? "space-canvas-aa" : "space-canvas-raw"}
-              frameloop={focusSurfaceOpen ? "never" : "always"}
+              frameloop={spaceRenderPaused ? "never" : "always"}
               id="space-canvas"
               style={{ position: "absolute", inset: 0 }}
               gl={(props) =>

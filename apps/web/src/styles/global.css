@@ -378,6 +378,17 @@ button {
   color: rgba(0, 0, 0, 0.74);
 }
 
+.space-splashVersionNotice {
+  max-width: min(540px, calc(100vw - 72px));
+  margin: 14px 0 0;
+  color: rgba(0, 0, 0, 0.5);
+  font-family: system-ui;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.55;
+}
+
 .space-enterButtonFloat {
   display: grid;
   place-items: center;

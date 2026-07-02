@@ -29,6 +29,7 @@ const config = readProjectFile(expectedFiles.config);
 const visibility = readProjectFile(expectedFiles.visibility);
 const onboardingScene = readProjectFile(expectedFiles.scene);
 const focusDemo = readProjectFile(expectedFiles.focusDemo);
+const entrySplash = readProjectFile("apps/web/src/components/entry/EntrySplash.tsx");
 const exhibitTarget = readProjectFile("apps/web/src/exhibits/exhibitTarget.ts");
 const targetLabel = readProjectFile("apps/web/src/exhibits/ExhibitTargetLabel.tsx");
 const desktop = files.desktop;
@@ -73,6 +74,11 @@ assert.match(
   config,
   /SPACE_ONBOARDING_NOTICE_VISIBLE_MS\s*=\s*2000/,
   "opening notice should stay visible for two seconds before dissolving into the movement tutorial",
+);
+assert(
+  entrySplash.includes("space-splashVersionNotice") &&
+    entrySplash.includes('t("space.onboarding.notice")'),
+  "entry splash should surface the SPACE version notice before the visitor enters",
 );
 assert.match(
   config,

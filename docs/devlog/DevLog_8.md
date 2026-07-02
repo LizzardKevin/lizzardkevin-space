@@ -1,13 +1,14 @@
-# DevLog_8（项目管理审查 · 低风险修复 · DevStories 语气收尾）
+# DevLog_8（项目管理审查 · 低风险修复 · 性能问题记录）
 
-时间：2026-07-02（DevLog_7 之后的项目管理审查、低风险修复、验证和开发日志收尾）
+时间：2026-07-02（DevLog_7 之后的项目管理审查、低风险修复、验证和性能问题记录）
 
 ## 本次目标
 
 - 停下来做一次 SPACE 的项目管理审查，而不是继续往功能里猛加东西。
-- 把 repo hygiene、脚本入口、生成产物、WebGPU/runtime 风险、内容语气和 devlog 数据结构都过一遍。
+- 把 repo hygiene、脚本入口、生成产物、WebGPU/runtime 风险、内容表达和 devlog 数据结构都过一遍。
 - 对低风险、能自己判断的问题直接修；对会影响审美、部署策略或产品体验的问题只记录，不顺手重构。
-- 新增一份最新版 devlog，并把网页端 DevStories 从工程 changelog 调成更像个人创作者的建站日记。
+- 新增一份最新版 devlog，并把网页端 DevStories 整理成更适合继续阅读和维护的个人记录。
+- 记录一个更大的现实问题：SPACE 现在遇到了严重性能问题，下一轮需要单独拆开查。
 - 保持本地 main 可验证、可交接，但不 push，也不做 GitHub Pages 迁移。
 
 ## 已完成产出
@@ -65,7 +66,7 @@
   - Markdown 不会自动生成网页数据，新增日志要两边同步。
 - DevLog 7 里过期的 `GalleryFloorCollider`、旧脚本路径和旧验证描述也顺手修正到当前结构。
 
-### 5) DevStories 网页语气调整
+### 5) DevStories 网页内容整理与性能问题记录
 
 - 我保留了 `DevStory` 原有数据结构：
   - `id`
@@ -78,10 +79,11 @@
   - `next`
   - `tags`
 - 没有引入 MDX、生成脚本或新的孤立格式。
-- 网页端 1 到 8 条 DevStories 都改成更像“我今天把这块调顺了”的个人记录：
+- 网页端 1 到 8 条 DevStories 都整理成更像“我今天把这块调顺了”的个人记录：
   - 标题更口语。
   - summary 改成第一人称。
   - detail 里保留技术信息，但少用冷冰冰的任务清单口吻。
+- DevLog 8 的最新部分不再把“修改日志表达”当成主要事件，而是把项目收口和当前严重性能问题写清楚。
 - Frosted Split 里的 DevStories 标签也变轻一点：
   - `Built` 改成 `What I tuned`
   - `Trouble / Rollback` 改成 `What got weird`
@@ -99,7 +101,8 @@
 | Focus 图片/视频页仍挂着模型 Canvas | 只在模型页保持 `frameloop="always"`，其它媒体页暂停渲染 |
 | scene exhibit clone 的 material 没有卸载清理 | 增加 `disposeSceneExhibitMaterials`，只清理本组件 clone 出来的 material |
 | storage 访问可能被隐私环境拦截 | 默认 storage 和手机端偏好读写都加安全 helper |
-| DevStories 语气如果只改数据，UI 标签仍像 ledger | 同时调整 `splitArchiveData.ts` 的标签和描述，并加 contract test |
+| DevStories 如果只改数据，UI 标签仍像 ledger | 同时调整 `splitArchiveData.ts` 的标签和描述，并加 contract test |
+| SPACE 现在遇到严重性能问题 | 本轮只记录，不顺手掺进低风险收口；后续需要单独判断主开销来自 UABB、展品模型、投影图片、后处理还是主场景 |
 | 大 source GLB/JPG 仍在 public 下会被部署 | 记录为后续部署/资产策略问题，本轮不搬动，避免牵动脚本、测试和部署路径 |
 
 ## 当前验证状态
@@ -129,7 +132,7 @@ npm run build:chunks
 
 1. **GitHub Pages / github.io 迁移另开线程**：迁移前先确认 Vite base path、SPA fallback、public 静态资源路径和 GitHub Pages 的仓库/域名策略。
 2. **public source assets 策略**：`*.source.glb` 和 projector `source/*.jpg` 目前在 `public` 下，会被原样部署；是否移出 public、放 LFS、CDN 或保留，需要单独决策。
-3. **Focus 返回文案国际化**：`回到 space` 在英文模式下是否保留品牌感，属于产品/语气选择，这轮没有擅自改。
+3. **Focus 返回文案国际化**：`回到 space` 在英文模式下是否保留品牌感，属于产品表达选择，这轮没有擅自改。
 4. **manifest 加载缓存**：桌面入口和 scene exhibit placement 仍有 manifest 加载重复空间，但要不要抽缓存需要再评估。
 5. **DevStories 自动同步**：当前 Markdown 和网页数据是手动双写；如果日志继续变多，可以再考虑生成脚本，但这轮保持简单。
 

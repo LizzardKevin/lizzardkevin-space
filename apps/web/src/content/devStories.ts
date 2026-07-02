@@ -182,24 +182,25 @@ export const devStories: DevStory[] = [
     id: "devlog-08",
     number: "08",
     period: "2026.07.02",
-    title: "做一次项目收口，也把开发日志写得像自己说话",
+    title: "做一次项目收口，也撞上性能墙",
     summary:
-      "这次我没有继续往 SPACE 里加新展品，而是停下来做项目管理审查和日志收尾。先清理一些低风险的 repo 和运行时问题，再把 DevStories 从冷冰冰的工程账本改成更像个人创作者的建站日记。",
+      "这次我没有继续往 SPACE 里加新展品，而是停下来做项目管理审查和低风险修补。repo、脚本、runtime、移动端存储和 DevStories 数据都顺了一遍，但同时也很明确地看到：SPACE 现在遇到了严重性能问题，后面必须单独拆出来处理。",
     built: [
       "我先开了独立 review 分支，派了三个并行审查方向：repo hygiene、SPACE runtime、content/i18n/mobile/devlog。",
       "低风险修复包括：root `release/` ignore 不再误伤 `apps/web/tests/release`，placement cache 去掉时间戳，Blender 脚本补上跨平台 PATH 查找，GitHub bootstrap 不再默认推已有 origin。",
       "运行时顺手补了几个小安全垫：Focus 非模型页暂停隐藏 Canvas 渲染，scene exhibit clone 在卸载时释放自有 material，手机和 SPACE daily resume 的 localStorage 访问都加了 try/catch。",
       "README、DevStories 维护说明和 DevLog 7 里过期的脚本/碰撞描述也一起对齐到当前结构。",
-      "我新增了这条 DevLog 8 和摘要，并把网页端 DevStories 的 1 到 8 条都改成更轻松的第一人称记录。",
+      "我新增了这条 DevLog 8 和摘要，也把网页端 DevStories 的 1 到 8 条整理成更适合继续阅读和维护的第一人称记录。",
     ],
     trouble: [
       "有些建议很诱人但不适合顺手改，比如把 public 里的 source GLB/JPG 搬出发布目录、做 GitHub Pages 迁移、重写 manifest 加载方式或改 Focus 返回文案。",
       "DevStories 的 Markdown 和网页数据不是自动同步的，所以新增日志时必须同时更新 `docs/devlog` 和 `apps/web/src/content/devStories.ts`。",
-      "内容语气要变轻松，但不能丢掉技术脉络，我保留了 WebGPU、Rapier、Pointer Lock、GLB、chunk、localStorage 这些必要线索。",
+      "更大的问题是 SPACE 运行时已经出现严重性能问题，尤其在多个展品和主空间同时存在时，单靠小补丁已经不够，需要下一轮专门拆性能账。",
+      "内容表达可以更轻一点，但不能丢掉技术脉络，我保留了 WebGPU、Rapier、Pointer Lock、GLB、chunk、localStorage 这些必要线索。",
       "这轮 build 会生成本地 `apps/web/dist`，但它仍然是被忽略的本地产物，不能提交。",
     ],
     next:
-      "下一步可以让 GitHub Pages / github.io 迁移线程接手部署策略，但它应该先确认 base path、静态资源路径和 public source assets 的处理方式，不要直接把这轮 review 分支当作部署动作。",
-    tags: ["Review", "DevLog", "Repo Hygiene", "Tone"],
+      "下一步除了让 GitHub Pages / github.io 迁移线程接手部署策略，也要把严重性能问题单独开出来：先判断主开销到底来自 UABB、展品模型、投影图片、后处理还是 SPACE 主场景，再决定怎么减。",
+    tags: ["Review", "DevLog", "Repo Hygiene", "Performance"],
   },
 ];

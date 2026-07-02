@@ -5,6 +5,7 @@ import { readSourceFile } from "../helpers/projectPaths.mjs";
 
 test("Focus media uses dark cursor, image drag affordance, and page dots", () => {
   const overlaySource = readSourceFile("exhibits/FocusOverlay.tsx");
+  const focusConfig = readSourceFile("exhibits/focusConfig.ts");
   const css = readSourceFile("styles/global.css");
 
   assert.match(
@@ -77,6 +78,16 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   assert.ok(
     overlaySource.includes("mediaItems.length > 1 && !imageExpanded"),
     "Expanded Focus images should disable arrows and pagination switching",
+  );
+  assert.match(
+    focusConfig,
+    /SHOW_FOCUS_IMAGE_FRAME_DEBUG\s*=\s*false/,
+    "Focus image frame debug overlay should be off in normal builds",
+  );
+  assert.match(
+    focusConfig,
+    /SHOW_FOCUS_TEXT_PANEL_DEBUG\s*=\s*false/,
+    "Focus text panel debug overlay should be off in normal builds",
   );
   assert.ok(
     overlaySource.includes("focus-media-dots") && overlaySource.includes("focus-media-dot--model"),

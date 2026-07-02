@@ -11,8 +11,8 @@ export const FOCUS_DOUBLE_CLICK_MS = 200;
 
 /** 临时：淡蓝标出 Focus 可双击退出的空白区域。验证完成后改为 false。 */
 export const SHOW_FOCUS_BLANK_DEBUG = false;
-export const SHOW_FOCUS_IMAGE_FRAME_DEBUG = true;
-export const SHOW_FOCUS_TEXT_PANEL_DEBUG = true;
+export const SHOW_FOCUS_IMAGE_FRAME_DEBUG = false;
+export const SHOW_FOCUS_TEXT_PANEL_DEBUG = false;
 
 /** Focus 展品按包围盒自动适配屏幕（见 focusModelFrame.ts） */
 export const FOCUS_FRAME = {

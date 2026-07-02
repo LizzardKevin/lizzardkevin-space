@@ -128,6 +128,7 @@ export function EntrySplash({
         <div className="space-enterButtonFloat">
           <div className="space-splashSignal">
             <h1>LizzardKevin Space</h1>
+            <p className="space-splashVersionNotice">{t("space.onboarding.notice")}</p>
           </div>
           <span className="space-enterButton">
             <span
