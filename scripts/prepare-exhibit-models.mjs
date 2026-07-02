@@ -34,9 +34,26 @@ if (exhibitId === sourceName) {
   throw new Error("Source file must use <exhibitId>.source.glb naming");
 }
 
+function executableRuns(command) {
+  const result = spawnSync(command, ["--version"], { encoding: "utf8", windowsHide: true });
+  return result.status === 0;
+}
+
+function findOnPath(commandName) {
+  const finder = process.platform === "win32" ? "where.exe" : "which";
+  const result = spawnSync(finder, [commandName], { encoding: "utf8", windowsHide: true });
+  if (result.status !== 0) return null;
+  return result.stdout.split(/\r?\n/).map((line) => line.trim()).find(Boolean) ?? null;
+}
+
 function findBlenderExecutable() {
+  if (process.env.BLENDER) {
+    if (fs.existsSync(process.env.BLENDER) || executableRuns(process.env.BLENDER)) {
+      return process.env.BLENDER;
+    }
+  }
+
   const candidates = [
-    process.env.BLENDER,
     "D:\\00 Blender\\blender.exe",
     "C:\\Program Files\\Blender Foundation\\Blender 5.1\\blender.exe",
     "C:\\Program Files\\Blender Foundation\\Blender 5.0\\blender.exe",
@@ -49,12 +66,7 @@ function findBlenderExecutable() {
     if (fs.existsSync(candidate)) return candidate;
   }
 
-  const where = spawnSync("where.exe", ["blender"], { encoding: "utf8", windowsHide: true });
-  if (where.status === 0) {
-    const first = where.stdout.split(/\r?\n/).map((line) => line.trim()).find(Boolean);
-    if (first) return first;
-  }
-  return null;
+  return findOnPath("blender");
 }
 
 for (const outputName of [`space_${exhibitId}.glb`, `focus_${exhibitId}.glb`]) {

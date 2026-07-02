@@ -921,6 +921,7 @@ export function FocusOverlay({
             <Suspense fallback={<FocusLoading />}>
               <Canvas
                 id="focus-canvas"
+                frameloop={activeMedia.kind === "model" ? "always" : "never"}
                 data-cursor={focusCanvasInteractive ? "drag-model" : undefined}
                 className={`focus-canvas${focusCanvasInteractive ? " focus-canvas--visible" : ""}`}
                 gl={(props) =>

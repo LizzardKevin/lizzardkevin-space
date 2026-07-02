@@ -28,7 +28,6 @@ const placements = manifest.exhibits
   }));
 
 const cache = {
-  generatedAt: new Date().toISOString(),
   source: {
     spaceMain: "/models/space_main.glb",
     manifest: "/exhibits/manifest.json",

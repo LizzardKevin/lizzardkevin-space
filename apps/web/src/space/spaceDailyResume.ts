@@ -18,7 +18,11 @@ type ClearableSpaceResumeStorage = Pick<Storage, "getItem" | "setItem" | "remove
 
 function getDefaultStorage(): SpaceResumeStorage {
   if (typeof window === "undefined") return null;
-  return window.localStorage;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
 }
 
 function isFiniteNumber(value: unknown): value is number {

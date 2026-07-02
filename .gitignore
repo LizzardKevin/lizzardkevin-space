@@ -29,8 +29,8 @@ dist-ssr
 *.blend1
 
 # Local test distribution zip
-release/
+/release/
 
 # Local temp / scratch
-.tmp_py/
-work/
+/.tmp_py/
+/work/

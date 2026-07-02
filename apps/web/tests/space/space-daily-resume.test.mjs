@@ -80,6 +80,29 @@ test("space daily resume ignores stale, malformed, and unavailable storage", asy
   assert.equal(resume.readSpaceDailyResume(null, now), null);
 });
 
+test("space daily resume ignores restricted default localStorage", async () => {
+  const resume = await importSourceModule("space/spaceDailyResume.ts");
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      get localStorage() {
+        throw new Error("localStorage blocked");
+      },
+    },
+  });
+
+  try {
+    assert.equal(resume.readSpaceDailyResume(), null);
+    assert.doesNotThrow(() => resume.writeSpaceDailyResume(undefined, samplePose));
+    assert.doesNotThrow(() => resume.clearSpaceDailyResume());
+  } finally {
+    if (originalWindow) Object.defineProperty(globalThis, "window", originalWindow);
+    else delete globalThis.window;
+  }
+});
+
 test("space daily resume writes only after onboarding completion or a restored session", async () => {
   const resume = await importSourceModule("space/spaceDailyResume.ts");
 

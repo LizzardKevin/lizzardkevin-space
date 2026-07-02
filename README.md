@@ -1,12 +1,13 @@
 # LizzardKevin Space
 
-WebGPU 3D 展厅（React + Three.js + Rapier）。主场景 `gallery_main.glb`，展品 Focus 特写与 manifest 驱动交互。
+WebGPU 3D 展厅（React + Three.js + Rapier）。主场景 `space_main.glb`，展品 Focus 特写与 manifest 驱动交互。
 
 ## 开发
 
 ```bash
 npm install
 npm run dev          # http://127.0.0.1:5173
+npm run verify:quick # lint + TypeScript + unit/contract tests
 npm run build        # 产物 apps/web/dist
 npm run package:test # 本地试玩 zip → release/
 ```
@@ -29,4 +30,4 @@ npm run package:test # 本地试玩 zip → release/
 
 ## 内容维护（本地）
 
-改 GLB / JSON / Markdown 后执行 `npm run build`，`git push` 到 `main` 即可由 Cloudflare Pages 自动重新部署。详见 [`docs/devstories.md`](docs/devstories.md)。
+改 GLB / JSON / 网页内容数据后先执行 `npm run verify:quick`；涉及构建、路由、部署入口或静态资源路径时再执行 `npm run build:chunks`。DevStories 的维护方式见 [`docs/devstories.md`](docs/devstories.md)。
