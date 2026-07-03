@@ -1,3 +1,4 @@
+import "../runtime/suppressThirdPartyDeprecationWarnings";
 import { Canvas } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
