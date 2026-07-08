@@ -11,7 +11,7 @@
 - **示例**：`exhibit_band_bass`、`exhibit_arch_model_01`
 - **运行时绑定**：mesh 名 `exhibit_<id>` 会自动映射为 `userData.exhibitId = "<id>"`（如 `exhibit_demo_box` → `demo_box`）
 
-> **展品资产进度对照表**（Excel）：[`assets/exhibit-asset-tracker.xlsx`](assets/exhibit-asset-tracker.xlsx)（CSV 副本：`exhibit-asset-tracker-*.csv`，含 [`gallery_nodes`](assets/exhibit-asset-tracker-gallery_nodes.csv) 节点↔代码绑定）
+> **展品内容与资产附录**（Excel）：[`assets/space-exhibit-index.xlsx`](assets/space-exhibit-index.xlsx)。运行时内容由 `scripts/generate-space-content.mjs` 生成；附录行 `asset_note` / `gallery_node` 记录资产备注与节点↔代码绑定。
 
 ## 约定前缀（摘要）
 

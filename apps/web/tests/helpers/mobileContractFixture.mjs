@@ -20,5 +20,17 @@ export const files = {
 
 const mobileDataPath = projectPath("apps/web/src/mobile/mobileArchiveData.ts");
 assert(existsSync(mobileDataPath), "mobile archive data module must exist");
-export const mobileData = readFileSync(mobileDataPath, "utf8").replace(/\r\n/g, "\n");
+const generatedMobileDataPath = projectPath("apps/web/src/generated/mobileArchive.generated.ts");
+assert(existsSync(generatedMobileDataPath), "generated mobile archive data module must exist");
+export const mobileData = [
+  readFileSync(generatedMobileDataPath, "utf8"),
+  readFileSync(mobileDataPath, "utf8"),
+]
+  .join("\n")
+  .replace(/\r\n/g, "\n")
+  .replace(/"([A-Za-z_$][\w$]*)":/g, "$1:")
+  .replace(/generatedMobileTabs/g, "mobileTabs")
+  .replace(/generatedMobileTerminalCopy/g, "mobileTerminalCopy")
+  .replace(/generatedMobileProjectItems/g, "mobileProjectItems")
+  .replace(/generatedMobileSkillEntries/g, "mobileSkillEntries");
 export const terminalCss = terminalCssSlice(files.css);

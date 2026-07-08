@@ -3,8 +3,8 @@ import { readSourceFile } from "../helpers/projectPaths.mjs";
 
 const splitTabs = readSourceFile("components/frostedSplit/FrostedSplitTabs.tsx");
 const splitData = readSourceFile("components/frostedSplit/splitArchiveData.ts");
-const profile = readSourceFile("content/lizzardKevinProfile.ts");
-const devStories = readSourceFile("content/devStories.ts");
+const profile = readSourceFile("generated/profile.generated.ts").replace(/"([A-Za-z_$][\w$]*)":/g, "$1:");
+const devStories = readSourceFile("generated/devStories.generated.ts").replace(/"([A-Za-z_$][\w$]*)":/g, "$1:");
 
 assert(
   splitTabs.includes("useTranslation") &&

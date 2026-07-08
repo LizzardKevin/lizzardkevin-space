@@ -428,7 +428,7 @@ mat_exhibit_band_tv_screen_emissive
 
 运行时读取 [`resolveGallerySpawn.ts`](../apps/web/src/scenes/gallery/resolveGallerySpawn.ts)：`spawn_player_main` 的世界 XZ + 脚下 `COL_ground`/`COL_platform_*` 顶面算 Y；失败则网格采样 fallback。`galleryConfig.ts` 的 `GALLERY_SPAWN` 仅为加载前占位。
 
-当前 glb 节点 ↔ 代码对照见 [`assets/exhibit-asset-tracker-gallery_nodes.csv`](assets/exhibit-asset-tracker-gallery_nodes.csv)。
+当前 glb 节点 ↔ 代码对照维护在 [`assets/space-exhibit-index.xlsx`](assets/space-exhibit-index.xlsx) 的 `gallery_node` 行。
 
 ---
 

@@ -3,7 +3,10 @@ import { files } from "../helpers/spaceContractFixture.mjs";
 import { readProjectFile } from "../helpers/projectPaths.mjs";
 
 const notices = readProjectFile("apps/web/src/scenes/gallery/TempBlockerNotices.tsx");
-const i18n = readProjectFile("apps/web/src/i18n/i18n.ts");
+const i18n = readProjectFile("apps/web/src/generated/i18nResources.generated.ts").replace(
+  /"([A-Za-z_$][\w$]*)":/g,
+  "$1:",
+);
 
 assert(
   files.galleryModel.includes("TempBlockerNotices") &&

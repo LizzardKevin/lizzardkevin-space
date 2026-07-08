@@ -832,7 +832,7 @@ function ContactDocument({ copy }: { copy: typeof mobileTerminalCopy.en.contact 
           <div key={line.label}>
             <span>{line.label}</span>
             {line.values.map((value) => (
-              "href" in value ? (
+              value.href ? (
                 <a
                   key={value.text}
                   href={value.href}

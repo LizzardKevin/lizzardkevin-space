@@ -32,7 +32,11 @@
         ]
       },
       "scene": {
-        "distanceCenter": [-12.590655, 26.41809, -5.630336],
+        "distanceCenter": [
+          -12.590655,
+          26.41809,
+          -5.630336
+        ],
         "modelUrl": "/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
         "scale": 1,
         "placement": {
@@ -65,7 +69,11 @@
         ]
       },
       "scene": {
-        "distanceCenter": [-19.760264, 23.153265, -1.90665],
+        "distanceCenter": [
+          -19.760264,
+          23.153265,
+          -1.90665
+        ],
         "modelUrl": "/exhibits/arch_uabb_exhibit/space_arch_uabb_exhibit.glb",
         "scale": 1,
         "placement": {
@@ -86,7 +94,11 @@
         "videoUrl": "/exhibits/arch_3d_printing_architecture/video/final-clip-without-bgm.mp4"
       },
       "scene": {
-        "distanceCenter": [-12.556294, 30.178514, -15.532322],
+        "distanceCenter": [
+          -12.556294,
+          30.178514,
+          -15.532322
+        ],
         "modelUrl": "/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
         "scale": 1,
         "placement": {

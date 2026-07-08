@@ -2,8 +2,15 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { projectPath, readProjectFile } from "../helpers/projectPaths.mjs";
 
-const devStories = readProjectFile("apps/web/src/content/devStories.ts");
+const devStories = readProjectFile("apps/web/src/generated/devStories.generated.ts").replace(
+  /"([A-Za-z_$][\w$]*)":/g,
+  "$1:",
+);
 const splitArchiveData = readProjectFile("apps/web/src/components/frostedSplit/splitArchiveData.ts");
+const splitArchiveCopy = readProjectFile("apps/web/src/generated/splitArchiveCopy.generated.ts").replace(
+  /"([A-Za-z_$][\w$]*)":/g,
+  "$1:",
+);
 const devStoriesGuide = readProjectFile("docs/devstories.md");
 const devLog8 = readProjectFile("docs/devlog/DevLog_8.md");
 const devLogSum8 = readProjectFile("docs/devlog/DevLogSum_8.md");
@@ -35,7 +42,7 @@ for (const [copyKey, label] of [
   ["whatGotWeird", "What got weird"],
   ["nextNote", "Next note"],
 ]) {
-  assert(splitArchiveData.includes(`${copyKey}: "${label}"`), `DevStories detail copy must include ${label}`);
+  assert(splitArchiveCopy.includes(`${copyKey}: "${label}"`), `DevStories detail copy must include ${label}`);
   assert(splitArchiveData.includes(`copy.${copyKey}`), `DevStories detail label must render localized ${copyKey}`);
 }
 

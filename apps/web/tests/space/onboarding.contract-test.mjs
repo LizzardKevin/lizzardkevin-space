@@ -34,7 +34,10 @@ const exhibitTarget = readProjectFile("apps/web/src/exhibits/exhibitTarget.ts");
 const targetLabel = readProjectFile("apps/web/src/exhibits/ExhibitTargetLabel.tsx");
 const desktop = files.desktop;
 const focusOverlay = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
-const i18n = readProjectFile("apps/web/src/i18n/i18n.ts");
+const i18n = readProjectFile("apps/web/src/generated/i18nResources.generated.ts").replace(
+  /"([A-Za-z_$][\w$]*)":/g,
+  "$1:",
+);
 const css = files.css;
 const packageJson = readProjectFile("package.json");
 
