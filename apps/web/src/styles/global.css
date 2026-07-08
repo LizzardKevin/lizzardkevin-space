@@ -1047,12 +1047,15 @@ button {
 
 .mobile-project-line span {
   grid-row: span 2;
+  min-width: 0;
   color: var(--terminal-soft);
   font-size: 12px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .mobile-project-line strong {
+  min-width: 0;
   width: fit-content;
   color: var(--terminal-text);
   font-size: 15px;
@@ -1061,6 +1064,7 @@ button {
 }
 
 .mobile-project-line small {
+  min-width: 0;
   color: var(--terminal-muted);
   font-size: 12px;
   line-height: 1.45;
