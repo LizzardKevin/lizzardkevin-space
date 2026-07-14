@@ -42,7 +42,7 @@ assert(
   "ExhibitRaycast should test registered real exhibit meshes, not every object in the scene",
 );
 assert(
-  files.desktop.includes("const spaceRenderPaused = focusSurfaceOpen || overlay.isOverlayOpen") &&
+  files.desktop.includes("const spaceRenderPaused = focusSurfaceOpen || routeBlocked") &&
     files.desktop.includes('frameloop={spaceRenderPaused ? "never" : "always"}') &&
     files.desktop.includes("spaceRenderPaused ? \" space-canvasWrap--disabled\" : \"\""),
   "SPACE Canvas must pause its render loop while Focus, LizzardKevin, or DevStories overlays are open",

@@ -1,6 +1,14 @@
 import { TopBar } from "../components/TopBar";
 import { OverlayLayer } from "../overlay/OverlayLayer";
 import type { OverlayTab } from "../overlay/OverlayState";
+import { useNavigate } from "react-router-dom";
+
+function captureSpaceWordSourceRect() {
+  const element = document.querySelector<HTMLElement>("[data-space-word-origin='true']");
+  if (!element) return null;
+  const rect = element.getBoundingClientRect();
+  return { height: rect.height, width: rect.width, x: rect.left, y: rect.top };
+}
 
 type SpaceWordRect = {
   height: number;
@@ -10,13 +18,23 @@ type SpaceWordRect = {
 };
 
 export function DesktopTopBar({
-  onOpenTab,
-  onCloseTab,
+  onNavigateToSpace,
 }: {
-  onOpenTab: (tab: Exclude<OverlayTab, null>) => void;
-  onCloseTab: () => void;
+  onNavigateToSpace: () => void;
 }) {
-  return <TopBar onOpenTab={onOpenTab} onCloseTab={onCloseTab} />;
+  const navigate = useNavigate();
+  const navigateToOverlay = (tab: Exclude<OverlayTab, null>) => {
+    const spaceWordSourceRect = captureSpaceWordSourceRect();
+    navigate(tab === "devStories" ? "/devstories" : "/profile", {
+      state: { spaceWordSourceRect },
+    });
+  };
+  return (
+    <TopBar
+      onOpenTab={navigateToOverlay}
+      onCloseTab={onNavigateToSpace}
+    />
+  );
 }
 
 export function DesktopOverlayLayer({

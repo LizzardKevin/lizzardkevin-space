@@ -161,7 +161,19 @@ function getFoldExpanded(foldState: TerminalFoldState, foldId: string) {
   return foldState[foldId] ?? false;
 }
 
-export function MobileExperience({ entry }: { entry: EntryTransition }) {
+export function MobileExperience({
+  entry,
+  routeProjectId = null,
+  routeTab = null,
+  onNavigateToProject,
+  onNavigateToRoot,
+}: {
+  entry: EntryTransition;
+  routeProjectId?: string | null;
+  routeTab?: MobileTabId | null;
+  onNavigateToProject?: (projectId: string) => void;
+  onNavigateToRoot?: () => void;
+}) {
   const { i18n } = useTranslation();
   const { entered } = entry;
   const terminalRootRef = useRef<HTMLDivElement | null>(null);
@@ -169,9 +181,9 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
   const terminalCollapseRef = useRef(0);
   const terminalSnapFrameRef = useRef<number | null>(null);
   const [bootLanguage] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
-  const [activeTab, setActiveTab] = useState<MobileTabId | null>(null);
+  const [activeTab, setActiveTab] = useState<MobileTabId | null>(routeTab);
   const [foldState, setFoldState] = useState<TerminalFoldState>({});
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(routeProjectId);
   const [viewLoadKey, setViewLoadKey] = useState(0);
   const [language, setLanguageState] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
   const [theme, setThemeState] = useState<MobileTerminalTheme>(() => readStoredTheme());
@@ -337,12 +349,20 @@ export function MobileExperience({ entry }: { entry: EntryTransition }) {
   };
 
   const openProject = (projectId: string) => {
+    if (onNavigateToProject) {
+      onNavigateToProject(projectId);
+      return;
+    }
     setSelectedProjectId(projectId);
     setViewLoadKey((key) => key + 1);
     snapTerminalCollapseToNearest();
   };
 
   const closeProject = () => {
+    if (onNavigateToRoot) {
+      onNavigateToRoot();
+      return;
+    }
     setSelectedProjectId(null);
     setViewLoadKey((key) => key + 1);
     snapTerminalCollapseToNearest();

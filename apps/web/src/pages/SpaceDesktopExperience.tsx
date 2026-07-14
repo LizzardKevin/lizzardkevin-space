@@ -41,6 +41,7 @@ import { spawnToCameraPosition } from "../scenes/gallery/resolveGallerySpawn";
 import { SPACE_ONBOARDING_DEMO_EXHIBIT_ID } from "../scenes/onboarding/spaceOnboardingConfig";
 import { SpaceOnboardingFocusDemo } from "../scenes/onboarding/SpaceOnboardingFocusDemo";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { useSpaceVisualSettings } from "../space/spaceVisualSettings";
 
 import {
@@ -57,6 +58,7 @@ import {
   writeSpaceDailyResume,
   type SpacePlayerPose,
 } from "../space/spaceDailyResume";
+import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 
 const FocusOverlay = lazy(() =>
   import("../exhibits/FocusOverlay").then((module) => ({
@@ -97,46 +99,43 @@ function ProjectorControlsHint({ visible }: { visible: boolean }) {
   );
 }
 
-function readInitialDailyResumePose() {
-  if (typeof window !== "undefined") {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get(SPACE_DAILY_RESUME_RESET_PARAM) === "1") {
-      clearSpaceDailyResume();
-      params.delete(SPACE_DAILY_RESUME_RESET_PARAM);
-      const nextSearch = params.toString();
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}${window.location.hash}`,
-      );
-      return null;
-    }
+function readInitialDailyResumePose(params: URLSearchParams) {
+  if (params.get(SPACE_DAILY_RESUME_RESET_PARAM) === "1") {
+    clearSpaceDailyResume();
+    return null;
   }
   return readSpaceDailyResume();
 }
 
-function readDevFocusExhibitId() {
-  if (!import.meta.env.DEV || typeof window === "undefined") return null;
-  return new URLSearchParams(window.location.search).get(SPACE_DEBUG_FOCUS_PARAM);
+function readDevFocusExhibitId(params: URLSearchParams) {
+  if (!import.meta.env.DEV) return null;
+  return params.get(SPACE_DEBUG_FOCUS_PARAM);
 }
 
 export function SpaceDesktopExperience({
   entry,
+  focusedExhibitId,
   overlay,
   loadExhibits,
+  onNavigateToSpace,
+  onNavigateToWork,
   onSceneExhibitsReady,
   onCanvasReady,
+  routeBlocked,
 }: {
   entry: EntryTransition;
+  focusedExhibitId: string | null;
   overlay: { isOverlayOpen: boolean };
   loadExhibits: boolean;
+  onNavigateToSpace: (options?: { fromEscape?: boolean }) => void;
+  onNavigateToWork: (exhibitId: string) => void;
   onSceneExhibitsReady: () => void;
   onCanvasReady?: () => void;
+  routeBlocked: boolean;
 }) {
   const [exhibitTarget, setExhibitTarget] = useState<ExhibitTarget | null>(null);
   const { t } = useTranslation();
   const [manifest, setManifest] = useState<ExhibitManifestItem[] | null>(null);
-  const [focused, setFocused] = useState<ExhibitManifestItem | null>(null);
   /** 退出动效期间仍挂载 Focus，但已恢复 SPACE 第一人称控制 */
   const [focusClosing, setFocusClosing] = useState<ExhibitManifestItem | null>(null);
   const [toast, setToast] = useState<SpaceToastState | null>(null);
@@ -150,11 +149,17 @@ export function SpaceDesktopExperience({
   const [pointerLockUnavailable, setPointerLockUnavailable] = useState(false);
   const [onboardingFocusOpen, setOnboardingFocusOpen] = useState(false);
   const [onboardingFocusClosing, setOnboardingFocusClosing] = useState(false);
-  const [dailyResumePose] = useState<SpacePlayerPose | null>(() => readInitialDailyResumePose());
-  const [devFocusExhibitId] = useState<string | null>(() => readDevFocusExhibitId());
-  const [onboardingCompleted, setOnboardingCompleted] = useState(dailyResumePose !== null);
-  const latestSpacePoseRef = useRef<SpacePlayerPose | null>(dailyResumePose);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [dailyResumePose] = useState<SpacePlayerPose | null>(() =>
+    readInitialDailyResumePose(searchParams),
+  );
+  const [sessionResumePose] = useState<SpacePlayerPose | null>(() => readSpaceSessionPose());
+  const initialResumePose = sessionResumePose ?? dailyResumePose;
+  const [devFocusExhibitId] = useState<string | null>(() => readDevFocusExhibitId(searchParams));
+  const [onboardingCompleted, setOnboardingCompleted] = useState(initialResumePose !== null);
+  const latestSpacePoseRef = useRef<SpacePlayerPose | null>(initialResumePose);
   const lastDailyResumeSaveAtRef = useRef(0);
+  const lastSessionPoseSaveAtRef = useRef(0);
   const projectorSlideCommandNonceRef = useRef(0);
   const devFocusOpenedRef = useRef(false);
   const rendererOwnerMountedRef = useRef(true);
@@ -167,7 +172,7 @@ export function SpaceDesktopExperience({
     error: Error | null;
   }>(() => ({
     requestedProfile: settings.qualityPreset,
-    initialPose: dailyResumePose,
+    initialPose: initialResumePose,
     nonce: 0,
     resolvedProfile: null,
     error: null,
@@ -175,6 +180,13 @@ export function SpaceDesktopExperience({
   const resolvedProfile = rendererRuntime.resolvedProfile;
 
   const { entered, fading: entryIsFading } = entry;
+
+  useEffect(() => {
+    if (searchParams.get(SPACE_DAILY_RESUME_RESET_PARAM) !== "1") return;
+    const next = new URLSearchParams(searchParams);
+    next.delete(SPACE_DAILY_RESUME_RESET_PARAM);
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     rendererOwnerMountedRef.current = true;
@@ -215,12 +227,12 @@ export function SpaceDesktopExperience({
         return switchRendererProfileState(
           current,
           settings.qualityPreset,
-          latestSpacePoseRef.current ?? dailyResumePose,
+          latestSpacePoseRef.current ?? initialResumePose,
         );
       });
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [dailyResumePose, settings.qualityPreset]);
+  }, [initialResumePose, settings.qualityPreset]);
 
   useEffect(() => {
     let cancelled = false;
@@ -237,15 +249,19 @@ export function SpaceDesktopExperience({
   }, []);
 
   useEffect(() => {
-    if (!devFocusExhibitId || manifest === null || focused || devFocusOpenedRef.current) return;
+    if (!devFocusExhibitId || manifest === null || focusedExhibitId || devFocusOpenedRef.current) return;
     const found = manifest.find((item) => item.exhibitId === devFocusExhibitId);
     if (!found) return;
     devFocusOpenedRef.current = true;
     const timer = window.setTimeout(() => {
-      setFocused((current) => current ?? found);
+      onNavigateToWork(found.exhibitId);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [devFocusExhibitId, focused, manifest]);
+  }, [devFocusExhibitId, focusedExhibitId, manifest, onNavigateToWork]);
+
+  const focused = focusedExhibitId
+    ? manifest?.find((item) => item.exhibitId === focusedExhibitId) ?? null
+    : null;
 
   const handleBeginDismissFocus = useCallback(
     (opts?: { fromEscape?: boolean }) => {
@@ -253,11 +269,9 @@ export function SpaceDesktopExperience({
         if (!opts?.fromEscape) {
           setSuppressNextExhibitClick(true);
         }
-        setFocused((current) => {
-          if (current) setFocusClosing(current);
-          return null;
-        });
+        if (focused) setFocusClosing(focused);
       });
+      onNavigateToSpace(opts);
       if (overlay.isOverlayOpen) return;
       if (opts?.fromEscape) {
         resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: overlay.isOverlayOpen });
@@ -266,7 +280,7 @@ export function SpaceDesktopExperience({
       if (entered) resumeSpaceFirstPersonWithCursorReturn();
       else engageSpaceFirstPerson({ entered, overlayOpen: false });
     },
-    [entered, overlay.isOverlayOpen],
+    [entered, focused, onNavigateToSpace, overlay.isOverlayOpen],
   );
 
   const handleFinishDismissFocus = useCallback(() => {
@@ -274,9 +288,11 @@ export function SpaceDesktopExperience({
   }, []);
 
   const focusOverlayExhibit = focused ?? focusClosing;
+  const invalidFocusedRoute =
+    focusedExhibitId !== null && manifest !== null && focused === null && focusClosing === null;
   const onboardingFocusVisible = onboardingFocusOpen || onboardingFocusClosing;
-  const focusSurfaceOpen = focusOverlayExhibit !== null || onboardingFocusVisible;
-  const spaceRenderPaused = focusSurfaceOpen || overlay.isOverlayOpen;
+  const focusSurfaceOpen = focusOverlayExhibit !== null || onboardingFocusVisible || invalidFocusedRoute;
+  const spaceRenderPaused = focusSurfaceOpen || routeBlocked;
   const dailyResumeSavingEnabled = shouldSaveSpaceDailyResume({
     onboardingCompleted,
     restoredFromDailyResume: dailyResumePose !== null,
@@ -286,8 +302,12 @@ export function SpaceDesktopExperience({
   const handleSpacePoseSample = useCallback(
     (pose: SpacePlayerPose) => {
       latestSpacePoseRef.current = pose;
-      if (!canSaveDailyResume) return;
       const nowMs = Date.now();
+      if (nowMs - lastSessionPoseSaveAtRef.current >= SPACE_DAILY_RESUME_SAVE_INTERVAL_MS) {
+        writeSpaceSessionPose(undefined, pose);
+        lastSessionPoseSaveAtRef.current = nowMs;
+      }
+      if (!canSaveDailyResume) return;
       if (nowMs - lastDailyResumeSaveAtRef.current < SPACE_DAILY_RESUME_SAVE_INTERVAL_MS) return;
       writeSpaceDailyResume(undefined, pose, new Date(nowMs));
       lastDailyResumeSaveAtRef.current = nowMs;
@@ -306,6 +326,7 @@ export function SpaceDesktopExperience({
     if (!dailyResumeSavingEnabled) return;
     const saveBeforePageHide = () => {
       if (!latestSpacePoseRef.current) return;
+      writeSpaceSessionPose(undefined, latestSpacePoseRef.current);
       writeSpaceDailyResume(undefined, latestSpacePoseRef.current);
     };
     window.addEventListener("pagehide", saveBeforePageHide);
@@ -360,13 +381,13 @@ export function SpaceDesktopExperience({
       }
       flushSync(() => {
         setExhibitTarget(null);
-        setFocused(found);
       });
+      onNavigateToWork(found.exhibitId);
       if (document.pointerLockElement) {
         document.exitPointerLock();
       }
     },
-    [manifest],
+    [manifest, onNavigateToWork],
   );
 
   const isHovering = exhibitTarget !== null && !focusSurfaceOpen;
@@ -468,6 +489,18 @@ export function SpaceDesktopExperience({
       />
       {hud}
       <PlaybackBar elevated={focusSurfaceOpen} />
+      {invalidFocusedRoute ? (
+        <main
+          className="focus-overlay"
+          data-work-route-not-found="true"
+          role="main"
+          style={{ display: "grid", placeItems: "center" }}
+        >
+          <button type="button" className="focus-return-button focus-return-button--visible" onClick={() => onNavigateToSpace()}>
+            404 — return to SPACE
+          </button>
+        </main>
+      ) : null}
       {focusOverlayExhibit && resolvedProfile ? (
         <Suspense fallback={null}>
           <FocusOverlay

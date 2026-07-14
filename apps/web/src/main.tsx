@@ -6,6 +6,7 @@ import { PlaybackProvider } from "./media/PlaybackContext";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { detectClientPlatform, type ClientPlatform } from "./platform/clientPlatform";
 import App from "./App";
+import { normalizeRouterBasename } from "./app/routeConfig";
 import "./i18n/i18n";
 import "./styles/global.css";
 
@@ -14,7 +15,7 @@ const platform: ClientPlatform = detectClientPlatform();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AppErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter basename={normalizeRouterBasename(import.meta.env.BASE_URL)}>
         <AudioProvider>
           <PlaybackProvider>
             <App platform={platform} />

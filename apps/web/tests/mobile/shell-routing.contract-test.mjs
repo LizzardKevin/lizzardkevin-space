@@ -14,13 +14,11 @@ assert(
   "MobileApp must statically own the mobile experience",
 );
 
+assert(files.desktopApp.includes('from "../pages/SpacePage"'), "DesktopApp must own the entry-only SpacePage");
 assert(
-  files.spacePage.includes("const SpaceDesktopExperience = lazy("),
-  "SpacePage must keep the desktop 3D experience lazy-loaded",
-);
-assert(
-  files.desktopApp.includes('from "../pages/SpacePage"') && files.spacePage.includes("<SpaceDesktopExperience"),
-  "DesktopApp must own the desktop-only SpacePage",
+  files.desktopApp.includes('lazy(() => import("../space/SpaceHost"))') &&
+    !files.spacePage.includes("SpaceDesktopExperience"),
+  "DesktopApp must lazy-load the 3D host only after trusted entry",
 );
 
 assert(!files.mobileExperience.includes("devStories"), "mobile experience must not import or render DevStories");
@@ -103,7 +101,10 @@ assert(files.mobileExperience.includes("--terminal-reveal-y"), "theme reveal mus
 assert(files.mobileExperience.includes("nextTheme: next"), "theme reveal must store the next theme while the circular reveal runs");
 assert(files.mobileExperience.includes("themeRevealTimeoutRef.current = window.setTimeout"), "theme switching must delay the real theme swap until the circular reveal starts");
 assert(files.mobileExperience.includes("setThemeState(next);"), "theme switching must apply the requested theme after the reveal animation");
-assert(files.mobileExperience.includes("useState<MobileTabId | null>(null)"), "mobile terminal must enter with no default tab selected");
+assert(
+  files.mobileExperience.includes("useState<MobileTabId | null>(routeTab)"),
+  "mobile terminal must derive its deterministic initial tab from the canonical route",
+);
 assert(files.mobileExperience.includes('data-active-tab={activeTab ?? "idle"}'), "mobile terminal must expose an idle state before a tab is opened");
 assert(files.mobileExperience.includes("viewLoadKey"), "mobile terminal must key changed document text for reload animation");
 assert(files.mobileExperience.includes("setViewLoadKey((key) => key + 1)"), "tab switches must trigger the document text load animation");

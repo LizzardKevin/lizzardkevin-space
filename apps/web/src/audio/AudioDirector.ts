@@ -46,6 +46,8 @@ export class AudioDirector {
   private lastFootstepUrl: string | undefined;
   private useProceduralFootsteps = false;
   private footstepClipsReady = false;
+  private routePaused = false;
+  private resumeProceduralAmbientAfterRoute = false;
 
   constructor(config: AudioDirectorConfig) {
     this.zoneBgmUrls = config.zoneBgmUrls;
@@ -107,6 +109,32 @@ export class AudioDirector {
     ]);
   }
 
+  setRoutePaused(paused: boolean) {
+    if (paused === this.routePaused) return;
+    this.routePaused = paused;
+
+    if (paused) {
+      this.bgm?.howl.pause();
+      this.ambient?.howl.pause();
+      this.resumeProceduralAmbientAfterRoute = this.proceduralAmbient !== null;
+      this.stopProceduralAmbient();
+      return;
+    }
+
+    if (!this.unlocked) return;
+    if (this.bgm && !this.bgmStartTimer && !this.bgm.howl.playing()) {
+      this.bgm.howl.play();
+      this.bgm.howl.fade(this.bgm.howl.volume(), this.volumes.bgm, 180);
+    }
+    if (this.ambient && !this.ambient.howl.playing()) {
+      this.ambient.howl.play();
+      this.ambient.howl.fade(this.ambient.howl.volume(), this.volumes.ambient, 220);
+    } else if (this.resumeProceduralAmbientAfterRoute) {
+      this.startProceduralAmbientFallback();
+    }
+    this.resumeProceduralAmbientAfterRoute = false;
+  }
+
   duckBgm(duck: boolean) {
     if (!this.bgm) return;
     const target = duck ? this.volumes.bgm * 0.45 : this.volumes.bgm;
@@ -121,7 +149,7 @@ export class AudioDirector {
   }
 
   playFootstep() {
-    if (!this.unlocked) return;
+    if (!this.unlocked || this.routePaused) return;
     const vol = this.channelVolume("sfx") * FOOTSTEP_SFX_GAIN;
     if (this.useProceduralFootsteps || this.footstepUrls.length === 0) {
       playProceduralFootstep(vol);
@@ -137,12 +165,12 @@ export class AudioDirector {
   }
 
   playJumpStart() {
-    if (!this.unlocked || !this.jumpStartUrl) return;
+    if (!this.unlocked || this.routePaused || !this.jumpStartUrl) return;
     playFootstepClip(this.jumpStartUrl, this.channelVolume("sfx") * JUMP_SFX_GAIN);
   }
 
   playJumpLand() {
-    if (!this.unlocked || !this.jumpLandUrl) return;
+    if (!this.unlocked || this.routePaused || !this.jumpLandUrl) return;
     playFootstepClip(this.jumpLandUrl, this.channelVolume("sfx") * JUMP_SFX_GAIN);
   }
 
@@ -213,12 +241,15 @@ export class AudioDirector {
       this.bgmStartTimer = setTimeout(() => {
         this.bgmStartTimer = null;
         if (this.bgm?.howl !== next) return;
+        if (this.routePaused) return;
         next.play();
         next.fade(0, this.volumes.bgm, SPACE_BGM_FADE_IN_MS);
       }, SPACE_BGM_FADE_IN_DELAY_MS);
     } else {
-      next.play();
-      next.fade(0, volume, 650);
+      if (!this.routePaused) {
+        next.play();
+        next.fade(0, volume, 650);
+      }
       this.ambient = playing;
       this.stopProceduralAmbient();
     }
