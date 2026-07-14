@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
 import { loadManifest } from "../exhibits/manifest";
@@ -8,7 +8,7 @@ import type { ProjectorSlideCommand, ProjectorSlideDirection } from "../scenes/p
 import { SPACE_ONBOARDING_DEMO_EXHIBIT_ID } from "../scenes/onboarding/spaceOnboardingConfig";
 import { SpaceOnboardingFocusDemo } from "../scenes/onboarding/SpaceOnboardingFocusDemo";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { SpaceCanvasHost } from "../space/SpaceCanvasHost";
 import { SpaceHud } from "../space/SpaceHud";
 
@@ -28,7 +28,13 @@ import {
 } from "../space/spaceDailyResume";
 import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
-import { resolveSpaceFocusSurfaceState } from "../space/spaceFocusSurfaceState";
+import {
+  createInitialSpaceFocusSessionState,
+  reduceSpaceFocusSession,
+  resolveSpaceFocusSurfaceState,
+  type SpaceFocusSessionEvent,
+  type SpaceFocusSessionState,
+} from "../space/spaceFocusSurfaceState";
 import type { SpaceBootController } from "../boot/useSpaceBootController";
 
 const FocusOverlay = lazy(() =>
@@ -52,6 +58,13 @@ type SpaceToastState = {
   key: SpaceToastKey;
   values?: Record<string, string>;
 };
+
+function reduceExhibitFocusSession(
+  state: SpaceFocusSessionState<ExhibitManifestItem>,
+  event: SpaceFocusSessionEvent<ExhibitManifestItem>,
+) {
+  return reduceSpaceFocusSession(state, event);
+}
 
 function readInitialDailyResumePose(params: URLSearchParams) {
   if (params.get(SPACE_DAILY_RESUME_RESET_PARAM) === "1") {
@@ -101,8 +114,12 @@ export function SpaceDesktopExperience({
     exhibits: ExhibitManifestItem[];
   } | null>(null);
   const manifest = manifestResult?.attemptId === attemptId ? manifestResult.exhibits : null;
-  /** 退出动效期间仍挂载 Focus，但已恢复 SPACE 第一人称控制 */
-  const [focusClosing, setFocusClosing] = useState<ExhibitManifestItem | null>(null);
+  /** 退出动效期间保留当前 session；快速重入会创建新 session，避免复用已关闭的 Focus。 */
+  const [focusSessionState, dispatchFocusSession] = useReducer(
+    reduceExhibitFocusSession,
+    undefined,
+    createInitialSpaceFocusSessionState<ExhibitManifestItem>,
+  );
   const [toast, setToast] = useState<SpaceToastState | null>(null);
   const [crosshairPulseNonce, setCrosshairPulseNonce] = useState(0);
   const [suppressNextExhibitClick, setSuppressNextExhibitClick] = useState(false);
@@ -114,6 +131,7 @@ export function SpaceDesktopExperience({
   const [pointerLockUnavailable, setPointerLockUnavailable] = useState(false);
   const [onboardingFocusOpen, setOnboardingFocusOpen] = useState(false);
   const [onboardingFocusClosing, setOnboardingFocusClosing] = useState(false);
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [dailyResumePose] = useState<SpacePlayerPose | null>(() =>
     readInitialDailyResumePose(searchParams),
@@ -196,22 +214,30 @@ export function SpaceDesktopExperience({
     ? manifest?.find((item) => item.exhibitId === focusedExhibitId) ?? null
     : null;
 
+  useEffect(() => {
+    dispatchFocusSession({ type: "route-sync", entered, focused });
+  }, [entered, focused, location]);
+
   const handleBeginDismissFocus = useCallback(
-    (opts?: { fromEscape?: boolean }) => {
+    (sessionId: number, opts?: { fromEscape?: boolean }) => {
       flushSync(() => {
         if (!opts?.fromEscape) {
           setSuppressNextExhibitClick(true);
         }
-        if (focused) setFocusClosing(focused);
+        dispatchFocusSession({ type: "begin-dismiss", sessionId });
       });
       onNavigateToSpace(opts);
     },
-    [focused, onNavigateToSpace],
+    [onNavigateToSpace],
   );
 
-  const handleFinishDismissFocus = useCallback(() => {
-    setFocusClosing(null);
+  const handleFinishDismissFocus = useCallback((sessionId: number) => {
+    dispatchFocusSession({ type: "finish-dismiss", sessionId });
   }, []);
+
+  const focusSession = focusSessionState.current;
+  const activeFocusExhibit = focusSession?.phase === "active" ? focusSession.exhibit : null;
+  const focusClosing = focusSession?.phase === "closing" ? focusSession.exhibit : null;
 
   const {
     focusOverlayExhibit,
@@ -220,10 +246,10 @@ export function SpaceDesktopExperience({
     focusSurfaceOpen,
   } = resolveSpaceFocusSurfaceState({
     entered,
-    focused,
+    focused: activeFocusExhibit,
     focusClosing,
     focusedRoutePending:
-      focusedExhibitId !== null && manifest !== null && focused === null && focusClosing === null,
+      focusedExhibitId !== null && manifest !== null && focused === null && focusSession === null,
     onboardingFocusOpen,
     onboardingFocusClosing,
   });
@@ -416,14 +442,16 @@ export function SpaceDesktopExperience({
         }}
         renderSurfaces={({ profile, error, loading }) => (
           <>
-            {focusOverlayExhibit && profile ? (
+            {focusOverlayExhibit && focusSession && profile ? (
               <Suspense fallback={null}>
                 <FocusOverlay
-                  key={focusOverlayExhibit.exhibitId}
+                  key={`${focusOverlayExhibit.exhibitId}:${focusSession.sessionId}`}
                   exhibit={focusOverlayExhibit}
                   profile={profile.id}
-                  onBeginDismiss={handleBeginDismissFocus}
-                  onClose={handleFinishDismissFocus}
+                  onBeginDismiss={(opts) =>
+                    handleBeginDismissFocus(focusSession.sessionId, opts)
+                  }
+                  onClose={() => handleFinishDismissFocus(focusSession.sessionId)}
                 />
               </Suspense>
             ) : null}

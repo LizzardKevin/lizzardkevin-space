@@ -575,6 +575,8 @@ export function FocusOverlay({
   const imageMotionLiveRef = useRef(false);
   const departingImageIdRef = useRef(0);
   const departingImageTimerRef = useRef<number | null>(null);
+  const closeVisualTimerRef = useRef<number | null>(null);
+  const closeCompleteTimerRef = useRef<number | null>(null);
   const selectedMediaSessionRef = useRef<{
     cancel: () => void;
     reportVideoMetadata: (url: string, status: "loaded" | "failed") => void;
@@ -696,6 +698,12 @@ export function FocusOverlay({
       if (departingImageTimerRef.current !== null) {
         window.clearTimeout(departingImageTimerRef.current);
       }
+      if (closeVisualTimerRef.current !== null) {
+        window.clearTimeout(closeVisualTimerRef.current);
+      }
+      if (closeCompleteTimerRef.current !== null) {
+        window.clearTimeout(closeCompleteTimerRef.current);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- cleanup on unmount only
   }, []);
@@ -717,11 +725,15 @@ export function FocusOverlay({
       onBeginDismiss(opts);
       playback.stop();
       setContentVisible(false);
-      window.setTimeout(() => {
+      closeVisualTimerRef.current = window.setTimeout(() => {
+        closeVisualTimerRef.current = null;
         setBlurOn(false);
         setDimOn(false);
       }, 150);
-      window.setTimeout(() => onClose(), 450);
+      closeCompleteTimerRef.current = window.setTimeout(() => {
+        closeCompleteTimerRef.current = null;
+        onClose();
+      }, 450);
     },
     [
       onBeginDismiss,
