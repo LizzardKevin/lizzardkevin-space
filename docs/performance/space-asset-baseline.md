@@ -185,11 +185,30 @@ The slow desktop RAF result is expected from software rendering and cannot valid
 
 The production chunk failure explains why the source static-graph contract was green: Rolldown group ownership places shared R3F/Three symbols in `rapier-vendor`, so StartLobby's built chunk imports it even though StartLobby source never imports Rapier. Bundler ownership and repeated Return lifecycle are separate atomic follow-ups.
 
+### Post-fix candidate regression: `d03f737`
+
+The historical report above remains unchanged at `docs/performance/space-browser-baseline.json` (`477fa09d9863a2b818d410a4dda382a2d7a57dda`). The distinct candidate report is `docs/performance/space-browser-candidate-d03f737.json`, captured from exact source `d03f7373e4b4ec723c1abb67eb22ff9fc8a4fe18` with the same browser, flags, hardware, viewports, root-base production preview, and three cold plus three warm samples per scenario.
+
+| Comparison | Historical baseline | Candidate | Result |
+| --- | --- | --- | --- |
+| Machine hard gates | Lobby/pre-Enter Rapier **FAIL**; other three PASS | Mobile/cold-content 3D 0; lobby forbidden requests 0; route-return core re-requests 0; protected asset drift 0 | All four candidate hard gates PASS |
+| Desktop lobby before Enter | 19 requests; cold 1,408,396 encoded / 4,275,713 decoded-body bytes; warm 3,297 encoded bytes | 25 requests; cold 574,701 encoded / 2,017,364 decoded-body bytes; warm 4,371 encoded bytes | Rapier removed; cold encoded -833,695 (-59.2%) and decoded -2,258,349 (-52.8%); six additional split requests add 1,074 warm protocol bytes |
+| Simplified lobby-through-running | 57 requests; cold 18,226,889 encoded / 21,247,167 decoded-body bytes; warm 10,634,451 encoded bytes | 65 requests; cold 18,234,819 encoded / 21,255,694 decoded-body bytes; warm 10,636,010 encoded bytes | +8 requests; cold +7,930 encoded (+0.04%) and +8,527 decoded; warm +1,559 encoded (+0.01%) |
+| Mobile and cold content | Mobile cold 168,879 encoded bytes; content cold 134,153-159,605; warm 1,917-2,275 | Mobile cold 169,148 (+269); content cold 135,004-160,458 (+851 to +853); warm unchanged | Request counts unchanged and all remain 3D-zero |
+| Route and selected-work network | Route delta 0; selected work +9,452,599 encoded bytes / 26 requests | Route delta 0; selected work +9,452,653 bytes / 26 requests | Core reuse preserved; selected-work payload +54 bytes with no extra media request |
+| Repeated selected-work UI Return | 0/6 second Return actions reached `/` | 6/6 reached `/` through the real UI; 0 page errors | PASS; no programmatic fallback was needed for the candidate |
+| Simplified steady RAF | Cold/warm median interval 66.7 ms; p95 maxima 150.0 ms | Cold/warm median interval maxima 83.3 ms; cold p95 max 166.7 ms, warm p95 max 150.0 ms | **FAIL recorded-noise gate:** ceilings are 73.37 ms for the median metric and 165.0 ms for p95; both median cells and cold p95 exceed them |
+| Repeated-work / returned-route JS heap | Cold maxima 118.54 / 102.19 MB; warm maxima 116.87 / 120.41 MB | Cold maxima 120.23 / 111.17 MB; warm maxima 124.73 / 125.95 MB | PASS recorded-noise gate; all candidate maxima remain below 130.40 / 112.41 / 128.56 / 132.45 MB ceilings |
+
+The recorded-noise comparison uses the visual-system contract conservatively: candidate worst observed values are compared with the corresponding baseline maximum plus `max(10%, 2 ms)` for RAF and plus `max(10%, 8 MiB)` for repeated-work/returned-route heap. The cold RAF p95 miss is 1.7 ms; the median-interval miss is 9.93 ms in both cache states. This makes the candidate a machine-hard-gate PASS but **not** a complete performance release PASS. SwiftShader absolute frame rate remains diagnostic; a native-GPU rerun is needed to decide whether the interval shift is a real rendering regression or software-renderer variance.
+
+Native WebGPU/full-profile behavior and GPU memory remain unavailable. One warm sample rose across first-work, repeated-work, and returned-route heap milestones, while the other five paired samples did not; with only one repeated cycle and no forced-GC native study, this is recorded as variance rather than a claim of monotonic leakage. All six candidate desktop samples had no page error; their only console warnings were the expected WebGPU-unavailable/WebGL2-fallback messages.
+
 ### Proposed budgets (not approved)
 
 | Profile / scenario | Download / decoded-body | Decode/readiness | JS heap | GPU memory | Steady frame-time | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Simplified cold lobby-through-running | <= 18.5 MiB CDP encoded / <= 22 MiB decoded-body | Enter-to-running <= 3.25 s on this exact SwiftShader protocol | <= 105 MB after running | proposed <= 256 MiB, derived from 39.27 MiB logical boot raster exposure plus geometry/framebuffer/renderer headroom | native target median <= 16.7 ms, p95 <= 33.3 ms; SwiftShader regression-only <= 90/180 ms | Proposed; pre-Enter gate currently fails |
+| Simplified cold lobby-through-running | <= 18.5 MiB CDP encoded / <= 22 MiB decoded-body | Enter-to-running <= 3.25 s on this exact SwiftShader protocol | <= 105 MB after running | proposed <= 256 MiB, derived from 39.27 MiB logical boot raster exposure plus geometry/framebuffer/renderer headroom | native target median <= 16.7 ms, p95 <= 33.3 ms; SwiftShader regression-only <= 90/180 ms | Proposed; candidate pre-Enter PASS, recorded-noise RAF FAIL |
 | Full cold lobby-through-running | <= 18.5 MiB / <= 22 MiB because assets currently match simplified | provisional <= 3.25 s | proposed <= 110 MB | proposed <= 384 MiB for higher DPR/shadows/post buffers | native target median <= 16.7 ms, p95 <= 25 ms | Not measured; native WebGPU validation required |
 | Treehabitat selected work | <= 9.5 MiB additional / <= 10 MiB decoded-body | all-image settle <= 2.5 s local | <= 128 MB after repeat | must stay inside profile cap after native capture | active profile cap | Proposed from measured max plus bounded headroom |
 | SPACE route round trip | 0 persistent-core re-requests | overlay ready <= 1 s local | no monotonic growth beyond 10% in a GC-controlled native study | no new allocation after return | active profile cap | Network gate PASS |

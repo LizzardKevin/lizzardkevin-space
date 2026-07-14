@@ -1,0 +1,3902 @@
+{
+  "schemaVersion": 1,
+  "status": "measured_simplified_and_proposed_full",
+  "environment": {
+    "baseUrl": "http://127.0.0.1:4177",
+    "browser": "Chromium 149.0.7827.55",
+    "cacheProtocol": {
+      "cold": "new isolated browser context, empty storage, CDP Network.setCacheDisabled(true)",
+      "warm": "new isolated browser context, one unmeasured same-context prime navigation, HTTP cache enabled, then a fresh measured page"
+    },
+    "captureEndedAt": "2026-07-14T16:48:18.027Z",
+    "captureStartedAt": "2026-07-14T16:42:35.258Z",
+    "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor          ",
+    "deviceScaleFactor": 1,
+    "gitHead": "d03f7373e4b4ec723c1abb67eb22ff9fc8a4fe18",
+    "gpu": "headless ANGLE SwiftShader; actual adapter memory unavailable",
+    "memory": {
+      "freeBytesAtReport": 24132325376,
+      "totalBytes": 50632871936
+    },
+    "network": "unthrottled local loopback production preview; CDP encodedDataLength and Resource Timing recorded",
+    "node": "v24.11.0",
+    "os": "win32 10.0.26200",
+    "playwright": "1.61.1",
+    "sampleCountPerCacheState": 3,
+    "viewport": {
+      "desktop": "1440x900",
+      "mobile": "390x844"
+    }
+  },
+  "measurementLimits": {
+    "fullProfile": "not measured: native WebGPU unavailable in the authorized headless SwiftShader protocol",
+    "gpuMemory": "unavailable: browser exposes neither reliable per-page texture/buffer residency nor adapter allocation",
+    "inp": "not reported: scripted interactions are not a representative field INP sample",
+    "transferQualification": "CDP encodedDataLength includes protocol bytes; Resource Timing transferSize may be zero for cache hits and local preview is not content-encoded"
+  },
+  "definitions": {
+    "p95": "nearest-rank p95; with three samples this equals the maximum",
+    "range": "minimum and maximum of finite samples",
+    "median": "middle value, or arithmetic mean of the two middle values"
+  },
+  "hardGates": {
+    "mobileAndColdContent3dZero": {
+      "pass": true,
+      "violations": []
+    },
+    "desktopLobbyPreEnterForbiddenZero": {
+      "pass": true,
+      "violations": []
+    },
+    "routeReturnCoreReRequestsZero": {
+      "pass": true,
+      "observed": 0
+    },
+    "protectedShippingAssetHashesBytesUnchanged": {
+      "pass": true,
+      "violations": []
+    }
+  },
+  "samples": {
+    "coldContent": {
+      "profile": {
+        "cold": [
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 831
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506510,
+              "encodedBodyBytes": 154849,
+              "encodedBytes": 160458,
+              "requestCount": 13,
+              "transferBytes": 158449,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/profile",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 38.60000002384186,
+              "fcpMs": 24,
+              "firstPaintMs": 24,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4876645,
+                "usedJSHeapBytes": 3460925
+              },
+              "lcpMs": 60,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 60,
+                "size": 3192,
+                "startTime": 60,
+                "url": ""
+              },
+              "loadEventMs": 38.69999998807907,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4456448,
+                "jsHeapUsedBytes": 3072872,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 35
+              }
+            }
+          },
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 824
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506510,
+              "encodedBodyBytes": 154849,
+              "encodedBytes": 160458,
+              "requestCount": 13,
+              "transferBytes": 158449,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/profile",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 33.10000002384186,
+              "fcpMs": 16,
+              "firstPaintMs": 16,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 5663077,
+                "usedJSHeapBytes": 3460925
+              },
+              "lcpMs": 48,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 48,
+                "size": 3192,
+                "startTime": 48,
+                "url": ""
+              },
+              "loadEventMs": 33.30000001192093,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 5242880,
+                "jsHeapUsedBytes": 3072872,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 35
+              }
+            }
+          },
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 826
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506510,
+              "encodedBodyBytes": 154849,
+              "encodedBytes": 160458,
+              "requestCount": 13,
+              "transferBytes": 158449,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/profile",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 33.299999952316284,
+              "fcpMs": 28,
+              "firstPaintMs": 28,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 5400932,
+                "usedJSHeapBytes": 3459564
+              },
+              "lcpMs": 48,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 48,
+                "size": 3192,
+                "startTime": 48,
+                "url": ""
+              },
+              "loadEventMs": 33.39999997615814,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4980736,
+                "jsHeapUsedBytes": 3072272,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 36
+              }
+            }
+          }
+        ],
+        "warm": [
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 817
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506510,
+              "encodedBodyBytes": 154849,
+              "encodedBytes": 2275,
+              "requestCount": 13,
+              "transferBytes": 3600,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/profile",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 28.599999964237213,
+              "fcpMs": 40,
+              "firstPaintMs": 40,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 5400932,
+                "usedJSHeapBytes": 3460012
+              },
+              "lcpMs": 40,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 40,
+                "size": 3192,
+                "startTime": 40,
+                "url": ""
+              },
+              "loadEventMs": 28.80000001192093,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4980736,
+                "jsHeapUsedBytes": 3071960,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 35
+              }
+            }
+          },
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 827
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506510,
+              "encodedBodyBytes": 154849,
+              "encodedBytes": 2275,
+              "requestCount": 13,
+              "transferBytes": 3600,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/profile",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 29.099999964237213,
+              "fcpMs": 36,
+              "firstPaintMs": 36,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 5138788,
+                "usedJSHeapBytes": 3460924
+              },
+              "lcpMs": 56,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 56,
+                "size": 3192,
+                "startTime": 56,
+                "url": ""
+              },
+              "loadEventMs": 29.599999964237213,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4718592,
+                "jsHeapUsedBytes": 3072872,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 34
+              }
+            }
+          },
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 819
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506510,
+              "encodedBodyBytes": 154849,
+              "encodedBytes": 2275,
+              "requestCount": 13,
+              "transferBytes": 3600,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/profile",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 29.700000047683716,
+              "fcpMs": 40,
+              "firstPaintMs": 40,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4876644,
+                "usedJSHeapBytes": 3460108
+              },
+              "lcpMs": 56,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 56,
+                "size": 3192,
+                "startTime": 56,
+                "url": ""
+              },
+              "loadEventMs": 30.200000047683716,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4456448,
+                "jsHeapUsedBytes": 3072056,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 34
+              }
+            }
+          }
+        ]
+      },
+      "devstories": {
+        "cold": [
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 836
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506508,
+              "encodedBodyBytes": 154847,
+              "encodedBytes": 160456,
+              "requestCount": 13,
+              "transferBytes": 158447,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/devstories",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 39,
+              "fcpMs": 20,
+              "firstPaintMs": 20,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4876652,
+                "usedJSHeapBytes": 3463204
+              },
+              "lcpMs": 56,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 56,
+                "size": 3192,
+                "startTime": 56,
+                "url": ""
+              },
+              "loadEventMs": 39.09999996423721,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4456448,
+                "jsHeapUsedBytes": 3074540,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 36
+              }
+            }
+          },
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 833
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506508,
+              "encodedBodyBytes": 154847,
+              "encodedBytes": 160456,
+              "requestCount": 13,
+              "transferBytes": 158447,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/devstories",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 39.89999997615814,
+              "fcpMs": 20,
+              "firstPaintMs": 20,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 5138796,
+                "usedJSHeapBytes": 3462828
+              },
+              "lcpMs": 56,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 56,
+                "size": 3192,
+                "startTime": 56,
+                "url": ""
+              },
+              "loadEventMs": 40.09999996423721,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4718592,
+                "jsHeapUsedBytes": 3074768,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 35
+              }
+            }
+          },
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 833
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506508,
+              "encodedBodyBytes": 154847,
+              "encodedBytes": 160456,
+              "requestCount": 13,
+              "transferBytes": 158447,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/devstories",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 34.09999996423721,
+              "fcpMs": 16,
+              "firstPaintMs": 16,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 5138796,
+                "usedJSHeapBytes": 3463204
+              },
+              "lcpMs": 48,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 48,
+                "size": 3192,
+                "startTime": 48,
+                "url": ""
+              },
+              "loadEventMs": 34.19999998807907,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4718592,
+                "jsHeapUsedBytes": 3075144,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 36
+              }
+            }
+          }
+        ],
+        "warm": [
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 810
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506508,
+              "encodedBodyBytes": 154847,
+              "encodedBytes": 2275,
+              "requestCount": 13,
+              "transferBytes": 3600,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/devstories",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 28,
+              "fcpMs": 16,
+              "firstPaintMs": 16,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4614507,
+                "usedJSHeapBytes": 3462827
+              },
+              "lcpMs": 48,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 48,
+                "size": 3192,
+                "startTime": 48,
+                "url": ""
+              },
+              "loadEventMs": 28.200000047683716,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4194304,
+                "jsHeapUsedBytes": 3074164,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 35
+              }
+            }
+          },
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 827
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506508,
+              "encodedBodyBytes": 154847,
+              "encodedBytes": 2275,
+              "requestCount": 13,
+              "transferBytes": 3600,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/devstories",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 27.80000001192093,
+              "fcpMs": 16,
+              "firstPaintMs": 16,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 5400940,
+                "usedJSHeapBytes": 3462828
+              },
+              "lcpMs": 44,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 44,
+                "size": 3192,
+                "startTime": 44,
+                "url": ""
+              },
+              "loadEventMs": 27.900000035762787,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4980736,
+                "jsHeapUsedBytes": 3074768,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 37
+              }
+            }
+          },
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 821
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 506508,
+              "encodedBodyBytes": 154847,
+              "encodedBytes": 2275,
+              "requestCount": 13,
+              "transferBytes": 3600,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/devstories",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 26.30000001192093,
+              "fcpMs": 20,
+              "firstPaintMs": 20,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 5400940,
+                "usedJSHeapBytes": 3462828
+              },
+              "lcpMs": 40,
+              "lcp": {
+                "duration": 0,
+                "element": "DIV",
+                "renderTime": 40,
+                "size": 3192,
+                "startTime": 40,
+                "url": ""
+              },
+              "loadEventMs": 26.400000035762787,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 194,
+                "jsHeapTotalBytes": 4980736,
+                "jsHeapUsedBytes": 3074768,
+                "layoutCount": 3,
+                "nodes": 371,
+                "recalcStyleCount": 35
+              }
+            }
+          }
+        ]
+      },
+      "work": {
+        "cold": [
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 806
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 444076,
+              "encodedBodyBytes": 130098,
+              "encodedBytes": 135004,
+              "requestCount": 11,
+              "transferBytes": 133098,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/works/arch_treehabitat",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 32.5,
+              "fcpMs": 24,
+              "firstPaintMs": 24,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4556943,
+                "usedJSHeapBytes": 2878047
+              },
+              "lcpMs": 356,
+              "lcp": {
+                "duration": 0,
+                "element": "P",
+                "renderTime": 356,
+                "size": 8232,
+                "startTime": 356,
+                "url": ""
+              },
+              "loadEventMs": 32.59999996423721,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 146,
+                "jsHeapTotalBytes": 4194304,
+                "jsHeapUsedBytes": 2549368,
+                "layoutCount": 3,
+                "nodes": 58,
+                "recalcStyleCount": 4
+              }
+            }
+          },
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 816
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 444076,
+              "encodedBodyBytes": 130098,
+              "encodedBytes": 135004,
+              "requestCount": 11,
+              "transferBytes": 133098,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/works/arch_treehabitat",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 29.69999998807907,
+              "fcpMs": 36,
+              "firstPaintMs": 36,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4556944,
+                "usedJSHeapBytes": 2878600
+              },
+              "lcpMs": 356,
+              "lcp": {
+                "duration": 0,
+                "element": "P",
+                "renderTime": 356,
+                "size": 8232,
+                "startTime": 356,
+                "url": ""
+              },
+              "loadEventMs": 30.30000001192093,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 146,
+                "jsHeapTotalBytes": 4194304,
+                "jsHeapUsedBytes": 2549920,
+                "layoutCount": 3,
+                "nodes": 58,
+                "recalcStyleCount": 3
+              }
+            }
+          },
+          {
+            "cacheDisabled": true,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 822
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 444076,
+              "encodedBodyBytes": 130098,
+              "encodedBytes": 135004,
+              "requestCount": 11,
+              "transferBytes": 133098,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/works/arch_treehabitat",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 29.799999952316284,
+              "fcpMs": 44,
+              "firstPaintMs": 44,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4556943,
+                "usedJSHeapBytes": 2878423
+              },
+              "lcpMs": 352,
+              "lcp": {
+                "duration": 0,
+                "element": "P",
+                "renderTime": 352,
+                "size": 8232,
+                "startTime": 352,
+                "url": ""
+              },
+              "loadEventMs": 29.899999976158142,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 146,
+                "jsHeapTotalBytes": 4194304,
+                "jsHeapUsedBytes": 2549744,
+                "layoutCount": 3,
+                "nodes": 58,
+                "recalcStyleCount": 4
+              }
+            }
+          }
+        ],
+        "warm": [
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 811
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 444076,
+              "encodedBodyBytes": 130098,
+              "encodedBytes": 1917,
+              "requestCount": 11,
+              "transferBytes": 3000,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/works/arch_treehabitat",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 29.5,
+              "fcpMs": 28,
+              "firstPaintMs": 28,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4032656,
+                "usedJSHeapBytes": 2878576
+              },
+              "lcpMs": 344,
+              "lcp": {
+                "duration": 0,
+                "element": "P",
+                "renderTime": 344,
+                "size": 8232,
+                "startTime": 344,
+                "url": ""
+              },
+              "loadEventMs": 29.69999998807907,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 146,
+                "jsHeapTotalBytes": 3670016,
+                "jsHeapUsedBytes": 2549896,
+                "layoutCount": 3,
+                "nodes": 58,
+                "recalcStyleCount": 4
+              }
+            }
+          },
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 813
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 444076,
+              "encodedBodyBytes": 130098,
+              "encodedBytes": 1917,
+              "requestCount": 11,
+              "transferBytes": 3000,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/works/arch_treehabitat",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 30.700000047683716,
+              "fcpMs": 28,
+              "firstPaintMs": 28,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4556943,
+                "usedJSHeapBytes": 2878491
+              },
+              "lcpMs": 344,
+              "lcp": {
+                "duration": 0,
+                "element": "P",
+                "renderTime": 344,
+                "size": 8232,
+                "startTime": 344,
+                "url": ""
+              },
+              "loadEventMs": 30.900000035762787,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 146,
+                "jsHeapTotalBytes": 4194304,
+                "jsHeapUsedBytes": 2549812,
+                "layoutCount": 3,
+                "nodes": 58,
+                "recalcStyleCount": 4
+              }
+            }
+          },
+          {
+            "cacheDisabled": false,
+            "consoleMessages": [],
+            "milestones": {
+              "readyMs": 804
+            },
+            "network": {
+              "cacheHitCount": 0,
+              "decodedBodyBytes": 444076,
+              "encodedBodyBytes": 130098,
+              "encodedBytes": 1917,
+              "requestCount": 11,
+              "transferBytes": 3000,
+              "threeDimensionalUrls": [],
+              "preEnterForbiddenUrls": [],
+              "persistentCoreUrls": [],
+              "selectedWorkUrls": []
+            },
+            "pageErrors": [],
+            "route": "/works/arch_treehabitat",
+            "threeDimensionalUrls": [],
+            "web": {
+              "cls": 0,
+              "domContentLoadedMs": 24.700000047683716,
+              "fcpMs": 36,
+              "firstPaintMs": 36,
+              "jsHeap": {
+                "jsHeapSizeLimit": 4395630592,
+                "totalJSHeapBytes": 4294800,
+                "usedJSHeapBytes": 2878588
+              },
+              "lcpMs": 336,
+              "lcp": {
+                "duration": 0,
+                "element": "P",
+                "renderTime": 336,
+                "size": 8232,
+                "startTime": 336,
+                "url": ""
+              },
+              "loadEventMs": 24.80000001192093,
+              "longTaskBlockingMs": 0,
+              "longTaskCount": 0,
+              "cdp": {
+                "documents": 3,
+                "jsEventListeners": 146,
+                "jsHeapTotalBytes": 3932160,
+                "jsHeapUsedBytes": 2549908,
+                "layoutCount": 3,
+                "nodes": 58,
+                "recalcStyleCount": 4
+              }
+            }
+          }
+        ]
+      }
+    },
+    "desktopSimplified": {
+      "cold": [
+        {
+          "cacheDisabled": true,
+          "canvasIdentity": "persistent-main",
+          "canvasPreserved": true,
+          "consoleMessages": [
+            "warning: No available adapters.",
+            "warning: THREE.WebGPURenderer: WebGPU is not available, running under WebGL2 backend."
+          ],
+          "finalNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 30748489,
+            "encodedBodyBytes": 27677762,
+            "encodedBytes": 27709581,
+            "requestCount": 93,
+            "transferBytes": 27705062,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/assets/FocusOverlay-B-lDj64C.js",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-3.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-6.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-8.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-9.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-10.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-11.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-12.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-13.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-14.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-15.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-16.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-17.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-18.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-19.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-20.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-21.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-22.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-23.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-24.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-25.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-26.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json"
+            ]
+          },
+          "heapAfterFirstWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 164121272,
+            "usedJSHeapBytes": 107637084
+          },
+          "heapAfterRepeatedWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 165996522,
+            "usedJSHeapBytes": 95381494
+          },
+          "heapAfterReturn": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 153581099,
+            "usedJSHeapBytes": 93413067
+          },
+          "lobbyNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 2017364,
+            "encodedBodyBytes": 564460,
+            "encodedBytes": 574701,
+            "requestCount": 25,
+            "transferBytes": 571660,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js"
+            ],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "milestones": {
+            "enteredMs": 2876,
+            "lobbyReadyMs": 894,
+            "mainCanvasMs": 1510,
+            "repeatedWorkReadyMs": 48,
+            "selectedWorkReadyMs": 889
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 21255694,
+            "encodedBodyBytes": 18210746,
+            "encodedBytes": 18234819,
+            "requestCount": 65,
+            "transferBytes": 18229646,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "persistentCoreReRequestCount": 0,
+          "preEnterForbiddenUrls": [],
+          "rendererMessages": [],
+          "repeatedWorkReRequestCount": 1,
+          "repeatedWorkReturnViaUi": true,
+          "routeNetworkDelta": {
+            "encodedBytes": 0,
+            "requestCount": 0
+          },
+          "selectedWorkNetworkDelta": {
+            "encodedBytes": 9452653,
+            "requestCount": 26
+          },
+          "steadyRaf": {
+            "count": 120,
+            "min": 16.6,
+            "max": 166.7,
+            "median": 83.3,
+            "p95": 149.9,
+            "over20ms": 111,
+            "over33ms": 110
+          },
+          "web": {
+            "cls": 0.001025438850308642,
+            "domContentLoadedMs": 29.099999964237213,
+            "fcpMs": 36,
+            "firstPaintMs": 36,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 133740955,
+              "usedJSHeapBytes": 86255935
+            },
+            "lcpMs": 56,
+            "lcp": {
+              "duration": 0,
+              "element": "DIV",
+              "renderTime": 56,
+              "size": 3192,
+              "startTime": 56,
+              "url": ""
+            },
+            "loadEventMs": 29.69999998807907,
+            "longTaskBlockingMs": 120,
+            "longTaskCount": 1,
+            "cdp": {
+              "documents": 1,
+              "jsEventListeners": 1344,
+              "jsHeapTotalBytes": 96247808,
+              "jsHeapUsedBytes": 48780444,
+              "layoutCount": 27,
+              "nodes": 181,
+              "recalcStyleCount": 202
+            }
+          },
+          "webGl": {
+            "context": "webgl2",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "vendor": "Google Inc. (Google)",
+            "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+          }
+        },
+        {
+          "cacheDisabled": true,
+          "canvasIdentity": "persistent-main",
+          "canvasPreserved": true,
+          "consoleMessages": [
+            "warning: No available adapters.",
+            "warning: THREE.WebGPURenderer: WebGPU is not available, running under WebGL2 backend."
+          ],
+          "finalNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 30748489,
+            "encodedBodyBytes": 27677762,
+            "encodedBytes": 27709581,
+            "requestCount": 93,
+            "transferBytes": 27705062,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/assets/FocusOverlay-B-lDj64C.js",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-3.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-6.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-8.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-9.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-10.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-11.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-12.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-13.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-14.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-15.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-16.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-17.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-18.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-19.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-20.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-21.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-22.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-23.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-24.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-25.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-26.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json"
+            ]
+          },
+          "heapAfterFirstWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 160764007,
+            "usedJSHeapBytes": 102196107
+          },
+          "heapAfterRepeatedWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 162074933,
+            "usedJSHeapBytes": 113842637
+          },
+          "heapAfterReturn": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 166270286,
+            "usedJSHeapBytes": 111166434
+          },
+          "lobbyNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 2017364,
+            "encodedBodyBytes": 564460,
+            "encodedBytes": 574701,
+            "requestCount": 25,
+            "transferBytes": 571660,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js"
+            ],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "milestones": {
+            "enteredMs": 2846,
+            "lobbyReadyMs": 881,
+            "mainCanvasMs": 1490,
+            "repeatedWorkReadyMs": 19,
+            "selectedWorkReadyMs": 761
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 21255694,
+            "encodedBodyBytes": 18210746,
+            "encodedBytes": 18234819,
+            "requestCount": 65,
+            "transferBytes": 18229646,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "persistentCoreReRequestCount": 0,
+          "preEnterForbiddenUrls": [],
+          "rendererMessages": [],
+          "repeatedWorkReRequestCount": 1,
+          "repeatedWorkReturnViaUi": true,
+          "routeNetworkDelta": {
+            "encodedBytes": 0,
+            "requestCount": 0
+          },
+          "selectedWorkNetworkDelta": {
+            "encodedBytes": 9452653,
+            "requestCount": 26
+          },
+          "steadyRaf": {
+            "count": 120,
+            "min": 16.6,
+            "max": 166.6,
+            "median": 83.3,
+            "p95": 149.9,
+            "over20ms": 116,
+            "over33ms": 112
+          },
+          "web": {
+            "cls": 0.001025438850308642,
+            "domContentLoadedMs": 30.399999976158142,
+            "fcpMs": 36,
+            "firstPaintMs": 36,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 133741018,
+              "usedJSHeapBytes": 75052050
+            },
+            "lcpMs": 56,
+            "lcp": {
+              "duration": 0,
+              "element": "DIV",
+              "renderTime": 56,
+              "size": 3192,
+              "startTime": 56,
+              "url": ""
+            },
+            "loadEventMs": 30.899999976158142,
+            "longTaskBlockingMs": 88,
+            "longTaskCount": 1,
+            "cdp": {
+              "documents": 1,
+              "jsEventListeners": 1348,
+              "jsHeapTotalBytes": 96247808,
+              "jsHeapUsedBytes": 37576496,
+              "layoutCount": 27,
+              "nodes": 181,
+              "recalcStyleCount": 203
+            }
+          },
+          "webGl": {
+            "context": "webgl2",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "vendor": "Google Inc. (Google)",
+            "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+          }
+        },
+        {
+          "cacheDisabled": true,
+          "canvasIdentity": "persistent-main",
+          "canvasPreserved": true,
+          "consoleMessages": [
+            "warning: No available adapters.",
+            "warning: THREE.WebGPURenderer: WebGPU is not available, running under WebGL2 backend."
+          ],
+          "finalNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 30748489,
+            "encodedBodyBytes": 27677762,
+            "encodedBytes": 27709581,
+            "requestCount": 93,
+            "transferBytes": 27705062,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/assets/FocusOverlay-B-lDj64C.js",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-3.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-6.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-8.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-9.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-10.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-11.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-12.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-13.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-14.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-15.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-16.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-17.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-18.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-19.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-20.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-21.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-22.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-23.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-24.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-25.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-26.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json"
+            ]
+          },
+          "heapAfterFirstWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 161550414,
+            "usedJSHeapBytes": 106132294
+          },
+          "heapAfterRepeatedWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 162861273,
+            "usedJSHeapBytes": 120232629
+          },
+          "heapAfterReturn": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 164947732,
+            "usedJSHeapBytes": 90800672
+          },
+          "lobbyNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 2017364,
+            "encodedBodyBytes": 564460,
+            "encodedBytes": 574701,
+            "requestCount": 25,
+            "transferBytes": 571660,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js"
+            ],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "milestones": {
+            "enteredMs": 2918,
+            "lobbyReadyMs": 901,
+            "mainCanvasMs": 1566,
+            "repeatedWorkReadyMs": 19,
+            "selectedWorkReadyMs": 854
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 21255694,
+            "encodedBodyBytes": 18210746,
+            "encodedBytes": 18234819,
+            "requestCount": 65,
+            "transferBytes": 18229646,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "persistentCoreReRequestCount": 0,
+          "preEnterForbiddenUrls": [],
+          "rendererMessages": [],
+          "repeatedWorkReRequestCount": 1,
+          "repeatedWorkReturnViaUi": true,
+          "routeNetworkDelta": {
+            "encodedBytes": 0,
+            "requestCount": 0
+          },
+          "selectedWorkNetworkDelta": {
+            "encodedBytes": 9452653,
+            "requestCount": 26
+          },
+          "steadyRaf": {
+            "count": 120,
+            "min": 16.6,
+            "max": 200.1,
+            "median": 83.3,
+            "p95": 166.7,
+            "over20ms": 114,
+            "over33ms": 110
+          },
+          "web": {
+            "cls": 0.001025438850308642,
+            "domContentLoadedMs": 33.5,
+            "fcpMs": 24,
+            "firstPaintMs": 24,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 135575962,
+              "usedJSHeapBytes": 70466298
+            },
+            "lcpMs": 52,
+            "lcp": {
+              "duration": 0,
+              "element": "DIV",
+              "renderTime": 52,
+              "size": 3192,
+              "startTime": 52,
+              "url": ""
+            },
+            "loadEventMs": 33.69999998807907,
+            "longTaskBlockingMs": 152,
+            "longTaskCount": 2,
+            "cdp": {
+              "documents": 1,
+              "jsEventListeners": 1344,
+              "jsHeapTotalBytes": 98082816,
+              "jsHeapUsedBytes": 32990808,
+              "layoutCount": 27,
+              "nodes": 181,
+              "recalcStyleCount": 199
+            }
+          },
+          "webGl": {
+            "context": "webgl2",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "vendor": "Google Inc. (Google)",
+            "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+          }
+        }
+      ],
+      "warm": [
+        {
+          "cacheDisabled": false,
+          "canvasIdentity": "persistent-main",
+          "canvasPreserved": true,
+          "consoleMessages": [
+            "warning: No available adapters.",
+            "warning: THREE.WebGPURenderer: WebGPU is not available, running under WebGL2 backend."
+          ],
+          "finalNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 30748489,
+            "encodedBodyBytes": 27677762,
+            "encodedBytes": 20108158,
+            "requestCount": 93,
+            "transferBytes": 20399271,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/assets/FocusOverlay-B-lDj64C.js",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-3.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-6.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-8.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-9.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-10.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-11.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-12.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-13.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-14.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-15.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-16.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-17.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-18.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-19.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-20.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-21.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-22.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-23.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-24.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-25.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-26.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json"
+            ]
+          },
+          "heapAfterFirstWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 161804189,
+            "usedJSHeapBytes": 117005177
+          },
+          "heapAfterRepeatedWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 162066487,
+            "usedJSHeapBytes": 108344287
+          },
+          "heapAfterReturn": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 162591849,
+            "usedJSHeapBytes": 120256301
+          },
+          "lobbyNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 2017364,
+            "encodedBodyBytes": 564460,
+            "encodedBytes": 4371,
+            "requestCount": 25,
+            "transferBytes": 7200,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js"
+            ],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "milestones": {
+            "enteredMs": 2825,
+            "lobbyReadyMs": 885,
+            "mainCanvasMs": 1485,
+            "repeatedWorkReadyMs": 22,
+            "selectedWorkReadyMs": 593
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 21255694,
+            "encodedBodyBytes": 18210746,
+            "encodedBytes": 10635883,
+            "requestCount": 65,
+            "transferBytes": 10926150,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "persistentCoreReRequestCount": 0,
+          "preEnterForbiddenUrls": [],
+          "rendererMessages": [],
+          "repeatedWorkReRequestCount": 1,
+          "repeatedWorkReturnViaUi": true,
+          "routeNetworkDelta": {
+            "encodedBytes": 0,
+            "requestCount": 0
+          },
+          "selectedWorkNetworkDelta": {
+            "encodedBytes": 9452653,
+            "requestCount": 26
+          },
+          "steadyRaf": {
+            "count": 120,
+            "min": 16.6,
+            "max": 166.6,
+            "median": 83.3,
+            "p95": 149.9,
+            "over20ms": 110,
+            "over33ms": 107
+          },
+          "web": {
+            "cls": 0.0010295862268518518,
+            "domContentLoadedMs": 25.30000001192093,
+            "fcpMs": 36,
+            "firstPaintMs": 36,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 132946129,
+              "usedJSHeapBytes": 89022653
+            },
+            "lcpMs": 36,
+            "lcp": {
+              "duration": 0,
+              "element": "DIV",
+              "renderTime": 36,
+              "size": 3192,
+              "startTime": 36,
+              "url": ""
+            },
+            "loadEventMs": 25.399999976158142,
+            "longTaskBlockingMs": 107,
+            "longTaskCount": 1,
+            "cdp": {
+              "documents": 1,
+              "jsEventListeners": 1344,
+              "jsHeapTotalBytes": 95461376,
+              "jsHeapUsedBytes": 51555556,
+              "layoutCount": 29,
+              "nodes": 174,
+              "recalcStyleCount": 202
+            }
+          },
+          "webGl": {
+            "context": "webgl2",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "vendor": "Google Inc. (Google)",
+            "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+          }
+        },
+        {
+          "cacheDisabled": false,
+          "canvasIdentity": "persistent-main",
+          "canvasPreserved": true,
+          "consoleMessages": [
+            "warning: No available adapters.",
+            "warning: THREE.WebGPURenderer: WebGPU is not available, running under WebGL2 backend."
+          ],
+          "finalNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 30748489,
+            "encodedBodyBytes": 27677762,
+            "encodedBytes": 20108285,
+            "requestCount": 93,
+            "transferBytes": 20399271,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/assets/FocusOverlay-B-lDj64C.js",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-3.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-6.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-8.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-9.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-10.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-11.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-12.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-13.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-14.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-15.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-16.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-17.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-18.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-19.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-20.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-21.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-22.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-23.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-24.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-25.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-26.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json"
+            ]
+          },
+          "heapAfterFirstWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 148443215,
+            "usedJSHeapBytes": 108392639
+          },
+          "heapAfterRepeatedWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 153948369,
+            "usedJSHeapBytes": 119764849
+          },
+          "heapAfterReturn": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 168881127,
+            "usedJSHeapBytes": 91560075
+          },
+          "lobbyNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 2017364,
+            "encodedBodyBytes": 564460,
+            "encodedBytes": 4371,
+            "requestCount": 25,
+            "transferBytes": 7200,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js"
+            ],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "milestones": {
+            "enteredMs": 2853,
+            "lobbyReadyMs": 875,
+            "mainCanvasMs": 1489,
+            "repeatedWorkReadyMs": 20,
+            "selectedWorkReadyMs": 594
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 21255694,
+            "encodedBodyBytes": 18210746,
+            "encodedBytes": 10636010,
+            "requestCount": 65,
+            "transferBytes": 10926150,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "persistentCoreReRequestCount": 0,
+          "preEnterForbiddenUrls": [],
+          "rendererMessages": [],
+          "repeatedWorkReRequestCount": 1,
+          "repeatedWorkReturnViaUi": true,
+          "routeNetworkDelta": {
+            "encodedBytes": 0,
+            "requestCount": 0
+          },
+          "selectedWorkNetworkDelta": {
+            "encodedBytes": 9452653,
+            "requestCount": 26
+          },
+          "steadyRaf": {
+            "count": 120,
+            "min": 16.6,
+            "max": 166.7,
+            "median": 83.2,
+            "p95": 150,
+            "over20ms": 114,
+            "over33ms": 108
+          },
+          "web": {
+            "cls": 0.001025438850308642,
+            "domContentLoadedMs": 25.200000047683716,
+            "fcpMs": 40,
+            "firstPaintMs": 40,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 109099419,
+              "usedJSHeapBytes": 80082219
+            },
+            "lcpMs": 40,
+            "lcp": {
+              "duration": 0,
+              "element": "DIV",
+              "renderTime": 40,
+              "size": 3192,
+              "startTime": 40,
+              "url": ""
+            },
+            "loadEventMs": 25.400000035762787,
+            "longTaskBlockingMs": 110,
+            "longTaskCount": 1,
+            "cdp": {
+              "documents": 1,
+              "jsEventListeners": 1346,
+              "jsHeapTotalBytes": 71606272,
+              "jsHeapUsedBytes": 42606728,
+              "layoutCount": 27,
+              "nodes": 181,
+              "recalcStyleCount": 204
+            }
+          },
+          "webGl": {
+            "context": "webgl2",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "vendor": "Google Inc. (Google)",
+            "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+          }
+        },
+        {
+          "cacheDisabled": false,
+          "canvasIdentity": "persistent-main",
+          "canvasPreserved": true,
+          "consoleMessages": [
+            "warning: No available adapters.",
+            "warning: THREE.WebGPURenderer: WebGPU is not available, running under WebGL2 backend."
+          ],
+          "finalNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 30748489,
+            "encodedBodyBytes": 27677762,
+            "encodedBytes": 20108285,
+            "requestCount": 93,
+            "transferBytes": 20399271,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/assets/FocusOverlay-B-lDj64C.js",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-3.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-6.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-8.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-9.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-10.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-11.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-12.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-13.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-14.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-15.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-16.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-17.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-18.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-19.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-20.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-21.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-22.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-23.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-24.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-25.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-26.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/content.json"
+            ]
+          },
+          "heapAfterFirstWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 147656796,
+            "usedJSHeapBytes": 113616324
+          },
+          "heapAfterRepeatedWork": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 158404830,
+            "usedJSHeapBytes": 124731302
+          },
+          "heapAfterReturn": {
+            "jsHeapSizeLimit": 4395630592,
+            "totalJSHeapBytes": 161289698,
+            "usedJSHeapBytes": 125946634
+          },
+          "lobbyNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 2017364,
+            "encodedBodyBytes": 564460,
+            "encodedBytes": 4371,
+            "requestCount": 25,
+            "transferBytes": 7200,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js"
+            ],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "milestones": {
+            "enteredMs": 2826,
+            "lobbyReadyMs": 870,
+            "mainCanvasMs": 1474,
+            "repeatedWorkReadyMs": 14,
+            "selectedWorkReadyMs": 578
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 21255694,
+            "encodedBodyBytes": 18210746,
+            "encodedBytes": 10636010,
+            "requestCount": 65,
+            "transferBytes": 10926150,
+            "threeDimensionalUrls": [
+              "http://127.0.0.1:4177/assets/SpacePage-CLaJRkQG.css",
+              "http://127.0.0.1:4177/assets/SpacePage-C0Js-KGa.js",
+              "http://127.0.0.1:4177/assets/SpaceHost-B09mBHE6.js",
+              "http://127.0.0.1:4177/assets/three-vendor-D3_Zs5zH.js",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "preEnterForbiddenUrls": [
+              "http://127.0.0.1:4177/audio/footstep_01.wav",
+              "http://127.0.0.1:4177/audio/footstep_02.wav",
+              "http://127.0.0.1:4177/audio/footstep_03.wav",
+              "http://127.0.0.1:4177/audio/footstep_04.wav",
+              "http://127.0.0.1:4177/audio/footstep_05.wav",
+              "http://127.0.0.1:4177/audio/jump_start.wav",
+              "http://127.0.0.1:4177/audio/jump_land.wav",
+              "http://127.0.0.1:4177/audio/space_background_looped.mp3",
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "persistentCoreUrls": [
+              "http://127.0.0.1:4177/assets/rapier-vendor-sMHcoJn_.js",
+              "http://127.0.0.1:4177/models/space_main.glb?v=20260701-world-exhibits-no-anchors",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+              "http://127.0.0.1:4177/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb"
+            ],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "persistentCoreReRequestCount": 0,
+          "preEnterForbiddenUrls": [],
+          "rendererMessages": [],
+          "repeatedWorkReRequestCount": 1,
+          "repeatedWorkReturnViaUi": true,
+          "routeNetworkDelta": {
+            "encodedBytes": 0,
+            "requestCount": 0
+          },
+          "selectedWorkNetworkDelta": {
+            "encodedBytes": 9452653,
+            "requestCount": 26
+          },
+          "steadyRaf": {
+            "count": 120,
+            "min": 16.6,
+            "max": 166.7,
+            "median": 83.3,
+            "p95": 133.4,
+            "over20ms": 110,
+            "over33ms": 107
+          },
+          "web": {
+            "cls": 0.001025438850308642,
+            "domContentLoadedMs": 26.100000023841858,
+            "fcpMs": 28,
+            "firstPaintMs": 28,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 107526555,
+              "usedJSHeapBytes": 70674703
+            },
+            "lcpMs": 44,
+            "lcp": {
+              "duration": 0,
+              "element": "DIV",
+              "renderTime": 44,
+              "size": 3192,
+              "startTime": 44,
+              "url": ""
+            },
+            "loadEventMs": 26.19999998807907,
+            "longTaskBlockingMs": 104,
+            "longTaskCount": 1,
+            "cdp": {
+              "documents": 1,
+              "jsEventListeners": 1348,
+              "jsHeapTotalBytes": 70033408,
+              "jsHeapUsedBytes": 33199212,
+              "layoutCount": 26,
+              "nodes": 181,
+              "recalcStyleCount": 205
+            }
+          },
+          "webGl": {
+            "context": "webgl2",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "vendor": "Google Inc. (Google)",
+            "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+          }
+        }
+      ]
+    },
+    "mobile": {
+      "cold": [
+        {
+          "afterRoutesNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 993657,
+            "encodedBodyBytes": 656821,
+            "encodedBytes": 662210,
+            "requestCount": 13,
+            "transferBytes": 660421,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp"
+            ]
+          },
+          "cacheDisabled": true,
+          "consoleMessages": [],
+          "milestones": {
+            "startMenuReadyMs": 743,
+            "terminalReadyMs": 3399
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 501135,
+            "encodedBodyBytes": 164299,
+            "encodedBytes": 169148,
+            "requestCount": 11,
+            "transferBytes": 167299,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "preEnterNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 477403,
+            "encodedBodyBytes": 140567,
+            "encodedBytes": 144776,
+            "requestCount": 9,
+            "transferBytes": 142967,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "rendererMessages": [],
+          "steadyRaf": {
+            "count": 60,
+            "min": 16.6,
+            "max": 16.8,
+            "median": 16.7,
+            "p95": 16.7,
+            "over20ms": 0,
+            "over33ms": 0
+          },
+          "threeDimensionalUrls": [],
+          "web": {
+            "cls": 0,
+            "domContentLoadedMs": 176.10000002384186,
+            "fcpMs": 232,
+            "firstPaintMs": 232,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 6525000,
+              "usedJSHeapBytes": 4451516
+            },
+            "lcpMs": 544,
+            "lcp": {
+              "duration": 0,
+              "element": "STRONG",
+              "renderTime": 544,
+              "size": 25506,
+              "startTime": 544,
+              "url": ""
+            },
+            "loadEventMs": 176.70000004768372,
+            "longTaskBlockingMs": 99,
+            "longTaskCount": 1,
+            "cdp": {
+              "documents": 3,
+              "jsEventListeners": 179,
+              "jsHeapTotalBytes": 6135808,
+              "jsHeapUsedBytes": 4079344,
+              "layoutCount": 6,
+              "nodes": 113,
+              "recalcStyleCount": 76
+            }
+          }
+        },
+        {
+          "afterRoutesNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 993657,
+            "encodedBodyBytes": 656821,
+            "encodedBytes": 662210,
+            "requestCount": 13,
+            "transferBytes": 660421,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp"
+            ]
+          },
+          "cacheDisabled": true,
+          "consoleMessages": [],
+          "milestones": {
+            "startMenuReadyMs": 562,
+            "terminalReadyMs": 3387
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 501135,
+            "encodedBodyBytes": 164299,
+            "encodedBytes": 169148,
+            "requestCount": 11,
+            "transferBytes": 167299,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "preEnterNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 477403,
+            "encodedBodyBytes": 140567,
+            "encodedBytes": 144776,
+            "requestCount": 9,
+            "transferBytes": 142967,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "rendererMessages": [],
+          "steadyRaf": {
+            "count": 60,
+            "min": 16.6,
+            "max": 16.8,
+            "median": 16.7,
+            "p95": 16.8,
+            "over20ms": 0,
+            "over33ms": 0
+          },
+          "threeDimensionalUrls": [],
+          "web": {
+            "cls": 0,
+            "domContentLoadedMs": 33.5,
+            "fcpMs": 24,
+            "firstPaintMs": 24,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 6525000,
+              "usedJSHeapBytes": 4450156
+            },
+            "lcpMs": 372,
+            "lcp": {
+              "duration": 0,
+              "element": "STRONG",
+              "renderTime": 372,
+              "size": 25506,
+              "startTime": 372,
+              "url": ""
+            },
+            "loadEventMs": 33.59999996423721,
+            "longTaskBlockingMs": 0,
+            "longTaskCount": 0,
+            "cdp": {
+              "documents": 3,
+              "jsEventListeners": 179,
+              "jsHeapTotalBytes": 6135808,
+              "jsHeapUsedBytes": 4077984,
+              "layoutCount": 6,
+              "nodes": 113,
+              "recalcStyleCount": 80
+            }
+          }
+        },
+        {
+          "afterRoutesNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 993657,
+            "encodedBodyBytes": 656821,
+            "encodedBytes": 662210,
+            "requestCount": 13,
+            "transferBytes": 660421,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp"
+            ]
+          },
+          "cacheDisabled": true,
+          "consoleMessages": [],
+          "milestones": {
+            "startMenuReadyMs": 560,
+            "terminalReadyMs": 3417
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 501135,
+            "encodedBodyBytes": 164299,
+            "encodedBytes": 169148,
+            "requestCount": 11,
+            "transferBytes": 167299,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "preEnterNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 477403,
+            "encodedBodyBytes": 140567,
+            "encodedBytes": 144776,
+            "requestCount": 9,
+            "transferBytes": 142967,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "rendererMessages": [],
+          "steadyRaf": {
+            "count": 60,
+            "min": 16.6,
+            "max": 16.8,
+            "median": 16.7,
+            "p95": 16.7,
+            "over20ms": 0,
+            "over33ms": 0
+          },
+          "threeDimensionalUrls": [],
+          "web": {
+            "cls": 0,
+            "domContentLoadedMs": 34.19999998807907,
+            "fcpMs": 36,
+            "firstPaintMs": 36,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 6787144,
+              "usedJSHeapBytes": 4474840
+            },
+            "lcpMs": 368,
+            "lcp": {
+              "duration": 0,
+              "element": "STRONG",
+              "renderTime": 368,
+              "size": 25506,
+              "startTime": 368,
+              "url": ""
+            },
+            "loadEventMs": 34.39999997615814,
+            "longTaskBlockingMs": 0,
+            "longTaskCount": 0,
+            "cdp": {
+              "documents": 3,
+              "jsEventListeners": 179,
+              "jsHeapTotalBytes": 6397952,
+              "jsHeapUsedBytes": 4102668,
+              "layoutCount": 6,
+              "nodes": 113,
+              "recalcStyleCount": 77
+            }
+          }
+        }
+      ],
+      "warm": [
+        {
+          "afterRoutesNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 993657,
+            "encodedBodyBytes": 656821,
+            "encodedBytes": 494979,
+            "requestCount": 13,
+            "transferBytes": 496122,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp"
+            ]
+          },
+          "cacheDisabled": false,
+          "consoleMessages": [],
+          "milestones": {
+            "startMenuReadyMs": 557,
+            "terminalReadyMs": 3431
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 501135,
+            "encodedBodyBytes": 164299,
+            "encodedBytes": 1917,
+            "requestCount": 11,
+            "transferBytes": 3000,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "preEnterNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 477403,
+            "encodedBodyBytes": 140567,
+            "encodedBytes": 1559,
+            "requestCount": 9,
+            "transferBytes": 2400,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "rendererMessages": [],
+          "steadyRaf": {
+            "count": 60,
+            "min": 16.5,
+            "max": 16.8,
+            "median": 16.7,
+            "p95": 16.8,
+            "over20ms": 0,
+            "over33ms": 0
+          },
+          "threeDimensionalUrls": [],
+          "web": {
+            "cls": 0,
+            "domContentLoadedMs": 27,
+            "fcpMs": 28,
+            "firstPaintMs": 28,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 6525000,
+              "usedJSHeapBytes": 4458648
+            },
+            "lcpMs": 348,
+            "lcp": {
+              "duration": 0,
+              "element": "STRONG",
+              "renderTime": 348,
+              "size": 25506,
+              "startTime": 348,
+              "url": ""
+            },
+            "loadEventMs": 27.100000023841858,
+            "longTaskBlockingMs": 0,
+            "longTaskCount": 0,
+            "cdp": {
+              "documents": 3,
+              "jsEventListeners": 179,
+              "jsHeapTotalBytes": 6397952,
+              "jsHeapUsedBytes": 4085880,
+              "layoutCount": 6,
+              "nodes": 113,
+              "recalcStyleCount": 75
+            }
+          }
+        },
+        {
+          "afterRoutesNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 993657,
+            "encodedBodyBytes": 656821,
+            "encodedBytes": 494979,
+            "requestCount": 13,
+            "transferBytes": 496122,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp"
+            ]
+          },
+          "cacheDisabled": false,
+          "consoleMessages": [],
+          "milestones": {
+            "startMenuReadyMs": 562,
+            "terminalReadyMs": 3438
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 501135,
+            "encodedBodyBytes": 164299,
+            "encodedBytes": 1917,
+            "requestCount": 11,
+            "transferBytes": 3000,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "preEnterNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 477403,
+            "encodedBodyBytes": 140567,
+            "encodedBytes": 1559,
+            "requestCount": 9,
+            "transferBytes": 2400,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "rendererMessages": [],
+          "steadyRaf": {
+            "count": 60,
+            "min": 16.6,
+            "max": 16.8,
+            "median": 16.7,
+            "p95": 16.7,
+            "over20ms": 0,
+            "over33ms": 0
+          },
+          "threeDimensionalUrls": [],
+          "web": {
+            "cls": 0,
+            "domContentLoadedMs": 27,
+            "fcpMs": 16,
+            "firstPaintMs": 16,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 6787142,
+              "usedJSHeapBytes": 4475270
+            },
+            "lcpMs": 352,
+            "lcp": {
+              "duration": 0,
+              "element": "STRONG",
+              "renderTime": 352,
+              "size": 25506,
+              "startTime": 352,
+              "url": ""
+            },
+            "loadEventMs": 27.19999998807907,
+            "longTaskBlockingMs": 0,
+            "longTaskCount": 0,
+            "cdp": {
+              "documents": 3,
+              "jsEventListeners": 179,
+              "jsHeapTotalBytes": 6397952,
+              "jsHeapUsedBytes": 4102496,
+              "layoutCount": 6,
+              "nodes": 113,
+              "recalcStyleCount": 75
+            }
+          }
+        },
+        {
+          "afterRoutesNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 993657,
+            "encodedBodyBytes": 656821,
+            "encodedBytes": 494979,
+            "requestCount": 13,
+            "transferBytes": 496122,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": [
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-1.webp",
+              "http://127.0.0.1:4177/exhibits/arch_treehabitat/img/FL-2.webp"
+            ]
+          },
+          "cacheDisabled": false,
+          "consoleMessages": [],
+          "milestones": {
+            "startMenuReadyMs": 568,
+            "terminalReadyMs": 3396
+          },
+          "network": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 501135,
+            "encodedBodyBytes": 164299,
+            "encodedBytes": 1917,
+            "requestCount": 11,
+            "transferBytes": 3000,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "pageErrors": [],
+          "preEnterNetwork": {
+            "cacheHitCount": 0,
+            "decodedBodyBytes": 477403,
+            "encodedBodyBytes": 140567,
+            "encodedBytes": 1559,
+            "requestCount": 9,
+            "transferBytes": 2400,
+            "threeDimensionalUrls": [],
+            "preEnterForbiddenUrls": [],
+            "persistentCoreUrls": [],
+            "selectedWorkUrls": []
+          },
+          "rendererMessages": [],
+          "steadyRaf": {
+            "count": 60,
+            "min": 16.6,
+            "max": 16.8,
+            "median": 16.7,
+            "p95": 16.7,
+            "over20ms": 0,
+            "over33ms": 0
+          },
+          "threeDimensionalUrls": [],
+          "web": {
+            "cls": 0,
+            "domContentLoadedMs": 33.10000002384186,
+            "fcpMs": 24,
+            "firstPaintMs": 24,
+            "jsHeap": {
+              "jsHeapSizeLimit": 4395630592,
+              "totalJSHeapBytes": 6524999,
+              "usedJSHeapBytes": 4451911
+            },
+            "lcpMs": 360,
+            "lcp": {
+              "duration": 0,
+              "element": "STRONG",
+              "renderTime": 360,
+              "size": 25506,
+              "startTime": 360,
+              "url": ""
+            },
+            "loadEventMs": 33.200000047683716,
+            "longTaskBlockingMs": 0,
+            "longTaskCount": 0,
+            "cdp": {
+              "documents": 3,
+              "jsEventListeners": 179,
+              "jsHeapTotalBytes": 6397952,
+              "jsHeapUsedBytes": 4079816,
+              "layoutCount": 6,
+              "nodes": 113,
+              "recalcStyleCount": 77
+            }
+          }
+        }
+      ]
+    }
+  },
+  "summaries": {
+    "coldContent": {
+      "profile": {
+        "cold": {
+          "network.requestCount": {
+            "count": 3,
+            "min": 13,
+            "max": 13,
+            "median": 13,
+            "p95": 13
+          },
+          "network.encodedBytes": {
+            "count": 3,
+            "min": 160458,
+            "max": 160458,
+            "median": 160458,
+            "p95": 160458
+          },
+          "network.transferBytes": {
+            "count": 3,
+            "min": 158449,
+            "max": 158449,
+            "median": 158449,
+            "p95": 158449
+          },
+          "network.decodedBodyBytes": {
+            "count": 3,
+            "min": 506510,
+            "max": 506510,
+            "median": 506510,
+            "p95": 506510
+          },
+          "web.domContentLoadedMs": {
+            "count": 3,
+            "min": 33.10000002384186,
+            "max": 38.60000002384186,
+            "median": 33.299999952316284,
+            "p95": 38.60000002384186
+          },
+          "web.fcpMs": {
+            "count": 3,
+            "min": 16,
+            "max": 28,
+            "median": 24,
+            "p95": 28
+          },
+          "web.lcpMs": {
+            "count": 3,
+            "min": 48,
+            "max": 60,
+            "median": 48,
+            "p95": 60
+          },
+          "web.cls": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.longTaskBlockingMs": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.jsHeap.usedJSHeapBytes": {
+            "count": 3,
+            "min": 3459564,
+            "max": 3460925,
+            "median": 3460925,
+            "p95": 3460925
+          },
+          "milestones.readyMs": {
+            "count": 3,
+            "min": 824,
+            "max": 831,
+            "median": 826,
+            "p95": 831
+          }
+        },
+        "warm": {
+          "network.requestCount": {
+            "count": 3,
+            "min": 13,
+            "max": 13,
+            "median": 13,
+            "p95": 13
+          },
+          "network.encodedBytes": {
+            "count": 3,
+            "min": 2275,
+            "max": 2275,
+            "median": 2275,
+            "p95": 2275
+          },
+          "network.transferBytes": {
+            "count": 3,
+            "min": 3600,
+            "max": 3600,
+            "median": 3600,
+            "p95": 3600
+          },
+          "network.decodedBodyBytes": {
+            "count": 3,
+            "min": 506510,
+            "max": 506510,
+            "median": 506510,
+            "p95": 506510
+          },
+          "web.domContentLoadedMs": {
+            "count": 3,
+            "min": 28.599999964237213,
+            "max": 29.700000047683716,
+            "median": 29.099999964237213,
+            "p95": 29.700000047683716
+          },
+          "web.fcpMs": {
+            "count": 3,
+            "min": 36,
+            "max": 40,
+            "median": 40,
+            "p95": 40
+          },
+          "web.lcpMs": {
+            "count": 3,
+            "min": 40,
+            "max": 56,
+            "median": 56,
+            "p95": 56
+          },
+          "web.cls": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.longTaskBlockingMs": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.jsHeap.usedJSHeapBytes": {
+            "count": 3,
+            "min": 3460012,
+            "max": 3460924,
+            "median": 3460108,
+            "p95": 3460924
+          },
+          "milestones.readyMs": {
+            "count": 3,
+            "min": 817,
+            "max": 827,
+            "median": 819,
+            "p95": 827
+          }
+        }
+      },
+      "devstories": {
+        "cold": {
+          "network.requestCount": {
+            "count": 3,
+            "min": 13,
+            "max": 13,
+            "median": 13,
+            "p95": 13
+          },
+          "network.encodedBytes": {
+            "count": 3,
+            "min": 160456,
+            "max": 160456,
+            "median": 160456,
+            "p95": 160456
+          },
+          "network.transferBytes": {
+            "count": 3,
+            "min": 158447,
+            "max": 158447,
+            "median": 158447,
+            "p95": 158447
+          },
+          "network.decodedBodyBytes": {
+            "count": 3,
+            "min": 506508,
+            "max": 506508,
+            "median": 506508,
+            "p95": 506508
+          },
+          "web.domContentLoadedMs": {
+            "count": 3,
+            "min": 34.09999996423721,
+            "max": 39.89999997615814,
+            "median": 39,
+            "p95": 39.89999997615814
+          },
+          "web.fcpMs": {
+            "count": 3,
+            "min": 16,
+            "max": 20,
+            "median": 20,
+            "p95": 20
+          },
+          "web.lcpMs": {
+            "count": 3,
+            "min": 48,
+            "max": 56,
+            "median": 56,
+            "p95": 56
+          },
+          "web.cls": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.longTaskBlockingMs": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.jsHeap.usedJSHeapBytes": {
+            "count": 3,
+            "min": 3462828,
+            "max": 3463204,
+            "median": 3463204,
+            "p95": 3463204
+          },
+          "milestones.readyMs": {
+            "count": 3,
+            "min": 833,
+            "max": 836,
+            "median": 833,
+            "p95": 836
+          }
+        },
+        "warm": {
+          "network.requestCount": {
+            "count": 3,
+            "min": 13,
+            "max": 13,
+            "median": 13,
+            "p95": 13
+          },
+          "network.encodedBytes": {
+            "count": 3,
+            "min": 2275,
+            "max": 2275,
+            "median": 2275,
+            "p95": 2275
+          },
+          "network.transferBytes": {
+            "count": 3,
+            "min": 3600,
+            "max": 3600,
+            "median": 3600,
+            "p95": 3600
+          },
+          "network.decodedBodyBytes": {
+            "count": 3,
+            "min": 506508,
+            "max": 506508,
+            "median": 506508,
+            "p95": 506508
+          },
+          "web.domContentLoadedMs": {
+            "count": 3,
+            "min": 26.30000001192093,
+            "max": 28,
+            "median": 27.80000001192093,
+            "p95": 28
+          },
+          "web.fcpMs": {
+            "count": 3,
+            "min": 16,
+            "max": 20,
+            "median": 16,
+            "p95": 20
+          },
+          "web.lcpMs": {
+            "count": 3,
+            "min": 40,
+            "max": 48,
+            "median": 44,
+            "p95": 48
+          },
+          "web.cls": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.longTaskBlockingMs": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.jsHeap.usedJSHeapBytes": {
+            "count": 3,
+            "min": 3462827,
+            "max": 3462828,
+            "median": 3462828,
+            "p95": 3462828
+          },
+          "milestones.readyMs": {
+            "count": 3,
+            "min": 810,
+            "max": 827,
+            "median": 821,
+            "p95": 827
+          }
+        }
+      },
+      "work": {
+        "cold": {
+          "network.requestCount": {
+            "count": 3,
+            "min": 11,
+            "max": 11,
+            "median": 11,
+            "p95": 11
+          },
+          "network.encodedBytes": {
+            "count": 3,
+            "min": 135004,
+            "max": 135004,
+            "median": 135004,
+            "p95": 135004
+          },
+          "network.transferBytes": {
+            "count": 3,
+            "min": 133098,
+            "max": 133098,
+            "median": 133098,
+            "p95": 133098
+          },
+          "network.decodedBodyBytes": {
+            "count": 3,
+            "min": 444076,
+            "max": 444076,
+            "median": 444076,
+            "p95": 444076
+          },
+          "web.domContentLoadedMs": {
+            "count": 3,
+            "min": 29.69999998807907,
+            "max": 32.5,
+            "median": 29.799999952316284,
+            "p95": 32.5
+          },
+          "web.fcpMs": {
+            "count": 3,
+            "min": 24,
+            "max": 44,
+            "median": 36,
+            "p95": 44
+          },
+          "web.lcpMs": {
+            "count": 3,
+            "min": 352,
+            "max": 356,
+            "median": 356,
+            "p95": 356
+          },
+          "web.cls": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.longTaskBlockingMs": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.jsHeap.usedJSHeapBytes": {
+            "count": 3,
+            "min": 2878047,
+            "max": 2878600,
+            "median": 2878423,
+            "p95": 2878600
+          },
+          "milestones.readyMs": {
+            "count": 3,
+            "min": 806,
+            "max": 822,
+            "median": 816,
+            "p95": 822
+          }
+        },
+        "warm": {
+          "network.requestCount": {
+            "count": 3,
+            "min": 11,
+            "max": 11,
+            "median": 11,
+            "p95": 11
+          },
+          "network.encodedBytes": {
+            "count": 3,
+            "min": 1917,
+            "max": 1917,
+            "median": 1917,
+            "p95": 1917
+          },
+          "network.transferBytes": {
+            "count": 3,
+            "min": 3000,
+            "max": 3000,
+            "median": 3000,
+            "p95": 3000
+          },
+          "network.decodedBodyBytes": {
+            "count": 3,
+            "min": 444076,
+            "max": 444076,
+            "median": 444076,
+            "p95": 444076
+          },
+          "web.domContentLoadedMs": {
+            "count": 3,
+            "min": 24.700000047683716,
+            "max": 30.700000047683716,
+            "median": 29.5,
+            "p95": 30.700000047683716
+          },
+          "web.fcpMs": {
+            "count": 3,
+            "min": 28,
+            "max": 36,
+            "median": 28,
+            "p95": 36
+          },
+          "web.lcpMs": {
+            "count": 3,
+            "min": 336,
+            "max": 344,
+            "median": 344,
+            "p95": 344
+          },
+          "web.cls": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.longTaskBlockingMs": {
+            "count": 3,
+            "min": 0,
+            "max": 0,
+            "median": 0,
+            "p95": 0
+          },
+          "web.jsHeap.usedJSHeapBytes": {
+            "count": 3,
+            "min": 2878491,
+            "max": 2878588,
+            "median": 2878576,
+            "p95": 2878588
+          },
+          "milestones.readyMs": {
+            "count": 3,
+            "min": 804,
+            "max": 813,
+            "median": 811,
+            "p95": 813
+          }
+        }
+      }
+    },
+    "desktopSimplified": {
+      "cold": {
+        "network.requestCount": {
+          "count": 3,
+          "min": 65,
+          "max": 65,
+          "median": 65,
+          "p95": 65
+        },
+        "network.encodedBytes": {
+          "count": 3,
+          "min": 18234819,
+          "max": 18234819,
+          "median": 18234819,
+          "p95": 18234819
+        },
+        "network.transferBytes": {
+          "count": 3,
+          "min": 18229646,
+          "max": 18229646,
+          "median": 18229646,
+          "p95": 18229646
+        },
+        "network.decodedBodyBytes": {
+          "count": 3,
+          "min": 21255694,
+          "max": 21255694,
+          "median": 21255694,
+          "p95": 21255694
+        },
+        "web.domContentLoadedMs": {
+          "count": 3,
+          "min": 29.099999964237213,
+          "max": 33.5,
+          "median": 30.399999976158142,
+          "p95": 33.5
+        },
+        "web.fcpMs": {
+          "count": 3,
+          "min": 24,
+          "max": 36,
+          "median": 36,
+          "p95": 36
+        },
+        "web.lcpMs": {
+          "count": 3,
+          "min": 52,
+          "max": 56,
+          "median": 56,
+          "p95": 56
+        },
+        "web.cls": {
+          "count": 3,
+          "min": 0.001025438850308642,
+          "max": 0.001025438850308642,
+          "median": 0.001025438850308642,
+          "p95": 0.001025438850308642
+        },
+        "web.longTaskBlockingMs": {
+          "count": 3,
+          "min": 88,
+          "max": 152,
+          "median": 120,
+          "p95": 152
+        },
+        "web.jsHeap.usedJSHeapBytes": {
+          "count": 3,
+          "min": 70466298,
+          "max": 86255935,
+          "median": 75052050,
+          "p95": 86255935
+        },
+        "steadyRaf.median": {
+          "count": 3,
+          "min": 83.3,
+          "max": 83.3,
+          "median": 83.3,
+          "p95": 83.3
+        },
+        "steadyRaf.p95": {
+          "count": 3,
+          "min": 149.9,
+          "max": 166.7,
+          "median": 149.9,
+          "p95": 166.7
+        },
+        "milestones.lobbyReadyMs": {
+          "count": 3,
+          "min": 881,
+          "max": 901,
+          "median": 894,
+          "p95": 901
+        },
+        "milestones.mainCanvasMs": {
+          "count": 3,
+          "min": 1490,
+          "max": 1566,
+          "median": 1510,
+          "p95": 1566
+        },
+        "milestones.enteredMs": {
+          "count": 3,
+          "min": 2846,
+          "max": 2918,
+          "median": 2876,
+          "p95": 2918
+        },
+        "milestones.selectedWorkReadyMs": {
+          "count": 3,
+          "min": 761,
+          "max": 889,
+          "median": 854,
+          "p95": 889
+        },
+        "milestones.repeatedWorkReadyMs": {
+          "count": 3,
+          "min": 19,
+          "max": 48,
+          "median": 19,
+          "p95": 48
+        },
+        "routeNetworkDelta.encodedBytes": {
+          "count": 3,
+          "min": 0,
+          "max": 0,
+          "median": 0,
+          "p95": 0
+        },
+        "selectedWorkNetworkDelta.encodedBytes": {
+          "count": 3,
+          "min": 9452653,
+          "max": 9452653,
+          "median": 9452653,
+          "p95": 9452653
+        },
+        "heapAfterFirstWork.usedJSHeapBytes": {
+          "count": 3,
+          "min": 102196107,
+          "max": 107637084,
+          "median": 106132294,
+          "p95": 107637084
+        },
+        "heapAfterRepeatedWork.usedJSHeapBytes": {
+          "count": 3,
+          "min": 95381494,
+          "max": 120232629,
+          "median": 113842637,
+          "p95": 120232629
+        },
+        "heapAfterReturn.usedJSHeapBytes": {
+          "count": 3,
+          "min": 90800672,
+          "max": 111166434,
+          "median": 93413067,
+          "p95": 111166434
+        }
+      },
+      "warm": {
+        "network.requestCount": {
+          "count": 3,
+          "min": 65,
+          "max": 65,
+          "median": 65,
+          "p95": 65
+        },
+        "network.encodedBytes": {
+          "count": 3,
+          "min": 10635883,
+          "max": 10636010,
+          "median": 10636010,
+          "p95": 10636010
+        },
+        "network.transferBytes": {
+          "count": 3,
+          "min": 10926150,
+          "max": 10926150,
+          "median": 10926150,
+          "p95": 10926150
+        },
+        "network.decodedBodyBytes": {
+          "count": 3,
+          "min": 21255694,
+          "max": 21255694,
+          "median": 21255694,
+          "p95": 21255694
+        },
+        "web.domContentLoadedMs": {
+          "count": 3,
+          "min": 25.200000047683716,
+          "max": 26.100000023841858,
+          "median": 25.30000001192093,
+          "p95": 26.100000023841858
+        },
+        "web.fcpMs": {
+          "count": 3,
+          "min": 28,
+          "max": 40,
+          "median": 36,
+          "p95": 40
+        },
+        "web.lcpMs": {
+          "count": 3,
+          "min": 36,
+          "max": 44,
+          "median": 40,
+          "p95": 44
+        },
+        "web.cls": {
+          "count": 3,
+          "min": 0.001025438850308642,
+          "max": 0.0010295862268518518,
+          "median": 0.001025438850308642,
+          "p95": 0.0010295862268518518
+        },
+        "web.longTaskBlockingMs": {
+          "count": 3,
+          "min": 104,
+          "max": 110,
+          "median": 107,
+          "p95": 110
+        },
+        "web.jsHeap.usedJSHeapBytes": {
+          "count": 3,
+          "min": 70674703,
+          "max": 89022653,
+          "median": 80082219,
+          "p95": 89022653
+        },
+        "steadyRaf.median": {
+          "count": 3,
+          "min": 83.2,
+          "max": 83.3,
+          "median": 83.3,
+          "p95": 83.3
+        },
+        "steadyRaf.p95": {
+          "count": 3,
+          "min": 133.4,
+          "max": 150,
+          "median": 149.9,
+          "p95": 150
+        },
+        "milestones.lobbyReadyMs": {
+          "count": 3,
+          "min": 870,
+          "max": 885,
+          "median": 875,
+          "p95": 885
+        },
+        "milestones.mainCanvasMs": {
+          "count": 3,
+          "min": 1474,
+          "max": 1489,
+          "median": 1485,
+          "p95": 1489
+        },
+        "milestones.enteredMs": {
+          "count": 3,
+          "min": 2825,
+          "max": 2853,
+          "median": 2826,
+          "p95": 2853
+        },
+        "milestones.selectedWorkReadyMs": {
+          "count": 3,
+          "min": 578,
+          "max": 594,
+          "median": 593,
+          "p95": 594
+        },
+        "milestones.repeatedWorkReadyMs": {
+          "count": 3,
+          "min": 14,
+          "max": 22,
+          "median": 20,
+          "p95": 22
+        },
+        "routeNetworkDelta.encodedBytes": {
+          "count": 3,
+          "min": 0,
+          "max": 0,
+          "median": 0,
+          "p95": 0
+        },
+        "selectedWorkNetworkDelta.encodedBytes": {
+          "count": 3,
+          "min": 9452653,
+          "max": 9452653,
+          "median": 9452653,
+          "p95": 9452653
+        },
+        "heapAfterFirstWork.usedJSHeapBytes": {
+          "count": 3,
+          "min": 108392639,
+          "max": 117005177,
+          "median": 113616324,
+          "p95": 117005177
+        },
+        "heapAfterRepeatedWork.usedJSHeapBytes": {
+          "count": 3,
+          "min": 108344287,
+          "max": 124731302,
+          "median": 119764849,
+          "p95": 124731302
+        },
+        "heapAfterReturn.usedJSHeapBytes": {
+          "count": 3,
+          "min": 91560075,
+          "max": 125946634,
+          "median": 120256301,
+          "p95": 125946634
+        }
+      }
+    },
+    "mobile": {
+      "cold": {
+        "network.requestCount": {
+          "count": 3,
+          "min": 11,
+          "max": 11,
+          "median": 11,
+          "p95": 11
+        },
+        "network.encodedBytes": {
+          "count": 3,
+          "min": 169148,
+          "max": 169148,
+          "median": 169148,
+          "p95": 169148
+        },
+        "network.transferBytes": {
+          "count": 3,
+          "min": 167299,
+          "max": 167299,
+          "median": 167299,
+          "p95": 167299
+        },
+        "network.decodedBodyBytes": {
+          "count": 3,
+          "min": 501135,
+          "max": 501135,
+          "median": 501135,
+          "p95": 501135
+        },
+        "web.domContentLoadedMs": {
+          "count": 3,
+          "min": 33.5,
+          "max": 176.10000002384186,
+          "median": 34.19999998807907,
+          "p95": 176.10000002384186
+        },
+        "web.fcpMs": {
+          "count": 3,
+          "min": 24,
+          "max": 232,
+          "median": 36,
+          "p95": 232
+        },
+        "web.lcpMs": {
+          "count": 3,
+          "min": 368,
+          "max": 544,
+          "median": 372,
+          "p95": 544
+        },
+        "web.cls": {
+          "count": 3,
+          "min": 0,
+          "max": 0,
+          "median": 0,
+          "p95": 0
+        },
+        "web.longTaskBlockingMs": {
+          "count": 3,
+          "min": 0,
+          "max": 99,
+          "median": 0,
+          "p95": 99
+        },
+        "web.jsHeap.usedJSHeapBytes": {
+          "count": 3,
+          "min": 4450156,
+          "max": 4474840,
+          "median": 4451516,
+          "p95": 4474840
+        },
+        "steadyRaf.median": {
+          "count": 3,
+          "min": 16.7,
+          "max": 16.7,
+          "median": 16.7,
+          "p95": 16.7
+        },
+        "steadyRaf.p95": {
+          "count": 3,
+          "min": 16.7,
+          "max": 16.8,
+          "median": 16.7,
+          "p95": 16.8
+        },
+        "milestones.startMenuReadyMs": {
+          "count": 3,
+          "min": 560,
+          "max": 743,
+          "median": 562,
+          "p95": 743
+        },
+        "milestones.terminalReadyMs": {
+          "count": 3,
+          "min": 3387,
+          "max": 3417,
+          "median": 3399,
+          "p95": 3417
+        }
+      },
+      "warm": {
+        "network.requestCount": {
+          "count": 3,
+          "min": 11,
+          "max": 11,
+          "median": 11,
+          "p95": 11
+        },
+        "network.encodedBytes": {
+          "count": 3,
+          "min": 1917,
+          "max": 1917,
+          "median": 1917,
+          "p95": 1917
+        },
+        "network.transferBytes": {
+          "count": 3,
+          "min": 3000,
+          "max": 3000,
+          "median": 3000,
+          "p95": 3000
+        },
+        "network.decodedBodyBytes": {
+          "count": 3,
+          "min": 501135,
+          "max": 501135,
+          "median": 501135,
+          "p95": 501135
+        },
+        "web.domContentLoadedMs": {
+          "count": 3,
+          "min": 27,
+          "max": 33.10000002384186,
+          "median": 27,
+          "p95": 33.10000002384186
+        },
+        "web.fcpMs": {
+          "count": 3,
+          "min": 16,
+          "max": 28,
+          "median": 24,
+          "p95": 28
+        },
+        "web.lcpMs": {
+          "count": 3,
+          "min": 348,
+          "max": 360,
+          "median": 352,
+          "p95": 360
+        },
+        "web.cls": {
+          "count": 3,
+          "min": 0,
+          "max": 0,
+          "median": 0,
+          "p95": 0
+        },
+        "web.longTaskBlockingMs": {
+          "count": 3,
+          "min": 0,
+          "max": 0,
+          "median": 0,
+          "p95": 0
+        },
+        "web.jsHeap.usedJSHeapBytes": {
+          "count": 3,
+          "min": 4451911,
+          "max": 4475270,
+          "median": 4458648,
+          "p95": 4475270
+        },
+        "steadyRaf.median": {
+          "count": 3,
+          "min": 16.7,
+          "max": 16.7,
+          "median": 16.7,
+          "p95": 16.7
+        },
+        "steadyRaf.p95": {
+          "count": 3,
+          "min": 16.7,
+          "max": 16.8,
+          "median": 16.7,
+          "p95": 16.8
+        },
+        "milestones.startMenuReadyMs": {
+          "count": 3,
+          "min": 557,
+          "max": 568,
+          "median": 562,
+          "p95": 568
+        },
+        "milestones.terminalReadyMs": {
+          "count": 3,
+          "min": 3396,
+          "max": 3438,
+          "median": 3431,
+          "p95": 3438
+        }
+      }
+    }
+  }
+}
