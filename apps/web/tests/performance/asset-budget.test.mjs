@@ -91,6 +91,7 @@ test("asset audit is deterministic, content-addressed, and matches real files", 
   const second = await createAssetInventory({ repoRoot });
   assert.deepEqual(second, first);
   assert.equal(first.schemaVersion, 2);
+  assert.equal(first.scope.browserMeasurements, "docs/performance/space-browser-baseline.json");
   assert(first.assets.length > 0);
   assert(first.build.files.some((asset) => asset.path.includes("rapier-vendor")));
   for (const asset of [...first.assets, ...first.build.files]) {

@@ -401,7 +401,7 @@ export async function createAssetInventory({ repoRoot = defaultRepoRoot, distRoo
     scope: {
       discoveryRoots: source.discoveryRoots,
       publicDirectoryShipsVerbatim: true,
-      browserMeasurements: "pending_browser_capture",
+      browserMeasurements: "docs/performance/space-browser-baseline.json",
     },
     totals: source.totals,
     assets: source.assets,
