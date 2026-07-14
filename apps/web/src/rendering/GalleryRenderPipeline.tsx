@@ -11,6 +11,7 @@ import {
   GALLERY_VIGNETTE,
 } from "../scenes/gallery/galleryConfig";
 import type { SpaceQualityConfig } from "../space/spaceVisualSettings";
+import { disposeOwnedRenderPipeline } from "./ownedRenderPipeline";
 
 type PostFxContext = {
   scene: THREE.Scene;
@@ -90,7 +91,7 @@ export function GalleryRenderPipeline({ bloom: bloomConfig }: { bloom: BloomConf
     pipelineRef.current = pipeline;
 
     return () => {
-      pipeline.dispose();
+      disposeOwnedRenderPipeline(pipeline);
       pipelineRef.current = null;
     };
   }, [

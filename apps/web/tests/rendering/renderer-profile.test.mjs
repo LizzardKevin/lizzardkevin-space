@@ -17,6 +17,87 @@ test("actual renderer backend truthfully resolves its profile", async () => {
   assert.throws(() => resolveRendererBackend({}), /Unknown renderer backend/);
 });
 
+test("renderer DPR comes only from the resolved profile configuration", async () => {
+  const { RENDERER_PROFILES, resolveRendererDpr } = await importSourceModule(
+    "rendering/rendererProfile.ts",
+  );
+
+  assert.equal(resolveRendererDpr(null), 1);
+  assert.equal(resolveRendererDpr(RENDERER_PROFILES.simplified), 1);
+  assert.deepEqual(resolveRendererDpr(RENDERER_PROFILES.full), [1, 2]);
+});
+
+test("profile switching preserves the latest pose and resets renderer resolution", async () => {
+  const { switchRendererProfileState } = await importSourceModule("rendering/rendererProfile.ts");
+  const latestPose = { position: [7, 8, 9], yaw: 1.25 };
+
+  for (const [from, to] of [["full", "simplified"], ["simplified", "full"]]) {
+    const next = switchRendererProfileState(
+      {
+        requestedProfile: from,
+        initialPose: { position: [0, 0, 0] },
+        nonce: 4,
+        resolvedProfile: { id: from },
+        error: new Error("old failure"),
+      },
+      to,
+      latestPose,
+    );
+    assert.equal(next.requestedProfile, to);
+    assert.equal(next.initialPose, latestPose);
+    assert.equal(next.nonce, 5);
+    assert.equal(next.resolvedProfile, null);
+    assert.equal(next.error, null);
+  }
+});
+
+test("Focus never requests a profile above the main resolved profile", async () => {
+  const { resolveFocusRequestedProfile } = await importSourceModule("rendering/rendererProfile.ts");
+  assert.equal(resolveFocusRequestedProfile("simplified"), "simplified");
+  assert.equal(resolveFocusRequestedProfile("full"), "full");
+});
+
+test("detached canvases dispose late renderers while connected canvases keep them", async () => {
+  const { disposeRendererIfCanvasDetached } = await importSourceModule(
+    "rendering/rendererLifecycle.ts",
+  );
+  let disposals = 0;
+  const renderer = { dispose: () => { disposals += 1; } };
+
+  assert.equal(disposeRendererIfCanvasDetached(renderer, { isConnected: true }), false);
+  assert.equal(disposals, 0);
+  assert.equal(disposeRendererIfCanvasDetached(renderer, { isConnected: false }), true);
+  assert.equal(disposals, 1);
+});
+
+test("renderer initialization errors notify once and leave R3F's promise pending", async () => {
+  const { bridgeRendererInitialization } = await importSourceModule(
+    "rendering/rendererLifecycle.ts",
+  );
+  const error = new Error("renderer failed");
+  const notifications = [];
+  const bridged = bridgeRendererInitialization(Promise.reject(error), (received) => {
+    notifications.push(received);
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.deepEqual(notifications, [error]);
+  const state = await Promise.race([
+    bridged.then(() => "resolved", () => "rejected"),
+    new Promise((resolve) => setTimeout(() => resolve("pending"), 10)),
+  ]);
+  assert.equal(state, "pending");
+});
+
+test("owned render pipeline cleanup disposes exactly once per cleanup call", async () => {
+  const { disposeOwnedRenderPipeline } = await importSourceModule(
+    "rendering/ownedRenderPipeline.ts",
+  );
+  let disposals = 0;
+  disposeOwnedRenderPipeline({ dispose: () => { disposals += 1; } });
+  assert.equal(disposals, 1);
+});
+
 test("simplified forces WebGL while full accepts WebGPU automatic fallback", async () => {
   const { initializeProfiledRenderer } = await importSourceModule("rendering/rendererProfile.ts");
   const forced = [];

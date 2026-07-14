@@ -5,6 +5,7 @@ import {
   type RendererProfileId,
   type RendererResolution,
 } from "./rendererProfile";
+import { disposeRendererIfCanvasDetached } from "./rendererLifecycle";
 
 type WebGPUCanvasProps = {
   canvas: HTMLCanvasElement;
@@ -26,8 +27,7 @@ export async function createWebGPURenderer(props: WebGPUCanvasProps): Promise<We
       }),
   );
 
-  if (!props.canvas.isConnected) {
-    renderer.dispose();
+  if (disposeRendererIfCanvasDetached(renderer, props.canvas)) {
     throw new Error("Renderer initialization cancelled because its canvas was unmounted");
   }
 

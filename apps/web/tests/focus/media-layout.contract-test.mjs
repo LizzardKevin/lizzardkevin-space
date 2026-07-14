@@ -33,7 +33,7 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   assert.ok(
     overlaySource.includes("focusCanvasInteractive") &&
       overlaySource.includes('data-cursor={focusCanvasInteractive ? "drag-model" : undefined}') &&
-      overlaySource.includes('frameloop={activeMedia.kind === "model" ? "always" : "never"}') &&
+      overlaySource.includes('frameloop={orbitEnabled ? "always" : "never"}') &&
       css.includes(".focus-canvas:not(.focus-canvas--visible) canvas"),
     "Focus model canvas should expose drag cursor and render frames only while the model page is active",
   );

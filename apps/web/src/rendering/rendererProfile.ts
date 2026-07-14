@@ -39,6 +39,40 @@ const simplified = Object.freeze({
 
 export const RENDERER_PROFILES = Object.freeze({ full, simplified });
 
+export function resolveRendererDpr(profile: RendererProfile | null): 1 | [1, number] {
+  return profile?.id === "full" ? [1, profile.maxDpr] : 1;
+}
+
+export type RendererProfileSwitchState<Pose, ResolvedProfile> = {
+  requestedProfile: RendererProfileId;
+  initialPose: Pose;
+  nonce: number;
+  resolvedProfile: ResolvedProfile | null;
+  error: Error | null;
+};
+
+export function switchRendererProfileState<Pose, ResolvedProfile>(
+  state: RendererProfileSwitchState<Pose, ResolvedProfile>,
+  requestedProfile: RendererProfileId,
+  latestPose: Pose,
+): RendererProfileSwitchState<Pose, ResolvedProfile> {
+  if (state.requestedProfile === requestedProfile) return state;
+  return {
+    ...state,
+    requestedProfile,
+    initialPose: latestPose,
+    nonce: state.nonce + 1,
+    resolvedProfile: null,
+    error: null,
+  };
+}
+
+export function resolveFocusRequestedProfile(
+  mainProfile: RendererProfileId,
+): RendererProfileId {
+  return mainProfile === "full" ? "full" : "simplified";
+}
+
 export type RendererResolution = Readonly<{
   backend: RendererBackend;
   profile: RendererProfileId;

@@ -15,9 +15,13 @@ import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
 import { GalleryRenderPipeline } from "../rendering/GalleryRenderPipeline";
 import {
   RENDERER_PROFILES,
+  resolveRendererDpr,
+  switchRendererProfileState,
   type RendererProfile,
 } from "../rendering/rendererProfile";
+import { bridgeRendererInitialization } from "../rendering/rendererLifecycle";
 import { WebGPUErrorBoundary } from "../rendering/WebGPUErrorBoundary";
+import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
 import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
 import { SpaceScene } from "../scenes/SpaceScene";
 import type { SpaceJumpNoticeKey } from "../scenes/Player/PlayerController";
@@ -156,11 +160,13 @@ export function SpaceDesktopExperience({
     initialPose: SpacePlayerPose | null;
     nonce: number;
     resolvedProfile: RendererProfile | null;
+    error: Error | null;
   }>(() => ({
     requestedProfile: settings.qualityPreset,
     initialPose: dailyResumePose,
     nonce: 0,
     resolvedProfile: null,
+    error: null,
   }));
   const resolvedProfile = rendererRuntime.resolvedProfile;
 
@@ -195,13 +201,11 @@ export function SpaceDesktopExperience({
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setRendererRuntime((current) => {
-        if (current.requestedProfile === settings.qualityPreset) return current;
-        return {
-          requestedProfile: settings.qualityPreset,
-          initialPose: latestSpacePoseRef.current ?? dailyResumePose,
-          nonce: current.nonce + 1,
-          resolvedProfile: null,
-        };
+        return switchRendererProfileState(
+          current,
+          settings.qualityPreset,
+          latestSpacePoseRef.current ?? dailyResumePose,
+        );
       });
     }, 0);
     return () => window.clearTimeout(timer);
@@ -471,6 +475,9 @@ export function SpaceDesktopExperience({
         />
       ) : null}
       <WebGPUErrorBoundary>
+        {rendererRuntime.error ? (
+          <WebGPUUnavailable />
+        ) : (
           <div
             className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${spaceRenderPaused ? " space-canvasWrap--disabled" : ""}`}
           >
@@ -479,22 +486,37 @@ export function SpaceDesktopExperience({
               frameloop={spaceRenderPaused ? "never" : "always"}
               id="space-canvas"
               style={{ position: "absolute", inset: 0 }}
-              dpr={resolvedProfile?.id === "full" ? [1, 2] : 1}
+              dpr={resolveRendererDpr(resolvedProfile)}
               gl={(props) =>
-                createWebGPURenderer({
-                  canvas: props.canvas as HTMLCanvasElement,
-                  requestedProfile: rendererRuntime.requestedProfile,
-                  onResolved: (resolution) => {
+                bridgeRendererInitialization(
+                  createWebGPURenderer({
+                    canvas: props.canvas as HTMLCanvasElement,
+                    requestedProfile: rendererRuntime.requestedProfile,
+                    onResolved: (resolution) => {
+                      setRendererRuntime((current) =>
+                        current.nonce === rendererRuntime.nonce
+                          ? {
+                              ...current,
+                              resolvedProfile: RENDERER_PROFILES[resolution.profile],
+                            }
+                          : current,
+                      );
+                    },
+                  }),
+                  (error) => {
                     setRendererRuntime((current) =>
                       current.nonce === rendererRuntime.nonce
                         ? {
                             ...current,
-                            resolvedProfile: RENDERER_PROFILES[resolution.profile],
+                            error:
+                              error instanceof Error
+                                ? error
+                                : new Error("Renderer initialization failed"),
                           }
                         : current,
                     );
                   },
-                })
+                )
               }
               camera={{
                 fov: 70,
@@ -581,6 +603,7 @@ export function SpaceDesktopExperience({
               ) : null}
             </Canvas>
           </div>
+        )}
       </WebGPUErrorBoundary>
     </>
   );
