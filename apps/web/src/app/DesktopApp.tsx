@@ -21,6 +21,7 @@ import {
   workRoute,
 } from "./routeConfig";
 import { isKnownExhibitId } from "../content/lightweightExhibitIndex";
+import { useSpaceBootController } from "../boot/useSpaceBootController";
 
 const SpaceHost = lazy(() => import("../space/SpaceHost"));
 const DesktopTopBar = lazy(() =>
@@ -48,6 +49,7 @@ export default function DesktopApp() {
   const navigate = useNavigate();
   const audio = useAudioDirector();
   const entry = useEntryTransition();
+  const boot = useSpaceBootController();
   const [spaceStarted, setSpaceStarted] = useState(false);
   const [closing, setClosing] = useState(false);
   const route = resolveAppRoute(location.pathname);
@@ -72,9 +74,10 @@ export default function DesktopApp() {
     entry.freezeButtonFloat();
     entry.beginLoading();
     audio.unlock();
+    boot.start();
     setSpaceStarted(true);
     void audio.setZone("architecture");
-  }, [audio, entry, route.kind, spaceStarted]);
+  }, [audio, boot, entry, route.kind, spaceStarted]);
 
   const navigateToSpace = useCallback(
     (options?: { fromEscape?: boolean }) => {
@@ -128,6 +131,7 @@ export default function DesktopApp() {
         startedHost={
           spaceStarted ? (
             <SpaceHost
+              boot={boot}
               entry={entry}
               focusedExhibitId={focusedExhibitId}
               onNavigateToSpace={navigateToSpace}

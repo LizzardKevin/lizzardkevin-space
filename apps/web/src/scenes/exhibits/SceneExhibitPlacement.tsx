@@ -1,12 +1,8 @@
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
-import {
-  loadManifest,
-  type ExhibitManifestItem,
-  type ExhibitSceneConfig,
-} from "../../exhibits/manifest.ts";
+import type { ExhibitManifestItem, ExhibitSceneConfig } from "../../exhibits/manifest.ts";
 import { publishSpaceExhibitPlacementDebug } from "../debug/spaceMovementDebug";
 import { GLTF_DRACO_DECODER_PATH } from "../gallery/galleryConfig";
 import { applyTreeHabitatSharedMaterials } from "./exhibitMaterialOverrides.ts";
@@ -60,30 +56,6 @@ function resolveExhibitDistancePosition(sceneConfig: ExhibitSceneConfig) {
   return new THREE.Vector3(...sceneConfig.distanceCenter);
 }
 
-function useSceneExhibits(enabled: boolean) {
-  const [exhibits, setExhibits] = useState<ExhibitManifestItem[] | null>(null);
-
-  useEffect(() => {
-    if (!enabled) return;
-    let cancelled = false;
-    loadManifest()
-      .then((manifest) => {
-        if (cancelled) return;
-        setExhibits(manifest.exhibits.filter((exhibit) => exhibit.scene));
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        if (import.meta.env.DEV) console.error("[ExhibitPlacement] failed to load manifest", error);
-        setExhibits([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled]);
-
-  return enabled ? exhibits : null;
-}
-
 function DevSceneModelUrlCheck({ exhibit }: { exhibit: ExhibitManifestItem }) {
   useEffect(() => {
     if (!import.meta.env.DEV || !exhibit.scene) return;
@@ -95,6 +67,28 @@ function DevSceneModelUrlCheck({ exhibit }: { exhibit: ExhibitManifestItem }) {
   }, [exhibit]);
 
   return null;
+}
+
+class SceneExhibitErrorBoundary extends Component<
+  { exhibitId: string; onFailed: (exhibitId: string) => void; children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    if (import.meta.env.DEV) {
+      console.error(`[ExhibitPlacement] failed to load ${this.props.exhibitId}`, error);
+    }
+    this.props.onFailed(this.props.exhibitId);
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
 function SceneExhibitModel({
@@ -166,10 +160,12 @@ function SceneExhibitController({
   exhibit,
   root,
   onReady,
+  onDeferred,
 }: {
   exhibit: ExhibitManifestItem;
   root: THREE.Object3D;
   onReady: (exhibitId: string) => void;
+  onDeferred: (exhibitId: string) => void;
 }) {
   const sceneConfig = exhibit.scene;
   const { camera } = useThree();
@@ -198,8 +194,8 @@ function SceneExhibitController({
   });
 
   useEffect(() => {
-    if (!inRange) onReady(exhibit.exhibitId);
-  }, [inRange, exhibit.exhibitId, onReady]);
+    if (!inRange) onDeferred(exhibit.exhibitId);
+  }, [inRange, exhibit.exhibitId, onDeferred]);
 
   if (!sceneConfig || !inRange) return null;
 
@@ -221,34 +217,18 @@ function SceneExhibitController({
 export function ExhibitPlacement({
   root,
   enabled = true,
-  onReady,
+  exhibits,
+  onExhibitReady,
+  onExhibitFailed,
+  onExhibitDeferred,
 }: {
   root: THREE.Object3D;
   enabled?: boolean;
-  onReady?: () => void;
+  exhibits: ExhibitManifestItem[] | null;
+  onExhibitReady: (exhibitId: string) => void;
+  onExhibitFailed: (exhibitId: string) => void;
+  onExhibitDeferred: (exhibitId: string) => void;
 }) {
-  const exhibits = useSceneExhibits(enabled);
-  const [readyIds, setReadyIds] = useState<Set<string>>(() => new Set());
-  const readyCalledRef = useRef(false);
-
-  const markExhibitReady = useCallback((exhibitId: string) => {
-    setReadyIds((current) => {
-      if (current.has(exhibitId)) return current;
-      const next = new Set(current);
-      next.add(exhibitId);
-      return next;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!enabled || !exhibits) return;
-    const ids = exhibits.map((exhibit) => exhibit.exhibitId);
-    const allReady = ids.length === 0 || ids.every((id) => readyIds.has(id));
-    if (!allReady || readyCalledRef.current) return;
-    readyCalledRef.current = true;
-    onReady?.();
-  }, [enabled, exhibits, onReady, readyIds]);
-
   if (!enabled || !exhibits) return null;
 
   return (
@@ -257,12 +237,18 @@ export function ExhibitPlacement({
         const scene = exhibit.scene;
         if (!scene) return null;
         return (
-          <SceneExhibitController
+          <SceneExhibitErrorBoundary
             key={exhibit.exhibitId}
-            exhibit={exhibit}
-            root={root}
-            onReady={markExhibitReady}
-          />
+            exhibitId={exhibit.exhibitId}
+            onFailed={onExhibitFailed}
+          >
+            <SceneExhibitController
+              exhibit={exhibit}
+              root={root}
+              onReady={onExhibitReady}
+              onDeferred={onExhibitDeferred}
+            />
+          </SceneExhibitErrorBoundary>
         );
       })}
     </>

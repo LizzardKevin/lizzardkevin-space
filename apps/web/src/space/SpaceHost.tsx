@@ -1,9 +1,11 @@
-import { Suspense, useCallback, useRef } from "react";
+import { Suspense, useEffect } from "react";
 import type { EntryTransition } from "../entry/entryTypes";
+import type { SpaceBootController } from "../boot/useSpaceBootController";
 import { SpaceDesktopExperience } from "../pages/SpaceDesktopExperience";
 import { SpaceRouteCoordinator } from "./SpaceRouteCoordinator";
 
 export default function SpaceHost({
+  boot,
   entry,
   focusedExhibitId,
   onNavigateToSpace,
@@ -11,6 +13,7 @@ export default function SpaceHost({
   pauseMainAudio,
   routeBlocked,
 }: {
+  boot: SpaceBootController;
   entry: EntryTransition;
   focusedExhibitId: string | null;
   onNavigateToSpace: (options?: { fromEscape?: boolean }) => void;
@@ -18,24 +21,23 @@ export default function SpaceHost({
   pauseMainAudio: boolean;
   routeBlocked: boolean;
 }) {
-  const entryWaitingForExhibitsRef = useRef(true);
-  const handleSceneExhibitsReady = useCallback(() => {
-    if (!entryWaitingForExhibitsRef.current) return;
-    entryWaitingForExhibitsRef.current = false;
-    entry.startFade();
-  }, [entry]);
+  const bootPhase = boot.state.phase;
+  const startFade = entry.startFade;
+  useEffect(() => {
+    if (bootPhase === "running") startFade();
+  }, [bootPhase, startFade]);
 
   return (
     <>
       <SpaceRouteCoordinator pauseMainAudio={pauseMainAudio} routeBlocked={routeBlocked} />
       <Suspense fallback={null}>
         <SpaceDesktopExperience
+          boot={boot}
           entry={entry}
           focusedExhibitId={focusedExhibitId}
           loadExhibits
           onNavigateToSpace={onNavigateToSpace}
           onNavigateToWork={onNavigateToWork}
-          onSceneExhibitsReady={handleSceneExhibitsReady}
           overlay={{ isOverlayOpen: routeBlocked }}
           routeBlocked={routeBlocked}
         />

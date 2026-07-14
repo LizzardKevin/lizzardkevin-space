@@ -1,6 +1,6 @@
 import "../runtime/suppressThirdPartyDeprecationWarnings";
 import { Canvas } from "@react-three/fiber";
-import { Physics } from "@react-three/rapier";
+import { Physics, useRapier } from "@react-three/rapier";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Crosshair } from "../components/Crosshair";
@@ -60,6 +60,13 @@ import {
 } from "../space/spaceDailyResume";
 import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
+import type { SpaceBootController } from "../boot/useSpaceBootController";
+import { watchRendererDeviceLoss } from "../boot/rendererDeviceLoss";
+import {
+  disposeOwnedBootRenderer,
+  replaceOwnedBootRenderer,
+  type DisposableBootRenderer,
+} from "../boot/ownedBootRenderer";
 
 const FocusOverlay = lazy(() =>
   import("../exhibits/FocusOverlay").then((module) => ({
@@ -113,30 +120,78 @@ function readDevFocusExhibitId(params: URLSearchParams) {
   return params.get(SPACE_DEBUG_FOCUS_PARAM);
 }
 
+function PhysicsBootBoundary({ onReady }: { onReady: () => void }) {
+  useRapier();
+  useEffect(() => onReady(), [onReady]);
+  return null;
+}
+
+function SpaceBootFailure({ error, onRetry }: { error: string | null; onRetry: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div
+      role="alert"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 90,
+        display: "grid",
+        placeItems: "center",
+        padding: 24,
+        background: "#050505",
+        color: "rgba(255,255,255,0.92)",
+        fontFamily: "system-ui",
+        textAlign: "center",
+      }}
+    >
+      <div style={{ maxWidth: 480 }}>
+        <p>{error ?? t("space.rendererUnavailableBody")}</p>
+        <button type="button" onClick={onRetry}>{t("space.retry")}</button>
+      </div>
+    </div>
+  );
+}
+
 export function SpaceDesktopExperience({
+  boot,
   entry,
   focusedExhibitId,
   overlay,
   loadExhibits,
   onNavigateToSpace,
   onNavigateToWork,
-  onSceneExhibitsReady,
   onCanvasReady,
   routeBlocked,
 }: {
+  boot: SpaceBootController;
   entry: EntryTransition;
   focusedExhibitId: string | null;
   overlay: { isOverlayOpen: boolean };
   loadExhibits: boolean;
   onNavigateToSpace: (options?: { fromEscape?: boolean }) => void;
   onNavigateToWork: (exhibitId: string) => void;
-  onSceneExhibitsReady: () => void;
   onCanvasReady?: () => void;
   routeBlocked: boolean;
 }) {
+  const {
+    state: bootState,
+    retry: retryBoot,
+    milestoneReady,
+    manifestResolved,
+    exhibitReady,
+    exhibitFailed,
+    exhibitDeferred,
+    fail: failBoot,
+    deviceLost,
+  } = boot;
+  const attemptId = bootState.attemptId;
   const [exhibitTarget, setExhibitTarget] = useState<ExhibitTarget | null>(null);
   const { t } = useTranslation();
-  const [manifest, setManifest] = useState<ExhibitManifestItem[] | null>(null);
+  const [manifestResult, setManifestResult] = useState<{
+    attemptId: number;
+    exhibits: ExhibitManifestItem[];
+  } | null>(null);
+  const manifest = manifestResult?.attemptId === attemptId ? manifestResult.exhibits : null;
   /** 退出动效期间仍挂载 Focus，但已恢复 SPACE 第一人称控制 */
   const [focusClosing, setFocusClosing] = useState<ExhibitManifestItem | null>(null);
   const [toast, setToast] = useState<SpaceToastState | null>(null);
@@ -164,21 +219,29 @@ export function SpaceDesktopExperience({
   const projectorSlideCommandNonceRef = useRef(0);
   const devFocusOpenedRef = useRef(false);
   const rendererOwnerMountedRef = useRef(true);
+  const rendererLossCleanupRef = useRef<(() => void) | null>(null);
+  const ownedRendererRef = useRef<DisposableBootRenderer | null>(null);
   const { quality, settings } = useSpaceVisualSettings();
   const [rendererRuntime, setRendererRuntime] = useState<{
+    attemptId: number;
     requestedProfile: "full" | "simplified";
     initialPose: SpacePlayerPose | null;
     nonce: number;
     resolvedProfile: RendererProfile | null;
     error: Error | null;
   }>(() => ({
-    requestedProfile: settings.qualityPreset,
+    attemptId,
+    requestedProfile: bootState.forceWebGL ? "simplified" : settings.qualityPreset,
     initialPose: initialResumePose,
     nonce: 0,
     resolvedProfile: null,
     error: null,
   }));
-  const resolvedProfile = rendererRuntime.resolvedProfile;
+  const requestedProfile = bootState.forceWebGL ? "simplified" : settings.qualityPreset;
+  const rendererScopeMatches =
+    rendererRuntime.attemptId === attemptId &&
+    rendererRuntime.requestedProfile === requestedProfile;
+  const resolvedProfile = rendererScopeMatches ? rendererRuntime.resolvedProfile : null;
 
   const { entered, fading: entryIsFading } = entry;
 
@@ -193,8 +256,19 @@ export function SpaceDesktopExperience({
     rendererOwnerMountedRef.current = true;
     return () => {
       rendererOwnerMountedRef.current = false;
+      rendererLossCleanupRef.current?.();
+      rendererLossCleanupRef.current = null;
     };
   }, []);
+
+  const bootAttemptFailed = bootState.phase === "failed";
+  useEffect(() => {
+    return () => {
+      rendererLossCleanupRef.current?.();
+      rendererLossCleanupRef.current = null;
+      disposeOwnedBootRenderer(ownedRendererRef);
+    };
+  }, [attemptId, bootAttemptFailed, requestedProfile]);
 
   useEffect(() => {
     const onPointerLockFailed = (event: Event) => {
@@ -223,31 +297,50 @@ export function SpaceDesktopExperience({
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setRendererRuntime((current) => {
-        return switchRendererProfileState(
-          current,
-          settings.qualityPreset,
-          latestSpacePoseRef.current ?? initialResumePose,
-        );
-      });
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [initialResumePose, settings.qualityPreset]);
-
-  useEffect(() => {
     let cancelled = false;
     loadManifest()
       .then((m) => {
-        if (!cancelled) setManifest(m.exhibits);
+        if (cancelled) return;
+        setManifestResult({ attemptId, exhibits: m.exhibits });
+        manifestResolved(
+          attemptId,
+          m.exhibits.filter((exhibit) => exhibit.scene).map((exhibit) => exhibit.exhibitId),
+        );
       })
-      .catch(() => {
-        if (!cancelled) setManifest([]);
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setManifestResult({ attemptId, exhibits: [] });
+        failBoot(attemptId, error);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attemptId, failBoot, manifestResolved]);
+
+  const handlePhysicsReady = useCallback(() => {
+    milestoneReady(attemptId, "physics");
+  }, [attemptId, milestoneReady]);
+
+  const handleEnvironmentReady = useCallback(() => {
+    milestoneReady(attemptId, "environment");
+  }, [attemptId, milestoneReady]);
+
+  const handleGalleryReady = useCallback(() => {
+    milestoneReady(attemptId, "gallery");
+    onCanvasReady?.();
+  }, [attemptId, milestoneReady, onCanvasReady]);
+
+  const handleExhibitReady = useCallback((exhibitId: string) => {
+    exhibitReady(attemptId, exhibitId);
+  }, [attemptId, exhibitReady]);
+
+  const handleExhibitFailed = useCallback((exhibitId: string) => {
+    exhibitFailed(attemptId, exhibitId);
+  }, [attemptId, exhibitFailed]);
+
+  const handleExhibitDeferred = useCallback((exhibitId: string) => {
+    exhibitDeferred(attemptId, exhibitId);
+  }, [attemptId, exhibitDeferred]);
 
   useEffect(() => {
     if (!devFocusExhibitId || manifest === null || focusedExhibitId || devFocusOpenedRef.current) return;
@@ -512,14 +605,14 @@ export function SpaceDesktopExperience({
         />
       ) : null}
       <WebGPUErrorBoundary>
-        {rendererRuntime.error ? (
+        {rendererRuntime.error && rendererScopeMatches ? (
           <WebGPUUnavailable />
-        ) : (
+        ) : bootState.phase === "failed" ? null : (
           <div
             className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${spaceRenderPaused ? " space-canvasWrap--disabled" : ""}`}
           >
             <Canvas
-              key={`space-canvas-${rendererRuntime.requestedProfile}-${rendererRuntime.nonce}`}
+              key={`space-canvas-${attemptId}-${requestedProfile}`}
               frameloop={spaceRenderPaused ? "never" : "always"}
               id="space-canvas"
               style={{ position: "absolute", inset: 0 }}
@@ -528,24 +621,42 @@ export function SpaceDesktopExperience({
                 bridgeRendererInitialization(
                   createWebGPURenderer({
                     canvas: props.canvas as HTMLCanvasElement,
-                    requestedProfile: rendererRuntime.requestedProfile,
+                    requestedProfile,
                     onResolved: (resolution) => {
-                      setRendererRuntime((current) =>
-                        current.nonce === rendererRuntime.nonce
-                          ? {
-                              ...current,
-                              resolvedProfile: RENDERER_PROFILES[resolution.profile],
-                            }
-                          : current,
-                      );
+                      setRendererRuntime((current) => {
+                        const switched = switchRendererProfileState(
+                          current,
+                          requestedProfile,
+                          latestSpacePoseRef.current ?? initialResumePose,
+                        );
+                        return {
+                          ...switched,
+                          attemptId,
+                          requestedProfile,
+                          initialPose: latestSpacePoseRef.current ?? initialResumePose,
+                          resolvedProfile: RENDERER_PROFILES[resolution.profile],
+                          error: null,
+                        };
+                      });
+                      milestoneReady(attemptId, "renderer");
                     },
+                  }).then((renderer) => {
+                    replaceOwnedBootRenderer(ownedRendererRef, renderer);
+                    rendererLossCleanupRef.current?.();
+                    rendererLossCleanupRef.current = watchRendererDeviceLoss(
+                      renderer,
+                      props.canvas as HTMLCanvasElement,
+                      (error) => deviceLost(attemptId, error),
+                    );
+                    return renderer;
                   }),
                   (error) => {
                     reportRendererInitializationErrorIfMounted(
                       () => rendererOwnerMountedRef.current,
                       (reportedError) => {
                         setRendererRuntime((current) =>
-                          current.nonce === rendererRuntime.nonce
+                          current.attemptId === attemptId &&
+                          current.requestedProfile === requestedProfile
                             ? {
                                 ...current,
                                 error:
@@ -555,6 +666,7 @@ export function SpaceDesktopExperience({
                               }
                             : current,
                         );
+                        failBoot(attemptId, reportedError);
                       },
                       error,
                     );
@@ -614,13 +726,17 @@ export function SpaceDesktopExperience({
                     }
                   >
                     <Physics gravity={[0, -9.81, 0]} timeStep={SPACE_PHYSICS_TIME_STEP}>
+                      <PhysicsBootBoundary onReady={handlePhysicsReady} />
                       <SpaceScene
                     exhibitTarget={exhibitTarget}
                     onTargetChange={setExhibitTarget}
                     loadExhibits={loadExhibits}
                     projectorExhibits={manifest}
-                    onSceneExhibitsReady={onSceneExhibitsReady}
-                    onSceneReady={onCanvasReady}
+                    onEnvironmentReady={handleEnvironmentReady}
+                    onGalleryReady={handleGalleryReady}
+                    onExhibitReady={handleExhibitReady}
+                    onExhibitFailed={handleExhibitFailed}
+                    onExhibitDeferred={handleExhibitDeferred}
                     pointerControlsEnabled={pointerControlsEnabled}
                     controlsEnabled={controlsEnabled}
                     projectorCommand={projectorSlideCommand}
@@ -645,7 +761,7 @@ export function SpaceDesktopExperience({
                 </>
               ) : null}
             </Canvas>
-            {resolvedProfile === null ? (
+            {bootState.phase === "booting" ? (
               <div
                 role="status"
                 style={{
@@ -663,11 +779,17 @@ export function SpaceDesktopExperience({
                 }}
               >
                 {t("space.loading")}
+                {bootState.items.total > 0 ? (
+                  <span>{bootState.items.loaded + bootState.items.failed + bootState.items.deferred}/{bootState.items.total}</span>
+                ) : null}
               </div>
             ) : null}
           </div>
         )}
       </WebGPUErrorBoundary>
+      {bootState.phase === "failed" ? (
+        <SpaceBootFailure error={bootState.error} onRetry={retryBoot} />
+      ) : null}
     </>
   );
 }

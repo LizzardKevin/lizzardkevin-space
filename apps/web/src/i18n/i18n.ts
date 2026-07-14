@@ -13,6 +13,7 @@ export const runtimeResourceAugmentation = {
     space: {
       rendererUnavailableTitle: "Renderer unavailable",
       rendererUnavailableBody: "Unable to initialize a WebGPU or WebGL2 renderer.",
+      retry: "Retry",
     },
     focus: {
       rendererLoadFailed: "Focus renderer failed to load",
@@ -27,6 +28,7 @@ export const runtimeResourceAugmentation = {
     space: {
       rendererUnavailableTitle: "渲染器不可用",
       rendererUnavailableBody: "无法初始化 WebGPU 或 WebGL2 渲染器。",
+      retry: "重试",
     },
     focus: {
       rendererLoadFailed: "Focus 渲染器加载失败",

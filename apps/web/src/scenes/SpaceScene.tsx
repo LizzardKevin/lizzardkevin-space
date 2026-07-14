@@ -23,8 +23,11 @@ function SpaceSceneContent({
   onTargetChange,
   loadExhibits,
   projectorExhibits,
-  onSceneExhibitsReady,
-  onSceneReady,
+  onEnvironmentReady,
+  onGalleryReady,
+  onExhibitReady,
+  onExhibitFailed,
+  onExhibitDeferred,
   pointerControlsEnabled,
   controlsEnabled,
   projectorCommand,
@@ -45,8 +48,11 @@ function SpaceSceneContent({
   onTargetChange: (target: ExhibitTarget | null) => void;
   loadExhibits: boolean;
   projectorExhibits: ExhibitManifestItem[] | null;
-  onSceneExhibitsReady: () => void;
-  onSceneReady?: () => void;
+  onEnvironmentReady: () => void;
+  onGalleryReady: () => void;
+  onExhibitReady: (exhibitId: string) => void;
+  onExhibitFailed: (exhibitId: string) => void;
+  onExhibitDeferred: (exhibitId: string) => void;
   pointerControlsEnabled: boolean;
   controlsEnabled: boolean;
   projectorCommand: ProjectorSlideCommand | null;
@@ -73,8 +79,12 @@ function SpaceSceneContent({
       {ENABLE_GALLERY_GLB ? (
         <GalleryModel
           loadExhibits={loadExhibits}
-          onExhibitsReady={onSceneExhibitsReady}
-          onSceneReady={onSceneReady}
+          sceneExhibits={projectorExhibits?.filter((exhibit) => exhibit.scene) ?? null}
+          onEnvironmentReady={onEnvironmentReady}
+          onGalleryReady={onGalleryReady}
+          onExhibitReady={onExhibitReady}
+          onExhibitFailed={onExhibitFailed}
+          onExhibitDeferred={onExhibitDeferred}
           quality={quality}
           projectorExhibits={projectorExhibits}
           projectorInteractive={controlsEnabled && !onboardingEnabled}
@@ -156,8 +166,11 @@ export function SpaceScene({
   onTargetChange,
   loadExhibits,
   projectorExhibits,
-  onSceneExhibitsReady,
-  onSceneReady,
+  onEnvironmentReady,
+  onGalleryReady,
+  onExhibitReady,
+  onExhibitFailed,
+  onExhibitDeferred,
   pointerControlsEnabled,
   controlsEnabled,
   projectorCommand,
@@ -178,8 +191,11 @@ export function SpaceScene({
   onTargetChange: (target: ExhibitTarget | null) => void;
   loadExhibits: boolean;
   projectorExhibits: ExhibitManifestItem[] | null;
-  onSceneExhibitsReady: () => void;
-  onSceneReady?: () => void;
+  onEnvironmentReady: () => void;
+  onGalleryReady: () => void;
+  onExhibitReady: (exhibitId: string) => void;
+  onExhibitFailed: (exhibitId: string) => void;
+  onExhibitDeferred: (exhibitId: string) => void;
   pointerControlsEnabled: boolean;
   controlsEnabled: boolean;
   projectorCommand: ProjectorSlideCommand | null;
@@ -204,8 +220,11 @@ export function SpaceScene({
           onTargetChange={onTargetChange}
           loadExhibits={loadExhibits}
           projectorExhibits={projectorExhibits}
-          onSceneExhibitsReady={onSceneExhibitsReady}
-          onSceneReady={onSceneReady}
+          onEnvironmentReady={onEnvironmentReady}
+          onGalleryReady={onGalleryReady}
+          onExhibitReady={onExhibitReady}
+          onExhibitFailed={onExhibitFailed}
+          onExhibitDeferred={onExhibitDeferred}
           pointerControlsEnabled={pointerControlsEnabled}
           controlsEnabled={controlsEnabled}
           projectorCommand={projectorCommand}
@@ -232,8 +251,11 @@ export function SpaceScene({
       onTargetChange={onTargetChange}
       loadExhibits={loadExhibits}
       projectorExhibits={projectorExhibits}
-      onSceneExhibitsReady={onSceneExhibitsReady}
-      onSceneReady={onSceneReady}
+      onEnvironmentReady={onEnvironmentReady}
+      onGalleryReady={onGalleryReady}
+      onExhibitReady={onExhibitReady}
+      onExhibitFailed={onExhibitFailed}
+      onExhibitDeferred={onExhibitDeferred}
       pointerControlsEnabled={pointerControlsEnabled}
       controlsEnabled={controlsEnabled}
       projectorCommand={projectorCommand}

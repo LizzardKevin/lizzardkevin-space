@@ -106,16 +106,24 @@ function GalleryLightHalos({
 
 export function GalleryModel({
   loadExhibits,
-  onExhibitsReady,
-  onSceneReady,
+  sceneExhibits,
+  onEnvironmentReady,
+  onGalleryReady,
+  onExhibitReady,
+  onExhibitFailed,
+  onExhibitDeferred,
   quality,
   projectorExhibits,
   projectorInteractive,
   projectorCommand,
 }: {
   loadExhibits: boolean;
-  onExhibitsReady: () => void;
-  onSceneReady?: () => void;
+  sceneExhibits: ExhibitManifestItem[] | null;
+  onEnvironmentReady: () => void;
+  onGalleryReady: () => void;
+  onExhibitReady: (exhibitId: string) => void;
+  onExhibitFailed: (exhibitId: string) => void;
+  onExhibitDeferred: (exhibitId: string) => void;
   quality: SpaceQualityConfig;
   projectorExhibits: ExhibitManifestItem[] | null;
   projectorInteractive: boolean;
@@ -126,6 +134,10 @@ export function GalleryModel({
   const { bulbs, lightHalos } = useMemo(() => prepareGalleryScene(gltf.scene), [gltf.scene]);
 
   useEffect(() => {
+    onEnvironmentReady();
+  }, [gltf.scene, onEnvironmentReady]);
+
+  useEffect(() => {
     setSpawn(
       USE_OUTSIDE_GALLERY_SPAWN
         ? resolveOutsideGallerySpawn(gltf.scene)
@@ -134,8 +146,8 @@ export function GalleryModel({
     setSafetyGroundY(resolveGallerySafetyGroundY(gltf.scene));
     const [x, z] = resolveGallerySafetyCenter(gltf.scene);
     setSafetyCenter(x, z);
-    onSceneReady?.();
-  }, [gltf.scene, onSceneReady, setSpawn, setSafetyGroundY, setSafetyCenter]);
+    onGalleryReady();
+  }, [gltf.scene, onGalleryReady, setSpawn, setSafetyGroundY, setSafetyCenter]);
 
   useEffect(() => {
     applyGalleryLightEmissiveIntensity(gltf.scene, quality.lighting.lightEmissiveIntensity);
@@ -153,7 +165,14 @@ export function GalleryModel({
         command={projectorCommand}
       />
       <TempBlockerNotices root={gltf.scene} />
-      <ExhibitPlacement root={gltf.scene} enabled={loadExhibits} onReady={onExhibitsReady} />
+      <ExhibitPlacement
+        root={gltf.scene}
+        enabled={loadExhibits}
+        exhibits={sceneExhibits}
+        onExhibitReady={onExhibitReady}
+        onExhibitFailed={onExhibitFailed}
+        onExhibitDeferred={onExhibitDeferred}
+      />
       <ColColliders root={gltf.scene} />
       {!USE_OUTSIDE_GALLERY_SPAWN ? (
         <GallerySpawnValidator root={gltf.scene} spawn={spawn} onRespawn={setSpawn} />
