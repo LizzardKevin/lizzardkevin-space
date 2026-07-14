@@ -92,7 +92,7 @@ function LobbyWord({ text, size, y }: { text: string; size: number; y: number })
 function LobbyTypography({ artRef }: { artRef: RefObject<Group | null> }) {
   return (
     <group ref={artRef} rotation={[-0.025, 0.035, 0]}>
-      <LobbyWord text="LIZZARDKEVIN" size={0.76} y={0.58} />
+      <LobbyWord text="LIZZARDKEVIN" size={0.38} y={0.58} />
       <LobbyWord text="SPACE" size={1.24} y={-0.72} />
     </group>
   );

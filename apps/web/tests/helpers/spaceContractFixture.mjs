@@ -36,6 +36,7 @@ export const files = {
   materialScript: readProjectFile("scripts/apply-space-main-materials.py"),
   aoScript: readProjectFile("scripts/bake-space-main-ao.py"),
   topbar: readProjectFile("apps/web/src/components/TopBar.tsx"),
+  toast: readProjectFile("apps/web/src/components/Toast.tsx"),
 };
 
 export function spaceCssBlock(selector) {

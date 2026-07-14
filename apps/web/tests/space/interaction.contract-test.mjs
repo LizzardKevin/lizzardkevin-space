@@ -61,14 +61,28 @@ assert(
 const projectorHintRule = cssRule(files.css, ".projector-controls-hint");
 assert.equal(
   declarationValue(projectorHintRule, "background"),
-  "var(--space-hud-surface)",
-  "projector Q/E hint should use the shared HUD surface",
+  "transparent",
+  "projector Q/E hint should not draw a rectangular surface",
 );
 assert.equal(
-  declarationValue(projectorHintRule, "text-shadow"),
-  "none",
-  "projector Q/E hint should not use text glow",
+  declarationValue(projectorHintRule, "border"),
+  "0",
+  "projector Q/E hint should not draw a border",
 );
+assert.match(
+  declarationValue(projectorHintRule, "text-shadow"),
+  /0 0/,
+  "projector Q/E hint should use a glowing glyph outline",
+);
+const jumpHintRule = cssRule(files.css, ".jump-hint");
+assert.equal(declarationValue(jumpHintRule, "background"), "transparent");
+assert.equal(declarationValue(jumpHintRule, "border"), "0");
+assert.match(declarationValue(jumpHintRule, "text-shadow"), /0 0/);
+const toastRule = cssRule(files.css, ".space-toast");
+assert.equal(declarationValue(toastRule, "background"), "transparent");
+assert.equal(declarationValue(toastRule, "border"), "0");
+assert.match(declarationValue(toastRule, "text-shadow"), /0 0/);
+assert.match(files.toast, /className=["']space-toast["']/);
 assert(
   files.desktop.includes("event.repeat"),
   "holding Q/E should not flood projector history through OS key repeat",

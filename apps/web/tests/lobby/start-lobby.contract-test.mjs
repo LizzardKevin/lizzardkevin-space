@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
+import { cssRule, declarationValue } from "../helpers/cssAssertions.mjs";
 
 const sourceUrl = (relativePath) => new URL(`../../src/${relativePath}`, import.meta.url);
 const readSource = (relativePath) => {
@@ -61,6 +62,8 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
   assert.match(source, /helvetiker_bold\.typeface\.json\?url/);
   assert.match(source, /LIZZARDKEVIN/);
   assert.match(source, /SPACE/);
+  assert.match(source, /<LobbyWord text="LIZZARDKEVIN" size=\{0\.38\} y=\{0\.58\} \/>/);
+  assert.match(source, /<LobbyWord text="SPACE" size=\{1\.24\} y=\{-0\.72\} \/>/);
   assert.deepEqual(
     [threeBackground?.[1], threeFog?.[1], cssBackground?.[1]],
     ["#69827e", "#69827e", "#69827e"],
@@ -73,6 +76,19 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
   );
   for (const forbidden of ["@react-three/drei", "@react-three/rapier", ".glb", ".gltf", "postprocessing", "Howl"])
     assert.equal(source.includes(forbidden), false, `StartLobby must not contain ${forbidden}`);
+});
+
+test("StartLobby Enter is a text-only control with depth and glyph focus", () => {
+  const css = readSource("lobby/startLobby.css");
+  const enterRule = cssRule(css, ".start-lobby__enter");
+  const focusRule = cssRule(css, ".start-lobby__enter:focus-visible");
+
+  assert.equal(declarationValue(enterRule, "border"), "0");
+  assert.equal(declarationValue(enterRule, "background"), "transparent");
+  assert.doesNotMatch(enterRule, /\bmin-width\s*:/);
+  assert.match(declarationValue(enterRule, "text-shadow"), /1px 1px 0.*2px 2px 0/);
+  assert.match(css, /\.start-lobby__enter:focus-visible\s*\{\s*outline:\s*none;/);
+  assert.match(declarationValue(focusRule, "text-shadow"), /0 0/);
 });
 
 test("StartLobby limits input work and becomes static for reduced motion", () => {
