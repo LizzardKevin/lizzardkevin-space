@@ -24,8 +24,39 @@ function staticSpecifiers(source) {
 }
 
 function dynamicSpecifiers(source) {
-  return [...source.matchAll(/\bimport\s*\(\s*["'`]([^"'`$]+)["'`]\s*\)/g)].map((match) => match[1]);
+  const matches = [];
+  const patterns = [
+    /\bimport\s*\(\s*"((?:\\.|[^"\\])*)"\s*(?=,|\))/g,
+    /\bimport\s*\(\s*'((?:\\.|[^'\\])*)'\s*(?=,|\))/g,
+    /\bimport\s*\(\s*`((?:\\.|[^`$\\])*)`\s*(?=,|\))/g,
+  ];
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) {
+      matches.push({ index: match.index, specifier: match[1] });
+    }
+  }
+  return matches.sort((left, right) => left.index - right.index).map(({ specifier }) => specifier);
 }
+
+function hasUnresolvedDynamicImport(source) {
+  const literalImportCount = dynamicSpecifiers(source).length;
+  return [...source.matchAll(/\bimport\s*\(/g)].length !== literalImportCount;
+}
+
+const syntheticDynamicImports = [
+  'import("./ProfileOverlayRoute", { with: { type: "json" } });',
+  "import('./DevStoriesOverlayRoute');",
+  "import(`./DesktopOverlayLayer`);",
+  "import(`./${routeName}`);",
+  'import("./" + routeName);',
+  "import(routeSpecifier);",
+].join("\n");
+assert.deepEqual(dynamicSpecifiers(syntheticDynamicImports), [
+  "./ProfileOverlayRoute",
+  "./DevStoriesOverlayRoute",
+  "./DesktopOverlayLayer",
+]);
+assert.equal(hasUnresolvedDynamicImport(syntheticDynamicImports), true);
 
 function resolveModule(importer, specifier) {
   const base = resolve(dirname(importer), specifier);
@@ -36,6 +67,7 @@ function resolveModule(importer, specifier) {
 }
 
 const allowlistSource = readFileSync(entry, "utf8");
+assert.equal(hasUnresolvedDynamicImport(allowlistSource), false);
 assert.deepEqual(dynamicSpecifiers(allowlistSource), [
   "./ProfileOverlayRoute",
   "./DevStoriesOverlayRoute",
@@ -51,7 +83,7 @@ while (pending.length > 0) {
   if (visited.has(file)) continue;
   visited.add(file);
   const source = readFileSync(file, "utf8");
-  assert.doesNotMatch(source, /\bimport\s*\(\s*`[^`]*\$\{/);
+  assert.equal(hasUnresolvedDynamicImport(source), false, `${file} must not hide a non-literal dynamic import`);
   assert.deepEqual(dynamicSpecifiers(source), [], `${file} must not hide another dynamic import boundary`);
   for (const specifier of staticSpecifiers(source)) {
     if (!specifier.startsWith(".")) {
@@ -89,4 +121,43 @@ assert.equal(mobile.includes("lightweightRoutePrefetch"), false);
 const desktop = readFileSync(resolve(sourceRoot, "app/DesktopApp.tsx"), "utf8");
 assert.match(desktop, /lightweightDesktopRoutePrefetch\.update\(\{[\s\S]*?attemptId:\s*boot\.state\.attemptId,[\s\S]*?phase:\s*boot\.state\.phase/);
 assert.match(desktop, /return\s*\(\)\s*=>\s*lightweightDesktopRoutePrefetch\.cancel\(\)/);
+
+const coldDesktopPending = [resolve(sourceRoot, "app/DesktopApp.tsx")];
+const coldDesktopVisited = new Set();
+const coldDesktopPackages = [];
+while (coldDesktopPending.length > 0) {
+  const file = coldDesktopPending.pop();
+  assert(file, "every cold desktop static import must resolve");
+  if (coldDesktopVisited.has(file)) continue;
+  coldDesktopVisited.add(file);
+  for (const specifier of staticSpecifiers(readFileSync(file, "utf8"))) {
+    if (!specifier.startsWith(".")) {
+      coldDesktopPackages.push(specifier);
+      continue;
+    }
+    coldDesktopPending.push(resolveModule(file, specifier));
+  }
+}
+const coldDesktopModules = [...coldDesktopVisited]
+  .map((file) => file.slice(sourceRoot.length + 1).replaceAll("\\", "/"));
+for (const packageName of ["three", "@react-three/fiber", "@react-three/rapier"]) {
+  assert.equal(
+    coldDesktopPackages.some((specifier) => specifier === packageName || specifier.startsWith(`${packageName}/`)),
+    false,
+    `cold desktop routes must not statically import ${packageName}`,
+  );
+}
+assert.equal(coldDesktopModules.includes("space/SpaceHost.tsx"), false);
+assert.equal(coldDesktopModules.includes("exhibits/FocusOverlay.tsx"), false);
+assert.equal(coldDesktopModules.some((module) => module.startsWith("rendering/")), false);
+assert.equal(coldDesktopModules.some((module) => module.toLowerCase().includes(".glb")), false);
+assert.deepEqual(dynamicSpecifiers(desktop), [
+  "../space/SpaceHost",
+  "../desktop/DesktopTopBar",
+  "../desktop/ProfileOverlayRoute",
+  "../desktop/DevStoriesOverlayRoute",
+]);
+assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);
+assert.match(desktop, /workRouteSurface\s*===\s*["']cold-work["'][\s\S]*?<ColdWorkRoute/);
+assert.match(desktop, /overlayTab\s*===\s*["']lizzardkevin["'][\s\S]*?<ProfileOverlayRoute[\s\S]*?<DevStoriesOverlayRoute/);
 console.log("desktop lightweight route prefetch contract tests passed");
