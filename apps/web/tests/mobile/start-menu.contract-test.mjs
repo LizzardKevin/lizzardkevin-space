@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { cssRule, cssRuleInMedia } from "../helpers/cssAssertions.mjs";
 import { readProjectFile } from "../helpers/projectPaths.mjs";
 
 const startMenu = readProjectFile("apps/web/src/mobile/MobileStartMenu.tsx");
@@ -28,11 +29,24 @@ assert.match(startMenuCss, /min-height:\s*100dvh/);
 assert.match(startMenuCss, /env\(safe-area-inset-(?:top|right|bottom|left)/);
 assert.match(startMenuCss, /:focus-visible/);
 assert.match(startMenuCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
-assert.match(startMenuCss, /prefers-reduced-motion:[\s\S]*?transform:\s*none\s*!important/);
 assert.match(startMenuCss, /@media\s*\(orientation:\s*landscape\)[\s\S]*?max-height/);
 assert.doesNotMatch(startMenuCss, /@import|url\s*\(/i);
 assert.doesNotMatch(startMenuCss, /@keyframes|animation(?:-name)?:/i);
 assert.match(startMenuCss, /--mobile-start-accent:\s*#67c2be/);
+
+const stableSurfaceRule = cssRule(startMenuCss, ".mobile-start-menu");
+const stableTitleRule = cssRule(startMenuCss, ".mobile-start-menu__title");
+const stableEnterRule = cssRule(startMenuCss, ".mobile-start-menu__enter");
+const stableEnterActiveRule = cssRule(startMenuCss, ".mobile-start-menu__enter:active");
+assert.doesNotMatch(stableTitleRule, /^\s*transform\s*:/m, "title must remain on a stable non-transformed layer");
+assert.doesNotMatch(stableEnterRule, /^\s*transform\s*:/m, "Enter must remain on a stable non-transformed layer");
+assert.doesNotMatch(stableEnterActiveRule, /^\s*transform\s*:/m, "active Enter must not create a transient compositor layer");
+assert.match(stableSurfaceRule, /radial-gradient\(/);
+assert.match(stableSurfaceRule, /var\(--mobile-start-pointer-x\)/);
+assert.match(stableSurfaceRule, /var\(--mobile-start-pointer-y\)/);
+const reducedSurfaceRule = cssRuleInMedia(startMenuCss, "prefers-reduced-motion: reduce", ".mobile-start-menu");
+assert.match(reducedSurfaceRule, /--mobile-start-pointer-x:\s*0\s*!important/);
+assert.match(reducedSurfaceRule, /--mobile-start-pointer-y:\s*0\s*!important/);
 
 assert.match(mobileApp, /import\s*\{\s*useState\s*\}\s*from\s*["']react["']/);
 assert.match(mobileApp, /const\s*\[mobileStarted,\s*setMobileStarted\]\s*=\s*useState\(false\)/);

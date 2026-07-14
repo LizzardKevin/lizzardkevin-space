@@ -16,7 +16,16 @@
     calc(20px + env(safe-area-inset-right))
     calc(24px + env(safe-area-inset-bottom))
     calc(20px + env(safe-area-inset-left));
-  background: #f7f7f2;
+  background:
+    radial-gradient(
+      circle at
+        calc(50% + (var(--mobile-start-pointer-x) * 4%))
+        calc(50% + (var(--mobile-start-pointer-y) * 3%)),
+      rgb(103 194 190 / 0.16),
+      rgb(103 194 190 / 0.05) 26%,
+      transparent 54%
+    ),
+    #f7f7f2;
   color: #10110f;
   font-family: "SFMono-Regular", "Cascadia Mono", "Roboto Mono", "Ubuntu Mono", Menlo, Consolas, monospace;
   isolation: isolate;
@@ -36,11 +45,6 @@
   color: #10110f;
   line-height: 0.82;
   text-align: center;
-  transform: translate3d(
-    calc(var(--mobile-start-pointer-x) * 6px),
-    calc(var(--mobile-start-pointer-y) * 5px),
-    0
-  );
   user-select: none;
 }
 
@@ -79,11 +83,6 @@
   letter-spacing: 0.14em;
   line-height: 1;
   text-transform: uppercase;
-  transform: translate3d(
-    calc(var(--mobile-start-pointer-x) * -2px),
-    calc(var(--mobile-start-pointer-y) * -2px),
-    0
-  );
 }
 
 .mobile-start-menu__enter:hover {
@@ -92,7 +91,9 @@
 }
 
 .mobile-start-menu__enter:active {
-  transform: translate3d(0, 1px, 0);
+  background: #10110f;
+  color: #f7f7f2;
+  box-shadow: inset 0 0 0 2px #f7f7f2;
 }
 
 .mobile-start-menu__enter:focus-visible {
@@ -122,11 +123,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mobile-start-menu,
-  .mobile-start-menu__title,
-  .mobile-start-menu__enter,
-  .mobile-start-menu__enter:active {
-    transform: none !important;
+  .mobile-start-menu {
+    --mobile-start-pointer-x: 0 !important;
+    --mobile-start-pointer-y: 0 !important;
+  }
+
+  .mobile-start-menu__enter {
     transition: none !important;
   }
 }
