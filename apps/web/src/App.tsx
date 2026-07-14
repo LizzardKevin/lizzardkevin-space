@@ -11,7 +11,14 @@ export default function App({ platform }: { platform: ClientPlatform }) {
         <div
           role="status"
           aria-live="polite"
-          style={{ height: "100vh", width: "100vw", background: "#ffffff" }}
+          style={{
+            height: "100vh",
+            width: "100vw",
+            background: "#ffffff",
+            color: "#050505",
+            display: "grid",
+            placeItems: "center",
+          }}
         >
           Loading application…
         </div>

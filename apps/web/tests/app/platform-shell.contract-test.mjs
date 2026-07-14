@@ -24,8 +24,22 @@ function staticDependencySpecifiers(source) {
 }
 
 function dynamicImportSpecifiers(source) {
-  return [...source.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g)]
-    .map((match) => match[1]);
+  const matches = [];
+  const patterns = [
+    /\bimport\s*\(\s*"((?:\\.|[^"\\])*)"\s*(?=,|\))/g,
+    /\bimport\s*\(\s*'((?:\\.|[^'\\])*)'\s*(?=,|\))/g,
+    /\bimport\s*\(\s*`((?:\\.|[^`$\\])*)`\s*(?=,|\))/g,
+  ];
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) {
+      matches.push({ index: match.index, specifier: match[1] });
+    }
+  }
+  return matches.sort((left, right) => left.index - right.index).map(({ specifier }) => specifier);
+}
+
+function hasUnresolvedDynamicImport(source) {
+  return /\bimport\s*\(\s*`(?:\\.|[^`\\])*\$\{(?:\\.|[^`\\])*\}(?:\\.|[^`\\])*`\s*(?=,|\))/.test(source);
 }
 
 const requiredShells = ["app/DesktopApp.tsx", "app/MobileApp.tsx"];
@@ -36,13 +50,17 @@ for (const shell of requiredShells) {
 const main = readSource("main.tsx");
 const app = readSource("App.tsx");
 
-const syntheticDependencies = `
-  import value from "./static";
-  import "./side-effect";
-  export { value as renamed } from "./named-reexport";
-  export * from "./star-reexport";
-  const desktopOnly = import("../scenes/SpaceHost");
-`;
+const syntheticDependencies = [
+  'import value from "./static";',
+  'import "./side-effect";',
+  'export { value as renamed } from "./named-reexport";',
+  'export * from "./star-reexport";',
+  'const desktopOnly = import("../scenes/SpaceHost");',
+  "const singleQuoted = import('../scenes/SpaceHost');",
+  'const templateLiteral = import(`../scenes/SpaceHost`);',
+  'const withOptions = import("../scenes/SpaceHost", { with: { type: "json" } });',
+  'const interpolated = import(`../scenes/${sceneName}`);',
+].join("\n");
 
 test("dependency extractor follows static imports and re-exports without following dynamic imports", () => {
   assert.deepEqual(staticDependencySpecifiers(syntheticDependencies), [
@@ -54,12 +72,23 @@ test("dependency extractor follows static imports and re-exports without followi
 });
 
 test("dependency extractor reports dynamic import specifiers separately", () => {
-  assert.deepEqual(dynamicImportSpecifiers(syntheticDependencies), ["../scenes/SpaceHost"]);
+  assert.deepEqual(dynamicImportSpecifiers(syntheticDependencies), [
+    "../scenes/SpaceHost",
+    "../scenes/SpaceHost",
+    "../scenes/SpaceHost",
+    "../scenes/SpaceHost",
+  ]);
+});
+
+test("dependency extractor rejects interpolated dynamic import templates", () => {
+  assert.equal(hasUnresolvedDynamicImport(syntheticDependencies), true);
 });
 
 test("App loading fallback is a stable accessible white status surface", () => {
   assert.match(app, /fallback=\{\s*<div[\s\S]*?role=["']status["'][\s\S]*?aria-live=["']polite["'][\s\S]*?>/);
   assert.match(app, /background(?:Color)?:\s*["']#fff(?:fff)?["']/i);
+  assert.match(app, /color:\s*["']#050505["']/i);
+  assert.match(app, /display:\s*["']grid["'][\s\S]*placeItems:\s*["']center["']/);
   assert.match(app, />\s*Loading application(?:\.\.\.|…)?\s*<\/div>/);
 });
 
@@ -151,7 +180,12 @@ const mobileImportSpecifiers = mobileGraph.flatMap((filePath) => {
   return staticDependencySpecifiers(source);
 });
 const mobileDynamicImportSpecifiers = mobileGraph.flatMap((filePath) => {
-  return dynamicImportSpecifiers(readFileSync(filePath, "utf8"));
+  const source = readFileSync(filePath, "utf8");
+  assert(
+    !hasUnresolvedDynamicImport(source),
+    `${filePath.slice(sourceRoot.length + 1)} must not use an interpolated dynamic import template`,
+  );
+  return dynamicImportSpecifiers(source);
 });
 for (const packageName of ["three", "@react-three/fiber", "@react-three/rapier"]) {
   assert(
