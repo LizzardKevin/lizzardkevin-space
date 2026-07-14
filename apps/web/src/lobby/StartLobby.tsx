@@ -1,3 +1,4 @@
+import "../runtime/suppressThirdPartyDeprecationWarnings";
 import { Suspense, useCallback, useEffect, useMemo, useRef, type RefObject } from "react";
 import {
   createRoot,
@@ -25,6 +26,8 @@ import {
   createStartLobbyRootOwner,
   type StartLobbyRootOwner,
 } from "./startLobbyRootOwner";
+import { releaseStartLobbyRouteRenderer } from "./startLobbyRendererRelease";
+import { syncStartLobbyViewport } from "./startLobbyViewport";
 import "./startLobby.css";
 
 extend({
@@ -122,12 +125,14 @@ function LobbyScene({ artRef }: { artRef: RefObject<Group | null> }) {
 }
 
 export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: StartLobbyProps) {
+  const containerRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const artRef = useRef<Group>(null);
   const storeRef = useRef<RootStore | null>(null);
   const rendererRef = useRef<WebGLRenderer | null>(null);
   const rootOwnerRef = useRef<StartLobbyRootOwner<LobbyRoot> | null>(null);
   const effectMountedRef = useRef(false);
+  const routeCleanupStartedRef = useRef(false);
   const releaseStartedRef = useRef(false);
   const disposedRef = useRef(false);
   const initPromiseRef = useRef<Promise<void> | null>(null);
@@ -139,8 +144,17 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
 
     rootOwnerRef.current ??= createStartLobbyRootOwner(
       () => createRoot(canvas),
-      (_root, onReleased) => {
-        unmountComponentAtNode(canvas, () => onReleased?.());
+      (_root, release) => {
+        if (release.kind === "route-cleanup") {
+          routeCleanupStartedRef.current = true;
+          const renderer = rendererRef.current;
+          rendererRef.current = null;
+          storeRef.current = null;
+          if (renderer) releaseStartLobbyRouteRenderer(renderer);
+          unmountComponentAtNode(canvas);
+          return;
+        }
+        unmountComponentAtNode(canvas, () => release.onReleased());
       },
     );
     const rootOwner = rootOwnerRef.current;
@@ -160,13 +174,17 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
               alpha: false,
               powerPreference: "low-power",
             });
-            rendererRef.current = renderer;
+            if (routeCleanupStartedRef.current) releaseStartLobbyRouteRenderer(renderer);
+            else rendererRef.current = renderer;
             return renderer;
           },
         })
         .then((configuredRoot) => {
           if (!effectMountedRef.current || releaseStartedRef.current) return;
-          storeRef.current = configuredRoot.render(<LobbyScene artRef={artRef} />);
+          const store = configuredRoot.render(<LobbyScene artRef={artRef} />);
+          storeRef.current = store;
+          const bounds = containerRef.current?.getBoundingClientRect();
+          if (bounds) syncStartLobbyViewport(store, bounds.width, bounds.height);
         })
         .catch(() => {
           storeRef.current = null;
@@ -179,6 +197,18 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
       effectMountedRef.current = false;
       rootOwner.scheduleUnmount();
     };
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries.find((candidate) => candidate.target === container);
+      if (!entry) return;
+      syncStartLobbyViewport(storeRef.current, entry.contentRect.width, entry.contentRect.height);
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -219,6 +249,7 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
 
   return (
     <main
+      ref={containerRef}
       className="start-lobby"
       data-disposing={disposing ? "true" : "false"}
       onPointerMove={(event) => applyPointerTilt(event.clientX, event.clientY)}

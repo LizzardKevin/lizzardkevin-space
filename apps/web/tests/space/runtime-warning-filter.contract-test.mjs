@@ -9,6 +9,7 @@ function readProjectFile(path) {
 }
 
 const canvasHost = readProjectFile("apps/web/src/space/SpaceCanvasHost.tsx");
+const startLobby = readProjectFile("apps/web/src/lobby/StartLobby.tsx");
 const warningFilter = readProjectFile("apps/web/src/runtime/suppressThirdPartyDeprecationWarnings.ts");
 
 const filterImport = 'import "../runtime/suppressThirdPartyDeprecationWarnings"';
@@ -18,6 +19,12 @@ assert(
   canvasHost.includes(filterImport) &&
     canvasHost.indexOf(filterImport) < canvasHost.indexOf(canvasImport),
   "runtime warning filter must install in the lazy desktop SPACE chunk before R3F Canvas is imported",
+);
+
+assert(
+  startLobby.includes(filterImport) &&
+    startLobby.indexOf(filterImport) < startLobby.indexOf('from "@react-three/fiber"'),
+  "runtime warning filter must install before raw R3F is imported by StartLobby",
 );
 
 assert(

@@ -36,10 +36,12 @@ test("StrictMode rehearsal cleanup reuses one root when remount happens in the s
 test("a real unmount releases the owned root once after the remount window", async () => {
   const { createStartLobbyRootOwner } = await loadOwner();
   let releases = 0;
+  const releaseKinds = [];
   const owner = createStartLobbyRootOwner(
     () => ({ id: "lobby-root" }),
-    () => {
+    (_root, release) => {
       releases += 1;
+      releaseKinds.push(release.kind);
     },
   );
 
@@ -50,6 +52,7 @@ test("a real unmount releases the owned root once after the remount window", asy
   await Promise.resolve();
 
   assert.equal(releases, 1);
+  assert.deepEqual(releaseKinds, ["route-cleanup"]);
 });
 
 test("explicit disposal cancels queued cleanup and waits for the release callback", async () => {
@@ -59,9 +62,10 @@ test("explicit disposal cancels queued cleanup and waits for the release callbac
   let disposed = false;
   const owner = createStartLobbyRootOwner(
     () => ({ id: "lobby-root" }),
-    (_root, onReleased) => {
+    (_root, release) => {
       releases += 1;
-      releaseDone = onReleased;
+      assert.equal(release.kind, "handoff");
+      releaseDone = release.onReleased;
     },
   );
 

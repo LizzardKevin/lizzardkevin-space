@@ -4,7 +4,11 @@ export type StartLobbyRootOwner<T> = {
   dispose: (onReleased: () => void) => void;
 };
 
-type ReleaseStartLobbyRoot<T> = (root: T, onReleased?: () => void) => void;
+export type StartLobbyRootRelease =
+  | { kind: "route-cleanup" }
+  | { kind: "handoff"; onReleased: () => void };
+
+type ReleaseStartLobbyRoot<T> = (root: T, release: StartLobbyRootRelease) => void;
 
 export function createStartLobbyRootOwner<T>(
   createRoot: () => T,
@@ -30,7 +34,7 @@ export function createStartLobbyRootOwner<T>(
         if (mounted || disposalStarted || token !== cleanupToken) return;
         const ownedRoot = root;
         root = null;
-        if (ownedRoot !== null) releaseRoot(ownedRoot);
+        if (ownedRoot !== null) releaseRoot(ownedRoot, { kind: "route-cleanup" });
       });
     },
 
@@ -45,7 +49,7 @@ export function createStartLobbyRootOwner<T>(
         onReleased();
         return;
       }
-      releaseRoot(ownedRoot, onReleased);
+      releaseRoot(ownedRoot, { kind: "handoff", onReleased });
     },
   };
 }

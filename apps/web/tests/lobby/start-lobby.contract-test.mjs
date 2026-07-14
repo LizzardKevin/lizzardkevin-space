@@ -76,6 +76,28 @@ test("StartLobby releases the R3F context through its callback without a forced 
   assert.doesNotMatch(source, /setTimeout\s*\(/);
 });
 
+test("StartLobby observes its container and resizes the raw R3F store without a frame loop", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+  const viewport = readSource("lobby/startLobbyViewport.ts");
+
+  assert.match(source, /new ResizeObserver\s*\(/);
+  assert.match(source, /\.observe\s*\(\s*container\s*\)/);
+  assert.match(source, /syncStartLobbyViewport/);
+  assert.match(viewport, /\.setSize\s*\(/);
+  assert.match(viewport, /\.invalidate\s*\(/);
+  assert.doesNotMatch(source + viewport, /requestAnimationFrame|setInterval\s*\(/);
+});
+
+test("route cleanup drops the old context immediately while handoff keeps the callback barrier", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+  const owner = readSource("lobby/startLobbyRootOwner.ts");
+
+  assert.match(source, /release\.kind\s*===\s*["']route-cleanup["']/);
+  assert.match(source, /releaseStartLobbyRouteRenderer/);
+  assert.match(owner, /kind:\s*["']handoff["']/);
+  assert.match(owner, /onReleased/);
+});
+
 test("Focus viewer surfaces are resolved behind the entered gate", () => {
   const source = readSource("pages/SpaceDesktopExperience.tsx");
 
