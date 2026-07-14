@@ -72,6 +72,7 @@ import {
   type FocusImageFrameSize,
 } from "./focusImageFrameSize.ts";
 import {
+  createSelectedWorkVideoMetadataEventBridge,
   selectedWorkMediaController,
   type SelectedWorkMediaSnapshot,
   type SelectedWorkVideoMetadataSnapshot,
@@ -578,6 +579,7 @@ export function FocusOverlay({
     cancel: () => void;
     reportVideoMetadata: (url: string, status: "loaded" | "failed") => void;
   } | null>(null);
+  const [videoMetadataEventBridge] = useState(createSelectedWorkVideoMetadataEventBridge);
   const activeMediaIndex =
     activeMediaState.exhibitId === exhibit.exhibitId
       ? Math.min(activeMediaState.index, mediaItems.length - 1)
@@ -621,18 +623,47 @@ export function FocusOverlay({
       setSelectedVideoMetadataSnapshot,
     );
     selectedMediaSessionRef.current = session;
-    return () => session.cancel();
-  }, [exhibit]);
+    if (videoUrl) {
+      const videoElement = focusVideoRef.current;
+      videoMetadataEventBridge.bind(
+        {
+          exhibitId: exhibit.exhibitId,
+          url: videoUrl,
+          report: (url, outcome) => session.reportVideoMetadata(url, outcome),
+        },
+        {
+          readyState: videoElement?.readyState ?? 0,
+          error: videoElement?.error ?? null,
+        },
+      );
+    } else {
+      videoMetadataEventBridge.clear();
+    }
+    return () => {
+      session.cancel();
+      if (videoUrl) {
+        videoMetadataEventBridge.unbind(exhibit.exhibitId, videoUrl);
+      }
+    };
+  }, [exhibit, videoMetadataEventBridge, videoUrl]);
 
   const handleVideoMetadataLoaded = useCallback(() => {
     if (!videoUrl) return;
-    selectedMediaSessionRef.current?.reportVideoMetadata(videoUrl, "loaded");
-  }, [videoUrl]);
+    videoMetadataEventBridge.record({
+      exhibitId: exhibit.exhibitId,
+      url: videoUrl,
+      outcome: "loaded",
+    });
+  }, [exhibit.exhibitId, videoMetadataEventBridge, videoUrl]);
 
   const handleVideoMetadataFailed = useCallback(() => {
     if (!videoUrl) return;
-    selectedMediaSessionRef.current?.reportVideoMetadata(videoUrl, "failed");
-  }, [videoUrl]);
+    videoMetadataEventBridge.record({
+      exhibitId: exhibit.exhibitId,
+      url: videoUrl,
+      outcome: "failed",
+    });
+  }, [exhibit.exhibitId, videoMetadataEventBridge, videoUrl]);
 
   useEffect(() => {
     let cancelled = false;
@@ -681,6 +712,7 @@ export function FocusOverlay({
       if (closingRef.current) return;
       closingRef.current = true;
       selectedMediaSessionRef.current?.cancel();
+      videoMetadataEventBridge.clear();
       setSelectedVideoMetadataSnapshot(null);
       onBeginDismiss(opts);
       playback.stop();
@@ -691,7 +723,15 @@ export function FocusOverlay({
       }, 150);
       window.setTimeout(() => onClose(), 450);
     },
-    [onBeginDismiss, onClose, playback, setBlurOn, setContentVisible, setDimOn],
+    [
+      onBeginDismiss,
+      onClose,
+      playback,
+      setBlurOn,
+      setContentVisible,
+      setDimOn,
+      videoMetadataEventBridge,
+    ],
   );
 
   const handleOrbitInteract = useCallback(() => {

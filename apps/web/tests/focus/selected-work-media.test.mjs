@@ -294,3 +294,70 @@ test("video metadata failures are separate and stale prior-selection events are 
   assert.deepEqual(newVideoSnapshots.at(-1).progress, { loaded: 0, total: 1, failed: 1 });
   assert.deepEqual(newVideoSnapshots.at(-1).settledUrls, ["https://space.test/new.mp4"]);
 });
+
+test("early video metadata events replay after the matching selection session binds", async () => {
+  const { createSelectedWorkVideoMetadataEventBridge } =
+    await importSourceModule("exhibits/selectedWorkMedia.ts");
+  const reports = [];
+  const bridge = createSelectedWorkVideoMetadataEventBridge();
+
+  bridge.record({ exhibitId: "early", url: "/early.mp4", outcome: "loaded" });
+  assert.deepEqual(reports, []);
+  bridge.bind({
+    exhibitId: "early",
+    url: "/early.mp4",
+    report: (url, outcome) => reports.push({ url, outcome }),
+  });
+
+  assert.deepEqual(reports, [{ url: "/early.mp4", outcome: "loaded" }]);
+});
+
+test("binding inspects cached readyState or media error when the DOM event already fired", async () => {
+  const { createSelectedWorkVideoMetadataEventBridge } =
+    await importSourceModule("exhibits/selectedWorkMedia.ts");
+  const reports = [];
+  const bridge = createSelectedWorkVideoMetadataEventBridge();
+
+  bridge.bind(
+    {
+      exhibitId: "cached",
+      url: "/cached.mp4",
+      report: (url, outcome) => reports.push({ url, outcome }),
+    },
+    { readyState: 1, error: null },
+  );
+  bridge.bind(
+    {
+      exhibitId: "broken",
+      url: "/broken.mp4",
+      report: (url, outcome) => reports.push({ url, outcome }),
+    },
+    { readyState: 0, error: { code: 4 } },
+  );
+
+  assert.deepEqual(reports, [
+    { url: "/cached.mp4", outcome: "loaded" },
+    { url: "/broken.mp4", outcome: "failed" },
+  ]);
+});
+
+test("pending metadata from a prior exhibit is discarded and never replayed into the next attempt", async () => {
+  const { createSelectedWorkVideoMetadataEventBridge } =
+    await importSourceModule("exhibits/selectedWorkMedia.ts");
+  const reports = [];
+  const bridge = createSelectedWorkVideoMetadataEventBridge();
+  bridge.record({ exhibitId: "old", url: "/shared.mp4", outcome: "loaded" });
+  bridge.bind({
+    exhibitId: "new",
+    url: "/shared.mp4",
+    report: (url, outcome) => reports.push({ url, outcome }),
+  });
+  assert.deepEqual(reports, []);
+
+  bridge.record({ exhibitId: "new", url: "/shared.mp4", outcome: "failed" });
+  bridge.record({ exhibitId: "new", url: "/shared.mp4", outcome: "failed" });
+  assert.deepEqual(reports, [
+    { url: "/shared.mp4", outcome: "failed" },
+    { url: "/shared.mp4", outcome: "failed" },
+  ], "the bridge forwards DOM duplicates; the attempt session owns exactly-once settlement");
+});

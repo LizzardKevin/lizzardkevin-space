@@ -49,6 +49,65 @@ type ActiveAttempt = {
   token: number;
 };
 
+type VideoMetadataOutcome = "loaded" | "failed";
+
+type VideoMetadataEvent = {
+  exhibitId: string;
+  url: string;
+  outcome: VideoMetadataOutcome;
+};
+
+type VideoMetadataBinding = {
+  exhibitId: string;
+  url: string;
+  report: (url: string, outcome: VideoMetadataOutcome) => void;
+};
+
+type VideoMetadataElementState = {
+  readyState: number;
+  error: unknown;
+};
+
+export function createSelectedWorkVideoMetadataEventBridge() {
+  let binding: VideoMetadataBinding | null = null;
+  let pending: VideoMetadataEvent | null = null;
+
+  const matches = (
+    left: Pick<VideoMetadataEvent, "exhibitId" | "url">,
+    right: Pick<VideoMetadataBinding, "exhibitId" | "url">,
+  ) => left.exhibitId === right.exhibitId && left.url === right.url;
+
+  return {
+    bind(nextBinding: VideoMetadataBinding, elementState?: VideoMetadataElementState) {
+      binding = nextBinding;
+      const earlyEvent = pending;
+      pending = null;
+      if (earlyEvent && matches(earlyEvent, nextBinding)) {
+        nextBinding.report(earlyEvent.url, earlyEvent.outcome);
+      }
+      if (elementState?.error) {
+        nextBinding.report(nextBinding.url, "failed");
+      } else if ((elementState?.readyState ?? 0) >= 1) {
+        nextBinding.report(nextBinding.url, "loaded");
+      }
+    },
+    clear() {
+      binding = null;
+      pending = null;
+    },
+    record(event: VideoMetadataEvent) {
+      if (binding && matches(event, binding)) {
+        binding.report(event.url, event.outcome);
+        return;
+      }
+      pending = event;
+    },
+    unbind(exhibitId: string, url: string) {
+      if (binding?.exhibitId === exhibitId && binding.url === url) binding = null;
+    },
+  } as const;
+}
+
 function defaultBaseUrl() {
   if (typeof document !== "undefined" && document.baseURI) return document.baseURI;
   if (typeof location !== "undefined" && location.href) return location.href;
