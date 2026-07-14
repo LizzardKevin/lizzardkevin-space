@@ -31,6 +31,9 @@ function assertLockedSheetJs(lockedPackage) {
 
 function sheetJsSpecifiers(source, fileName) {
   const dependencies = extractDependencySpecifiers(source, fileName);
+  if (dependencies.unresolvedDynamicImport) {
+    throw new Error(`${fileName ?? "browser source"} contains a computed dynamic import`);
+  }
   return [
     ...dependencies.staticSpecifiers,
     ...dependencies.dynamicSpecifiers,
@@ -92,6 +95,21 @@ test("the browser scanner rejects bare and subpath SheetJS module specifiers", (
   ];
   for (const source of allowedFixtures) {
     assert.deepEqual(sheetJsSpecifiers(source), [], source);
+  }
+});
+
+test("the browser scanner fails closed on computed dynamic imports", () => {
+  const computedFixtures = [
+    "const module = import(name);",
+    'const hidden = import("xl" + "sx");',
+  ];
+
+  for (const source of computedFixtures) {
+    assert.throws(
+      () => sheetJsSpecifiers(source, "computed-import.ts"),
+      /computed dynamic import/i,
+      source,
+    );
   }
 });
 
