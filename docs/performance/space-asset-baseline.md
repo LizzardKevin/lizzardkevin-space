@@ -1,6 +1,6 @@
 # SPACE asset and browser performance baseline (Phase 8)
 
-Status: deterministic inventory and authorized Playwright browser capture complete at `477fa09`; one production chunk hard gate and one repeated-work interaction check failed. Native WebGPU/full-profile and GPU-memory validation remain unavailable.
+Status: the frozen `477fa09` browser baseline retains its pre-Enter Rapier and repeated-work Return failures; the production candidate captured at `d03f737` and recorded at `a8550b9` fixes both, and all four machine hard gates pass. The deterministic inventory is refreshed at `2662472`. Native WebGPU/full-profile, native representative-exhibit frame/chroma, and GPU-memory validation remain pending, so this is not a complete performance release PASS.
 
 This is an evidence input, not approval of a final performance budget. It makes no asset edits. Numeric caps below are proposals derived from the measured simplified/SwiftShader baseline and the static inventory; they are not release PASS criteria until the user approves them and native-GPU validation exists.
 
@@ -10,7 +10,7 @@ This is an evidence input, not approval of a final performance budget. It makes 
 | --- | --- |
 | Capture date | 2026-07-14 (Asia/Shanghai) |
 | Git baseline | frozen production source `477fa09d9863a2b818d410a4dda382a2d7a57dda` |
-| Inventory code snapshot | refreshed from the Phase 8 commit tree after the independently committed gallery/Focus code; protected shipping asset bytes/hashes still match the frozen browser source |
+| Inventory code snapshot | refreshed from current implementation `2662472`; protected shipping asset bytes/hashes still match the frozen browser source |
 | OS | Windows 11 Pro 10.0.26200 |
 | CPU / visible memory | AMD Ryzen 9 9950X3D / 47.2 GiB |
 | Node / npm | v24.11.0 / 11.6.1 |
@@ -40,7 +40,7 @@ All sizes below are binary MiB unless noted. “Shipping” means present under 
 | Focus/work-classified public corpus | 41 | 73,683,777 | 70.27 | Loaded per selected work, not all at startup |
 | Audio-classified public corpus | 10 | 4,973,916 | 4.74 | Includes docs/placeholder files; actual audio media is 4,972,994 bytes |
 | Draco decoder support | 3 | 1,063,920 | 1.01 | Two JS files plus WASM; timing is recorded in browser evidence |
-| Current built HTML/CSS/JS chunks | 31 | 4,604,817 | 4.39 | gzip(level 9) sum 1,506,646 bytes / 1.44 MiB; not wire evidence |
+| Current built HTML/CSS/JS chunks | 39 | 4,610,009 | 4.40 | gzip(level 9) sum 1,510,602 bytes / 1.44 MiB; not wire evidence |
 
 ### Largest and route-relevant inputs
 
@@ -76,13 +76,13 @@ The largest image is the currently shipping projector source `FL-9.jpg` at 5101x
 
 | Chunk | Raw bytes | Deterministic gzip bytes | Current role |
 | --- | ---: | ---: | --- |
-| `rapier-vendor-DKJSwKmw.js` | 3,142,708 | 1,069,978 | Largest JS cost; production chunk ownership currently leaks it into the pre-Enter StartLobby graph |
-| `three-vendor-dIoh7Jr-.js` | 605,514 | 167,680 | Largest Three runtime chunk |
+| `rapier-vendor-DjBiszsf.js` | 2,260,881 | 837,435 | Largest JS cost, isolated behind the post-Enter runtime boundary |
+| `three-core-vendor-D7O7HPU2.js` | 605,530 | 167,547 | Largest Three core chunk |
 | `react-vendor-CsIBO4y-.js` | 189,646 | 58,867 | Shared application shell |
-| `index-BKl9XSuD.js` | 150,257 | 46,754 | Entry chunk |
-| `index-CsVCXeBj.css` | 83,336 | 15,131 | Shared styles |
-| `SpaceHost-B0tarOXy.js` | 78,338 | 24,627 | Post-Enter persistent SPACE host |
-| `MobileApp-CmgKEqaz.js` | 45,833 | 15,418 | Mobile terminal application; its measured browser route also has zero 3D requests |
+| `index-BHr-E14B.js` | 150,257 | 46,753 | Entry chunk |
+| `index-vfYenDwx.css` | 83,379 | 15,149 | Shared styles |
+| `SpaceHost-BMkykXG9.js` | 78,950 | 24,836 | Post-Enter persistent SPACE host |
+| `MobileApp-B_nOp-bp.js` | 45,833 | 15,417 | Mobile terminal application; its measured browser route also has zero 3D requests |
 
 These are local deterministic build sizes. They are not a substitute for browser transfer, parse, compile, decode, or memory measurements.
 
@@ -117,9 +117,9 @@ Both preserved rounds returned `Vary: Accept-Encoding` and `Age: 0` for all six 
 | Missing semantic sources | 0 missing `.source.glb`, Blender, workbook, projector-source inputs | source classification tests/report |
 | Mobile and cold-route 3D static imports | 0 Three/R3F/Rapier imports and 0 world/Focus GLB references | existing platform contract plus asset-budget graph test |
 | Pre-Enter Rapier/world/Focus source reachability | 0 static reachability | `SpacePage` source-graph test passes, but this is insufficient to prove the production chunk graph |
-| Production pre-Enter Rapier request | **FAIL: 1 Rapier-named chunk in 6/6 samples** | `SpacePage-*.js` imports symbols from `rapier-vendor-*.js`; browser report contains the exact URL |
+| Production pre-Enter Rapier request | PASS: 0 in the candidate's 6/6 cold/warm lobby samples | candidate browser report plus production chunk contract; frozen baseline retains its historical failure |
 | Raster metadata integrity | 100% of PNG/JPEG/WebP files have positive dimensions and exact `width*height*4` logical estimates | source and full asset tests |
-| Unapproved source/asset edits in this phase | 0 protected shipping/source paths | inventory hash comparison against `477fa09` |
+| Unapproved source/asset edits in this phase | 0 protected shipping/source paths | inventory hash comparison and protected-range diff through `2662472` |
 
 No absolute download, decode, GPU-memory, JS-heap, or frame-time pass/fail cap is approved yet. The current full and simplified profiles share the same world and Focus assets, so their static download corpus is identical; simplified currently saves rendering cost, not asset bytes.
 
@@ -197,18 +197,31 @@ The historical report above remains unchanged at `docs/performance/space-browser
 | Mobile and cold content | Mobile cold 168,879 encoded bytes; content cold 134,153-159,605; warm 1,917-2,275 | Mobile cold 169,148 (+269); content cold 135,004-160,458 (+851 to +853); warm unchanged | Request counts unchanged and all remain 3D-zero |
 | Route and selected-work network | Route delta 0; selected work +9,452,599 encoded bytes / 26 requests | Route delta 0; selected work +9,452,653 bytes / 26 requests | Core reuse preserved; selected-work payload +54 bytes with no extra media request |
 | Repeated selected-work UI Return | 0/6 second Return actions reached `/` | 6/6 reached `/` through the real UI; 0 page errors | PASS; no programmatic fallback was needed for the candidate |
-| Simplified steady RAF | Cold/warm median interval 66.7 ms; p95 maxima 150.0 ms | Cold/warm median interval maxima 83.3 ms; cold p95 max 166.7 ms, warm p95 max 150.0 ms | **FAIL recorded-noise gate:** ceilings are 73.37 ms for the median metric and 165.0 ms for p95; both median cells and cold p95 exceed them |
+| Simplified steady RAF | Cold/warm median interval 66.7 ms; p95 maxima 150.0 ms | Cold/warm median interval maxima 83.3 ms; cold p95 max 166.7 ms, warm p95 max 150.0 ms | The original 3-sample exact-noise check flagged the candidate; the focused A/B diagnosis below makes that flag inconclusive/false-blocking under quantized SwiftShader, not a proven visual regression |
 | Repeated-work / returned-route JS heap | Cold maxima 118.54 / 102.19 MB; warm maxima 116.87 / 120.41 MB | Cold maxima 120.23 / 111.17 MB; warm maxima 124.73 / 125.95 MB | PASS recorded-noise gate; all candidate maxima remain below 130.40 / 112.41 / 128.56 / 132.45 MB ceilings |
 
-The recorded-noise comparison uses the visual-system contract conservatively: candidate worst observed values are compared with the corresponding baseline maximum plus `max(10%, 2 ms)` for RAF and plus `max(10%, 8 MiB)` for repeated-work/returned-route heap. The cold RAF p95 miss is 1.7 ms; the median-interval miss is 9.93 ms in both cache states. This makes the candidate a machine-hard-gate PASS but **not** a complete performance release PASS. SwiftShader absolute frame rate remains diagnostic; a native-GPU rerun is needed to decide whether the interval shift is a real rendering regression or software-renderer variance.
+The recorded-noise comparison uses the visual-system contract conservatively: candidate worst observed values are compared with the corresponding baseline maximum plus `max(10%, 2 ms)` for RAF and plus `max(10%, 8 MiB)` for repeated-work/returned-route heap. The cold RAF p95 miss was 1.7 ms and the three-sample median-interval miss was 9.93 ms in both cache states. That exact comparison is preserved as historical evidence; it is superseded for release blocking by the focused diagnosis below. The candidate remains a machine-hard-gate PASS but **not** a complete performance release PASS.
 
 Native WebGPU/full-profile behavior and GPU memory remain unavailable. One warm sample rose across first-work, repeated-work, and returned-route heap milestones, while the other five paired samples did not; with only one repeated cycle and no forced-GC native study, this is recorded as variance rather than a claim of monotonic leakage. All six candidate desktop samples had no page error; their only console warnings were the expected WebGPU-unavailable/WebGL2-fallback messages.
+
+### Focused SwiftShader A/B diagnosis
+
+The external focused evidence under the thread visualization directory reran frozen baseline and current builds through the same 120-frame SwiftShader/WebGL2 collection. Five cold samples per build show quantized frame buckets rather than a stable candidate-only shift:
+
+| Focused cell | Median of sample medians | Sample-median range | Interpretation |
+| --- | ---: | ---: | --- |
+| Frozen baseline `477fa09` | 66.7 ms | 66.7-83.3 ms | The baseline itself enters the 83.3 ms bucket |
+| Current candidate | 66.8 ms | 66.7-83.3 ms | Overlaps the complete baseline range |
+
+The frozen-baseline smoke evidence also reaches a warm RAF p95 of 166.6 ms. A no-fog current control still spans both median buckets in its first two samples (66.7 and 83.2 ms), so removing the inexpensive fog does not isolate or remove the variance. The original three-sample exact-noise miss is therefore inconclusive/false-blocking on this quantized software renderer; it is not evidence of a visual-system regression and does not justify a visual rollback.
+
+This diagnosis does **not** pass native performance. The release check remains a randomized/interleaved A/B of at least 7 samples per build, preferably 10, on representative native hardware, with GPU timers, draw calls/triangles, thermal/power state, fixed pose and profile recorded. Native WebGPU/full-profile behavior, representative-exhibit chroma, GPU memory, and native frame-time acceptance all remain pending.
 
 ### Proposed budgets (not approved)
 
 | Profile / scenario | Download / decoded-body | Decode/readiness | JS heap | GPU memory | Steady frame-time | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Simplified cold lobby-through-running | <= 18.5 MiB CDP encoded / <= 22 MiB decoded-body | Enter-to-running <= 3.25 s on this exact SwiftShader protocol | <= 105 MB after running | proposed <= 256 MiB, derived from 39.27 MiB logical boot raster exposure plus geometry/framebuffer/renderer headroom | native target median <= 16.7 ms, p95 <= 33.3 ms; SwiftShader regression-only <= 90/180 ms | Proposed; candidate pre-Enter PASS, recorded-noise RAF FAIL |
+| Simplified cold lobby-through-running | <= 18.5 MiB CDP encoded / <= 22 MiB decoded-body | Enter-to-running <= 3.25 s on this exact SwiftShader protocol | <= 105 MB after running | proposed <= 256 MiB, derived from 39.27 MiB logical boot raster exposure plus geometry/framebuffer/renderer headroom | native target median <= 16.7 ms, p95 <= 33.3 ms; SwiftShader is diagnostic only | Proposed; all four candidate hard gates PASS, native frame/GPU gate pending |
 | Full cold lobby-through-running | <= 18.5 MiB / <= 22 MiB because assets currently match simplified | provisional <= 3.25 s | proposed <= 110 MB | proposed <= 384 MiB for higher DPR/shadows/post buffers | native target median <= 16.7 ms, p95 <= 25 ms | Not measured; native WebGPU validation required |
 | Treehabitat selected work | <= 9.5 MiB additional / <= 10 MiB decoded-body | all-image settle <= 2.5 s local | <= 128 MB after repeat | must stay inside profile cap after native capture | active profile cap | Proposed from measured max plus bounded headroom |
 | SPACE route round trip | 0 persistent-core re-requests | overlay ready <= 1 s local | no monotonic growth beyond 10% in a GC-controlled native study | no new allocation after return | active profile cap | Network gate PASS |
@@ -233,4 +246,4 @@ React versus Svelte is not the primary performance decision here. The dominant m
 
 ## Phase completion boundary
 
-Phase 8's evidence package is complete when the deterministic report, browser report, tests, fresh-build evidence, raw header evidence, and protected-asset diff are present. It is intentionally **not a performance PASS** while the pre-Enter Rapier request and repeated-work Return fail, and while native full/WebGPU and GPU-memory validation are unavailable. `npm run asset:check` remains the canonical read-only inventory check. Any source/asset movement, deletion, recompression, re-export, or GLB/Blender change still requires separate approval.
+Phase 8's deterministic inventory, frozen browser baseline, distinct post-fix candidate report, focused SwiftShader diagnosis, tests, fresh-build evidence, raw header evidence, and protected-asset diff are present. The frozen `477fa09` failures remain in the historical report; the candidate removes pre-Enter Rapier, reduces cold pre-Enter encoded bytes by 59.2%, restores 6/6 repeated UI Returns, and passes the mobile/cold-content, pre-Enter, route/core, protected-asset, selected-media, and heap gates. It is intentionally **not a complete performance release PASS** while native WebGPU/full-profile, representative native chroma/frame performance, and GPU-memory validation remain unavailable. `npm run asset:check` remains the canonical read-only inventory check. Any source/asset movement, deletion, recompression, re-export, or GLB/Blender change still requires separate approval.
