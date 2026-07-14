@@ -1,6 +1,6 @@
 # SPACE asset and browser performance baseline (Phase 8)
 
-Status: the frozen `477fa09` browser baseline retains its pre-Enter Rapier and repeated-work Return failures; the production candidate captured at `d03f737` and recorded at `a8550b9` fixes both, and all four machine hard gates pass. The deterministic inventory is refreshed at `2662472`. Native WebGPU/full-profile, native representative-exhibit frame/chroma, and GPU-memory validation remain pending, so this is not a complete performance release PASS.
+Status: the frozen `477fa09` browser baseline retains its pre-Enter Rapier and repeated-work Return failures; the production candidate captured at `d03f737` and recorded at `a8550b9` fixes both, and all four machine hard gates pass. The deterministic inventory is refreshed from implementation snapshot `a1e97d3` after the gallery-light material lifecycle fix. Native WebGPU/full-profile, native representative-exhibit frame/chroma, and GPU-memory validation remain pending, so this is not a complete performance release PASS.
 
 This is an evidence input, not approval of a final performance budget. It makes no asset edits. Numeric caps below are proposals derived from the measured simplified/SwiftShader baseline and the static inventory; they are not release PASS criteria until the user approves them and native-GPU validation exists.
 
@@ -10,7 +10,7 @@ This is an evidence input, not approval of a final performance budget. It makes 
 | --- | --- |
 | Capture date | 2026-07-14 (Asia/Shanghai) |
 | Git baseline | frozen production source `477fa09d9863a2b818d410a4dda382a2d7a57dda` |
-| Inventory code snapshot | refreshed from current implementation `2662472`; protected shipping asset bytes/hashes still match the frozen browser source |
+| Inventory code snapshot | refreshed from current implementation `a1e97d3`; protected shipping asset bytes/hashes still match the frozen browser source |
 | OS | Windows 11 Pro 10.0.26200 |
 | CPU / visible memory | AMD Ryzen 9 9950X3D / 47.2 GiB |
 | Node / npm | v24.11.0 / 11.6.1 |
@@ -40,7 +40,7 @@ All sizes below are binary MiB unless noted. “Shipping” means present under 
 | Focus/work-classified public corpus | 41 | 73,683,777 | 70.27 | Loaded per selected work, not all at startup |
 | Audio-classified public corpus | 10 | 4,973,916 | 4.74 | Includes docs/placeholder files; actual audio media is 4,972,994 bytes |
 | Draco decoder support | 3 | 1,063,920 | 1.01 | Two JS files plus WASM; timing is recorded in browser evidence |
-| Current built HTML/CSS/JS chunks | 39 | 4,610,009 | 4.40 | gzip(level 9) sum 1,510,602 bytes / 1.44 MiB; not wire evidence |
+| Current built HTML/CSS/JS chunks | 39 | 4,610,127 | 4.40 | gzip(level 9) sum 1,510,644 bytes / 1.44 MiB; not wire evidence |
 
 ### Largest and route-relevant inputs
 
@@ -79,10 +79,10 @@ The largest image is the currently shipping projector source `FL-9.jpg` at 5101x
 | `rapier-vendor-DjBiszsf.js` | 2,260,881 | 837,435 | Largest JS cost, isolated behind the post-Enter runtime boundary |
 | `three-core-vendor-D7O7HPU2.js` | 605,530 | 167,547 | Largest Three core chunk |
 | `react-vendor-CsIBO4y-.js` | 189,646 | 58,867 | Shared application shell |
-| `index-BHr-E14B.js` | 150,257 | 46,753 | Entry chunk |
+| `index-CT-IUrZ8.js` | 150,257 | 46,755 | Entry chunk |
 | `index-vfYenDwx.css` | 83,379 | 15,149 | Shared styles |
-| `SpaceHost-BMkykXG9.js` | 78,950 | 24,836 | Post-Enter persistent SPACE host |
-| `MobileApp-B_nOp-bp.js` | 45,833 | 15,417 | Mobile terminal application; its measured browser route also has zero 3D requests |
+| `SpaceHost-BlisGmHc.js` | 79,068 | 24,880 | Post-Enter persistent SPACE host; includes idempotent runtime-owned gallery-light material handling |
+| `MobileApp-S-EvZVS5.js` | 45,833 | 15,418 | Mobile terminal application; its measured browser route also has zero 3D requests |
 
 These are local deterministic build sizes. They are not a substitute for browser transfer, parse, compile, decode, or memory measurements.
 
@@ -119,7 +119,7 @@ Both preserved rounds returned `Vary: Accept-Encoding` and `Age: 0` for all six 
 | Pre-Enter Rapier/world/Focus source reachability | 0 static reachability | `SpacePage` source-graph test passes, but this is insufficient to prove the production chunk graph |
 | Production pre-Enter Rapier request | PASS: 0 in the candidate's 6/6 cold/warm lobby samples | candidate browser report plus production chunk contract; frozen baseline retains its historical failure |
 | Raster metadata integrity | 100% of PNG/JPEG/WebP files have positive dimensions and exact `width*height*4` logical estimates | source and full asset tests |
-| Unapproved source/asset edits in this phase | 0 protected shipping/source paths | inventory hash comparison and protected-range diff through `2662472` |
+| Unapproved source/asset edits in this phase | 0 protected shipping/source paths | inventory hash comparison and protected-range diff through `a1e97d3` |
 
 No absolute download, decode, GPU-memory, JS-heap, or frame-time pass/fail cap is approved yet. The current full and simplified profiles share the same world and Focus assets, so their static download corpus is identical; simplified currently saves rendering cost, not asset bytes.
 
