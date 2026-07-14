@@ -52,6 +52,10 @@ const ProfileOverlayRoute = lazy(() => import("../desktop/ProfileOverlayRoute"))
 const DevStoriesOverlayRoute = lazy(() => import("../desktop/DevStoriesOverlayRoute"));
 
 type SpaceWordRect = { height: number; width: number; x: number; y: number };
+type ClosingOverlay = {
+  tab: Exclude<OverlayTab, null>;
+  spaceWordSourceRect: SpaceWordRect | null;
+};
 
 function ColdWorkRoute({ exhibitId }: { exhibitId: string }) {
   const { t } = useTranslation();
@@ -88,7 +92,7 @@ export default function DesktopApp() {
     INITIAL_START_LOBBY_HANDOFF_STATE,
   );
   const [spaceStarted, setSpaceStarted] = useState(false);
-  const [closing, setClosing] = useState(false);
+  const [closingOverlay, setClosingOverlay] = useState<ClosingOverlay | null>(null);
   const [returningToSpace, setReturningToSpace] = useState(false);
   const returnAttemptRef = useRef(createSpaceReturnPointerLockAttemptCoordinator());
   const route = resolveAppRoute(location.pathname);
@@ -105,6 +109,12 @@ export default function DesktopApp() {
   const focusedExhibitId = route.kind === "work" ? route.exhibitId : null;
   const workRouteSurface = resolveDesktopWorkRouteSurface(route, spaceStarted);
   const routeNavigationState = location.state as { spaceWordSourceRect?: SpaceWordRect | null } | null;
+  const presentedOverlayTab = overlayTab ?? closingOverlay?.tab ?? null;
+  const presentedSpaceWordSourceRect =
+    overlayTab !== null
+      ? routeNavigationState?.spaceWordSourceRect ?? null
+      : closingOverlay?.spaceWordSourceRect ?? null;
+  const effectiveRouteBlocked = routeBlocked || closingOverlay !== null;
 
   useEffect(() => {
     lightweightDesktopRoutePrefetch.update({
@@ -116,12 +126,12 @@ export default function DesktopApp() {
 
   const entered = handoff.phase === "entered";
 
-  if (route.kind === "space" && returningToSpace) {
+  if (route.kind === "space" && closingOverlay === null && returningToSpace) {
     setReturningToSpace(false);
   }
 
   useSpacePointerLockGuard(
-    shouldGuardSpacePointerLock(entered, routeBlocked, returningToSpace),
+    shouldGuardSpacePointerLock(entered, effectiveRouteBlocked, returningToSpace),
   );
 
   useEffect(() => {
@@ -135,10 +145,10 @@ export default function DesktopApp() {
   }, []);
 
   useLayoutEffect(() => {
-    if (route.kind === "space") {
+    if (route.kind === "space" && closingOverlay === null) {
       returnAttemptRef.current.complete();
     }
-  }, [route.kind]);
+  }, [closingOverlay, route.kind]);
 
   useEffect(() => {
     if (!spaceStarted) return;
@@ -198,12 +208,17 @@ export default function DesktopApp() {
 
   const beginOverlayClose = useCallback(
     (options?: { fromEscape?: boolean }) => {
+      if (overlayTab === null) return;
       const returnAttempt = returnAttemptRef.current.begin(reserveSpacePointerLockRequestId);
       if (!returnAttempt.started) return;
       const pointerLockRequestId = returnAttempt.requestId;
       flushSync(() => {
-        setClosing(true);
+        setClosingOverlay({
+          tab: overlayTab,
+          spaceWordSourceRect: routeNavigationState?.spaceWordSourceRect ?? null,
+        });
         setReturningToSpace(true);
+        navigate(APP_ROUTE_PATHS.space);
       });
       if (options?.fromEscape) {
         resumeSpaceFirstPersonAfterEscape(
@@ -214,7 +229,7 @@ export default function DesktopApp() {
         resumeSpaceFirstPersonWithCursorReturn(pointerLockRequestId);
       }
     },
-    [entered],
+    [entered, navigate, overlayTab, routeNavigationState?.spaceWordSourceRect],
   );
 
   return (
@@ -227,7 +242,7 @@ export default function DesktopApp() {
         overflow: "hidden",
       }}
     >
-      {spaceStarted && entered && route.kind === "space" ? (
+      {spaceStarted && entered && route.kind === "space" && closingOverlay === null ? (
         <Suspense fallback={null}>
           <DesktopTopBar onNavigateToSpace={() => navigateToSpace()} />
         </Suspense>
@@ -260,8 +275,8 @@ export default function DesktopApp() {
               focusedExhibitId={focusedExhibitId}
               onNavigateToSpace={navigateToSpace}
               onNavigateToWork={(exhibitId) => navigate(workRoute(exhibitId))}
-              pauseMainAudio={routePolicy.pauseMainAudio}
-              routeBlocked={routeBlocked}
+              pauseMainAudio={routePolicy.pauseMainAudio || closingOverlay !== null}
+              routeBlocked={effectiveRouteBlocked}
             />
           ) : null
         }
@@ -316,26 +331,28 @@ export default function DesktopApp() {
         </div>
       ) : null}
 
-      {overlayTab !== null ? (
+      {presentedOverlayTab !== null ? (
         <Suspense fallback={<DesktopRouteLoading />}>
-          {overlayTab === "lizzardkevin" ? (
+          {presentedOverlayTab === "lizzardkevin" ? (
             <ProfileOverlayRoute
-              closing={closing}
-              spaceWordSourceRect={routeNavigationState?.spaceWordSourceRect ?? null}
+              closing={closingOverlay !== null}
+              spaceWordSourceRect={presentedSpaceWordSourceRect}
               onRequestClose={beginOverlayClose}
               onClosed={() => {
-                setClosing(false);
-                navigate(APP_ROUTE_PATHS.space);
+                setClosingOverlay(null);
+                setReturningToSpace(false);
+                returnAttemptRef.current.complete();
               }}
             />
           ) : (
             <DevStoriesOverlayRoute
-              closing={closing}
-              spaceWordSourceRect={routeNavigationState?.spaceWordSourceRect ?? null}
+              closing={closingOverlay !== null}
+              spaceWordSourceRect={presentedSpaceWordSourceRect}
               onRequestClose={beginOverlayClose}
               onClosed={() => {
-                setClosing(false);
-                navigate(APP_ROUTE_PATHS.space);
+                setClosingOverlay(null);
+                setReturningToSpace(false);
+                returnAttemptRef.current.complete();
               }}
             />
           )}

@@ -183,9 +183,9 @@ assert.deepEqual(dynamicSpecifiers(desktop), [
 ]);
 assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);
 assert.match(desktop, /workRouteSurface\s*===\s*["']cold-work["'][\s\S]*?<ColdWorkRoute/);
-assert.match(desktop, /overlayTab\s*===\s*["']lizzardkevin["'][\s\S]*?<ProfileOverlayRoute[\s\S]*?<DevStoriesOverlayRoute/);
+assert.match(desktop, /presentedOverlayTab\s*===\s*["']lizzardkevin["'][\s\S]*?<ProfileOverlayRoute[\s\S]*?<DevStoriesOverlayRoute/);
 assert.match(desktop, /function\s+DesktopRouteLoading[\s\S]*?role=["']status["'][\s\S]*?aria-live=["']polite["']/);
-assert.match(desktop, /overlayTab\s*!==\s*null[\s\S]*?<Suspense\s+fallback=\{<DesktopRouteLoading\s*\/>\}/);
+assert.match(desktop, /presentedOverlayTab\s*!==\s*null[\s\S]*?<Suspense\s+fallback=\{<DesktopRouteLoading\s*\/>\}/);
 assert.match(globalCss, /\.desktop-route-loading__indicator\s*\{[\s\S]*?animation:/);
 assert.match(globalCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.desktop-route-loading__indicator\s*\{[\s\S]*?animation:\s*none/);
 console.log("desktop lightweight route prefetch contract tests passed");

@@ -127,26 +127,33 @@ test("Focus arms the return handoff before making exactly one pointer-lock reque
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonAfterEscape\(/g) ?? []).length, 1);
 });
 
-test("Profile and DevStories request pointer lock at close start and navigate route-only onClosed", () => {
+test("Profile and DevStories commit the SPACE route before requesting lock and retain only the close animation", () => {
   const desktop = source("app/DesktopApp.tsx");
   const beginCloseBody = desktop.match(/const beginOverlayClose = useCallback\([\s\S]*?\n  \);/)?.[0] ?? "";
   const onClosedBodies = [...desktop.matchAll(/onClosed=\{\(\) => \{([\s\S]*?)\n              \}\}/g)].map(
     (match) => match[1],
   );
   const armIndex = beginCloseBody.indexOf("setReturningToSpace(true)");
+  const navigateIndex = beginCloseBody.indexOf("navigate(APP_ROUTE_PATHS.space)");
   const normalRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonWithCursorReturn(pointerLockRequestId)");
   const escapeRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonAfterEscape(");
 
   assert.ok(armIndex >= 0 && armIndex < normalRequestIndex);
   assert.ok(armIndex < escapeRequestIndex);
+  assert.ok(navigateIndex >= 0 && navigateIndex < normalRequestIndex);
+  assert.ok(navigateIndex < escapeRequestIndex);
   assert.match(beginCloseBody, /if \(!returnAttempt\.started\) return;/);
+  assert.match(beginCloseBody, /setClosingOverlay\(\{/);
   assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonWithCursorReturn\(pointerLockRequestId\)/g) ?? []).length, 1);
   assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonAfterEscape\(/g) ?? []).length, 1);
   assert.equal(onClosedBodies.length, 2);
   for (const body of onClosedBodies) {
-    assert.match(body, /navigate\(APP_ROUTE_PATHS\.space\)/);
-    assert.doesNotMatch(body, /navigateToSpace|resumeSpaceFirstPerson|requestSpacePointerLock/);
+    assert.match(body, /setClosingOverlay\(null\)/);
+    assert.doesNotMatch(body, /navigate\(|navigateToSpace|resumeSpaceFirstPerson|requestSpacePointerLock/);
   }
+  assert.match(desktop, /const effectiveRouteBlocked = routeBlocked \|\| closingOverlay !== null/);
+  assert.match(desktop, /routeBlocked=\{effectiveRouteBlocked\}/);
+  assert.match(desktop, /pauseMainAudio=\{routePolicy\.pauseMainAudio \|\| closingOverlay !== null\}/);
 });
 
 test("the return handoff clears on SPACE commit and pointer-lock failure or cancellation", () => {
@@ -161,7 +168,7 @@ test("the return handoff clears on SPACE commit and pointer-lock failure or canc
   );
   assert.match(
     desktop,
-    /if \(route\.kind === ["']space["'] && returningToSpace\) \{\s*setReturningToSpace\(false\);/,
+    /if \(route\.kind === ["']space["'] && closingOverlay === null && returningToSpace\) \{\s*setReturningToSpace\(false\);/,
   );
-  assert.match(desktop, /if \(route\.kind === ["']space["']\) \{\s*returnAttemptRef\.current\.complete\(\);/);
+  assert.match(desktop, /if \(route\.kind === ["']space["'] && closingOverlay === null\) \{\s*returnAttemptRef\.current\.complete\(\);/);
 });
