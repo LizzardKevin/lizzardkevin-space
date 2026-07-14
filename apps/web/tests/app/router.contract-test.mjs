@@ -17,6 +17,7 @@ const mobile = source("app/MobileApp.tsx");
 const chrome = source("desktop/DesktopChrome.tsx");
 const topBar = source("components/TopBar.tsx");
 const focus = source("exhibits/FocusOverlay.tsx");
+const globalCss = source("styles/global.css");
 
 assert.match(main, /<BrowserRouter\s+basename=\{normalizeRouterBasename\(import\.meta\.env\.BASE_URL\)\}>/);
 for (const path of ['"/"', '"/works/:exhibitId"', '"/profile"', '"/devstories"']) {
@@ -24,11 +25,16 @@ for (const path of ['"/"', '"/works/:exhibitId"', '"/profile"', '"/devstories"']
 }
 assert.match(routes, /function\s+SpaceAliasRoute[\s\S]*?<Navigate\s+replace\s+to=["']\/["']/);
 assert.match(routes, /function\s+ProfileAliasRoute[\s\S]*?<Navigate\s+replace\s+to=["']\/profile["']/);
-for (const shell of [desktop, mobile]) {
-  assert.match(shell, /path=["']\/space["'][\s\S]*?<SpaceAliasRoute/);
-  assert.match(shell, /path=["']\/lizzardkevin["'][\s\S]*?<ProfileAliasRoute/);
-}
-assert.match(`${desktop}\n${mobile}`, /path=["']\*["'][\s\S]*NotFound/);
+assert.match(desktop, /path=["']\/space["'][\s\S]*?<SpaceAliasRoute/);
+assert.match(desktop, /path=["']\/lizzardkevin["'][\s\S]*?<ProfileAliasRoute/);
+assert.match(mobile, /route\.kind === ["']space-alias["'][\s\S]*?<Navigate replace to=["']\/["']/);
+assert.match(mobile, /route\.kind === ["']profile-alias["'][\s\S]*?<Navigate replace to=["']\/profile["']/);
+assert.match(desktop, /path=["']\*["'][\s\S]*NotFound/);
+assert.match(mobile, /PersistentMobileExperienceBoundary/);
+assert(!/key=\{(?:route|decoded|view)/.test(mobile), "mobile canonical routes must not key the experience by route");
+assert.match(desktop, /<Link\s+to=["']\/["']/);
+assert.match(desktop, /known\s*\?\s*t\(["']route\.workRequiresSpace/);
+assert.match(globalCss, /\.app-route-layer\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?z-index:\s*70;/);
 
 assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/space\/SpaceHost["']\)\)/);
 assert.match(desktop, /useState\(false\)/);

@@ -1,53 +1,21 @@
 import { useCallback } from "react";
-import { Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAudioDirector } from "../audio/useAudioDirector";
 import { EntrySplash } from "../components/entry/EntrySplash";
 import { useEntryTransition } from "../hooks/useEntryTransition";
-import { mobileProjectItems, type MobileTabId } from "../mobile/mobileArchiveData";
+import { mobileProjectItems } from "../mobile/mobileArchiveData";
+import { PersistentMobileExperienceBoundary } from "../mobile/PersistentMobileExperienceBoundary";
+import { resolveMobileRouteView } from "../mobile/mobileRouteView";
 import { MobileExperience } from "../pages/MobileExperience";
-import { NotFound, ProfileAliasRoute, SpaceAliasRoute } from "./appRoutes";
-import { workRoute } from "./routeConfig";
-
-function MobileRoute({
-  entry,
-  routeTab = null,
-}: {
-  entry: ReturnType<typeof useEntryTransition>;
-  routeTab?: MobileTabId | null;
-}) {
-  const navigate = useNavigate();
-  return (
-    <MobileExperience
-      key={routeTab ?? "root"}
-      entry={entry}
-      routeProjectId={null}
-      routeTab={routeTab}
-      onNavigateToProject={(id) => navigate(workRoute(id))}
-      onNavigateToRoot={() => navigate("/")}
-    />
-  );
-}
-
-function MobileWorkRoute({ entry }: { entry: ReturnType<typeof useEntryTransition> }) {
-  const navigate = useNavigate();
-  const { exhibitId = "" } = useParams();
-  const decodedId = decodeURIComponent(exhibitId);
-  if (!mobileProjectItems.some((item) => item.id === decodedId)) return <NotFound terminal />;
-  return (
-    <MobileExperience
-      key={decodedId}
-      entry={entry}
-      routeProjectId={decodedId}
-      routeTab="projects"
-      onNavigateToProject={(id) => navigate(workRoute(id))}
-      onNavigateToRoot={() => navigate("/")}
-    />
-  );
-}
+import { NotFound } from "./appRoutes";
+import { resolveAppRoute, workRoute } from "./routeConfig";
 
 export default function MobileApp() {
   const entry = useEntryTransition();
   const audio = useAudioDirector();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const route = resolveAppRoute(location.pathname);
 
   const handleEnter = useCallback(() => {
     entry.freezeButtonFloat();
@@ -56,18 +24,33 @@ export default function MobileApp() {
     entry.startFade();
   }, [audio, entry]);
 
+  if (route.kind === "space-alias") {
+    return <Navigate replace to="/" />;
+  }
+  if (route.kind === "profile-alias") {
+    return <Navigate replace to="/profile" />;
+  }
+  if (route.kind === "not-found") return <NotFound terminal />;
+
+  const resolvedView = resolveMobileRouteView(route);
+  const view = resolvedView.kind === "work" && !mobileProjectItems.some((item) => item.id === resolvedView.projectId)
+    ? { kind: "not-found" as const }
+    : resolvedView;
+
   return (
     <div style={{ height: "100vh", width: "100vw", background: "#ffffff" }}>
       {entry.showSplash ? <EntrySplash entry={entry} onEnter={handleEnter} /> : null}
-      <Routes>
-        <Route path="/" element={<MobileRoute entry={entry} />} />
-        <Route path="/works/:exhibitId" element={<MobileWorkRoute entry={entry} />} />
-        <Route path="/profile" element={<MobileRoute entry={entry} routeTab="soul" />} />
-        <Route path="/devstories" element={<NotFound terminal />} />
-        <Route path="/space" element={<SpaceAliasRoute />} />
-        <Route path="/lizzardkevin" element={<ProfileAliasRoute />} />
-        <Route path="*" element={<NotFound terminal />} />
-      </Routes>
+      <PersistentMobileExperienceBoundary
+        experience={
+          <MobileExperience
+            entry={entry}
+            routeView={view}
+            onNavigateToProject={(id) => navigate(workRoute(id))}
+            onNavigateToProfile={() => navigate("/profile")}
+            onNavigateToRoot={() => navigate("/")}
+          />
+        }
+      />
     </div>
   );
 }

@@ -1,13 +1,12 @@
 import { Suspense, lazy, useCallback, useState } from "react";
 import { flushSync } from "react-dom";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Link, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAudioDirector } from "../audio/useAudioDirector";
 import { useTranslation } from "react-i18next";
 import type { OverlayTab } from "../overlay/OverlayState";
 import { SpacePage } from "../pages/SpacePage";
 import { useEntryTransition } from "../hooks/useEntryTransition";
 import {
-  resumeSpaceFirstPerson,
   resumeSpaceFirstPersonAfterEscape,
   resumeSpaceFirstPersonWithCursorReturn,
 } from "../space/requestSpacePointerLock";
@@ -16,6 +15,7 @@ import { PersistentSpaceHostBoundary } from "../space/PersistentSpaceHostBoundar
 import { resolveSpaceRouteRuntimePolicy, type SpaceRouteKind } from "../space/routeRuntimePolicy";
 import { NotFound, ProfileAliasRoute, SpaceAliasRoute } from "./appRoutes";
 import { APP_ROUTE_PATHS, resolveAppRoute, workRoute } from "./routeConfig";
+import { isKnownExhibitId } from "../content/lightweightExhibitIndex";
 
 const SpaceHost = lazy(() => import("../space/SpaceHost"));
 const DesktopTopBar = lazy(() =>
@@ -29,9 +29,11 @@ type SpaceWordRect = { height: number; width: number; x: number; y: number };
 
 function ColdWorkRoute({ exhibitId }: { exhibitId: string }) {
   const { t } = useTranslation();
+  const known = isKnownExhibitId(exhibitId);
   return (
-    <main role="main" style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-      <p>{t("route.workRequiresSpace", { id: exhibitId })}</p>
+    <main role="main" className="app-route-layer app-route-message">
+      <p>{known ? t("route.workRequiresSpace", { id: exhibitId }) : t("route.notFound")}</p>
+      <Link to="/">{t("route.invalidWorkReturn")}</Link>
     </main>
   );
 }
@@ -65,7 +67,6 @@ export default function DesktopApp() {
     entry.beginLoading();
     audio.unlock();
     setSpaceStarted(true);
-    resumeSpaceFirstPerson();
     void audio.setZone("architecture");
   }, [audio, entry, route.kind, spaceStarted]);
 

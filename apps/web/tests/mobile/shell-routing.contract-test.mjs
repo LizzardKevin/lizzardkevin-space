@@ -102,8 +102,9 @@ assert(files.mobileExperience.includes("nextTheme: next"), "theme reveal must st
 assert(files.mobileExperience.includes("themeRevealTimeoutRef.current = window.setTimeout"), "theme switching must delay the real theme swap until the circular reveal starts");
 assert(files.mobileExperience.includes("setThemeState(next);"), "theme switching must apply the requested theme after the reveal animation");
 assert(
-  files.mobileExperience.includes("useState<MobileTabId | null>(routeTab)"),
-  "mobile terminal must derive its deterministic initial tab from the canonical route",
+  files.mobileExperience.includes('routeView.kind === "work"') &&
+    files.mobileExperience.includes('routeView.kind === "profile"'),
+  "mobile terminal must derive its active view from canonical route props without remounting",
 );
 assert(files.mobileExperience.includes('data-active-tab={activeTab ?? "idle"}'), "mobile terminal must expose an idle state before a tab is opened");
 assert(files.mobileExperience.includes("viewLoadKey"), "mobile terminal must key changed document text for reload animation");

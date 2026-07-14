@@ -15,7 +15,7 @@ export function NotFound({ terminal = false }: { terminal?: boolean }) {
     <main
       role="main"
       data-route-not-found="true"
-      className={terminal ? "mobile-site mobile-terminal-site" : undefined}
+      className={terminal ? "mobile-site mobile-terminal-site" : "app-route-layer app-route-message"}
       style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#fff" }}
     >
       <p>{terminal ? t("route.notFoundTerminal") : t("route.notFound")}</p>

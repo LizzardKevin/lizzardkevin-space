@@ -13,6 +13,15 @@ import {
   startProceduralAmbient,
   type ProceduralAmbientHandle,
 } from "./proceduralAudio";
+import {
+  canStartAsyncAudio,
+  createAudioPlaybackPolicy,
+  effectiveLoopVolume,
+  effectiveProceduralAmbientGain,
+  resolveAmbientLoadErrorAction,
+  setLoopDucked,
+  setRoutePaused as updateRoutePaused,
+} from "./audioPlaybackPolicy";
 
 export type VolumeKey = "master" | "bgm" | "ambient" | "sfx" | "exhibit";
 
@@ -46,7 +55,7 @@ export class AudioDirector {
   private lastFootstepUrl: string | undefined;
   private useProceduralFootsteps = false;
   private footstepClipsReady = false;
-  private routePaused = false;
+  private playbackPolicy = createAudioPlaybackPolicy();
   private resumeProceduralAmbientAfterRoute = false;
 
   constructor(config: AudioDirectorConfig) {
@@ -97,8 +106,15 @@ export class AudioDirector {
   setVolume(key: VolumeKey, value: number) {
     this.volumes[key] = clamp01(value);
     if (key === "master") Howler.volume(this.volumes.master);
-    if (key === "bgm" && this.bgm && !this.bgmStartTimer) this.bgm.howl.volume(this.volumes.bgm);
-    if (key === "ambient" && this.ambient) this.ambient.howl.volume(this.volumes.ambient);
+    if ((key === "master" || key === "ambient") && this.proceduralAmbient) {
+      this.proceduralAmbient.setVolume(this.proceduralAmbientVolume());
+    }
+    if (key === "bgm" && this.bgm && !this.bgmStartTimer && canStartAsyncAudio(this.playbackPolicy)) {
+      this.bgm.howl.volume(effectiveLoopVolume(this.playbackPolicy, "bgm", this.volumes.bgm));
+    }
+    if (key === "ambient" && this.ambient && canStartAsyncAudio(this.playbackPolicy)) {
+      this.ambient.howl.volume(effectiveLoopVolume(this.playbackPolicy, "ambient", this.volumes.ambient));
+    }
   }
 
   async setZone(zone: string) {
@@ -110,8 +126,8 @@ export class AudioDirector {
   }
 
   setRoutePaused(paused: boolean) {
-    if (paused === this.routePaused) return;
-    this.routePaused = paused;
+    if (paused === this.playbackPolicy.routePaused) return;
+    this.playbackPolicy = updateRoutePaused(this.playbackPolicy, paused);
 
     if (paused) {
       this.bgm?.howl.pause();
@@ -124,11 +140,19 @@ export class AudioDirector {
     if (!this.unlocked) return;
     if (this.bgm && !this.bgmStartTimer && !this.bgm.howl.playing()) {
       this.bgm.howl.play();
-      this.bgm.howl.fade(this.bgm.howl.volume(), this.volumes.bgm, 180);
+      this.bgm.howl.fade(
+        this.bgm.howl.volume(),
+        effectiveLoopVolume(this.playbackPolicy, "bgm", this.volumes.bgm),
+        180,
+      );
     }
     if (this.ambient && !this.ambient.howl.playing()) {
       this.ambient.howl.play();
-      this.ambient.howl.fade(this.ambient.howl.volume(), this.volumes.ambient, 220);
+      this.ambient.howl.fade(
+        this.ambient.howl.volume(),
+        effectiveLoopVolume(this.playbackPolicy, "ambient", this.volumes.ambient),
+        220,
+      );
     } else if (this.resumeProceduralAmbientAfterRoute) {
       this.startProceduralAmbientFallback();
     }
@@ -136,20 +160,24 @@ export class AudioDirector {
   }
 
   duckBgm(duck: boolean) {
-    if (!this.bgm) return;
-    const target = duck ? this.volumes.bgm * 0.45 : this.volumes.bgm;
+    this.playbackPolicy = setLoopDucked(this.playbackPolicy, "bgm", duck);
+    if (!this.bgm || !canStartAsyncAudio(this.playbackPolicy)) return;
+    const target = effectiveLoopVolume(this.playbackPolicy, "bgm", this.volumes.bgm);
     this.bgm.howl.fade(this.bgm.howl.volume(), target, 180);
   }
 
   duckAmbient(duck: boolean) {
-    const target = duck ? this.volumes.ambient * 0.35 : this.volumes.ambient;
+    this.playbackPolicy = setLoopDucked(this.playbackPolicy, "ambient", duck);
+    if (!canStartAsyncAudio(this.playbackPolicy)) return;
+    const target = effectiveLoopVolume(this.playbackPolicy, "ambient", this.volumes.ambient);
     if (this.ambient) {
       this.ambient.howl.fade(this.ambient.howl.volume(), target, 220);
     }
+    this.proceduralAmbient?.setVolume(this.proceduralAmbientVolume());
   }
 
   playFootstep() {
-    if (!this.unlocked || this.routePaused) return;
+    if (!this.unlocked || !canStartAsyncAudio(this.playbackPolicy)) return;
     const vol = this.channelVolume("sfx") * FOOTSTEP_SFX_GAIN;
     if (this.useProceduralFootsteps || this.footstepUrls.length === 0) {
       playProceduralFootstep(vol);
@@ -165,12 +193,12 @@ export class AudioDirector {
   }
 
   playJumpStart() {
-    if (!this.unlocked || this.routePaused || !this.jumpStartUrl) return;
+    if (!this.unlocked || !canStartAsyncAudio(this.playbackPolicy) || !this.jumpStartUrl) return;
     playFootstepClip(this.jumpStartUrl, this.channelVolume("sfx") * JUMP_SFX_GAIN);
   }
 
   playJumpLand() {
-    if (!this.unlocked || this.routePaused || !this.jumpLandUrl) return;
+    if (!this.unlocked || !canStartAsyncAudio(this.playbackPolicy) || !this.jumpLandUrl) return;
     playFootstepClip(this.jumpLandUrl, this.channelVolume("sfx") * JUMP_SFX_GAIN);
   }
 
@@ -186,8 +214,16 @@ export class AudioDirector {
   }
 
   private startProceduralAmbientFallback() {
-    if (this.proceduralAmbient || this.ambient) return;
-    this.proceduralAmbient = startProceduralAmbient(this.channelVolume("ambient"));
+    if (!canStartAsyncAudio(this.playbackPolicy) || this.proceduralAmbient || this.ambient) return;
+    this.proceduralAmbient = startProceduralAmbient(this.proceduralAmbientVolume());
+  }
+
+  private proceduralAmbientVolume() {
+    return effectiveProceduralAmbientGain(
+      this.playbackPolicy,
+      this.volumes.master,
+      this.volumes.ambient,
+    );
   }
 
   private async swapLoop(
@@ -220,11 +256,19 @@ export class AudioDirector {
     });
 
     next.once("loaderror", () => {
+      const isCurrentLoop = (kind === "ambient" ? this.ambient : this.bgm)?.howl === next;
       next.unload();
       if (kind === "ambient") {
+        const action = resolveAmbientLoadErrorAction(this.playbackPolicy, isCurrentLoop);
+        if (action === "ignore") return;
         this.ambient = null;
-        this.startProceduralAmbientFallback();
+        if (action === "start-fallback") {
+          this.startProceduralAmbientFallback();
+        } else {
+          this.resumeProceduralAmbientAfterRoute = true;
+        }
       } else {
+        if (!isCurrentLoop) return;
         this.clearBgmStartTimer();
         this.bgm = null;
       }
@@ -241,14 +285,18 @@ export class AudioDirector {
       this.bgmStartTimer = setTimeout(() => {
         this.bgmStartTimer = null;
         if (this.bgm?.howl !== next) return;
-        if (this.routePaused) return;
+        if (!canStartAsyncAudio(this.playbackPolicy)) return;
         next.play();
-        next.fade(0, this.volumes.bgm, SPACE_BGM_FADE_IN_MS);
+        next.fade(
+          0,
+          effectiveLoopVolume(this.playbackPolicy, "bgm", this.volumes.bgm),
+          SPACE_BGM_FADE_IN_MS,
+        );
       }, SPACE_BGM_FADE_IN_DELAY_MS);
     } else {
-      if (!this.routePaused) {
+      if (canStartAsyncAudio(this.playbackPolicy)) {
         next.play();
-        next.fade(0, volume, 650);
+        next.fade(0, effectiveLoopVolume(this.playbackPolicy, "ambient", volume), 650);
       }
       this.ambient = playing;
       this.stopProceduralAmbient();

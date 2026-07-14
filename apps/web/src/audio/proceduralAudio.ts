@@ -41,7 +41,7 @@ function makeNoiseBuffer(ctx: AudioContext, seconds: number) {
   return buf;
 }
 
-export type ProceduralAmbientHandle = { stop: () => void };
+export type ProceduralAmbientHandle = { setVolume: (gain: number) => void; stop: () => void };
 
 export function startProceduralAmbient(gain: number): ProceduralAmbientHandle {
   const ctx = getCtx();
@@ -58,6 +58,9 @@ export function startProceduralAmbient(gain: number): ProceduralAmbientHandle {
   g.connect(ctx.destination);
   src.start();
   return {
+    setVolume: (nextGain) => {
+      g.gain.value = nextGain * 0.55;
+    },
     stop: () => {
       try {
         src.stop();

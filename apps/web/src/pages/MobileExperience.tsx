@@ -15,6 +15,7 @@ import {
   type MobileTerminalTheme,
 } from "../mobile/mobileArchiveData";
 import { publicAssetUrl } from "../platform/publicAssets.ts";
+import type { MobileRouteView } from "../mobile/mobileRouteView";
 
 const BOOT_MIN_DURATION_MS = 3000;
 const BOOT_MAX_DURATION_MS = 10000;
@@ -163,27 +164,27 @@ function getFoldExpanded(foldState: TerminalFoldState, foldId: string) {
 
 export function MobileExperience({
   entry,
-  routeProjectId = null,
-  routeTab = null,
+  routeView,
   onNavigateToProject,
+  onNavigateToProfile,
   onNavigateToRoot,
 }: {
   entry: EntryTransition;
-  routeProjectId?: string | null;
-  routeTab?: MobileTabId | null;
+  routeView: MobileRouteView;
   onNavigateToProject?: (projectId: string) => void;
+  onNavigateToProfile?: () => void;
   onNavigateToRoot?: () => void;
 }) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { entered } = entry;
   const terminalRootRef = useRef<HTMLDivElement | null>(null);
   const terminalShellRef = useRef<HTMLElement | null>(null);
   const terminalCollapseRef = useRef(0);
   const terminalSnapFrameRef = useRef<number | null>(null);
   const [bootLanguage] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
-  const [activeTab, setActiveTab] = useState<MobileTabId | null>(routeTab);
+  const [localActiveTab, setActiveTab] = useState<MobileTabId | null>(null);
   const [foldState, setFoldState] = useState<TerminalFoldState>({});
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(routeProjectId);
+  const [localSelectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [viewLoadKey, setViewLoadKey] = useState(0);
   const [language, setLanguageState] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
   const [theme, setThemeState] = useState<MobileTerminalTheme>(() => readStoredTheme());
@@ -193,6 +194,14 @@ export function MobileExperience({
   const [themeReveal, setThemeReveal] = useState<ThemeRevealState | null>(null);
   const themeRevealTimeoutRef = useRef<number | null>(null);
   const copy = mobileTerminalCopy[language];
+  const activeTab = routeView.kind === "work"
+    ? "projects"
+    : routeView.kind === "profile"
+      ? "soul"
+      : routeView.kind === "root"
+        ? localActiveTab
+        : null;
+  const selectedProjectId = routeView.kind === "work" ? routeView.projectId : localSelectedProjectId;
   const selectedProject = selectedProjectId ? getProjectItem(selectedProjectId) : null;
   const documentKey = selectedProject
     ? `project-${selectedProject.id}-${language}-${viewLoadKey}`
@@ -341,6 +350,13 @@ export function MobileExperience({
       return;
     }
 
+    if (tabId === "soul" && onNavigateToProfile) {
+      onNavigateToProfile();
+      return;
+    }
+    if (routeView.kind !== "root" && onNavigateToRoot) {
+      onNavigateToRoot();
+    }
     setActiveTab(tabId);
     setSelectedProjectId(null);
     setViewLoadKey((key) => key + 1);
@@ -461,7 +477,16 @@ export function MobileExperience({
             aria-label={copy.aria.museum}
             onScroll={handleDocumentScroll}
           >
-            {selectedProject ? (
+            {routeView.kind === "not-found" ? (
+              <section className="mobile-terminal-document" data-route-not-found="true">
+                <div className="mobile-terminal-loadLayer mobile-terminal-document--loading">
+                  <div className="mobile-terminal-command">{t("route.notFoundTerminal")}</div>
+                  <button type="button" className="mobile-terminal-back" onClick={onNavigateToRoot}>
+                    cd /
+                  </button>
+                </div>
+              </section>
+            ) : selectedProject ? (
               <ProjectDetailView
                 copy={copy}
                 project={selectedProject}
