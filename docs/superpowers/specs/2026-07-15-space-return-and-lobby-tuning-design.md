@@ -19,7 +19,7 @@ Use the existing approved SPACE toon-mid color `#69827e` for all three layers th
 - Three linear fog;
 - CSS fallback behind the temporary Canvas.
 
-Keep `#67c2be` in the existing brighter geometric accents. This lowers the full-screen field from a saturated teal to a muted cool green-gray without changing the Messenger-inspired composition or introducing a new token. Background, fog, and fallback must stay identical so Canvas initialization cannot reveal a color flash.
+Keep the existing brighter geometric accents (`#4aa7a5`, `#79cbc6`, and `#358d8e`) unchanged. This lowers the full-screen field from a saturated teal to a muted cool green-gray without changing the Messenger-inspired composition or introducing a new token. Background, fog, and fallback must stay identical so Canvas initialization cannot reveal a color flash.
 
 ## Pointer-Lock Return Decision
 
@@ -28,8 +28,8 @@ The return activation is a short handoff owned by `DesktopApp`:
 1. During the original trusted return activation, synchronously mark the route as returning.
 2. The pointer-lock guard permits lock only during that explicit handoff; all ordinary blocked routes remain protected.
 3. Request pointer lock synchronously while the browser still recognizes the click or keyboard activation.
-4. Focus may navigate immediately. Profile and DevStories keep their close animation, then perform route-only navigation without a second pointer-lock request.
-5. Clear the handoff after the route reaches SPACE or if the request fails.
+4. Focus navigates normally. Profile and DevStories synchronously commit `/` before requesting pointer lock, while a small local `closingOverlay` snapshot retains only the close animation.
+5. Clear the handoff after the retained animation finishes or if the request fails.
 
 The guard must use layout-effect cleanup so `flushSync` removes the old blocked-route listener before the trusted request. Escape retains its dedicated keyup recovery path, but it uses the same armed handoff and must not create a second request at animation completion.
 
@@ -48,4 +48,3 @@ The guard must use layout-effect cleanup so `flushSync` removes the old blocked-
 - Mouse movement controls the first-person camera immediately after each return.
 - Escape, pointer-lock failure, narrow viewports, focus-visible, reduced motion, and one-context ownership do not regress.
 - Targeted tests, TypeScript, lint, chunk build, and production Playwright QA pass.
-

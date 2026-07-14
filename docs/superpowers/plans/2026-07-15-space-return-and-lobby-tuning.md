@@ -27,17 +27,17 @@
 - Modify: `apps/web/src/lobby/startLobby.css`
 - Test: `apps/web/tests/lobby/start-lobby.contract-test.mjs`
 
-- [ ] **Step 1: Write the failing color contract**
+- [x] **Step 1: Write the failing color contract**
 
-Require `#69827e` for the Three background, fog, and `.start-lobby` CSS background, and require `#67c2be` to remain present as an accent.
+Require `#69827e` for the Three background, fog, and `.start-lobby` CSS background, and preserve the existing geometric accents `#4aa7a5`, `#79cbc6`, and `#358d8e`.
 
-- [ ] **Step 2: Prove the test fails**
+- [x] **Step 2: Prove the test fails**
 
 Run: `node --test apps/web/tests/lobby/start-lobby.contract-test.mjs`
 
 Expected: the muted field assertion fails against the current `#67c2be` background/fog/fallback.
 
-- [ ] **Step 3: Apply the minimal palette change**
+- [x] **Step 3: Apply the minimal palette change**
 
 Change only the two `LobbyScene` field values and the CSS fallback:
 
@@ -52,11 +52,11 @@ Change only the two `LobbyScene` field values and the CSS fallback:
 }
 ```
 
-- [ ] **Step 4: Prove the test passes**
+- [x] **Step 4: Prove the test passes**
 
 Run the lobby contract and the lobby ownership/viewport/handoff tests. Expected: all pass.
 
-- [ ] **Step 5: Capture visual states and commit**
+- [x] **Step 5: Capture visual states and commit**
 
 Capture 1440x900 initial, pointer, focus-visible, reduced-motion, 1000x700 resize, and Enter handoff. Commit only the lobby sources and test as `fix: mute desktop StartLobby field`.
 
@@ -67,29 +67,29 @@ Capture 1440x900 initial, pointer, focus-visible, reduced-motion, 1000x700 resiz
 - Modify: `apps/web/src/space/useSpacePointerLockGuard.ts`
 - Test: `apps/web/tests/space/canvas-pointer-lock.test.mjs`
 
-- [ ] **Step 1: Write failing timing and guard contracts**
+- [x] **Step 1: Write failing timing and guard contracts**
 
 Require the normal Profile/DevStories return path to request pointer lock inside `beginOverlayClose`, require `onClosed` to perform route-only completion, and require Focus to remove the old route guard before requesting. Require the guard to use `useLayoutEffect` so `flushSync` cleanup is synchronous.
 
-- [ ] **Step 2: Prove the tests fail**
+- [x] **Step 2: Prove the tests fail**
 
 Run: `node --test apps/web/tests/space/canvas-pointer-lock.test.mjs`
 
 Expected: the current delayed `onClosed -> navigateToSpace -> requestPointerLock` implementation fails the timing assertions.
 
-- [ ] **Step 3: Add the minimal handoff**
+- [x] **Step 3: Add the minimal handoff**
 
-Add a DesktopApp boolean return handoff. Arm it via `flushSync` inside the initiating return callback, allow the guard only for that armed return, synchronously call the existing resume function, and make overlay `onClosed` navigate without requesting again. Clear the handoff when `/` becomes active. Convert the guard effect to `useLayoutEffect` without changing its release/listener behavior.
+Add a DesktopApp return handoff. Arm it via `flushSync` inside the initiating return callback, commit `/` before the Profile/DevStories pointer-lock request, and retain their closing surface in local `closingOverlay` state until the animation ends. Keep the persistent runtime paused during that animation, and clear the handoff only after the retained surface closes. Convert the guard effect to `useLayoutEffect` without changing its release/listener behavior.
 
-- [ ] **Step 4: Prove targeted tests pass**
+- [x] **Step 4: Prove targeted tests pass**
 
 Run pointer-lock, routing, lifecycle, cursor, and interaction contracts. Expected: all pass with exactly one pointer-lock owner/request per return.
 
-- [ ] **Step 5: Production browser regression**
+- [x] **Step 5: Production browser regression**
 
 In a root-base production preview, test Focus, Profile, and DevStories return buttons. For each, assert the URL is `/`, the original Canvas node remains, and `document.pointerLockElement?.id` is `space-canvas` before another Canvas click. Also exercise Escape and pointer-lock failure fallback.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit only the return-handoff sources and test as `fix: restore pointer lock on SPACE returns`.
 
@@ -98,19 +98,19 @@ Commit only the return-handoff sources and test as `fix: restore pointer lock on
 **Files:**
 - Modify only if generated evidence is deliberately refreshed; protected assets remain unchanged.
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run lobby, pointer-lock, route, lifecycle, cursor, interaction, TypeScript, and lint checks.
 
-- [ ] **Step 2: Run production verification**
+- [x] **Step 2: Run production verification**
 
 Run `npm run build:chunks`, the standalone Playwright QA, and `npm run verify:quick`.
 
-- [ ] **Step 3: Inspect scope**
+- [x] **Step 3: Inspect scope**
 
 Run `git diff --check`, inspect both atomic commits, and confirm no protected asset, generated content, workbook, GLB, Blender, texture, or audio path changed.
 
-- [ ] **Step 4: Independent review**
+- [x] **Step 4: Independent review**
 
 Request a requirements review followed by a code-quality review. Fix confirmed findings and rerun affected gates before reporting completion.
 
@@ -121,3 +121,10 @@ Request a requirements review followed by a code-quality review. Fix confirmed f
 - The plan introduces no asset, renderer-profile, mobile, or content-pipeline work.
 - No placeholder or unresolved design decision remains.
 
+## Completion Evidence
+
+- `npm run verify:quick`: passed on 2026-07-15.
+- `npm run build:chunks`: passed on 2026-07-15.
+- Standalone Playwright production QA at 1440x900: Profile, DevStories, and Focus each returned to `/`, preserved the marked `space-canvas`, and produced `document.pointerLockElement.id === "space-canvas"` without another click.
+- Browser QA reported no page errors, relevant console errors, or pointer-lock failure events.
+- StartLobby field resolved to `rgb(105, 130, 126)` (`#69827e`) with one lobby Canvas and one Enter control.
