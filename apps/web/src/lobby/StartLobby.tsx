@@ -101,8 +101,8 @@ function LobbyTypography({ artRef }: { artRef: RefObject<Group | null> }) {
 function LobbyScene({ artRef }: { artRef: RefObject<Group | null> }) {
   return (
     <>
-      <color attach="background" args={["#67c2be"]} />
-      <fog attach="fog" args={["#67c2be", 8, 18]} />
+      <color attach="background" args={["#69827e"]} />
+      <fog attach="fog" args={["#69827e", 8, 18]} />
       <ambientLight intensity={1.9} />
       <directionalLight position={[-3, 5, 7]} intensity={2.4} />
       <mesh position={[0, -3.4, -2.8]} rotation={[-0.18, 0, 0]} scale={[12, 2.4, 1]}>

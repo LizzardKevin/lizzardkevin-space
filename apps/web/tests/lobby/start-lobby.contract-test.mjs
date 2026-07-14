@@ -45,13 +45,24 @@ test("raw R3F registers its exact Three JSX catalog and reuses a StrictMode-safe
 
 test("StartLobby uses real extruded text and the approved restrained palette", () => {
   const source = readSource("lobby/StartLobby.tsx");
+  const css = readSource("lobby/startLobby.css");
+  const threeBackground = source.match(/<color\s+attach=["']background["']\s+args=\{\[["'](#[0-9a-f]{6})["']\]\}\s*\/>/i);
+  const threeFog = source.match(/<fog\s+attach=["']fog["']\s+args=\{\[["'](#[0-9a-f]{6})["']/i);
+  const lobbyRule = css.match(/\.start-lobby\s*\{([\s\S]*?)\}/);
+  const cssBackground = lobbyRule?.[1].match(/\bbackground:\s*(#[0-9a-f]{6})\s*;/i);
 
   assert.match(source, /TextGeometry/);
   assert.match(source, /FontLoader/);
   assert.match(source, /helvetiker_bold\.typeface\.json\?url/);
   assert.match(source, /LIZZARDKEVIN/);
   assert.match(source, /SPACE/);
-  assert.match(source, /#67c2be/i);
+  assert.deepEqual(
+    [threeBackground?.[1], threeFog?.[1], cssBackground?.[1]],
+    ["#69827e", "#69827e", "#69827e"],
+    "Three background, Three fog, and CSS fallback must share the approved field color",
+  );
+  const nonFieldPalette = `${source.replace(threeBackground?.[0] ?? "", "").replace(threeFog?.[0] ?? "", "")}\n${css.replace(lobbyRule?.[0] ?? "", "")}`;
+  assert.match(nonFieldPalette, /#67c2be/i, "the brighter teal must remain available as an accent");
   for (const forbidden of ["@react-three/drei", "@react-three/rapier", ".glb", ".gltf", "postprocessing", "Howl"])
     assert.equal(source.includes(forbidden), false, `StartLobby must not contain ${forbidden}`);
 });
