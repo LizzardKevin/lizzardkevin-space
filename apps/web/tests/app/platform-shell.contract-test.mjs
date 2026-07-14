@@ -1,12 +1,32 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, resolve } from "node:path";
+import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const sourceRoot = resolve(workspaceRoot, "apps/web/src");
 const sourcePath = (relativePath) => resolve(sourceRoot, relativePath);
 const readSource = (relativePath) => readFileSync(sourcePath(relativePath), "utf8").replace(/\r\n/g, "\n");
+
+function staticDependencySpecifiers(source) {
+  const matches = [];
+  const patterns = [
+    /^\s*import\s+(?!type\b)(?:["']([^"']+)["']|[\s\S]*?\sfrom\s+["']([^"']+)["'])\s*;?/gm,
+    /^\s*export\s+(?:\*(?:\s+as\s+[\w$]+)?|\{[\s\S]*?\})\s+from\s+["']([^"']+)["']\s*;?/gm,
+  ];
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) {
+      matches.push({ index: match.index, specifier: match[1] ?? match[2] });
+    }
+  }
+  return matches.sort((left, right) => left.index - right.index).map(({ specifier }) => specifier);
+}
+
+function dynamicImportSpecifiers(source) {
+  return [...source.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g)]
+    .map((match) => match[1]);
+}
 
 const requiredShells = ["app/DesktopApp.tsx", "app/MobileApp.tsx"];
 for (const shell of requiredShells) {
@@ -15,6 +35,33 @@ for (const shell of requiredShells) {
 
 const main = readSource("main.tsx");
 const app = readSource("App.tsx");
+
+const syntheticDependencies = `
+  import value from "./static";
+  import "./side-effect";
+  export { value as renamed } from "./named-reexport";
+  export * from "./star-reexport";
+  const desktopOnly = import("../scenes/SpaceHost");
+`;
+
+test("dependency extractor follows static imports and re-exports without following dynamic imports", () => {
+  assert.deepEqual(staticDependencySpecifiers(syntheticDependencies), [
+    "./static",
+    "./side-effect",
+    "./named-reexport",
+    "./star-reexport",
+  ]);
+});
+
+test("dependency extractor reports dynamic import specifiers separately", () => {
+  assert.deepEqual(dynamicImportSpecifiers(syntheticDependencies), ["../scenes/SpaceHost"]);
+});
+
+test("App loading fallback is a stable accessible white status surface", () => {
+  assert.match(app, /fallback=\{\s*<div[\s\S]*?role=["']status["'][\s\S]*?aria-live=["']polite["'][\s\S]*?>/);
+  assert.match(app, /background(?:Color)?:\s*["']#fff(?:fff)?["']/i);
+  assert.match(app, />\s*Loading application(?:\.\.\.|…)?\s*<\/div>/);
+});
 
 assert.equal(
   [...main.matchAll(/\bdetectClientPlatform\s*\(/g)].length,
@@ -44,7 +91,7 @@ assert(
   "App must be a pure platform-prop shell",
 );
 assert(
-  /<Suspense[\s\S]*fallback=\{<div[\s\S]*height:\s*["']100vh["'][\s\S]*width:\s*["']100vw["'][\s\S]*<\/Suspense>/.test(app) &&
+  /<Suspense[\s\S]*fallback=\{[\s\S]*<div[\s\S]*height:\s*["']100vh["'][\s\S]*width:\s*["']100vw["'][\s\S]*<\/Suspense>/.test(app) &&
     /platform\s*===\s*["']desktop["']\s*\?\s*<DesktopApp\s*\/>\s*:\s*<MobileApp\s*\/>/.test(app),
   "App must branch to the two lazy shells behind a stable Suspense fallback",
 );
@@ -75,10 +122,9 @@ function resolveRelativeModule(importer, specifier) {
 function staticRelativeImports(filePath) {
   const source = readFileSync(filePath, "utf8");
   const imports = [];
-  const pattern = /^\s*import\s+(?!type\b)(?!\s*\()[\s\S]*?\sfrom\s+["'](\.[^"']+)["']\s*;?|^\s*import\s+["'](\.[^"']+)["']\s*;?/gm;
-  for (const match of source.matchAll(pattern)) {
-    const imported = resolveRelativeModule(filePath, match[1] ?? match[2]);
-    assert(imported, `static import ${match[1] ?? match[2]} from ${filePath} must resolve`);
+  for (const specifier of staticDependencySpecifiers(source).filter((candidate) => candidate.startsWith("."))) {
+    const imported = resolveRelativeModule(filePath, specifier);
+    assert(imported, `static import ${specifier} from ${filePath} must resolve`);
     imports.push(imported);
   }
   return imports;
@@ -102,13 +148,21 @@ const mobileGraphModules = mobileGraph
   .join("\n");
 const mobileImportSpecifiers = mobileGraph.flatMap((filePath) => {
   const source = readFileSync(filePath, "utf8");
-  return [...source.matchAll(/^\s*import\s+(?!type\b)(?!\s*\()[\s\S]*?\sfrom\s+["']([^"']+)["']\s*;?|^\s*import\s+["']([^"']+)["']\s*;?/gm)]
-    .map((match) => match[1] ?? match[2]);
+  return staticDependencySpecifiers(source);
+});
+const mobileDynamicImportSpecifiers = mobileGraph.flatMap((filePath) => {
+  return dynamicImportSpecifiers(readFileSync(filePath, "utf8"));
 });
 for (const packageName of ["three", "@react-three/fiber", "@react-three/rapier"]) {
   assert(
-    !mobileImportSpecifiers.some((specifier) => specifier === packageName || specifier.startsWith(`${packageName}/`)),
+    !mobileImportSpecifiers
+      .some((specifier) => specifier === packageName || specifier.startsWith(`${packageName}/`)),
     `MobileApp static graph must not contain ${packageName}`,
+  );
+  assert(
+    !mobileDynamicImportSpecifiers
+      .some((specifier) => specifier === packageName || specifier.startsWith(`${packageName}/`)),
+    `MobileApp visited graph must not dynamically import ${packageName}`,
   );
 }
 for (const token of ["desktop", "scenes", "rendering", "SpaceDesktopExperience", "SpaceHost", "StartLobby", ".glb"]) {
@@ -116,6 +170,10 @@ for (const token of ["desktop", "scenes", "rendering", "SpaceDesktopExperience",
     !mobileGraphModules.toLowerCase().includes(token.toLowerCase()) &&
       !mobileImportSpecifiers.some((specifier) => specifier.toLowerCase().includes(token.toLowerCase())),
     `MobileApp static graph must not contain ${token}`,
+  );
+  assert(
+    !mobileDynamicImportSpecifiers.some((specifier) => specifier.toLowerCase().includes(token.toLowerCase())),
+    `MobileApp visited graph must not dynamically import ${token}`,
   );
 }
 

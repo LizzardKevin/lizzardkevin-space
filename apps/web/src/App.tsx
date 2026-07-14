@@ -7,7 +7,15 @@ const MobileApp = lazy(() => import("./app/MobileApp"));
 export default function App({ platform }: { platform: ClientPlatform }) {
   return (
     <Suspense
-      fallback={<div aria-label="Loading application" style={{ height: "100vh", width: "100vw" }} />}
+      fallback={
+        <div
+          role="status"
+          aria-live="polite"
+          style={{ height: "100vh", width: "100vw", background: "#ffffff" }}
+        >
+          Loading application…
+        </div>
+      }
     >
       {platform === "desktop" ? <DesktopApp /> : <MobileApp />}
     </Suspense>
