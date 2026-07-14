@@ -5,10 +5,14 @@ import { useAudioDirector } from "../audio/useAudioDirector";
 import { useTranslation } from "react-i18next";
 import type { OverlayTab } from "../overlay/OverlayState";
 import {
+  SPACE_POINTER_LOCK_FAILED_EVENT,
   resumeSpaceFirstPersonAfterEscape,
   resumeSpaceFirstPersonWithCursorReturn,
 } from "../space/requestSpacePointerLock";
-import { useSpacePointerLockGuard } from "../space/useSpacePointerLockGuard";
+import {
+  shouldGuardSpacePointerLock,
+  useSpacePointerLockGuard,
+} from "../space/useSpacePointerLockGuard";
 import { PersistentSpaceHostBoundary } from "../space/PersistentSpaceHostBoundary";
 import { resolveSpaceRouteRuntimePolicy, type SpaceRouteKind } from "../space/routeRuntimePolicy";
 import { NotFound, ProfileAliasRoute, SpaceAliasRoute } from "./appRoutes";
@@ -73,6 +77,7 @@ export default function DesktopApp() {
   );
   const [spaceStarted, setSpaceStarted] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [returningToSpace, setReturningToSpace] = useState(false);
   const route = resolveAppRoute(location.pathname);
   const policyRoute: SpaceRouteKind =
     route.kind === "space-alias"
@@ -98,7 +103,19 @@ export default function DesktopApp() {
 
   const entered = handoff.phase === "entered";
 
-  useSpacePointerLockGuard(routeBlocked || !entered);
+  if (route.kind === "space" && returningToSpace) {
+    setReturningToSpace(false);
+  }
+
+  useSpacePointerLockGuard(
+    shouldGuardSpacePointerLock(entered, routeBlocked, returningToSpace),
+  );
+
+  useEffect(() => {
+    const cancelReturnHandoff = () => setReturningToSpace(false);
+    window.addEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, cancelReturnHandoff);
+    return () => window.removeEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, cancelReturnHandoff);
+  }, []);
 
   useEffect(() => {
     if (!spaceStarted) return;
@@ -138,21 +155,27 @@ export default function DesktopApp() {
 
   const navigateToSpace = useCallback(
     (options?: { fromEscape?: boolean }) => {
-      navigate(APP_ROUTE_PATHS.space);
+      flushSync(() => setReturningToSpace(true));
       if (options?.fromEscape) {
         resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: false });
       } else if (entered) {
         resumeSpaceFirstPersonWithCursorReturn();
       }
+      navigate(APP_ROUTE_PATHS.space);
     },
     [entered, navigate],
   );
 
   const beginOverlayClose = useCallback(
     (options?: { fromEscape?: boolean }) => {
-      flushSync(() => setClosing(true));
+      flushSync(() => {
+        setClosing(true);
+        setReturningToSpace(true);
+      });
       if (options?.fromEscape) {
         resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: false });
+      } else if (entered) {
+        resumeSpaceFirstPersonWithCursorReturn();
       }
     },
     [entered],
@@ -266,7 +289,7 @@ export default function DesktopApp() {
               onRequestClose={beginOverlayClose}
               onClosed={() => {
                 setClosing(false);
-                navigateToSpace();
+                navigate(APP_ROUTE_PATHS.space);
               }}
             />
           ) : (
@@ -276,7 +299,7 @@ export default function DesktopApp() {
               onRequestClose={beginOverlayClose}
               onClosed={() => {
                 setClosing(false);
-                navigateToSpace();
+                navigate(APP_ROUTE_PATHS.space);
               }}
             />
           )}

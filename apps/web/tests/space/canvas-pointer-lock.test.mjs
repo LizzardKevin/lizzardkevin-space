@@ -46,6 +46,40 @@ test("route-return and click controls resolve the identical Canvas target", () =
   assert.equal(resolveSpacePointerLockTarget(null, documentRoot), canvas);
 });
 
+test("the return handoff only bypasses the blocked-route guard after SPACE was entered", () => {
+  const guard = source("space/useSpacePointerLockGuard.ts");
+  const policySource = guard.match(
+    /export function shouldGuardSpacePointerLock\([\s\S]*?\n\}/,
+  )?.[0];
+  assert.ok(policySource, "the guard policy must be independently testable");
+  const executablePolicySource = policySource.replace("export ", "").replaceAll(": boolean", "");
+  const shouldGuard = Function(
+    `"use strict"; ${executablePolicySource}; return shouldGuardSpacePointerLock;`,
+  )();
+  assert.equal(
+    shouldGuard(true, true, false),
+    true,
+    "ordinary blocked routes must reject pointer lock",
+  );
+  assert.equal(
+    shouldGuard(true, true, true),
+    false,
+    "an armed return may request pointer lock before the SPACE route commits",
+  );
+  assert.equal(
+    shouldGuard(false, false, true),
+    true,
+    "the handoff must never bypass the pre-entry guard",
+  );
+});
+
+test("the blocked-route guard synchronously removes its listener during a return handoff", () => {
+  const guard = source("space/useSpacePointerLockGuard.ts");
+  assert.match(guard, /import \{ useLayoutEffect \} from ["']react["']/);
+  assert.match(guard, /useLayoutEffect\(\(\) => \{/);
+  assert.doesNotMatch(guard, /\buseEffect\(/);
+});
+
 test("Focus close delegates route and pointer-lock resume to DesktopApp exactly once", () => {
   const desktop = source("app/DesktopApp.tsx");
   const experience = source("pages/SpaceDesktopExperience.tsx");
@@ -60,4 +94,55 @@ test("Focus close delegates route and pointer-lock resume to DesktopApp exactly 
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonWithCursorReturn/g) ?? []).length, 1);
   assert.equal((escapeBody.match(/addEventListener\(["']keyup["']/g) ?? []).length, 1);
   assert.equal((escapeBody.match(/setTimeout/g) ?? []).length, 1);
+});
+
+test("Focus arms the return handoff before making exactly one pointer-lock request", () => {
+  const desktop = source("app/DesktopApp.tsx");
+  const navigateBody = desktop.match(/const navigateToSpace = useCallback\([\s\S]*?\n  \);/)?.[0] ?? "";
+  const armIndex = navigateBody.indexOf("setReturningToSpace(true)");
+  const normalRequestIndex = navigateBody.indexOf("resumeSpaceFirstPersonWithCursorReturn()");
+  const escapeRequestIndex = navigateBody.indexOf("resumeSpaceFirstPersonAfterEscape(");
+
+  assert.match(navigateBody, /flushSync\(\(\) => setReturningToSpace\(true\)\)/);
+  assert.ok(armIndex >= 0 && armIndex < normalRequestIndex);
+  assert.ok(armIndex < escapeRequestIndex);
+  assert.equal((navigateBody.match(/resumeSpaceFirstPersonWithCursorReturn\(\)/g) ?? []).length, 1);
+  assert.equal((navigateBody.match(/resumeSpaceFirstPersonAfterEscape\(/g) ?? []).length, 1);
+});
+
+test("Profile and DevStories request pointer lock at close start and navigate route-only onClosed", () => {
+  const desktop = source("app/DesktopApp.tsx");
+  const beginCloseBody = desktop.match(/const beginOverlayClose = useCallback\([\s\S]*?\n  \);/)?.[0] ?? "";
+  const onClosedBodies = [...desktop.matchAll(/onClosed=\{\(\) => \{([\s\S]*?)\n              \}\}/g)].map(
+    (match) => match[1],
+  );
+  const armIndex = beginCloseBody.indexOf("setReturningToSpace(true)");
+  const normalRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonWithCursorReturn()");
+  const escapeRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonAfterEscape(");
+
+  assert.ok(armIndex >= 0 && armIndex < normalRequestIndex);
+  assert.ok(armIndex < escapeRequestIndex);
+  assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonWithCursorReturn\(\)/g) ?? []).length, 1);
+  assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonAfterEscape\(/g) ?? []).length, 1);
+  assert.equal(onClosedBodies.length, 2);
+  for (const body of onClosedBodies) {
+    assert.match(body, /navigate\(APP_ROUTE_PATHS\.space\)/);
+    assert.doesNotMatch(body, /navigateToSpace|resumeSpaceFirstPerson|requestSpacePointerLock/);
+  }
+});
+
+test("the return handoff clears on SPACE commit and pointer-lock failure or cancellation", () => {
+  const desktop = source("app/DesktopApp.tsx");
+  assert.match(
+    desktop,
+    /window\.addEventListener\(SPACE_POINTER_LOCK_FAILED_EVENT, cancelReturnHandoff\)/,
+  );
+  assert.match(
+    desktop,
+    /window\.removeEventListener\(SPACE_POINTER_LOCK_FAILED_EVENT, cancelReturnHandoff\)/,
+  );
+  assert.match(
+    desktop,
+    /if \(route\.kind === ["']space["'] && returningToSpace\) \{\s*setReturningToSpace\(false\);/,
+  );
 });
