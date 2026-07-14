@@ -19,6 +19,7 @@ export const runtimeResourceAugmentation = {
       rendererLoadFailed: "Focus renderer failed to load",
       mediaLoadProgress: "Images decoded {{loaded}}/{{total}}",
       mediaLoadFailed: "{{failed}} image(s) failed to load.",
+      videoMetadataFailed: "Video metadata failed to load.",
     },
   },
   zh: {
@@ -36,6 +37,7 @@ export const runtimeResourceAugmentation = {
       rendererLoadFailed: "Focus 渲染器加载失败",
       mediaLoadProgress: "图片解码 {{loaded}}/{{total}}",
       mediaLoadFailed: "{{failed}} 张图片加载失败。",
+      videoMetadataFailed: "视频信息加载失败。",
     },
   },
 } as const;

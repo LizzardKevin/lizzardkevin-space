@@ -228,3 +228,69 @@ test("Focus media holds an unstable rail until settlement, then renders successe
   ]);
   assert.equal(items.some(({ url }) => url === "/first.jpg"), false);
 });
+
+test("video metadata URLs normalize and deduplicate without entering image progress", async () => {
+  const {
+    createSelectedWorkMediaController,
+    normalizeSelectedWorkVideoUrls,
+  } = await importSourceModule("exhibits/selectedWorkMedia.ts");
+  assert.deepEqual(
+    normalizeSelectedWorkVideoUrls(
+      [" /process.mp4 ", "/clips/../process.mp4", "/process.mp4", ""],
+      "https://space.test/gallery/",
+    ),
+    ["https://space.test/process.mp4"],
+  );
+
+  const imageSnapshots = [];
+  const videoSnapshots = [];
+  const controller = createSelectedWorkMediaController({
+    baseUrl: "https://space.test/",
+    async loadImage(url) {
+      return { displayUrl: url, dispose() {} };
+    },
+  });
+  const session = controller.select(
+    exhibit("metadata", ["/still.jpg"], "/process.mp4"),
+    (snapshot) => imageSnapshots.push(snapshot),
+    (snapshot) => videoSnapshots.push(snapshot),
+  );
+  await session.done;
+  const imageSnapshotCount = imageSnapshots.length;
+
+  session.reportVideoMetadata("/process.mp4", "loaded");
+  session.reportVideoMetadata("/process.mp4", "loaded");
+
+  assert.equal(imageSnapshots.length, imageSnapshotCount);
+  assert.deepEqual(imageSnapshots.at(-1).progress, { loaded: 1, total: 1, failed: 0 });
+  assert.equal(videoSnapshots.length, 2, "duplicate metadata events settle exactly once");
+  assert.deepEqual(videoSnapshots.at(-1).progress, { loaded: 1, total: 1, failed: 0 });
+  assert.deepEqual(videoSnapshots.at(-1).settledUrls, ["https://space.test/process.mp4"]);
+});
+
+test("video metadata failures are separate and stale prior-selection events are ignored", async () => {
+  const { createSelectedWorkMediaController } =
+    await importSourceModule("exhibits/selectedWorkMedia.ts");
+  const controller = createSelectedWorkMediaController({ baseUrl: "https://space.test/" });
+  const oldVideoSnapshots = [];
+  const newVideoSnapshots = [];
+  const oldSession = controller.select(
+    exhibit("old-video", [], "/old.mp4"),
+    () => {},
+    (snapshot) => oldVideoSnapshots.push(snapshot),
+  );
+  const newSession = controller.select(
+    exhibit("new-video", [], "/new.mp4"),
+    () => {},
+    (snapshot) => newVideoSnapshots.push(snapshot),
+  );
+
+  oldSession.reportVideoMetadata("/old.mp4", "loaded");
+  newSession.reportVideoMetadata("/new.mp4", "failed");
+  newSession.reportVideoMetadata("/new.mp4", "failed");
+
+  assert.equal(oldVideoSnapshots.length, 1);
+  assert.equal(newVideoSnapshots.length, 2);
+  assert.deepEqual(newVideoSnapshots.at(-1).progress, { loaded: 0, total: 1, failed: 1 });
+  assert.deepEqual(newVideoSnapshots.at(-1).settledUrls, ["https://space.test/new.mp4"]);
+});

@@ -18,6 +18,16 @@ export type SelectedWorkMediaSnapshot = {
   progress: SelectedWorkMediaProgress;
 };
 
+export type SelectedWorkVideoMetadataSnapshot = {
+  exhibitId: string;
+  progress: SelectedWorkMediaProgress;
+  settledUrls: string[];
+  videos: Array<{
+    sourceUrl: string;
+    status: "loading" | "loaded" | "failed";
+  }>;
+};
+
 export type DecodedSelectedWorkImage = {
   displayUrl: string;
   dispose: () => void;
@@ -45,7 +55,7 @@ function defaultBaseUrl() {
   return "http://localhost/";
 }
 
-export function normalizeSelectedWorkImageUrls(
+function normalizeSelectedWorkUrls(
   urls: readonly string[] | undefined,
   baseUrl = defaultBaseUrl(),
 ) {
@@ -65,6 +75,20 @@ export function normalizeSelectedWorkImageUrls(
     normalized.push(url);
   }
   return normalized;
+}
+
+export function normalizeSelectedWorkImageUrls(
+  urls: readonly string[] | undefined,
+  baseUrl = defaultBaseUrl(),
+) {
+  return normalizeSelectedWorkUrls(urls, baseUrl);
+}
+
+export function normalizeSelectedWorkVideoUrls(
+  urls: readonly string[] | undefined,
+  baseUrl = defaultBaseUrl(),
+) {
+  return normalizeSelectedWorkUrls(urls, baseUrl);
 }
 
 function waitForImageDecode(image: HTMLImageElement) {
@@ -169,12 +193,18 @@ export function createSelectedWorkMediaController({
   const select = (
     exhibit: Pick<ExhibitManifestItem, "exhibitId" | "media">,
     onSnapshot: (snapshot: SelectedWorkMediaSnapshot) => void,
+    onVideoSnapshot?: (snapshot: SelectedWorkVideoMetadataSnapshot) => void,
   ) => {
     cancelActive();
     const token = ++attemptSequence;
     const attempt: ActiveAttempt = { active: true, controllers: [], token };
     activeAttempt = attempt;
     const urls = normalizeSelectedWorkImageUrls(exhibit.media?.imageUrls, baseUrl);
+    const videoUrls = normalizeSelectedWorkVideoUrls(
+      exhibit.media?.videoUrl ? [exhibit.media.videoUrl] : [],
+      baseUrl,
+    );
+    const videoStatuses = new Map<string, "loaded" | "failed">();
     const work = promoteWork(exhibit.exhibitId);
     const activeUrlSet = new Set(urls);
     for (const [url, decoded] of work.images) {
@@ -208,7 +238,27 @@ export function createSelectedWorkMediaController({
       onSnapshot(snapshot());
     };
 
+    const videoSnapshot = (): SelectedWorkVideoMetadataSnapshot => ({
+      exhibitId: exhibit.exhibitId,
+      progress: {
+        loaded: videoUrls.filter((url) => videoStatuses.get(url) === "loaded").length,
+        total: videoUrls.length,
+        failed: videoUrls.filter((url) => videoStatuses.get(url) === "failed").length,
+      },
+      settledUrls: videoUrls.filter((url) => videoStatuses.has(url)),
+      videos: videoUrls.map((sourceUrl) => ({
+        sourceUrl,
+        status: videoStatuses.get(sourceUrl) ?? "loading",
+      })),
+    });
+
+    const publishVideo = () => {
+      if (activeAttempt !== attempt || !attempt.active || attempt.token !== token) return;
+      onVideoSnapshot?.(videoSnapshot());
+    };
+
     publish();
+    publishVideo();
     const tasks = urls.map(async (url) => {
       if (work.images.has(url)) return;
       const controller = new AbortController();
@@ -234,6 +284,13 @@ export function createSelectedWorkMediaController({
         if (activeAttempt === attempt) cancelActive();
       },
       done,
+      reportVideoMetadata(candidateUrl: string, status: "loaded" | "failed") {
+        if (activeAttempt !== attempt || !attempt.active || attempt.token !== token) return;
+        const [url] = normalizeSelectedWorkVideoUrls([candidateUrl], baseUrl);
+        if (!url || !videoUrls.includes(url) || videoStatuses.has(url)) return;
+        videoStatuses.set(url, status);
+        publishVideo();
+      },
     };
   };
 

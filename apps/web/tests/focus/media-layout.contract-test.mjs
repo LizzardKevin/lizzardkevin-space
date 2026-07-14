@@ -61,7 +61,7 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
     "Focus media arrows should follow the measured normal image width instead of a viewport-only fallback",
   );
   assert.ok(
-    overlaySource.includes("selectedWorkMediaController.select(exhibit") &&
+    /selectedWorkMediaController\.select\(\s*exhibit\s*,\s*setSelectedMediaSnapshot/.test(overlaySource) &&
       overlaySource.includes("setSelectedMediaSnapshot") &&
       overlaySource.includes("session.cancel()") &&
       overlaySource.includes('loading="eager"'),

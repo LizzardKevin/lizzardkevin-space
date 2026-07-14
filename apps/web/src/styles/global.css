@@ -2771,6 +2771,21 @@ button {
   color: #8a2b22;
 }
 
+.focus-video-metadata-error {
+  position: absolute;
+  left: 50%;
+  bottom: 108px;
+  z-index: 8;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(244, 244, 239, 0.92);
+  color: #8a2b22;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+
 @keyframes focus-media-progress-spin {
   to {
     transform: rotate(360deg);

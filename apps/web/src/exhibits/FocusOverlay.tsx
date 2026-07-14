@@ -74,6 +74,7 @@ import {
 import {
   selectedWorkMediaController,
   type SelectedWorkMediaSnapshot,
+  type SelectedWorkVideoMetadataSnapshot,
 } from "./selectedWorkMedia.ts";
 import { resolveFocusDisplayTitle } from "./focusDisplayTitle";
 import * as THREE from "three";
@@ -541,6 +542,8 @@ export function FocusOverlay({
   const videoUrl = exhibit.media?.videoUrl;
   const [selectedMediaSnapshot, setSelectedMediaSnapshot] =
     useState<SelectedWorkMediaSnapshot | null>(null);
+  const [selectedVideoMetadataSnapshot, setSelectedVideoMetadataSnapshot] =
+    useState<SelectedWorkVideoMetadataSnapshot | null>(null);
   const selectedImages = useMemo(
     () =>
       selectedMediaSnapshot?.exhibitId === exhibit.exhibitId
@@ -571,7 +574,10 @@ export function FocusOverlay({
   const imageMotionLiveRef = useRef(false);
   const departingImageIdRef = useRef(0);
   const departingImageTimerRef = useRef<number | null>(null);
-  const selectedMediaSessionRef = useRef<{ cancel: () => void } | null>(null);
+  const selectedMediaSessionRef = useRef<{
+    cancel: () => void;
+    reportVideoMetadata: (url: string, status: "loaded" | "failed") => void;
+  } | null>(null);
   const activeMediaIndex =
     activeMediaState.exhibitId === exhibit.exhibitId
       ? Math.min(activeMediaState.index, mediaItems.length - 1)
@@ -588,6 +594,10 @@ export function FocusOverlay({
       : null;
   const mediaSettled = mediaProgress ? mediaProgress.loaded + mediaProgress.failed : 0;
   const mediaLoading = mediaProgress ? mediaSettled < mediaProgress.total : false;
+  const videoMetadataProgress =
+    selectedVideoMetadataSnapshot?.exhibitId === exhibit.exhibitId
+      ? selectedVideoMetadataSnapshot.progress
+      : null;
 
   useEffect(() => {
     useGLTF.preload(exhibit.focusGlbUrl, GLTF_DRACO_DECODER_PATH);
@@ -605,10 +615,24 @@ export function FocusOverlay({
   }, [activeMedia.kind, activeMedia.url]);
 
   useEffect(() => {
-    const session = selectedWorkMediaController.select(exhibit, setSelectedMediaSnapshot);
+    const session = selectedWorkMediaController.select(
+      exhibit,
+      setSelectedMediaSnapshot,
+      setSelectedVideoMetadataSnapshot,
+    );
     selectedMediaSessionRef.current = session;
     return () => session.cancel();
   }, [exhibit]);
+
+  const handleVideoMetadataLoaded = useCallback(() => {
+    if (!videoUrl) return;
+    selectedMediaSessionRef.current?.reportVideoMetadata(videoUrl, "loaded");
+  }, [videoUrl]);
+
+  const handleVideoMetadataFailed = useCallback(() => {
+    if (!videoUrl) return;
+    selectedMediaSessionRef.current?.reportVideoMetadata(videoUrl, "failed");
+  }, [videoUrl]);
 
   useEffect(() => {
     let cancelled = false;
@@ -657,6 +681,7 @@ export function FocusOverlay({
       if (closingRef.current) return;
       closingRef.current = true;
       selectedMediaSessionRef.current?.cancel();
+      setSelectedVideoMetadataSnapshot(null);
       onBeginDismiss(opts);
       playback.stop();
       setContentVisible(false);
@@ -1069,6 +1094,7 @@ export function FocusOverlay({
 
           {videoUrl ? (
             <video
+              key={`${exhibit.exhibitId}-${videoUrl}`}
               ref={(el) => {
                 focusVideoRef.current = el;
                 playback.attachVideoElement(el);
@@ -1081,8 +1107,16 @@ export function FocusOverlay({
               playsInline
               preload="metadata"
               src={videoUrl}
+              onLoadedMetadata={handleVideoMetadataLoaded}
+              onError={handleVideoMetadataFailed}
               aria-label={t("focus.processAnimationAria", { title: displayTitle })}
             />
+          ) : null}
+
+          {videoMetadataProgress && videoMetadataProgress.failed > 0 ? (
+            <div className="focus-video-metadata-error" role="alert">
+              {t("focus.videoMetadataFailed")}
+            </div>
           ) : null}
 
           <FocusModelErrorBoundary
