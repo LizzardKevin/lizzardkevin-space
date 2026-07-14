@@ -1,0 +1,1798 @@
+{
+  "schemaVersion": 1,
+  "scope": {
+    "discoveryRoots": [
+      "apps/web/public",
+      "BlenderFile",
+      "docs/assets"
+    ],
+    "publicDirectoryShipsVerbatim": true,
+    "browserMeasurements": "pending_browser_capture"
+  },
+  "totals": {
+    "assets": {
+      "files": 105,
+      "bytes": 204278866
+    },
+    "publicShipping": {
+      "files": 102,
+      "bytes": 169737413
+    },
+    "sourceOnly": {
+      "files": 14,
+      "bytes": 104357343
+    },
+    "byPhase": {
+      "audio": {
+        "files": 10,
+        "bytes": 4973916
+      },
+      "boot/world": {
+        "files": 27,
+        "bytes": 20150761
+      },
+      "decoder": {
+        "files": 3,
+        "bytes": 1063920
+      },
+      "focus/work": {
+        "files": 41,
+        "bytes": 73683777
+      },
+      "mobile/cold": {
+        "files": 5,
+        "bytes": 42958
+      },
+      "shared/other": {
+        "files": 5,
+        "bytes": 6191
+      },
+      "source-only": {
+        "files": 14,
+        "bytes": 104357343
+      }
+    },
+    "byType": {
+      "3d": {
+        "files": 13,
+        "bytes": 111454534
+      },
+      "audio": {
+        "files": 8,
+        "bytes": 4972994
+      },
+      "data/interface": {
+        "files": 10,
+        "bytes": 43464
+      },
+      "documentation/license": {
+        "files": 5,
+        "bytes": 6931
+      },
+      "font": {
+        "files": 2,
+        "bytes": 23732
+      },
+      "javascript/decoder": {
+        "files": 2,
+        "bytes": 778173
+      },
+      "other": {
+        "files": 4,
+        "bytes": 24
+      },
+      "texture/image": {
+        "files": 58,
+        "bytes": 37418950
+      },
+      "video": {
+        "files": 1,
+        "bytes": 48398326
+      },
+      "wasm": {
+        "files": 1,
+        "bytes": 285747
+      },
+      "workbook/data-source": {
+        "files": 1,
+        "bytes": 895991
+      }
+    }
+  },
+  "assets": [
+    {
+      "path": "apps/web/public/_redirects",
+      "type": "other",
+      "phase": "shared/other",
+      "bytes": 24,
+      "sha256": "66584af744075248a042165adbdbd6a0551fa708a85650ea1e3e777eee17080c",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/.gitkeep",
+      "type": "other",
+      "phase": "audio",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/footstep_01.wav",
+      "type": "audio",
+      "phase": "audio",
+      "bytes": 14156,
+      "sha256": "922ecd14d8dcbc3d56a951907c032ccffeccf7c9194d03ed25ecbb952457516e",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/footstep_02.wav",
+      "type": "audio",
+      "phase": "audio",
+      "bytes": 14156,
+      "sha256": "ed611994dba58026d49f7898fec5b9bf3824c18031455a7a50900cdce0cc7779",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/footstep_03.wav",
+      "type": "audio",
+      "phase": "audio",
+      "bytes": 14156,
+      "sha256": "070363aa22fe8667e2b67270b7f035ce8ef1bee0b554a385425cc7e5c8a9ea6c",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/footstep_04.wav",
+      "type": "audio",
+      "phase": "audio",
+      "bytes": 14156,
+      "sha256": "e85359cb1ab3e74c2bbb68c770997c54fb71384b8298d0d696ef3d3185ffb374",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/footstep_05.wav",
+      "type": "audio",
+      "phase": "audio",
+      "bytes": 14156,
+      "sha256": "7d04933e40e6d8d1ac248bf026d098f347433da22efbc7d9605c7cf9f6903e49",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/jump_land.wav",
+      "type": "audio",
+      "phase": "audio",
+      "bytes": 12832,
+      "sha256": "2f018a9ed3d7863491ab0c13163f8d167fa4c3598191edae6421622b2e969f53",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/jump_start.wav",
+      "type": "audio",
+      "phase": "audio",
+      "bytes": 10186,
+      "sha256": "454e50171148016e6918799ad24c95ffa7944ebc6eb816da91292d8bdbf8665e",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/README.md",
+      "type": "documentation/license",
+      "phase": "audio",
+      "bytes": 922,
+      "sha256": "c29269c0bff651f9209c569d16230a7962be709fa9e34c676eeb282d0b13b758",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/space_background_looped.mp3",
+      "type": "audio",
+      "phase": "audio",
+      "bytes": 4879196,
+      "sha256": "d9991fdfc4fd062b00c6ac615140272ea8cb94e3253bfdeb7dd1a46d2083dcc8",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/draco/draco_decoder.js",
+      "type": "javascript/decoder",
+      "phase": "decoder",
+      "bytes": 719410,
+      "sha256": "30e4d486fa020737af10e3c56197693e5b904bdc05b8bfa5d7b06751dec6da04",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/draco/draco_decoder.wasm",
+      "type": "wasm",
+      "phase": "decoder",
+      "bytes": 285747,
+      "sha256": "c55a594e8ffd18426d36b27fea9618af3df5e173640a3e56d46f09d76f0574f2",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/draco/draco_wasm_wrapper.js",
+      "type": "javascript/decoder",
+      "phase": "decoder",
+      "bytes": 58763,
+      "sha256": "e8049906ef3f8f75d3456c22a3f31bfdfe5b5b5bd09ccdec613b9e9a49d554d8",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.report.json",
+      "type": "data/interface",
+      "phase": "source-only",
+      "bytes": 3236,
+      "sha256": "65bf93828756ea409b9cb607df48ec3d42456de87fea6339fd067d42abb68d7c",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_3d_printing_architecture/arch_3d_printing_architecture.source.glb",
+      "type": "3d",
+      "phase": "source-only",
+      "bytes": 17984916,
+      "sha256": "a7879fbf38461d4db6f6cacb6643272a397b25773b002ed7c2731991572e56f9",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 17984916,
+        "generator": null,
+        "scenes": 1,
+        "nodes": 685,
+        "meshes": 685,
+        "primitives": 685,
+        "materials": 0,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 17377328,
+        "bufferViewBytes": 17377328,
+        "accessors": 2740,
+        "accessorLogicalBytes": 17377328,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [
+          "KHR_materials_clearcoat",
+          "KHR_materials_emissive_strength",
+          "KHR_materials_ior",
+          "KHR_materials_specular",
+          "KHR_materials_transmission"
+        ],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_3d_printing_architecture/content.json",
+      "type": "data/interface",
+      "phase": "focus/work",
+      "bytes": 4768,
+      "sha256": "638dc66895c6e5d25764af3a8a4f44f4aace5a58c62b4f711ba043de2b45ec7d",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_3d_printing_architecture/focus_arch_3d_printing_architecture.glb",
+      "type": "3d",
+      "phase": "focus/work",
+      "bytes": 7265956,
+      "sha256": "255dab828ec5705e9d1e9577968ee303b203b6f9e2b8187fa0303ac9583ee3da",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 7265956,
+        "generator": "Khronos glTF Blender I/O v5.1.20",
+        "scenes": 1,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 2,
+        "materials": 2,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 7263580,
+        "bufferViewBytes": 7263578,
+        "accessors": 8,
+        "accessorLogicalBytes": 7263578,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_3d_printing_architecture/space_arch_3d_printing_architecture.glb",
+      "type": "3d",
+      "phase": "boot/world",
+      "bytes": 2957156,
+      "sha256": "37c42879868911776814ed41a6062c08f5d5f45348e8a60a46e8c59d724cc8c6",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 2957156,
+        "generator": "Khronos glTF Blender I/O v5.1.20",
+        "scenes": 1,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 2,
+        "materials": 2,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 2954792,
+        "bufferViewBytes": 2954790,
+        "accessors": 8,
+        "accessorLogicalBytes": 2954790,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_3d_printing_architecture/video/final-clip-without-bgm.mp4",
+      "type": "video",
+      "phase": "focus/work",
+      "bytes": 48398326,
+      "sha256": "63a03a098e28d4ea4a66fc4ea6e2d81ba029cebd072e234b75680f92f0340ed0",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/arch_treehabitat.report.json",
+      "type": "data/interface",
+      "phase": "source-only",
+      "bytes": 3013,
+      "sha256": "a4019498df0bff115d90d273eb2f3ad7cc452153b5ca4414b1720db80f676773",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/arch_treehabitat.source.glb",
+      "type": "3d",
+      "phase": "source-only",
+      "bytes": 9286836,
+      "sha256": "02fe68931409d88e9fc9fe07ad5ed89dea20922417459e7c965283f5ae778b3a",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 9286836,
+        "generator": null,
+        "scenes": 1,
+        "nodes": 497,
+        "meshes": 497,
+        "primitives": 497,
+        "materials": 0,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 8874092,
+        "bufferViewBytes": 8874092,
+        "accessors": 1842,
+        "accessorLogicalBytes": 8874092,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [
+          "KHR_materials_clearcoat",
+          "KHR_materials_emissive_strength",
+          "KHR_materials_ior",
+          "KHR_materials_specular",
+          "KHR_materials_transmission"
+        ],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/content.json",
+      "type": "data/interface",
+      "phase": "focus/work",
+      "bytes": 4490,
+      "sha256": "b6c278ea533245409edba4b7fb7230ce969c9a0f387b5809f9b576bfbd5f6728",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+      "type": "3d",
+      "phase": "focus/work",
+      "bytes": 6208028,
+      "sha256": "d2abc677df51bdc7932d0f0d08a46e7dd014a4a8d2c08aad4e57ed759cc17cb1",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 6208028,
+        "generator": "Khronos glTF Blender I/O v5.1.20",
+        "scenes": 1,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 2,
+        "materials": 2,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 6205684,
+        "bufferViewBytes": 6205684,
+        "accessors": 8,
+        "accessorLogicalBytes": 6205684,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-1.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 182462,
+      "sha256": "058d51c50e034fbab68b8be111b59a3721fd4ae9552940e7737704c1ca3f80de",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-10.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 153916,
+      "sha256": "bcc5cb90b8d9817ed9ed122db5a436b55495d4df584d74d34f441ea4fd5a3ded",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-11.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 112576,
+      "sha256": "4f3bb2c41c94bea8af29db1283a40c022393262edacb93581eb034b4637adaae",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-12.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 267486,
+      "sha256": "4cfc5127bef1e238ebacdca443a9691a87c9a041a55351181d9c38bc5d7fd5eb",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-13.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 91818,
+      "sha256": "a7b5a33a91674341581d60f537980c6f24013e77ecccaf47369bcffdec44dfd1",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-14.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 115734,
+      "sha256": "57b918e621ae1cb936597066f8fb132bef634b17d69afa74bf845864b0606475",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-15.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 228244,
+      "sha256": "b7d95027b36541aeb6a68e2e51055a2d25e94a3e80ca44f6a092f7f48c8fd6c3",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-16.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 128196,
+      "sha256": "630011a04cf44758e8f5238f0b2a909ebcdb5ada74598dde7fdc89633b7b8c00",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-17.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 90856,
+      "sha256": "c58a663e3f5081b106ec02aec57183aa8edde757afa5c9a3a9ab730bc1b2046c",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-18.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 102486,
+      "sha256": "4ac701e2eacc425aa50bb55dee04330d65b767f21e47b14dd524780d717732bf",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-19.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 86426,
+      "sha256": "306f5c4deeba357559aa83ebbb5293c67e64aa415e216d8f7432e9fe35864b21",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-2.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 310060,
+      "sha256": "ce4b7ac10a945fca864adcd05305e5ffadb0dd2fad17094486353d46d4d4c7ea",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-20.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 79550,
+      "sha256": "67678893a04708375d9bc773c73ed53817eaf7ff192ae2abd673124769a8ffd9",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-21.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 93958,
+      "sha256": "6b92029587138b15c64fc60f4fd06abb519a1ea8dcfa086f7fe3c55d76e0583a",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-22.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 53260,
+      "sha256": "a9c243c8b09a78dadadeefb78c261a74f9c9f7791b3ceabf93793f9b5c265254",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-23.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 45948,
+      "sha256": "60d84e41c096225f98d9b2267a893302fb7f8698687253e18b4e433d41f3a8ac",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-24.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 51588,
+      "sha256": "dcfb48c932f647cedc6b996fc5253c4ed67493841166d62d3844f689667dab97",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-25.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 88856,
+      "sha256": "90dbcaec6926ee4cfe6a309064f024d0623d3fb35d6f7be970096b880a56c528",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-26.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 53750,
+      "sha256": "8b52ffb8a15138cad0f124834777a48b6df03ea1a0aa1533c353b2bf051b6a40",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-3.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 363180,
+      "sha256": "4139e665dd987dd2f3311d059b199231eb6716093fe2d9845b6f16e650e5e16c",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-6.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 145162,
+      "sha256": "bd41d87edf448519511ca5388ee33765446ba09028ef6e57be10b7327208f390",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-8.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 121776,
+      "sha256": "aa16624f2d36a5783a82f00f3beb2d26b683f5e86127768ff63e5dda63d494be",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-9.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 257724,
+      "sha256": "70ab18256d998eb43d647c5400935fbd73bda7d20689de2c756fa29ab2bdee4f",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
+      "type": "3d",
+      "phase": "boot/world",
+      "bytes": 2717672,
+      "sha256": "8c06aab56b9bbde5237af7a42fb6d7b8f8f2349bed0976e05a642f08daff1658",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 2717672,
+        "generator": "Khronos glTF Blender I/O v5.1.20",
+        "scenes": 1,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 2,
+        "materials": 2,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 2715340,
+        "bufferViewBytes": 2715340,
+        "accessors": 8,
+        "accessorLogicalBytes": 2715340,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.report.json",
+      "type": "data/interface",
+      "phase": "source-only",
+      "bytes": 3022,
+      "sha256": "93d9cf00445dd96504b35e386adad83582792671598e6a12466d85688d382ac6",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/arch_uabb_exhibit.source.glb",
+      "type": "3d",
+      "phase": "source-only",
+      "bytes": 11383756,
+      "sha256": "399048cb948f54d15c334b96416daadddb3f2cd3cb6b07a5d42f1f30a324ccbf",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 11383756,
+        "generator": null,
+        "scenes": 1,
+        "nodes": 1866,
+        "meshes": 1866,
+        "primitives": 1866,
+        "materials": 0,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 9752680,
+        "bufferViewBytes": 9752680,
+        "accessors": 7464,
+        "accessorLogicalBytes": 9752680,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [
+          "KHR_materials_clearcoat",
+          "KHR_materials_emissive_strength",
+          "KHR_materials_ior",
+          "KHR_materials_specular",
+          "KHR_materials_transmission"
+        ],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/content.json",
+      "type": "data/interface",
+      "phase": "focus/work",
+      "bytes": 4633,
+      "sha256": "6ea5e6233cdb071b00e7232926c427c9727f869111d78446112f51237e1569c7",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/focus_arch_uabb_exhibit.glb",
+      "type": "3d",
+      "phase": "focus/work",
+      "bytes": 6090288,
+      "sha256": "c8050fcaa134658fb1a667a940ec67aa8c34efc4a6ccdcee099429f66cccd837",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 6090288,
+        "generator": "Khronos glTF Blender I/O v5.1.20",
+        "scenes": 1,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 2,
+        "materials": 2,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 6087952,
+        "bufferViewBytes": 6087952,
+        "accessors": 8,
+        "accessorLogicalBytes": 6087952,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-01-grid.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 282106,
+      "sha256": "9204c6b56a9a2bea19fae8d0ddcb7075d7fcd61eefaddef8c0810bacf87445b3",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-02-page-002.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 18830,
+      "sha256": "51db625449a3fab5990c8b7efcd17c7733b9157463adff40a88095825941a663",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-03-page-003.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 263038,
+      "sha256": "2e3c2458ea0adfae3c7730837ed79614b3ee91d29ce966ec98f1a62afdbb8e21",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-04-page-004.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 57420,
+      "sha256": "88ad08477b00cb70ca7ec9a7c19326f02f6f917a0837d04a27dac837f154a79f",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-05-page-005.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 232720,
+      "sha256": "01d2a27ed5c355d18c163bb41552356963a91ff902e045b5f7092e0503f7a474",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-06-page-006.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 136542,
+      "sha256": "dd7df04938bbfcb896984efd36763e2ab6b20b2cd2ca021f65c98bd1656e9bff",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-07-page-007.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 124432,
+      "sha256": "45ab6a81d57e92f71a408cda22daa3454dfe49b1fd3ebdfdf77868b0993bd3f5",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-08-page-008.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 315528,
+      "sha256": "ba6c82995ffb9178d03a890a85da1be77720199595449c2180b3a2842d5a5d0a",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-09-page-009.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 365730,
+      "sha256": "a03f5557235eb1a242a75e9cb7a801cbc125afcc446f6c93c1160f4542961aa3",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-10-page-010.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 443318,
+      "sha256": "2581478a450fdcdda4891abcd4d6fecbec21b476aeeb7f9548ec620bba152c8d",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-11-page-011.webp",
+      "type": "texture/image",
+      "phase": "focus/work",
+      "bytes": 242612,
+      "sha256": "503bede2f061e9412f166ac7b17bcdf2267239d83d0de1375ab255da83ea3aa3",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/arch_uabb_exhibit/space_arch_uabb_exhibit.glb",
+      "type": "3d",
+      "phase": "boot/world",
+      "bytes": 3087924,
+      "sha256": "824824f6ea5a7e11afe03f6f31e74ee13b8b60f758c2b02267f137ac0eab0602",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 3087924,
+        "generator": "Khronos glTF Blender I/O v5.1.20",
+        "scenes": 1,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 2,
+        "materials": 2,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 3085600,
+        "bufferViewBytes": 3085600,
+        "accessors": 8,
+        "accessorLogicalBytes": 3085600,
+        "collisionNamedNodes": 0,
+        "extensionsUsed": [],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/generated-exhibit-placement.json",
+      "type": "data/interface",
+      "phase": "shared/other",
+      "bytes": 1697,
+      "sha256": "ac4d34e89fa6f36469a2838116922cafb24127ad9eca89c61c5ec3e6d509c830",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/manifest.json",
+      "type": "data/interface",
+      "phase": "shared/other",
+      "bytes": 4052,
+      "sha256": "15cfc96f4cfb028e445c2aaf5224bacdf12d96c7448a60c2506f31151bd70449",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-10.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 44132,
+      "sha256": "f30464f5ed05bdce1fc8609905b0956cef11d177db16d6b9a892afd8060c0172",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-12.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 76194,
+      "sha256": "12e79c6d204ec932d8a9e404ce09d5add6c278e833b3328a238d786c91489f32",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-13.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 37106,
+      "sha256": "a27114e042c0113c08ddd80330eaed523445b5d677da730d83a0e4aabe6202e0",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-17.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 37396,
+      "sha256": "aa74d8d1dfcb905bcd51b80fb54a90fbc596de180a39f6079ba690666f292418",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-9.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 102386,
+      "sha256": "b20f0ff43648903522beec08ec2092aaf491071a6f7d095ad064ea53001ad61a",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/README.md",
+      "type": "documentation/license",
+      "phase": "boot/world",
+      "bytes": 361,
+      "sha256": "ba0cc5731dd44f43be61185078811153bbd542b5d31ea6a7584b81e5f111f960",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-10.jpg",
+      "type": "texture/image",
+      "phase": "source-only",
+      "bytes": 11540274,
+      "sha256": "c57076d19b6271e6a99787fd720f8145ee23f943b217cf8f62a4cb8fba4b769c",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-12.jpg",
+      "type": "texture/image",
+      "phase": "source-only",
+      "bytes": 4535129,
+      "sha256": "872b99f1b70d2b192e4b52fa623cbebe49dd0c9550040abc3640347cb9d31f58",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-13.jpg",
+      "type": "texture/image",
+      "phase": "source-only",
+      "bytes": 2892130,
+      "sha256": "20149afb92942f7d778a66bfb3afb240e1e974f38f6d780c10fb64b81f9280be",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-17.jpg",
+      "type": "texture/image",
+      "phase": "source-only",
+      "bytes": 4174474,
+      "sha256": "58171448a18138b81b361a968b65989d98a25beab180bb9aec5b8295e1f1b326",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-9.jpg",
+      "type": "texture/image",
+      "phase": "source-only",
+      "bytes": 8009104,
+      "sha256": "e606bdf11d652ad71b8589b678a2eae9d2225a49cf841e8e1b40e6d8a5db5f1c",
+      "public": true,
+      "sourceOnly": true,
+      "shipping": true,
+      "exclusionCandidate": true
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/README.md",
+      "type": "documentation/license",
+      "phase": "boot/world",
+      "bytes": 557,
+      "sha256": "1beb80bd55d227fba6a764f70e8e36d3da145204eca4935e374960ca944be7a2",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/favicon.svg",
+      "type": "data/interface",
+      "phase": "mobile/cold",
+      "bytes": 9522,
+      "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/fonts/ubuntu-mono/LICENSE.txt",
+      "type": "documentation/license",
+      "phase": "mobile/cold",
+      "bytes": 4673,
+      "sha256": "2f0015108d68627bd788d313f529c21ff4da2c2c42a5e1f3883acc83480f9002",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/fonts/ubuntu-mono/UbuntuMono-Bold.woff2",
+      "type": "font",
+      "phase": "mobile/cold",
+      "bytes": 11804,
+      "sha256": "d908c86a05dde68be1ab9298261475b499171e62b5f4094f57744e80bd9af5ba",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/fonts/ubuntu-mono/UbuntuMono-Regular.woff2",
+      "type": "font",
+      "phase": "mobile/cold",
+      "bytes": 11928,
+      "sha256": "646f2d4b83b5ea2ce0351e202377ebbd0734c7c7014cf8735a23d2bf6dd3b924",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/icons.svg",
+      "type": "data/interface",
+      "phase": "mobile/cold",
+      "bytes": 5031,
+      "sha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/media/.gitkeep",
+      "type": "other",
+      "phase": "shared/other",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/media/README.md",
+      "type": "documentation/license",
+      "phase": "shared/other",
+      "bytes": 418,
+      "sha256": "fe6a1cb737410c4244149457e37acb70c8d3e667d4a061c02947c36cce75162f",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/models/.gitkeep",
+      "type": "other",
+      "phase": "boot/world",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/models/gallery_main.glb",
+      "type": "3d",
+      "phase": "boot/world",
+      "bytes": 200684,
+      "sha256": "30b631e4439e4325ca75626934386cc6a68723aec23a56f8aafd59493cc37ca0",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 200684,
+        "generator": "Khronos glTF Blender I/O v5.1.20",
+        "scenes": 1,
+        "nodes": 35,
+        "meshes": 34,
+        "primitives": 34,
+        "materials": 15,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 173424,
+        "bufferViewBytes": 173397,
+        "accessors": 114,
+        "accessorLogicalBytes": 945750,
+        "collisionNamedNodes": 7,
+        "extensionsUsed": [
+          "KHR_draco_mesh_compression",
+          "KHR_materials_emissive_strength"
+        ],
+        "compression": {
+          "draco": true,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/models/space_main.glb",
+      "type": "3d",
+      "phase": "boot/world",
+      "bytes": 10625856,
+      "sha256": "1700e6c1475d554711e9904bde99b37eeb1df1e1468ed7237a564b7ce30dce92",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "glb": {
+        "valid": true,
+        "version": 2,
+        "declaredBytes": 10625856,
+        "generator": "Khronos glTF Blender I/O v5.1.20",
+        "scenes": 1,
+        "nodes": 804,
+        "meshes": 803,
+        "primitives": 803,
+        "materials": 9,
+        "textures": 0,
+        "images": 0,
+        "imageBufferBytes": 0,
+        "bufferBytes": 9975424,
+        "bufferViewBytes": 9975378,
+        "accessors": 2989,
+        "accessorLogicalBytes": 9975378,
+        "collisionNamedNodes": 245,
+        "extensionsUsed": [
+          "KHR_materials_emissive_strength"
+        ],
+        "compression": {
+          "draco": false,
+          "meshopt": false,
+          "ktx2": false
+        }
+      }
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-demo-en.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 13799,
+      "sha256": "8768d4179d6d5f6762ba359818ccfe488f8166626ea6786cc71a75e34928bba0",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-demo.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 14413,
+      "sha256": "d6f1507b16e606ee3ae262809f120758a5cbfc6e338e1871cfaa93d07d091dde",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-done-en.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 17597,
+      "sha256": "07fd2d7f8bf827f695310b05a37f1e1a2103ac6fd60f60c2a06e70bff5e5b6e6",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-done.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 15076,
+      "sha256": "9b115b21b86f0525bd5389f8c91d2875fb1a34cacb881dc3ea52caa6531e946f",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-esc-en.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 14731,
+      "sha256": "7868f808ca9f6aa4ec3dc5cff8e4a698e4d9816db0d014fe0f7963f3d832bd57",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-esc.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 10492,
+      "sha256": "a4548b91c610fb6dbf90bb37eeb2cdc5ae5d6c5b3705bf7cec94e4307f80c4b5",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-look-en.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 16983,
+      "sha256": "b265f79c1062fd3097beceaf9c53ce5b69b8bc7beecdccf2e61c7c60a72d23fc",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-look.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 16233,
+      "sha256": "824ea91802bd0a341747403ba1a746b816f6847b55c1681319f7c063a57ec78f",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-move-en.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 19228,
+      "sha256": "577a8d3ed365e6e7f0a6c94113d492c86c07eac1c75820cacbcfbf5576de7165",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-move.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 13419,
+      "sha256": "73a4295051d3d45ed53e3c6068ecbfa966cb401dd1ade60b7ab2b9c2027c76a1",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-notice-en.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 20744,
+      "sha256": "e7a0ea1c75989c8ff2a1d4cbb473b1cc6a43bf3569b109b268e8fff35503a56f",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-notice.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 51141,
+      "sha256": "6113e7d0902e60cc4e1619598527948cfd3dbd3b19ff568870a7b73696a54bdb",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-relock-en.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 22103,
+      "sha256": "93bea90a273827b73d634484e0fba2b6218aaec325bc56e981c5258ffe6a7e11",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/onboarding/space-onboarding-relock.png",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 17378,
+      "sha256": "fd2946aef052f379e92a6aa0eb12fed638342933f62d5aa5ab3bf1d0425f2c2a",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "BlenderFile/gallery_main.blend",
+      "type": "3d",
+      "phase": "source-only",
+      "bytes": 28362740,
+      "sha256": "e80dc4712976ab3d3f71910e4695167c36920346c2226a860bb006c9b1ddb5d9",
+      "public": false,
+      "sourceOnly": true,
+      "shipping": false,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "BlenderFile/space_main.blend",
+      "type": "3d",
+      "phase": "source-only",
+      "bytes": 5282722,
+      "sha256": "d92aafc3f347397d654565c3f06e0d648ef1c34ed3b00362ed38aa8fefacc67b",
+      "public": false,
+      "sourceOnly": true,
+      "shipping": false,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "docs/assets/space-exhibit-index.xlsx",
+      "type": "workbook/data-source",
+      "phase": "source-only",
+      "bytes": 895991,
+      "sha256": "0e2c6491ee8bf9b7dd0a4d0191a747dd8084ef1a5547bb5ed423ba13181b346b",
+      "public": false,
+      "sourceOnly": true,
+      "shipping": false,
+      "exclusionCandidate": false
+    }
+  ],
+  "build": {
+    "available": true,
+    "manifest": null,
+    "entrypoints": [
+      "apps/web/dist/assets/index-DbEa81DE.css",
+      "apps/web/dist/assets/index-I0UOGeAQ.js"
+    ],
+    "files": [
+      {
+        "path": "apps/web/dist/assets/appRoutes-9iuV0131.js",
+        "type": "javascript",
+        "phase": "shared/app-shell",
+        "bytes": 7502,
+        "gzipBytes": 3044,
+        "sha256": "3acf797d089b14e41d2efe3010753f7dbdc156b185481ee3f8c824e0b15baf51"
+      },
+      {
+        "path": "apps/web/dist/assets/DesktopApp-CX-rB1be.js",
+        "type": "javascript",
+        "phase": "shared/app-shell",
+        "bytes": 8415,
+        "gzipBytes": 2972,
+        "sha256": "0b928d134280c09025e3df421886894aca0d5409012933c37ae811ebd3e6c69a"
+      },
+      {
+        "path": "apps/web/dist/assets/DesktopOverlayLayer-BovW3Yl3.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 62243,
+        "gzipBytes": 24556,
+        "sha256": "4c00687c0b2ba8a44f4d5ef46046ed3c0e5905f4bb3147e90f5fba2ea685f9a5"
+      },
+      {
+        "path": "apps/web/dist/assets/DesktopTopBar-BnfM8y9i.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 3184,
+        "gzipBytes": 1232,
+        "sha256": "3329eab15d821adb17af540a4edf4710c4796bae86ad5a2270490a65e85cc077"
+      },
+      {
+        "path": "apps/web/dist/assets/DevStoriesOverlayRoute-CRkoO3If.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 184,
+        "gzipBytes": 171,
+        "sha256": "0788d165cde06d598408fd02a04413ae57a27bf8b29344a0e3d57fcdfe35f1cd"
+      },
+      {
+        "path": "apps/web/dist/assets/exhibitLabels.generated-CiZ2zMDQ.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 285,
+        "gzipBytes": 185,
+        "sha256": "7accfddb63674961a9563c74f743248290bd2d7e9fcd6b7feb1d8638ec181f0d"
+      },
+      {
+        "path": "apps/web/dist/assets/exhibitTarget-BA0_SxHj.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 5499,
+        "gzipBytes": 2699,
+        "sha256": "52117ec951770a2d265e59c72fe5325907f536a26d175e2b355bd9c0bd9f040e"
+      },
+      {
+        "path": "apps/web/dist/assets/FocusOverlay-CKfWzmFV.js",
+        "type": "javascript",
+        "phase": "focus/work",
+        "bytes": 31247,
+        "gzipBytes": 10087,
+        "sha256": "aaac203ef1e1afd282217019f252cb5f0f3e9273cc4ad6df2eecd300a1723ce8"
+      },
+      {
+        "path": "apps/web/dist/assets/index-DbEa81DE.css",
+        "type": "stylesheet",
+        "phase": "shared/app-shell",
+        "bytes": 84394,
+        "gzipBytes": 15459,
+        "sha256": "c0308779fdc571ec454feeb80d57484c2c4fc9234ca5e94ad734ad0aac571a4d"
+      },
+      {
+        "path": "apps/web/dist/assets/index-I0UOGeAQ.js",
+        "type": "javascript",
+        "phase": "shared/app-shell",
+        "bytes": 150134,
+        "gzipBytes": 46660,
+        "sha256": "dff2ddcfaf18aab739ee53a025ec492caed9fb79d71ecad74b6d9906b6de685e"
+      },
+      {
+        "path": "apps/web/dist/assets/MobileApp-BopSXKVA.js",
+        "type": "javascript",
+        "phase": "mobile/cold",
+        "bytes": 45378,
+        "gzipBytes": 15289,
+        "sha256": "e89aace56ba96edd004fbff86067b3aedae88f6974516c5a36cc020387818b71"
+      },
+      {
+        "path": "apps/web/dist/assets/ProfileOverlayRoute-D_Mn1e90.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 186,
+        "gzipBytes": 172,
+        "sha256": "46336db9943774cdc8207fceebc8918230ef51f676dbb47f8685a7bd277a1fae"
+      },
+      {
+        "path": "apps/web/dist/assets/rapier-vendor-DEvu4GBG.js",
+        "type": "javascript",
+        "phase": "rapier/build-chunk",
+        "bytes": 3142648,
+        "gzipBytes": 1069949,
+        "sha256": "b7201157191f2de88fc9f5441520a10b6419e73f77751a9a28c0a81afbd54439"
+      },
+      {
+        "path": "apps/web/dist/assets/react-vendor-CsIBO4y-.js",
+        "type": "javascript",
+        "phase": "shared/app-shell",
+        "bytes": 189646,
+        "gzipBytes": 58867,
+        "sha256": "d46ab70118bfdbb8b139f9d124625c9cf6b7dcc628a6c3cdffff9a876613bf5a"
+      },
+      {
+        "path": "apps/web/dist/assets/requestSpacePointerLock-D1MrUGfA.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 2008,
+        "gzipBytes": 883,
+        "sha256": "d6fafb51306b3e4d92c31e62a8d9100a3bf97ef578797379563cec42997ef75e"
+      },
+      {
+        "path": "apps/web/dist/assets/rolldown-runtime-QTnfLwEv.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 694,
+        "gzipBytes": 422,
+        "sha256": "5db5ba82eef00d1dee7e86e663098c9427d01183a88d357437daff295aec3e75"
+      },
+      {
+        "path": "apps/web/dist/assets/SpaceHost-DZkUxIwl.js",
+        "type": "javascript",
+        "phase": "boot/world",
+        "bytes": 78193,
+        "gzipBytes": 24710,
+        "sha256": "c2c06cfea00f4874adf885b28284f60d4bcf7376e730b84a938fbe88a4cf6550"
+      },
+      {
+        "path": "apps/web/dist/assets/spaceVisualSettings-fYxI7wxN.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 1130,
+        "gzipBytes": 638,
+        "sha256": "fd7cb401d0a349455fc645061043c09a21da2347f1a89e020a5e8e65642d8484"
+      },
+      {
+        "path": "apps/web/dist/assets/three-vendor-0ewCj_Jt.js",
+        "type": "javascript",
+        "phase": "boot/world",
+        "bytes": 605494,
+        "gzipBytes": 167549,
+        "sha256": "3302d94e1ee124084ad38c195e2a6179c7d40f3f20150060c9d050cf0e7672c4"
+      },
+      {
+        "path": "apps/web/dist/assets/three-vendor-BnBglIZS.js",
+        "type": "javascript",
+        "phase": "boot/world",
+        "bytes": 84292,
+        "gzipBytes": 24242,
+        "sha256": "ca50f26948db0b1914375858b34d0451a36e42ac51f4563c7e4a095a18be152d"
+      },
+      {
+        "path": "apps/web/dist/assets/three-vendor-CEbjrZQ6.js",
+        "type": "javascript",
+        "phase": "boot/world",
+        "bytes": 9621,
+        "gzipBytes": 3278,
+        "sha256": "dabbb82cadd4de41fb6a8ad52691eb345f6a269fa6226a1ecf6e567225669972"
+      },
+      {
+        "path": "apps/web/dist/assets/three-vendor-Cho0xg8M.js",
+        "type": "javascript",
+        "phase": "boot/world",
+        "bytes": 9737,
+        "gzipBytes": 4006,
+        "sha256": "0c850c7f0add825964dbfaf518df47884c601a130a7a90ce13cd16a4ac2acc2f"
+      },
+      {
+        "path": "apps/web/dist/assets/three-vendor-DwDf-MiH.js",
+        "type": "javascript",
+        "phase": "boot/world",
+        "bytes": 5569,
+        "gzipBytes": 1684,
+        "sha256": "81f2668671995626190fe8b533ae3b837c8a8175e1654ecd5606e60987c7ddd5"
+      },
+      {
+        "path": "apps/web/dist/assets/vite-preload-helper-CwQZjUKM.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 1350,
+        "gzipBytes": 739,
+        "sha256": "0ac3c1924fde7a3d93916720f6b4cf806217754db54213f8ce9708055470240d"
+      },
+      {
+        "path": "apps/web/dist/index.html",
+        "type": "html",
+        "phase": "shared/other",
+        "bytes": 992,
+        "gzipBytes": 570,
+        "sha256": "534840cabfd33823c5d55c75a78e57cf0fcfe7f85616c0e42c15f3de2632a68d"
+      }
+    ],
+    "totals": {
+      "files": 25,
+      "bytes": 4530025,
+      "gzipBytes": 1480063,
+      "byPhase": {
+        "boot/world": {
+          "files": 6,
+          "bytes": 792906
+        },
+        "focus/work": {
+          "files": 1,
+          "bytes": 31247
+        },
+        "mobile/cold": {
+          "files": 1,
+          "bytes": 45378
+        },
+        "rapier/build-chunk": {
+          "files": 1,
+          "bytes": 3142648
+        },
+        "shared/app-shell": {
+          "files": 5,
+          "bytes": 440091
+        },
+        "shared/other": {
+          "files": 11,
+          "bytes": 77755
+        }
+      }
+    }
+  }
+}
