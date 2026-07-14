@@ -1,11 +1,9 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useReducer, useState } from "react";
 import { flushSync } from "react-dom";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAudioDirector } from "../audio/useAudioDirector";
 import { useTranslation } from "react-i18next";
 import type { OverlayTab } from "../overlay/OverlayState";
-import { SpacePage } from "../pages/SpacePage";
-import { useEntryTransition } from "../hooks/useEntryTransition";
 import {
   resumeSpaceFirstPersonAfterEscape,
   resumeSpaceFirstPersonWithCursorReturn,
@@ -23,8 +21,13 @@ import {
 import { isKnownExhibitId } from "../content/lightweightExhibitIndex";
 import { useSpaceBootController } from "../boot/useSpaceBootController";
 import { lightweightDesktopRoutePrefetch } from "../desktop/lightweightRoutePrefetch";
+import {
+  INITIAL_START_LOBBY_HANDOFF_STATE,
+  reduceStartLobbyHandoff,
+} from "../lobby/startLobbyHandoff";
 
 const SpaceHost = lazy(() => import("../space/SpaceHost"));
+const SpacePage = lazy(() => import("../pages/SpacePage"));
 const DesktopTopBar = lazy(() =>
   import("../desktop/DesktopTopBar").then((module) => ({ default: module.DesktopTopBar })),
 );
@@ -62,8 +65,11 @@ export default function DesktopApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const audio = useAudioDirector();
-  const entry = useEntryTransition();
   const boot = useSpaceBootController();
+  const [handoff, dispatchHandoff] = useReducer(
+    reduceStartLobbyHandoff,
+    INITIAL_START_LOBBY_HANDOFF_STATE,
+  );
   const [spaceStarted, setSpaceStarted] = useState(false);
   const [closing, setClosing] = useState(false);
   const route = resolveAppRoute(location.pathname);
@@ -89,43 +95,71 @@ export default function DesktopApp() {
     return () => lightweightDesktopRoutePrefetch.cancel();
   }, [boot.state.attemptId, boot.state.phase]);
 
-  useSpacePointerLockGuard(routeBlocked);
+  const entered = handoff.phase === "entered";
+
+  useSpacePointerLockGuard(routeBlocked || !entered);
+
+  useEffect(() => {
+    if (!spaceStarted) return;
+    if (boot.state.phase === "running") {
+      dispatchHandoff({ type: "boot-running" });
+    } else if (boot.state.phase === "failed") {
+      dispatchHandoff({ type: "boot-failed" });
+    }
+  }, [boot.state.phase, spaceStarted]);
+
+  useEffect(() => {
+    if (handoff.phase !== "revealing") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      dispatchHandoff({ type: "reveal-finished" });
+    }
+  }, [handoff.phase]);
 
   const onTrustedEnter = useCallback(() => {
-    if (spaceStarted || route.kind !== "space") return;
-    entry.freezeButtonFloat();
-    entry.beginLoading();
+    if (spaceStarted || route.kind !== "space" || handoff.phase !== "lobby") return;
     audio.unlock();
+    dispatchHandoff({ type: "trusted-enter" });
+  }, [audio, handoff.phase, route.kind, spaceStarted]);
+
+  const onLobbyDisposed = useCallback(() => {
+    if (spaceStarted || handoff.phase !== "disposing") return;
     boot.start();
     setSpaceStarted(true);
+    dispatchHandoff({ type: "lobby-disposed" });
     void audio.setZone("architecture");
-  }, [audio, boot, entry, route.kind, spaceStarted]);
+  }, [audio, boot, handoff.phase, spaceStarted]);
+
+  const retryBoot = useCallback(() => {
+    if (handoff.phase !== "failed") return;
+    boot.retry();
+    dispatchHandoff({ type: "retry" });
+  }, [boot, handoff.phase]);
 
   const navigateToSpace = useCallback(
     (options?: { fromEscape?: boolean }) => {
       navigate(APP_ROUTE_PATHS.space);
       if (options?.fromEscape) {
-        resumeSpaceFirstPersonAfterEscape({ entered: entry.entered, overlayOpen: false });
-      } else if (entry.entered) {
+        resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: false });
+      } else if (entered) {
         resumeSpaceFirstPersonWithCursorReturn();
       }
     },
-    [entry.entered, navigate],
+    [entered, navigate],
   );
 
   const beginOverlayClose = useCallback(
     (options?: { fromEscape?: boolean }) => {
       flushSync(() => setClosing(true));
       if (options?.fromEscape) {
-        resumeSpaceFirstPersonAfterEscape({ entered: entry.entered, overlayOpen: false });
+        resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: false });
       }
     },
-    [entry.entered],
+    [entered],
   );
 
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
-      {spaceStarted && entry.entered && route.kind === "space" ? (
+      {spaceStarted && entered && route.kind === "space" ? (
         <Suspense fallback={null}>
           <DesktopTopBar onNavigateToSpace={() => navigateToSpace()} />
         </Suspense>
@@ -154,7 +188,7 @@ export default function DesktopApp() {
           spaceStarted ? (
             <SpaceHost
               boot={boot}
-              entry={entry}
+              entered={entered}
               focusedExhibitId={focusedExhibitId}
               onNavigateToSpace={navigateToSpace}
               onNavigateToWork={(exhibitId) => navigate(workRoute(exhibitId))}
@@ -165,8 +199,53 @@ export default function DesktopApp() {
         }
       />
 
-      {route.kind === "space" && entry.showSplash ? (
-        <SpacePage entry={entry} onTrustedEnter={onTrustedEnter} />
+      {route.kind === "space" &&
+      (handoff.phase === "lobby" || handoff.phase === "disposing") ? (
+        <Suspense fallback={<div className="start-lobby" role="status" aria-live="polite" />}>
+          <SpacePage
+            disposing={handoff.phase === "disposing"}
+            onTrustedEnter={onTrustedEnter}
+            onDisposed={onLobbyDisposed}
+          />
+        </Suspense>
+      ) : null}
+
+      {handoff.phase === "disposing" ||
+      handoff.phase === "booting" ||
+      handoff.phase === "failed" ||
+      handoff.phase === "revealing" ? (
+        <div
+          className={`start-lobby-handoff__cover${handoff.phase === "revealing" ? " start-lobby-handoff__cover--revealing" : ""}`}
+          role={handoff.phase === "failed" ? "alert" : "status"}
+          aria-live="polite"
+          data-handoff-phase={handoff.phase}
+          onTransitionEnd={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              event.propertyName === "opacity" &&
+              handoff.phase === "revealing"
+            ) {
+              dispatchHandoff({ type: "reveal-finished" });
+            }
+          }}
+        >
+          {handoff.phase === "failed" && boot.state.phase === "failed" ? (
+            <div className="start-lobby-handoff__failure">
+              <p>{boot.state.error ?? "SPACE could not start."}</p>
+              <button type="button" onClick={retryBoot}>Retry</button>
+            </div>
+          ) : handoff.phase === "booting" ? (
+            <div className="start-lobby-handoff__status">
+              <span>Loading SPACE</span>
+              {boot.state.items.total > 0 ? (
+                <span>
+                  {boot.state.items.loaded + boot.state.items.failed + boot.state.items.deferred}/
+                  {boot.state.items.total}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {overlayTab !== null ? (

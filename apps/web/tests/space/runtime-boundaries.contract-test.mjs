@@ -28,7 +28,8 @@ const packageJson = JSON.parse(readFileSync(resolve(root, "apps/web/package.json
 assert.match(desktopApp, /const\s+\[spaceStarted,\s*setSpaceStarted\]\s*=\s*useState\(false\)/);
 assert.match(desktopApp, /onTrustedEnter/);
 assert.doesNotMatch(host, /spaceStarted|setSpaceStarted/, "SpaceHost only receives an already-started session");
-assert.match(host, /boot\.state\.phase/);
+assert.match(desktopApp, /boot\.state\.phase/);
+assert.match(host, /boot=\{boot\}/);
 
 assert.equal((canvasHost.match(/<Canvas\b/g) ?? []).length, 1, "SpaceCanvasHost owns one main Canvas");
 assert.equal((session.match(/<Physics\b/g) ?? []).length, 1, "SpaceSession owns one Physics world");

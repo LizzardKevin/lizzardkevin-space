@@ -24,7 +24,10 @@ assert(!files.mobileApp.includes("useEntryTransition"), "MobileApp must not reus
 assert(!files.mobileApp.includes("useAudioDirector"), "MobileApp must not initialize desktop audio from its start menu");
 assert(!files.mobileExperience.includes("EntryTransition"), "MobileExperience must begin booting on first mount after Enter");
 
-assert(files.desktopApp.includes('from "../pages/SpacePage"'), "DesktopApp must own the entry-only SpacePage");
+assert(
+  files.desktopApp.includes('lazy(() => import("../pages/SpacePage"))'),
+  "DesktopApp must lazy-load the entry-only SpacePage",
+);
 assert(
   files.desktopApp.includes('lazy(() => import("../space/SpaceHost"))') &&
     !files.spacePage.includes("SpaceDesktopExperience"),

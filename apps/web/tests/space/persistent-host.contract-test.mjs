@@ -41,7 +41,8 @@ assert.match(experience, /onNavigateToWork/);
 assert.match(experience, /onNavigateToSpace/);
 assert.match(experience, /invalidFocusedRoute/);
 assert.match(hud, /data-work-route-not-found/);
-assert.match(desktop, /route\.kind\s*===\s*["']space["']\s*&&\s*entry\.showSplash/);
+assert.match(desktop, /route\.kind\s*===\s*["']space["'][\s\S]*handoff\.phase\s*===\s*["']lobby["']/);
+assert.match(desktop, /const\s+onLobbyDisposed[\s\S]*boot\.start\(\)[\s\S]*setSpaceStarted\(true\)/);
 
 assert.match(pose, /sessionStorage/);
 assert.match(pose, /version:\s*1/);

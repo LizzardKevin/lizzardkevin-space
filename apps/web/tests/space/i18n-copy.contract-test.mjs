@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { readSourceFile } from "../helpers/projectPaths.mjs";
 
-const entrySplash = readSourceFile("components/entry/EntrySplash.tsx");
 const topbar = readSourceFile("components/TopBar.tsx");
 const desktop = readSourceFile("pages/SpaceDesktopExperience.tsx");
 const hud = readSourceFile("space/SpaceHud.tsx");
@@ -17,11 +16,6 @@ const desktopApp = readSourceFile("app/DesktopApp.tsx");
 const appRoutes = readSourceFile("app/appRoutes.tsx");
 
 for (const [sourceName, source, keys] of [
-  [
-    "EntrySplash",
-    entrySplash,
-    ["space.entry.blankClickNudge", "space.entry.largeButtonNudge"],
-  ],
   [
     "TopBar",
     topbar,
@@ -126,7 +120,6 @@ for (const hardcoded of [
   "页面加载失败，请刷新或升级浏览器后重试。",
 ]) {
   for (const [sourceName, source] of [
-    ["EntrySplash", entrySplash],
     ["TopBar", topbar],
     ["SpaceDesktopExperience", desktop],
     ["SpaceHud", hud],

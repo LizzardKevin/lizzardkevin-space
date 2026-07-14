@@ -176,6 +176,7 @@ assert.equal(coldDesktopModules.some((module) => module.startsWith("rendering/")
 assert.equal(coldDesktopModules.some((module) => module.toLowerCase().includes(".glb")), false);
 assert.deepEqual(dynamicSpecifiers(desktop), [
   "../space/SpaceHost",
+  "../pages/SpacePage",
   "../desktop/DesktopTopBar",
   "../desktop/ProfileOverlayRoute",
   "../desktop/DevStoriesOverlayRoute",

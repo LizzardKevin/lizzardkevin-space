@@ -1,6 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import type { EntryTransition } from "../entry/entryTypes";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
 import { loadManifest } from "../exhibits/manifest";
 import type { ExhibitManifestItem } from "../exhibits/manifest";
@@ -68,7 +67,7 @@ function readDevFocusExhibitId(params: URLSearchParams) {
 
 export function SpaceDesktopExperience({
   boot,
-  entry,
+  entered,
   focusedExhibitId,
   overlay,
   loadExhibits,
@@ -78,7 +77,7 @@ export function SpaceDesktopExperience({
   routeBlocked,
 }: {
   boot: SpaceBootController;
-  entry: EntryTransition;
+  entered: boolean;
   focusedExhibitId: string | null;
   overlay: { isOverlayOpen: boolean };
   loadExhibits: boolean;
@@ -127,8 +126,6 @@ export function SpaceDesktopExperience({
   const lastSessionPoseSaveAtRef = useRef(0);
   const projectorSlideCommandNonceRef = useRef(0);
   const devFocusOpenedRef = useRef(false);
-  const { entered, fading: entryIsFading } = entry;
-
   useEffect(() => {
     if (searchParams.get(SPACE_DAILY_RESUME_RESET_PARAM) !== "1") return;
     const next = new URLSearchParams(searchParams);
@@ -322,12 +319,12 @@ export function SpaceDesktopExperience({
 
   const isHovering = exhibitTarget !== null && !focusSurfaceOpen;
   const pointerControlsEnabled =
-    (entry.showSplash || entryIsFading || entered) &&
+    entered &&
     !overlay.isOverlayOpen &&
     !focusSurfaceOpen &&
     !pointerLockUnavailable;
   const controlsEnabled =
-    (entryIsFading || entered) &&
+    entered &&
     !overlay.isOverlayOpen &&
     !focusSurfaceOpen &&
     !pointerLockUnavailable;
@@ -384,8 +381,6 @@ export function SpaceDesktopExperience({
     <>
       <SpaceCanvasHost
         boot={boot}
-        entered={entered}
-        entryIsFading={entryIsFading}
         paused={spaceRenderPaused}
         initialPose={initialResumePose}
         latestPoseRef={latestSpacePoseRef}

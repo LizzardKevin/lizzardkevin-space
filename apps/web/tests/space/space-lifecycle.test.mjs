@@ -3,22 +3,22 @@ import { createElement, useEffect, useState } from "react";
 import { act, create } from "react-test-renderer";
 import test from "node:test";
 import {
-  INITIAL_ENTRY_TRANSITION_STATE,
-  reduceEntryTransitionState,
-} from "../../src/entry/entryTransitionState.ts";
+  INITIAL_START_LOBBY_HANDOFF_STATE,
+  reduceStartLobbyHandoff,
+} from "../../src/lobby/startLobbyHandoff.ts";
 import { PersistentSpaceHostBoundary } from "../../src/space/PersistentSpaceHostBoundary.ts";
 import { resolveSpaceRouteRuntimePolicy } from "../../src/space/routeRuntimePolicy.ts";
 
-test("trusted Enter stays covered until real readiness and splash transition completion", () => {
-  let entry = INITIAL_ENTRY_TRANSITION_STATE;
-  entry = reduceEntryTransitionState(entry, { type: "begin-loading" });
-  assert.deepEqual(entry, { entered: false, fading: false, hideButton: true });
-
-  entry = reduceEntryTransitionState(entry, { type: "start-fade" });
-  assert.deepEqual(entry, { entered: false, fading: true, hideButton: true });
-  entry = reduceEntryTransitionState(entry, { type: "splash-transition-end" });
-  assert.deepEqual(entry, { entered: true, fading: false, hideButton: true });
-  assert.equal(entry.entered, true, "onboarding and resume controls become eligible only after fade completion");
+test("trusted Enter stays covered through disposal, boot, and reveal", () => {
+  let handoff = INITIAL_START_LOBBY_HANDOFF_STATE;
+  handoff = reduceStartLobbyHandoff(handoff, { type: "trusted-enter" });
+  assert.equal(handoff.phase, "disposing");
+  handoff = reduceStartLobbyHandoff(handoff, { type: "lobby-disposed" });
+  assert.equal(handoff.phase, "booting");
+  handoff = reduceStartLobbyHandoff(handoff, { type: "boot-running" });
+  assert.equal(handoff.phase, "revealing");
+  handoff = reduceStartLobbyHandoff(handoff, { type: "reveal-finished" });
+  assert.equal(handoff.phase, "entered", "first-person controls become eligible only after reveal");
 });
 
 test("the production host boundary preserves one React host instance across route history", async () => {

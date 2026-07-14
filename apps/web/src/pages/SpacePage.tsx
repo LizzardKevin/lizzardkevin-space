@@ -1,12 +1,21 @@
-import type { EntryTransition } from "../entry/entryTypes";
-import { EntrySplash } from "../components/entry/EntrySplash";
+import StartLobby from "../lobby/StartLobby";
 
 export function SpacePage({
-  entry,
+  disposing,
   onTrustedEnter,
+  onDisposed,
 }: {
-  entry: EntryTransition;
+  disposing: boolean;
   onTrustedEnter: () => void;
+  onDisposed: () => void;
 }) {
-  return entry.showSplash ? <EntrySplash entry={entry} onEnter={onTrustedEnter} /> : null;
+  return (
+    <StartLobby
+      disposing={disposing}
+      onTrustedEnter={onTrustedEnter}
+      onDisposed={onDisposed}
+    />
+  );
 }
+
+export default SpacePage;

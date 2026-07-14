@@ -154,10 +154,12 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
   const globalCss = readSourceFile("styles", "global.css");
 
   assert.match(desktopApp, /const boot = useSpaceBootController\(\)/);
-  assert.match(desktopApp, /const onTrustedEnter[\s\S]*boot\.start\(\)[\s\S]*setSpaceStarted\(true\)/);
+  const trustedEnter = desktopApp.match(/const onTrustedEnter[\s\S]*?\n  \},/)?.[0] ?? "";
+  const lobbyDisposed = desktopApp.match(/const onLobbyDisposed[\s\S]*?\n  \},/)?.[0] ?? "";
+  assert.doesNotMatch(trustedEnter, /boot\.start\(\)|setSpaceStarted\(true\)/);
+  assert.match(lobbyDisposed, /boot\.start\(\)[\s\S]*setSpaceStarted\(true\)/);
   assert.doesNotMatch(host, /\.start\(\)/, "mounting SpaceHost must not start Boot");
-  assert.match(host, /const bootPhase = boot\.state\.phase/);
-  assert.match(host, /if \(bootPhase === "running"\) startFade\(\)/);
+  assert.match(desktopApp, /boot\.state\.phase === "running"[\s\S]*type: "boot-running"/);
   assert.match(canvasHost, /milestoneReady\(attemptId, "renderer"\)/);
   assert.match(canvasHost, /milestoneReady\(attemptId, "physics"\)/);
   assert.match(experience, /manifestResolved\(\s*attemptId,/);

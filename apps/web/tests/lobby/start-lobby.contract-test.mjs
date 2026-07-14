@@ -1,0 +1,93 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import test from "node:test";
+
+const sourceUrl = (relativePath) => new URL(`../../src/${relativePath}`, import.meta.url);
+const readSource = (relativePath) => {
+  const url = sourceUrl(relativePath);
+  assert.equal(existsSync(url), true, `${relativePath} must exist`);
+  return readFileSync(url, "utf8").replace(/\r\n/g, "\n");
+};
+
+test("StartLobby is a demand-rendered raw R3F canvas with one native Enter", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+
+  assert.match(source, /createRoot\s*\(/);
+  assert.match(source, /frameloop:\s*["']demand["']/);
+  assert.match(source, /dpr:\s*\[?1(?:\.0)?,\s*1\.25\]?|dpr:\s*1\.25/);
+  assert.match(source, /<canvas[\s\S]*aria-hidden=["']true["']/);
+  assert.equal((source.match(/<button\b/g) ?? []).length, 1);
+  assert.match(source, /<button[\s\S]*type=["']button["'][\s\S]*>\s*Enter\s*<\/button>/);
+  assert.doesNotMatch(source, /<Canvas\b|useFrame\s*\(|requestAnimationFrame|setInterval\s*\(/);
+});
+
+test("StartLobby uses real extruded text and the approved restrained palette", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+
+  assert.match(source, /TextGeometry/);
+  assert.match(source, /FontLoader/);
+  assert.match(source, /helvetiker_bold\.typeface\.json\?url/);
+  assert.match(source, /LIZZARDKEVIN/);
+  assert.match(source, /SPACE/);
+  assert.match(source, /#67c2be/i);
+  for (const forbidden of ["@react-three/drei", "@react-three/rapier", ".glb", ".gltf", "postprocessing", "Howl"])
+    assert.equal(source.includes(forbidden), false, `StartLobby must not contain ${forbidden}`);
+});
+
+test("StartLobby limits input work and becomes static for reduced motion", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+  const handoff = readSource("lobby/startLobbyHandoff.ts");
+
+  assert.match(source, /prefers-reduced-motion:\s*reduce/);
+  assert.match(source, /\.invalidate\s*\(/);
+  assert.match(source, /onPointerMove=/);
+  assert.match(source, /onPointerDown=/);
+  assert.doesNotMatch(source, /onClick=\{[^}]*canvas|onPointerMissed|easter|blankClick/i);
+  assert.match(handoff, /MAX_START_LOBBY_TILT_DEGREES\s*=\s*6/);
+});
+
+test("StartLobby releases the R3F context through its callback without a forced timeout", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+
+  assert.match(source, /unmountComponentAtNode\s*\([\s\S]*onDisposed/);
+  assert.doesNotMatch(source, /setTimeout\s*\(/);
+});
+
+test("desktop starts boot and the persistent host only after lobby disposal", () => {
+  const source = readSource("app/DesktopApp.tsx");
+  const disposalHandler = source.match(
+    /const\s+onLobbyDisposed\s*=\s*useCallback\([\s\S]*?\n\s*\);/,
+  )?.[0] ?? "";
+
+  assert.match(source, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/SpacePage["']\)\)/);
+  assert.match(source, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/space\/SpaceHost["']\)\)/);
+  assert.match(disposalHandler, /boot\.start\s*\(\)/);
+  assert.match(disposalHandler, /setSpaceStarted\s*\(true\)/);
+  assert.doesNotMatch(source, /useEntryTransition|EntryTransition|EntrySplash/);
+  assert.doesNotMatch(source, /setTimeout\s*\(/);
+});
+
+test("desktop handoff keeps failure and retry controls above the opaque cover", () => {
+  const source = readSource("app/DesktopApp.tsx");
+  const css = readSource("lobby/startLobby.css");
+
+  assert.match(source, /start-lobby-handoff__cover/);
+  assert.match(source, /boot\.state\.phase\s*===\s*["']failed["']/);
+  assert.match(source, /boot\.retry\s*\(\)/);
+  assert.match(css, /start-lobby-handoff__cover[\s\S]*background:/);
+  assert.match(css, /start-lobby-handoff__failure/);
+});
+
+test("the main runtime no longer depends on the legacy entry transition", () => {
+  const host = readSource("space/SpaceHost.tsx");
+  const experience = readSource("pages/SpaceDesktopExperience.tsx");
+  const canvasHost = readSource("space/SpaceCanvasHost.tsx");
+
+  for (const source of [host, experience, canvasHost]) {
+    assert.doesNotMatch(source, /EntryTransition|entryIsFading|entry\.showSplash/);
+  }
+  assert.equal(existsSync(sourceUrl("components/entry/EntrySplash.tsx")), false);
+  assert.equal(existsSync(sourceUrl("hooks/useEntryTransition.ts")), false);
+  assert.equal(existsSync(sourceUrl("entry/entryTypes.ts")), false);
+  assert.equal(existsSync(sourceUrl("entry/entryTransitionState.ts")), false);
+});

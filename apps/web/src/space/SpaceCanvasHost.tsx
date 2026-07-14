@@ -64,8 +64,6 @@ type SpaceCanvasSessionProps = Omit<
 
 export function SpaceCanvasHost({
   boot,
-  entered,
-  entryIsFading,
   paused,
   initialPose,
   latestPoseRef,
@@ -74,8 +72,6 @@ export function SpaceCanvasHost({
   renderSurfaces,
 }: {
   boot: SpaceBootController;
-  entered: boolean;
-  entryIsFading: boolean;
   paused: boolean;
   initialPose: SpacePlayerPose | null;
   latestPoseRef: RefObject<SpacePlayerPose | null>;
@@ -195,7 +191,7 @@ export function SpaceCanvasHost({
       <BootAttemptErrorBoundary attemptId={attemptId} onError={handleBootSubtreeError}>
         {activeRendererError || bootState.phase === "failed" ? null : (
           <div
-          className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${paused ? " space-canvasWrap--disabled" : ""}`}
+          className={`space-canvasWrap${paused ? " space-canvasWrap--disabled" : ""}`}
         >
           <Canvas
             key={`space-canvas-${attemptId}-${requestedProfile}`}

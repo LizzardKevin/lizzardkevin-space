@@ -11,8 +11,11 @@ const source = (path) => readFileSync(resolve(root, "apps/web/src", path), "utf8
 test("trusted Enter never requests pointer lock before the lazy Canvas mounts", () => {
   const desktop = source("app/DesktopApp.tsx");
   const enterBody = desktop.match(/const onTrustedEnter = useCallback\(\(\) => \{([\s\S]*?)\n  \},/)?.[1] ?? "";
+  const disposedBody = desktop.match(/const onLobbyDisposed = useCallback\(\(\) => \{([\s\S]*?)\n  \},/)?.[1] ?? "";
   assert.doesNotMatch(enterBody, /resumeSpaceFirstPerson|requestSpacePointerLock|requestPointerLock/);
-  assert.match(enterBody, /setSpaceStarted\(true\)/);
+  assert.doesNotMatch(enterBody, /setSpaceStarted\(true\)|boot\.start\(\)/);
+  assert.match(disposedBody, /setSpaceStarted\(true\)/);
+  assert.match(disposedBody, /boot\.start\(\)/);
 });
 
 test("the production Canvas click chain has exactly one pointer-lock owner", () => {
