@@ -150,6 +150,28 @@ export function normalizeSelectedWorkVideoUrls(
   return normalizeSelectedWorkUrls(urls, baseUrl);
 }
 
+function createAbortError() {
+  return new DOMException("Image load aborted", "AbortError");
+}
+
+function awaitWithAbort<T>(promise: Promise<T>, signal: AbortSignal) {
+  if (signal.aborted) return Promise.reject(createAbortError());
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(createAbortError());
+    signal.addEventListener("abort", abort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", abort);
+        resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener("abort", abort);
+        reject(error);
+      },
+    );
+  });
+}
+
 function waitForImageDecode(image: HTMLImageElement) {
   if (typeof image.decode === "function") return image.decode();
   if (image.complete && image.naturalWidth > 0) return Promise.resolve();
@@ -163,57 +185,85 @@ function loadImageElement(
   displayUrl: string,
   signal: AbortSignal,
   disposeUrl: () => void,
+  createImage: () => HTMLImageElement,
 ): Promise<DecodedSelectedWorkImage> {
-  const image = new Image();
+  const image = createImage();
   image.decoding = "async";
   image.loading = "eager";
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    image.src = "";
+    disposeUrl();
+  };
   const abort = () => {
     image.src = "";
   };
   signal.addEventListener("abort", abort, { once: true });
   image.src = displayUrl;
-  return waitForImageDecode(image).then(
+  return awaitWithAbort(waitForImageDecode(image), signal).then(
     () => {
       signal.removeEventListener("abort", abort);
       if (signal.aborted) {
-        image.src = "";
-        disposeUrl();
-        throw new DOMException("Image load aborted", "AbortError");
+        dispose();
+        throw createAbortError();
       }
       return {
         displayUrl,
-        dispose() {
-          image.src = "";
-          disposeUrl();
-        },
+        dispose,
       };
     },
     (error) => {
       signal.removeEventListener("abort", abort);
-      image.src = "";
-      disposeUrl();
+      dispose();
       throw error;
     },
   );
 }
 
-async function defaultLoadImage(url: string, signal: AbortSignal) {
-  const parsed = new URL(url, defaultBaseUrl());
-  const currentOrigin = new URL(defaultBaseUrl()).origin;
-  const canOwnBlobUrl =
-    parsed.origin === currentOrigin &&
-    typeof fetch === "function" &&
-    typeof URL.createObjectURL === "function";
+type SelectedWorkImageLoaderEnvironment = {
+  baseUrl?: string;
+  fetchImage?: (
+    url: string,
+    init: { signal: AbortSignal },
+  ) => Promise<Pick<Response, "ok" | "status" | "blob">>;
+  createImage?: () => HTMLImageElement;
+  createObjectUrl?: (blob: Blob) => string;
+  revokeObjectUrl?: (url: string) => void;
+};
 
-  if (!canOwnBlobUrl) {
-    return loadImageElement(parsed.href, signal, () => undefined);
-  }
+export function createSelectedWorkImageLoader({
+  baseUrl,
+  fetchImage = (url, init) => fetch(url, init),
+  createImage = () => new Image(),
+  createObjectUrl = (blob) => URL.createObjectURL(blob),
+  revokeObjectUrl = (url) => URL.revokeObjectURL(url),
+}: SelectedWorkImageLoaderEnvironment = {}): SelectedWorkImageLoader {
+  return async (url, signal) => {
+    const resolvedBaseUrl = baseUrl ?? defaultBaseUrl();
+    const parsed = new URL(url, resolvedBaseUrl);
+    const currentOrigin = new URL(resolvedBaseUrl).origin;
 
-  const response = await fetch(parsed.href, { signal });
-  if (!response.ok) throw new Error(`Failed to load image: ${response.status}`);
-  const objectUrl = URL.createObjectURL(await response.blob());
-  return loadImageElement(objectUrl, signal, () => URL.revokeObjectURL(objectUrl));
+    if (parsed.origin !== currentOrigin) {
+      return loadImageElement(parsed.href, signal, () => undefined, createImage);
+    }
+
+    const response = await awaitWithAbort(fetchImage(parsed.href, { signal }), signal);
+    if (!response.ok) throw new Error(`Failed to load image: ${response.status}`);
+    const blob = await awaitWithAbort(response.blob(), signal);
+    if (signal.aborted) throw createAbortError();
+    const objectUrl = createObjectUrl(blob);
+    return loadImageElement(
+      objectUrl,
+      signal,
+      () => revokeObjectUrl(objectUrl),
+      createImage,
+    );
+  };
 }
+
+const defaultLoadImage = createSelectedWorkImageLoader();
 
 function disposeCachedWork(work: CachedWork) {
   for (const image of work.images.values()) image.dispose();

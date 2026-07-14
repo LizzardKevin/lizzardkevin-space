@@ -1115,19 +1115,29 @@ export function FocusOverlay({
             className={`focus-blank--fill${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-center" : ""}`}
           />
 
-          {mediaProgress && mediaProgress.total > 0 && (mediaLoading || mediaProgress.failed > 0) ? (
-            <div className="focus-media-progress" role="status" aria-live="polite">
-              {mediaLoading ? <span className="focus-media-progress__indicator" aria-hidden /> : null}
-              <span>
-                {t("focus.mediaLoadProgress", {
-                  loaded: mediaProgress.loaded,
-                  total: mediaProgress.total,
-                })}
-              </span>
-              {mediaProgress.failed > 0 ? (
-                <span className="focus-media-progress__error" role="alert">
-                  {t("focus.mediaLoadFailed", { failed: mediaProgress.failed })}
-                </span>
+          {(mediaProgress && mediaProgress.total > 0 && (mediaLoading || mediaProgress.failed > 0)) ||
+          (videoMetadataProgress?.failed ?? 0) > 0 ? (
+            <div className="focus-media-status-stack" role="status" aria-live="polite">
+              {mediaProgress && mediaProgress.total > 0 && (mediaLoading || mediaProgress.failed > 0) ? (
+                <div className="focus-media-status-row">
+                  {mediaLoading ? <span className="focus-media-progress__indicator" aria-hidden /> : null}
+                  <span>
+                    {t("focus.mediaLoadProgress", {
+                      loaded: mediaProgress.loaded,
+                      total: mediaProgress.total,
+                    })}
+                  </span>
+                  {mediaProgress.failed > 0 ? (
+                    <span className="focus-media-progress__error">
+                      {t("focus.mediaLoadFailed", { failed: mediaProgress.failed })}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+              {(videoMetadataProgress?.failed ?? 0) > 0 ? (
+                <div className="focus-media-status-row focus-video-metadata-error">
+                  {t("focus.videoMetadataFailed")}
+                </div>
               ) : null}
             </div>
           ) : null}
@@ -1151,12 +1161,6 @@ export function FocusOverlay({
               onError={handleVideoMetadataFailed}
               aria-label={t("focus.processAnimationAria", { title: displayTitle })}
             />
-          ) : null}
-
-          {videoMetadataProgress && videoMetadataProgress.failed > 0 ? (
-            <div className="focus-video-metadata-error" role="alert">
-              {t("focus.videoMetadataFailed")}
-            </div>
           ) : null}
 
           <FocusModelErrorBoundary

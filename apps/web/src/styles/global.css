@@ -2737,15 +2737,26 @@ button {
   transform: translateX(-50%);
 }
 
-.focus-media-progress {
+.focus-media-status-stack {
   position: absolute;
   left: 50%;
   bottom: 108px;
   z-index: 8;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  width: max-content;
+  max-width: min(88%, 520px);
+  transform: translateX(-50%);
+}
+
+.focus-media-status-row {
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  max-width: min(84%, 520px);
+  max-width: 100%;
   padding: 7px 10px;
   border-radius: 999px;
   background: rgba(244, 244, 239, 0.88);
@@ -2753,7 +2764,7 @@ button {
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transform: translateX(-50%);
+  text-align: center;
   box-shadow: 0 5px 16px rgba(12, 14, 14, 0.08);
 }
 
@@ -2772,18 +2783,8 @@ button {
 }
 
 .focus-video-metadata-error {
-  position: absolute;
-  left: 50%;
-  bottom: 108px;
-  z-index: 8;
-  padding: 7px 10px;
-  border-radius: 999px;
   background: rgba(244, 244, 239, 0.92);
   color: #8a2b22;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transform: translateX(-50%);
 }
 
 @keyframes focus-media-progress-spin {
