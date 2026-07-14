@@ -80,9 +80,9 @@ export function TopBar({
 
   const settingsLabel = t("settings.label");
   const languageLabel = t("settings.language");
-  const qualityLabel = activeLanguage === "zh" ? "画质" : "Quality";
-  const fullLabel = activeLanguage === "zh" ? "完整" : "Full";
-  const simplifiedLabel = activeLanguage === "zh" ? "简化" : "Simplified";
+  const qualityLabel = t("settings.quality");
+  const fullLabel = t("settings.qualityFull");
+  const simplifiedLabel = t("settings.qualitySimplified");
 
   return (
     <div className="topbar">

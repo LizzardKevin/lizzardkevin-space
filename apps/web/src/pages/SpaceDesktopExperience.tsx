@@ -602,6 +602,26 @@ export function SpaceDesktopExperience({
                 </>
               ) : null}
             </Canvas>
+            {resolvedProfile === null ? (
+              <div
+                role="status"
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  zIndex: 25,
+                  display: "grid",
+                  placeItems: "center",
+                  background: "#050505",
+                  color: "rgba(255,255,255,0.75)",
+                  fontFamily: "system-ui",
+                  fontSize: 13,
+                  letterSpacing: "0.06em",
+                  pointerEvents: "none",
+                }}
+              >
+                {t("space.loading")}
+              </div>
+            ) : null}
           </div>
         )}
       </WebGPUErrorBoundary>

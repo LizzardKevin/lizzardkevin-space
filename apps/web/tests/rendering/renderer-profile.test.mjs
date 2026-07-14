@@ -117,23 +117,22 @@ test("simplified forces WebGL while full accepts WebGPU automatic fallback", asy
   assert.deepEqual(forced, [false]);
 });
 
-test("full disposes a rejected renderer and retries forced WebGL at most once", async () => {
+test("full rejection is final because Three already attempted its internal fallback", async () => {
   const { initializeProfiledRenderer } = await importSourceModule("rendering/rendererProfile.ts");
   const forced = [];
   let disposeCount = 0;
-  const result = await initializeProfiledRenderer("full", (forceWebGL) => {
+  let attempts = 0;
+  await assert.rejects(initializeProfiledRenderer("full", (forceWebGL) => {
     forced.push(forceWebGL);
-    return { backend: { isWebGLBackend: true }, async init() { if (!forceWebGL) throw new Error("WebGPU init failed"); }, dispose() { disposeCount += 1; } };
-  });
-  assert.equal(result.resolution.profile, "simplified");
-  assert.deepEqual(forced, [false, true]);
-  assert.equal(disposeCount, 1);
-
-  let failedAttempts = 0;
-  await assert.rejects(initializeProfiledRenderer("full", () => ({
-    backend: { isWebGLBackend: true }, async init() { failedAttempts += 1; throw new Error("still failed"); }, dispose() {},
-  })), /still failed/);
-  assert.equal(failedAttempts, 2);
+    return {
+      backend: {},
+      async init() { attempts += 1; throw new Error("both backends failed"); },
+      dispose() { disposeCount += 1; },
+    };
+  }), /both backends failed/);
+  assert.deepEqual(forced, [false]);
+  assert.equal(attempts, 1);
+  assert.equal(disposeCount, 0);
 });
 
 test("visual settings default and legacy storage normalize to the full preset", async () => {

@@ -98,13 +98,8 @@ type ProfiledRenderer = {
 type RendererFactory<Renderer extends ProfiledRenderer> = (forceWebGL: boolean) => Renderer;
 
 async function initRenderer<Renderer extends ProfiledRenderer>(renderer: Renderer) {
-  try {
-    await renderer.init();
-    return renderer;
-  } catch (error) {
-    renderer.dispose();
-    throw error;
-  }
+  await renderer.init();
+  return renderer;
 }
 
 function resolveInitializedRenderer<Renderer extends ProfiledRenderer>(renderer: Renderer) {
@@ -116,23 +111,10 @@ function resolveInitializedRenderer<Renderer extends ProfiledRenderer>(renderer:
   }
 }
 
-async function initAndResolve<Renderer extends ProfiledRenderer>(renderer: Renderer) {
-  return resolveInitializedRenderer(await initRenderer(renderer));
-}
-
 export async function initializeProfiledRenderer<Renderer extends ProfiledRenderer>(
   requestedProfile: RendererProfileId,
   createRenderer: RendererFactory<Renderer>,
 ) {
-  if (requestedProfile === "simplified") {
-    return initAndResolve(createRenderer(true));
-  }
-
-  const preferredRenderer = createRenderer(false);
-  try {
-    await initRenderer(preferredRenderer);
-  } catch {
-    return initAndResolve(createRenderer(true));
-  }
-  return resolveInitializedRenderer(preferredRenderer);
+  const renderer = createRenderer(requestedProfile === "simplified");
+  return resolveInitializedRenderer(await initRenderer(renderer));
 }

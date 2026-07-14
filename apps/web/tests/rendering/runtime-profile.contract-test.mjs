@@ -39,7 +39,11 @@ assert.doesNotMatch(topbar, /toggleAntialias|type="checkbox"/);
 assert.match(desktop, /bridgeRendererInitialization\(/);
 assert.match(focus, /bridgeRendererInitialization\(/);
 assert.match(desktop, /rendererRuntime\.error[\s\S]*<WebGPUUnavailable/);
-assert.match(focus, /rendererError[\s\S]*FocusLoading/);
+assert.match(focus, /rendererError[\s\S]*className="focus-error" role="alert"/);
 assert.doesNotMatch(focus, /if \(focusRenderer\.requestedProfile !== profile\)[\s\S]*setFocusRenderer/);
+assert.match(desktop, /role="status"[\s\S]*t\("space\.loading"\)/);
+assert.match(focus, /resolvedFocusProfile \? null : <FocusLoading/);
+assert.match(focus, /className="focus-error" role="alert"/);
+assert.match(focus, /<FocusModelErrorBoundary\s+key=\{`\$\{exhibit\.exhibitId\}-\$\{profile\}`\}/);
 
 console.log("renderer runtime profile contract tests passed");

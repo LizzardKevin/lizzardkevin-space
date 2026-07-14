@@ -8,6 +8,8 @@ const player = readSourceFile("scenes/Player/PlayerController.tsx");
 const overlay = readSourceFile("overlay/OverlayLayer.tsx");
 const playback = readSourceFile("media/PlaybackBar.tsx");
 const webgpuUnavailable = readSourceFile("rendering/WebGPUUnavailable.tsx");
+const focus = readSourceFile("exhibits/FocusOverlay.tsx");
+const i18nRuntime = readSourceFile("i18n/i18n.ts");
 const appErrorBoundary = readSourceFile("components/AppErrorBoundary.tsx");
 const debugOverlay = readSourceFile("scenes/debug/SpaceMovementDebugOverlay.tsx");
 
@@ -20,7 +22,7 @@ for (const [sourceName, source, keys] of [
   [
     "TopBar",
     topbar,
-    ["settings.label", "settings.language"],
+    ["settings.label", "settings.language", "settings.quality", "settings.qualityFull", "settings.qualitySimplified"],
   ],
   [
     "SpaceDesktopExperience",
@@ -31,8 +33,15 @@ for (const [sourceName, source, keys] of [
       "space.exhibitLoading",
       "space.manifestMissing",
       "space.pointerLockFailed",
+      "space.loading",
     ],
   ],
+  [
+    "WebGPUUnavailable",
+    webgpuUnavailable,
+    ["space.rendererUnavailableTitle", "space.rendererUnavailableBody"],
+  ],
+  ["FocusOverlay", focus, ["focus.rendererLoadFailed"]],
   [
     "PlayerController",
     player,
@@ -72,6 +81,18 @@ for (const [sourceName, source, keys] of [
     assert(source.includes(`"${key}"`), `${sourceName} must read ${key} from i18n`);
   }
 }
+
+for (const key of [
+  "quality",
+  "qualityFull",
+  "qualitySimplified",
+  "rendererUnavailableTitle",
+  "rendererUnavailableBody",
+  "rendererLoadFailed",
+]) {
+  assert(i18nRuntime.includes(`${key}:`), `runtime i18n augmentation must define ${key}`);
+}
+assert.match(i18nRuntime, /generatedResources[\s\S]*runtimeResourceAugmentation/);
 
 for (const hardcoded of [
   "这么着急吗，倒是点击文字呀",

@@ -3,7 +3,73 @@ import { initReactI18next } from "react-i18next";
 import { generatedResources } from "../generated/i18nResources.generated.ts";
 import { readInitialLanguage } from "./resolveInitialLanguage";
 
-export const resources = generatedResources;
+export const runtimeResourceAugmentation = {
+  en: {
+    settings: {
+      quality: "Quality",
+      qualityFull: "Full",
+      qualitySimplified: "Simplified",
+    },
+    space: {
+      rendererUnavailableTitle: "Renderer unavailable",
+      rendererUnavailableBody: "Unable to initialize a WebGPU or WebGL2 renderer.",
+    },
+    focus: {
+      rendererLoadFailed: "Focus renderer failed to load",
+    },
+  },
+  zh: {
+    settings: {
+      quality: "画质",
+      qualityFull: "完整",
+      qualitySimplified: "简化",
+    },
+    space: {
+      rendererUnavailableTitle: "渲染器不可用",
+      rendererUnavailableBody: "无法初始化 WebGPU 或 WebGL2 渲染器。",
+    },
+    focus: {
+      rendererLoadFailed: "Focus 渲染器加载失败",
+    },
+  },
+} as const;
+
+export const resources = {
+  en: {
+    translation: {
+      ...generatedResources.en.translation,
+      settings: {
+        ...generatedResources.en.translation.settings,
+        ...runtimeResourceAugmentation.en.settings,
+      },
+      space: {
+        ...generatedResources.en.translation.space,
+        ...runtimeResourceAugmentation.en.space,
+      },
+      focus: {
+        ...generatedResources.en.translation.focus,
+        ...runtimeResourceAugmentation.en.focus,
+      },
+    },
+  },
+  zh: {
+    translation: {
+      ...generatedResources.zh.translation,
+      settings: {
+        ...generatedResources.zh.translation.settings,
+        ...runtimeResourceAugmentation.zh.settings,
+      },
+      space: {
+        ...generatedResources.zh.translation.space,
+        ...runtimeResourceAugmentation.zh.space,
+      },
+      focus: {
+        ...generatedResources.zh.translation.focus,
+        ...runtimeResourceAugmentation.zh.focus,
+      },
+    },
+  },
+};
 
 i18n.use(initReactI18next).init({
   resources,
