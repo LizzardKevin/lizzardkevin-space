@@ -54,17 +54,30 @@ test("source discovery rejects symlinked asset trees instead of following them",
 
 test("raw deployed header evidence preserves command, timestamp, and representative responses", () => {
   const evidence = readFileSync(resolve(repoRoot, "docs/performance/github-pages-headers-2026-07-14.txt"), "utf8");
-  assert.match(evidence, /Capture timestamp: 2026-07-14T11:20:28Z/);
-  assert.match(evidence, /curl\.exe -sS -L -I/);
-  for (const path of [
-    "/lizzardkevin-space/",
-    "/assets/index-aEZfzqC9.js",
-    "/models/space_main.glb",
-    "/draco/draco_decoder.wasm",
-    "/audio/space_background_looped.mp3",
-    "/exhibits/manifest.json",
-  ]) {
-    assert(evidence.includes(path), path);
+  const baseline = readFileSync(resolve(repoRoot, "docs/performance/space-asset-baseline.md"), "utf8");
+  for (const round of [1, 2]) {
+    assert.match(evidence, new RegExp(`Round ${round} timestamp: 2026-07-14T`));
+    assert.match(evidence, new RegExp(`Round ${round} command: curl\\.exe -sS -L -I`));
   }
-  assert.equal((evidence.match(/HTTP\/1\.1 200 OK/g) ?? []).length, 6);
+  const urls = [
+    "https://lizzardkevin.github.io/lizzardkevin-space/",
+    "https://lizzardkevin.github.io/lizzardkevin-space/assets/index-aEZfzqC9.js",
+    "https://lizzardkevin.github.io/lizzardkevin-space/models/space_main.glb",
+    "https://lizzardkevin.github.io/lizzardkevin-space/draco/draco_decoder.wasm",
+    "https://lizzardkevin.github.io/lizzardkevin-space/audio/space_background_looped.mp3",
+    "https://lizzardkevin.github.io/lizzardkevin-space/exhibits/manifest.json",
+  ];
+  for (const url of urls) {
+    assert.equal(evidence.split(`===== ${url} =====`).length - 1, 2, url);
+  }
+  assert.equal((evidence.match(/HTTP\/1\.1 200 OK/g) ?? []).length, 12);
+  const xCache = [...evidence.matchAll(/^X-Cache: ([^\r\n]+)$/gm)].map((match) => match[1]);
+  const proxyCache = [...evidence.matchAll(/^x-proxy-cache: ([^\r\n]+)$/gm)].map((match) => match[1]);
+  assert.equal(xCache.length, 12);
+  assert.equal(proxyCache.length, 12);
+  const xCacheHitCount = xCache.filter((value) => value === "HIT").length;
+  const proxyMissCount = proxyCache.filter((value) => value === "MISS").length;
+  const summary = `Preserved rounds observed X-Cache HIT ${xCacheHitCount}/12 and x-proxy-cache MISS ${proxyMissCount}/12.`;
+  assert(evidence.includes(summary));
+  assert(baseline.includes(summary));
 });

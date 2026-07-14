@@ -19,7 +19,7 @@ This is an evidence input, not approval of a final performance budget. It makes 
 | Raw deployed-header evidence | `docs/performance/github-pages-headers-2026-07-14.txt` |
 | Reproduce / check | `npm run asset:audit`; `npm run asset:check` |
 | Source-only quick gate | `npm run test:asset-source` (does not require `dist`) |
-| Full release gate | `npm run verify:release` (quick verification, then one fresh build inside `asset:check`) |
+| Full release gate | `npm run verify:release` (quick verification, then a direct workspace build inside `asset:check`) |
 
 The audit hashes and measures files read-only. It scans all files under `apps/web/public` because Vite copies that directory verbatim, plus recognized asset/source formats in `BlenderFile` and `docs/assets`. It also reads the current `dist/index.html`, built chunks, and GLB JSON chunks. GLB `accessorLogicalBytes` is a static logical payload count, not measured GPU residency.
 
@@ -100,7 +100,7 @@ curl.exe -sS -L -I --connect-timeout 10 --max-time 30 -H "Accept-Encoding: gzip,
 | `/audio/space_background_looped.mp3` | 200 | `audio/mp3` | `max-age=600` | none observed | 4,879,196 | strong ETag + Last-Modified |
 | `/exhibits/manifest.json` | 200 | `application/json; charset=utf-8` | `max-age=600` | gzip | 641 | weak ETag + Last-Modified |
 
-All sampled responses returned `Vary: Accept-Encoding` and `Age: 0`. The first observation returned `X-Cache: MISS`; the preserved repeat capture returned `X-Cache: HIT`, so cache hit state is correctly treated as request-specific while `Cache-Control`, validators, content type, and encoding remained stable. The deployed JS filename differs from the local build, so deployed-header evidence and local chunk evidence must not be conflated. A ten-minute cache lifetime is observable for content-hashed JS and large immutable assets; a future deployment review should evaluate immutable caching, but changing hosting/cache policy is outside Phase 8A.
+Both preserved rounds returned `Vary: Accept-Encoding` and `Age: 0` for all six representative URLs. Preserved rounds observed X-Cache HIT 12/12 and x-proxy-cache MISS 12/12. These are distinct headers at different cache layers; this evidence does not contain an `X-Cache: MISS` response. `Cache-Control`, validators, content type, and encoding were stable across the two rounds. The deployed JS filename differs from the local build, so deployed-header evidence and local chunk evidence must not be conflated. A ten-minute cache lifetime is observable for content-hashed JS and large immutable assets; a future deployment review should evaluate immutable caching, but changing hosting/cache policy is outside Phase 8A.
 
 ## Deterministic gates now enforceable
 
@@ -160,4 +160,4 @@ React versus Svelte is not the primary performance decision here. The dominant m
 
 ## Phase completion boundary
 
-Phase 8A is complete only when the deterministic report, tests, fresh-build evidence, raw header evidence, protected-asset diff, and this pending-browser protocol are all present. `npm run asset:check` is the canonical clean-checkout sequence: build and chunk contract, report comparison, then the full asset-budget tests. Full asset-performance-budget completion additionally requires browser capture for both profiles, agreed numeric caps, regression runs, and explicit authorization before any source/asset movement, deletion, recompression, re-export, or GLB/Blender change.
+Phase 8A is complete only when the deterministic report, tests, fresh-build evidence, raw header evidence, protected-asset diff, and this pending-browser protocol are all present. `npm run asset:check` is the canonical read-only clean-checkout sequence: check generated content without writing, run the web workspace build directly (so the root `prebuild` generator cannot run), run the chunk contract, compare the report, then run the full asset-budget tests. `npm run test:asset-readonly` snapshots public, generated, Blender, and workbook/source bytes around the actual command. Full asset-performance-budget completion additionally requires browser capture for both profiles, agreed numeric caps, regression runs, and explicit authorization before any source/asset movement, deletion, recompression, re-export, or GLB/Blender change.

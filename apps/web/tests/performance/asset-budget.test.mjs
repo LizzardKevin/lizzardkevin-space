@@ -245,11 +245,16 @@ test("GLB parsing rejects unsupported versions and impossible chunk bounds befor
 
 test("release scripts build before checking the report without recursive build", () => {
   const scripts = JSON.parse(readFileSync(packageJsonPath, "utf8")).scripts;
+  const webScripts = JSON.parse(readFileSync(resolve(repoRoot, "apps/web/package.json"), "utf8")).scripts;
   assert.equal(scripts["test:asset-budget"], "node --test apps/web/tests/performance/asset-budget.test.mjs");
-  assert.match(scripts["asset:audit"], /^npm run build:chunks && node scripts\/audit-space-assets\.mjs --output /);
-  assert.match(scripts["asset:check"], /^npm run build:chunks && node scripts\/audit-space-assets\.mjs --check [^&]+ && npm run test:asset-budget$/);
+  const directReadOnlyBuild = "npm run content:check && npm run build -w apps/web && node apps/web/tests/build/chunks.contract-test.mjs";
+  assert.match(scripts["asset:audit"], new RegExp(`^${directReadOnlyBuild.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} && node scripts/audit-space-assets\\.mjs --output `));
+  assert.match(scripts["asset:check"], new RegExp(`^${directReadOnlyBuild.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} && node scripts/audit-space-assets\\.mjs --check [^&]+ && npm run test:asset-budget$`));
   assert.match(scripts["verify:release"], /npm run asset:check/);
-  assert.doesNotMatch(scripts["asset:check"], /verify:release|asset:check/);
+  assert.doesNotMatch(scripts["asset:check"], /verify:release|asset:check|content:generate|exhibits:cache|build:chunks/);
+  assert.equal(webScripts.build, "tsc -b && vite build");
+  assert.equal(webScripts.prebuild, undefined);
+  assert.equal(scripts["test:asset-readonly"], "node --test apps/web/tests/performance/asset-readonly.integration-test.mjs");
 });
 
 test("semantic source assets remain inventoried and current public shipping is reported truthfully", async () => {
