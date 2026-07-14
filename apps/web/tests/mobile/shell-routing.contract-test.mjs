@@ -2,16 +2,16 @@ import assert from "node:assert/strict";
 import { files, mobileData } from "../helpers/mobileContractFixture.mjs";
 
 assert(
-  !files.app.includes('from "./components/TopBar"'),
-  "App must not statically import the desktop TopBar on mobile",
+  files.app.includes('lazy(() => import("./app/DesktopApp"))'),
+  "App must lazy-load the desktop shell",
 );
 assert(
-  !files.app.includes('from "./overlay/OverlayLayer"'),
-  "App must not statically import the desktop OverlayLayer on mobile",
+  files.app.includes('lazy(() => import("./app/MobileApp"))'),
+  "App must lazy-load the mobile shell",
 );
 assert(
-  files.app.includes("lazy(() =>") && files.app.includes("./desktop/DesktopChrome"),
-  "App must lazy-load desktop chrome behind the desktop platform branch",
+  files.mobileApp.includes('from "../pages/MobileExperience"'),
+  "MobileApp must statically own the mobile experience",
 );
 
 assert(
@@ -19,8 +19,8 @@ assert(
   "SpacePage must keep the desktop 3D experience lazy-loaded",
 );
 assert(
-  files.spacePage.includes("{isDesktop &&") && files.spacePage.includes("<SpaceDesktopExperience"),
-  "SpacePage must render the desktop 3D experience only for desktop clients",
+  files.desktopApp.includes('from "../pages/SpacePage"') && files.spacePage.includes("<SpaceDesktopExperience"),
+  "DesktopApp must own the desktop-only SpacePage",
 );
 
 assert(!files.mobileExperience.includes("devStories"), "mobile experience must not import or render DevStories");

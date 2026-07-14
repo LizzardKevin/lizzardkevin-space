@@ -12,6 +12,8 @@ export function terminalCssSlice(css) {
 
 export const files = {
   app: readProjectFile("apps/web/src/App.tsx"),
+  desktopApp: readProjectFile("apps/web/src/app/DesktopApp.tsx"),
+  mobileApp: readProjectFile("apps/web/src/app/MobileApp.tsx"),
   spacePage: readProjectFile("apps/web/src/pages/SpacePage.tsx"),
   mobileExperience: readProjectFile("apps/web/src/pages/MobileExperience.tsx"),
   profile: readProjectFile("apps/web/src/content/lizzardKevinProfile.ts"),

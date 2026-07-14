@@ -3,7 +3,7 @@ import { cssBlock } from "./cssAssertions.mjs";
 import { readSourceFile } from "./projectPaths.mjs";
 
 export const files = {
-  app: readSourceFile("App.tsx"),
+  app: readSourceFile("app/DesktopApp.tsx"),
   overlay: readSourceFile("overlay/OverlayLayer.tsx"),
   topbar: readSourceFile("components/TopBar.tsx"),
   splitTabs: readSourceFile("components/frostedSplit/FrostedSplitTabs.tsx"),

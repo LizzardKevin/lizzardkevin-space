@@ -2,9 +2,7 @@ import { Suspense, lazy, useCallback, useRef, useState } from "react";
 import { useAudioDirector } from "../audio/useAudioDirector";
 import { EntrySplash } from "../components/entry/EntrySplash";
 import { useEntryTransition } from "../hooks/useEntryTransition";
-import { useClientPlatform } from "../platform/useClientPlatform";
 import { resumeSpaceFirstPerson } from "../space/requestSpacePointerLock";
-import { MobileExperience } from "./MobileExperience";
 
 const SpaceDesktopExperience = lazy(() =>
   import("./SpaceDesktopExperience").then((module) => ({
@@ -13,7 +11,6 @@ const SpaceDesktopExperience = lazy(() =>
 );
 
 export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) {
-  const platform = useClientPlatform();
   const entry = useEntryTransition();
   const audio = useAudioDirector();
   const { startFade } = entry;
@@ -21,8 +18,7 @@ export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) 
   const [loadExhibits, setLoadExhibits] = useState(false);
   const entryWaitingForExhibitsRef = useRef(false);
 
-  const isDesktop = platform === "desktop";
-  const showSplash = entry.showSplash && (isDesktop ? canvasReady : true);
+  const showSplash = entry.showSplash && canvasReady;
 
   const handleCanvasReady = useCallback(() => {
     setCanvasReady(true);
@@ -35,35 +31,28 @@ export function SpacePage({ overlay }: { overlay: { isOverlayOpen: boolean } }) 
   }, [startFade]);
 
   const handleEnter = useCallback(() => {
-    if (isDesktop && !canvasReady) return;
+    if (!canvasReady) return;
     entry.freezeButtonFloat();
     entry.beginLoading();
     audio.unlock();
-    if (isDesktop) {
-      entryWaitingForExhibitsRef.current = true;
-      setLoadExhibits(true);
-      resumeSpaceFirstPerson();
-      void audio.setZone("architecture");
-    } else {
-      entry.startFade();
-    }
-  }, [audio, canvasReady, entry, isDesktop]);
+    entryWaitingForExhibitsRef.current = true;
+    setLoadExhibits(true);
+    resumeSpaceFirstPerson();
+    void audio.setZone("architecture");
+  }, [audio, canvasReady, entry]);
 
   return (
     <div style={{ height: "100vh", width: "100vw", background: "#ffffff" }}>
       {showSplash && <EntrySplash entry={entry} onEnter={handleEnter} />}
-      {isDesktop && (
-        <Suspense fallback={null}>
-          <SpaceDesktopExperience
-            entry={entry}
-            overlay={overlay}
-            loadExhibits={loadExhibits}
-            onSceneExhibitsReady={handleSceneExhibitsReady}
-            onCanvasReady={handleCanvasReady}
-          />
-        </Suspense>
-      )}
-      {!isDesktop && <MobileExperience entry={entry} />}
+      <Suspense fallback={null}>
+        <SpaceDesktopExperience
+          entry={entry}
+          overlay={overlay}
+          loadExhibits={loadExhibits}
+          onSceneExhibitsReady={handleSceneExhibitsReady}
+          onCanvasReady={handleCanvasReady}
+        />
+      </Suspense>
     </div>
   );
 }

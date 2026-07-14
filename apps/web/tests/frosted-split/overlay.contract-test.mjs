@@ -19,7 +19,7 @@ assert(
   "tab overlay return button copy must come from localized overlay resources",
 );
 assert(files.topbar.includes("data-space-word-origin"), "TopBar SPACE word must expose a stable morph origin marker");
-assert(files.app.includes("spaceWordSourceRect"), "App must capture the SPACE word source rect before opening tabs");
+assert(files.app.includes("spaceWordSourceRect"), "DesktopApp must capture the SPACE word source rect before opening tabs");
 assert(files.overlay.includes("spaceWordSourceRect"), "OverlayLayer must accept the SPACE word source rect");
 assert(files.overlay.includes("overlay-return-button__prefix"), "return-to-space button must split 回到 into a prefix span");
 assert(files.overlay.includes("overlay-return-button__space"), "return-to-space button must split space into its own morphing span");
