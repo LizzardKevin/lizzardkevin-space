@@ -4,7 +4,6 @@ import type { EntryTransition } from "../entry/entryTypes";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
 import { loadManifest } from "../exhibits/manifest";
 import type { ExhibitManifestItem } from "../exhibits/manifest";
-import type { RendererProfile } from "../rendering/rendererProfile";
 import type { SpaceJumpNoticeKey } from "../scenes/Player/PlayerController";
 import type { ProjectorSlideCommand, ProjectorSlideDirection } from "../scenes/projector/projectorSlides";
 import { SPACE_ONBOARDING_DEMO_EXHIBIT_ID } from "../scenes/onboarding/spaceOnboardingConfig";
@@ -128,9 +127,6 @@ export function SpaceDesktopExperience({
   const lastSessionPoseSaveAtRef = useRef(0);
   const projectorSlideCommandNonceRef = useRef(0);
   const devFocusOpenedRef = useRef(false);
-  const [resolvedProfile, setResolvedProfile] = useState<RendererProfile | null>(null);
-  const [rendererError, setRendererError] = useState<Error | null>(null);
-
   const { entered, fading: entryIsFading } = entry;
 
   useEffect(() => {
@@ -394,8 +390,6 @@ export function SpaceDesktopExperience({
         initialPose={initialResumePose}
         latestPoseRef={latestSpacePoseRef}
         onCanvasReady={onCanvasReady}
-        onProfileResolved={setResolvedProfile}
-        onRendererError={setRendererError}
         session={{
           exhibitTarget,
           onTargetChange: setExhibitTarget,
@@ -415,48 +409,52 @@ export function SpaceDesktopExperience({
           onPoseSample: handleSpacePoseSample,
           onOnboardingCompleted: () => setOnboardingCompleted(true),
         }}
-      />
-      {focusOverlayExhibit && resolvedProfile ? (
-        <Suspense fallback={null}>
-          <FocusOverlay
-            key={focusOverlayExhibit.exhibitId}
-            exhibit={focusOverlayExhibit}
-            profile={resolvedProfile.id}
-            onBeginDismiss={handleBeginDismissFocus}
-            onClose={handleFinishDismissFocus}
-          />
-        </Suspense>
-      ) : null}
-      {onboardingFocusVisible ? (
-        <SpaceOnboardingFocusDemo
-          onBeginDismiss={handleBeginDismissOnboardingFocus}
-          onClose={handleFinishDismissOnboardingFocus}
-        />
-      ) : null}
-      <SpaceHud
-        entered={entered}
-        overlayOpen={overlay.isOverlayOpen}
-        focusOpen={focusSurfaceOpen}
-        pointerLocked={pointerLocked}
-        isHovering={isHovering}
-        crosshairPulseNonce={crosshairPulseNonce}
-        jumpHintMessage={jumpHintMessage}
-        jumpHintVisible={jumpHintVisible}
-        projectorHintVisible={projectorHintVisible}
-        toastMessage={toastMessage}
-        toastDurationMs={toast?.key === "space.pointerLockFailed" ? 5200 : 2200}
-        onToastDone={() => setToast(null)}
-        invalidFocusedRoute={invalidFocusedRoute}
-        onNavigateToSpace={() => onNavigateToSpace()}
-        rendererFailed={rendererError !== null}
-        rendererLoading={
-          resolvedProfile === null && rendererError === null && bootState.phase !== "failed"
-        }
-        loadedItems={bootState.items.loaded + bootState.items.failed + bootState.items.deferred}
-        totalItems={bootState.phase === "booting" ? bootState.items.total : 0}
-        bootFailed={bootState.phase === "failed"}
-        bootError={bootState.error}
-        onRetryBoot={retryBoot}
+        renderSurfaces={({ profile, error, loading }) => (
+          <>
+            {focusOverlayExhibit && profile ? (
+              <Suspense fallback={null}>
+                <FocusOverlay
+                  key={focusOverlayExhibit.exhibitId}
+                  exhibit={focusOverlayExhibit}
+                  profile={profile.id}
+                  onBeginDismiss={handleBeginDismissFocus}
+                  onClose={handleFinishDismissFocus}
+                />
+              </Suspense>
+            ) : null}
+            {onboardingFocusVisible ? (
+              <SpaceOnboardingFocusDemo
+                onBeginDismiss={handleBeginDismissOnboardingFocus}
+                onClose={handleFinishDismissOnboardingFocus}
+              />
+            ) : null}
+            <SpaceHud
+              entered={entered}
+              overlayOpen={overlay.isOverlayOpen}
+              focusOpen={focusSurfaceOpen}
+              pointerLocked={pointerLocked}
+              isHovering={isHovering}
+              crosshairPulseNonce={crosshairPulseNonce}
+              jumpHintMessage={jumpHintMessage}
+              jumpHintVisible={jumpHintVisible}
+              projectorHintVisible={projectorHintVisible}
+              toastMessage={toastMessage}
+              toastDurationMs={toast?.key === "space.pointerLockFailed" ? 5200 : 2200}
+              onToastDone={() => setToast(null)}
+              invalidFocusedRoute={invalidFocusedRoute}
+              onNavigateToSpace={() => onNavigateToSpace()}
+              rendererFailed={error !== null}
+              rendererLoading={loading}
+              loadedItems={
+                bootState.items.loaded + bootState.items.failed + bootState.items.deferred
+              }
+              totalItems={bootState.phase === "booting" ? bootState.items.total : 0}
+              bootFailed={bootState.phase === "failed"}
+              bootError={bootState.error}
+              onRetryBoot={retryBoot}
+            />
+          </>
+        )}
       />
     </>
   );

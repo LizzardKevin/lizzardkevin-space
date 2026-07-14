@@ -1,6 +1,14 @@
 import "../runtime/suppressThirdPartyDeprecationWarnings";
 import { Canvas } from "@react-three/fiber";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { BootAttemptErrorBoundary } from "../boot/BootAttemptErrorBoundary";
 import { isBootReportingEnabled } from "../boot/bootReportingGate";
 import { watchRendererDeviceLoss } from "../boot/rendererDeviceLoss";
@@ -33,6 +41,11 @@ import {
 } from "../scenes/gallery/galleryConfig";
 import { spawnToCameraPosition } from "../scenes/gallery/resolveGallerySpawn";
 import type { SpacePlayerPose } from "./spaceDailyResume";
+import {
+  SpaceCanvasSurfaceSlot,
+  resolveSpaceCanvasStatus,
+  type SpaceCanvasStatus,
+} from "./spaceCanvasStatus";
 import { SpaceSession, type SpaceSessionProps } from "./SpaceSession";
 import { useSpaceVisualSettings } from "./spaceVisualSettings";
 
@@ -58,8 +71,7 @@ export function SpaceCanvasHost({
   latestPoseRef,
   session,
   onCanvasReady,
-  onProfileResolved,
-  onRendererError,
+  renderSurfaces,
 }: {
   boot: SpaceBootController;
   entered: boolean;
@@ -69,8 +81,7 @@ export function SpaceCanvasHost({
   latestPoseRef: RefObject<SpacePlayerPose | null>;
   session: SpaceCanvasSessionProps;
   onCanvasReady?: () => void;
-  onProfileResolved: (profile: RendererProfile | null) => void;
-  onRendererError: (error: Error | null) => void;
+  renderSurfaces: (status: SpaceCanvasStatus) => ReactNode;
 }) {
   const {
     state: bootState,
@@ -114,12 +125,14 @@ export function SpaceCanvasHost({
     resolvedProfile: null,
     error: null,
   }));
-  const rendererScopeMatches =
-    rendererRuntime.attemptId === attemptId &&
-    rendererRuntime.requestedProfile === requestedProfile &&
-    rendererRuntime.nonce === rendererGeneration.nonce;
-  const resolvedProfile = rendererScopeMatches ? rendererRuntime.resolvedProfile : null;
-  const activeRendererError = rendererScopeMatches ? rendererRuntime.error : null;
+  const status = resolveSpaceCanvasStatus(rendererRuntime, {
+    attemptId,
+    requestedProfile,
+    nonce: rendererGeneration.nonce,
+    bootFailed: bootState.phase === "failed",
+  });
+  const resolvedProfile = status.profile;
+  const activeRendererError = status.error;
   const rendererOwnerMountedRef = useRef(true);
   const rendererLossCleanupRef = useRef<(() => void) | null>(null);
   const ownedRendererRef = useRef<DisposableBootRenderer | null>(null);
@@ -133,11 +146,6 @@ export function SpaceCanvasHost({
       isBootReportingEnabled(bootReportingScopeRef.current, reportedAttemptId),
     [],
   );
-
-  useEffect(() => {
-    onProfileResolved(resolvedProfile);
-    onRendererError(activeRendererError);
-  }, [activeRendererError, onProfileResolved, onRendererError, resolvedProfile]);
 
   useEffect(() => {
     rendererOwnerMountedRef.current = true;
@@ -183,9 +191,10 @@ export function SpaceCanvasHost({
   const useShadows = !ENABLE_GALLERY_GLB || ENABLE_GALLERY_RUNTIME_SHADOWS;
 
   return (
-    <BootAttemptErrorBoundary attemptId={attemptId} onError={handleBootSubtreeError}>
-      {activeRendererError || bootState.phase === "failed" ? null : (
-        <div
+    <>
+      <BootAttemptErrorBoundary attemptId={attemptId} onError={handleBootSubtreeError}>
+        {activeRendererError || bootState.phase === "failed" ? null : (
+          <div
           className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${paused ? " space-canvasWrap--disabled" : ""}`}
         >
           <Canvas
@@ -316,8 +325,10 @@ export function SpaceCanvasHost({
               />
             ) : null}
           </Canvas>
-        </div>
-      )}
-    </BootAttemptErrorBoundary>
+          </div>
+        )}
+      </BootAttemptErrorBoundary>
+      <SpaceCanvasSurfaceSlot status={status} renderSurfaces={renderSurfaces} />
+    </>
   );
 }

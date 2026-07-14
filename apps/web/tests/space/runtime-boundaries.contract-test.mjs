@@ -36,6 +36,9 @@ assert.equal((session.match(/<SpaceScene\b/g) ?? []).length, 1, "SpaceSession co
 assert.match(canvasHost, /<SpaceSession\b/);
 assert.match(canvasHost, /createWebGPURenderer/);
 assert.match(canvasHost, /switchRendererProfileState/);
+assert.match(canvasHost, /<SpaceCanvasSurfaceSlot status=\{status\} renderSurfaces=\{renderSurfaces\}/);
+assert.doesNotMatch(canvasHost, /onProfileResolved|onRendererError/);
+assert.doesNotMatch(experience, /setResolvedProfile|setRendererError/);
 
 const runtimeMarkupOwners = walkSource(sourceRoot)
   .filter((path) => /\.tsx$/.test(path))

@@ -39,7 +39,7 @@
     "package:test": "node apps/web/tests/release/package-build.package-test.mjs",
     "test:renderer-profile": "node --test apps/web/tests/rendering/renderer-profile.test.mjs && node apps/web/tests/rendering/runtime-profile.contract-test.mjs",
     "test:runtime-boundaries": "node apps/web/tests/space/runtime-boundaries.contract-test.mjs",
-    "test:boot": "node --test apps/web/tests/boot/space-boot-reducer.test.mjs apps/web/tests/boot/space-boot-runtime.test.mjs",
+    "test:boot": "node --test apps/web/tests/boot/space-boot-reducer.test.mjs apps/web/tests/boot/space-boot-runtime.test.mjs apps/web/tests/rendering/renderer-surface-reconciliation.test.mjs",
     "github:push": "bash scripts/github-bootstrap.sh"
   },
   "devDependencies": {

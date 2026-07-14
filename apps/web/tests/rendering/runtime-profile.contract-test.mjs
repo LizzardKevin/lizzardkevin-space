@@ -3,6 +3,7 @@ import { readProjectFile } from "../helpers/projectPaths.mjs";
 
 const desktop = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
 const canvasHost = readProjectFile("apps/web/src/space/SpaceCanvasHost.tsx");
+const canvasStatus = readProjectFile("apps/web/src/space/spaceCanvasStatus.ts");
 const session = readProjectFile("apps/web/src/space/SpaceSession.tsx");
 const hud = readProjectFile("apps/web/src/space/SpaceHud.tsx");
 const focus = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
@@ -47,7 +48,11 @@ assert.doesNotMatch(
   readProjectFile("apps/web/src/rendering/rendererLifecycle.ts"),
   /const PENDING_RENDERER_INITIALIZATION/,
 );
-assert.match(canvasHost, /rendererRuntime\.error/);
+assert.match(canvasHost, /resolveSpaceCanvasStatus\(rendererRuntime/);
+assert.match(canvasStatus, /const error = scopeMatches \? runtime\.error : null/);
+assert.match(canvasHost, /<SpaceCanvasSurfaceSlot status=\{status\} renderSurfaces=\{renderSurfaces\}/);
+assert.doesNotMatch(canvasHost, /onProfileResolved|onRendererError/);
+assert.doesNotMatch(desktop, /setResolvedProfile|setRendererError/);
 assert.match(hud, /rendererFailed \? <WebGPUUnavailable/);
 assert.match(focus, /rendererError[\s\S]*className="focus-error" role="alert"/);
 assert.doesNotMatch(focus, /if \(focusRenderer\.requestedProfile !== profile\)[\s\S]*setFocusRenderer/);

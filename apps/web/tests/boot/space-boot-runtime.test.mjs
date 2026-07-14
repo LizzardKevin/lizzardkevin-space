@@ -146,6 +146,7 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
   const host = readSourceFile("space", "SpaceHost.tsx");
   const experience = readSourceFile("pages", "SpaceDesktopExperience.tsx");
   const canvasHost = readSourceFile("space", "SpaceCanvasHost.tsx");
+  const canvasStatus = readSourceFile("space", "spaceCanvasStatus.ts");
   const hud = readSourceFile("space", "SpaceHud.tsx");
   const scene = readSourceFile("scenes", "SpaceScene.tsx");
   const gallery = readSourceFile("scenes", "gallery", "GalleryModel.tsx");
@@ -175,7 +176,8 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
     /bootState\.phase === "failed" \? null/,
     "a failed attempt must unmount its Canvas before manual retry",
   );
-  assert.match(experience, /resolvedProfile === null && rendererError === null/);
+  assert.match(canvasHost, /resolveSpaceCanvasStatus\(rendererRuntime/);
+  assert.match(canvasStatus, /loading: profile === null && error === null && !scope\.bootFailed/);
   assert.match(hud, /role="status"[\s\S]*t\("space\.loading"\)/);
   assert.match(hud, /space-renderer-loading-indicator/);
   assert.match(globalCss, /\.space-renderer-loading-indicator[\s\S]*animation:/);
