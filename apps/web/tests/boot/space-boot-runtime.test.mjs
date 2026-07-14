@@ -13,6 +13,10 @@ import {
   resolveRendererGeneration,
   runForActiveRendererGeneration,
 } from "../../src/boot/rendererGeneration.ts";
+import { BootAttemptErrorBoundary } from "../../src/boot/BootAttemptErrorBoundary.ts";
+import { createBootReportingGate } from "../../src/boot/bootReportingGate.ts";
+import { createElement } from "react";
+import { act, create } from "react-test-renderer";
 
 class FakeCanvas extends EventTarget {}
 
@@ -189,4 +193,50 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
     host + experience + scene + gallery + exhibits,
     /setInterval|requestAnimationFrame\([^)]*(?:boot|progress)|fakeProgress/,
   );
+});
+
+test("Canvas subtree failures fail one attempt and retry remounts the subtree", async () => {
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  const reports = [];
+  let mounts = 0;
+  function Scene({ shouldThrow }) {
+    mounts += 1;
+    if (shouldThrow) throw new Error("physics exploded");
+    return createElement("scene-ready");
+  }
+  const renderTree = (attemptId, shouldThrow) => createElement(
+    BootAttemptErrorBoundary,
+    { attemptId, onError: (id, error) => reports.push([id, error.message]) },
+    createElement(Scene, { shouldThrow }),
+  );
+  const originalError = console.error;
+  console.error = () => {};
+  try {
+    let renderer;
+    await act(() => { renderer = create(renderTree(1, true)); });
+    assert.deepEqual(reports, [[1, "physics exploded"]]);
+    assert.equal(renderer.toJSON(), null);
+    await act(() => { renderer.update(renderTree(2, false)); });
+    assert.equal(renderer.root.findByType("scene-ready").type, "scene-ready");
+    assert.ok(mounts >= 2, "a new attempt remounts the failed subtree");
+    await act(() => { renderer.unmount(); });
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test("boot reporting becomes truly quiescent after running", () => {
+  const scope = { attemptId: 4, phase: "booting" };
+  const calls = [];
+  const gate = createBootReportingGate(() => scope);
+  const reportReady = gate.wrap(4, (id) => calls.push(["ready", id]));
+  const reportDeferred = gate.wrap(4, (id) => calls.push(["deferred", id]));
+
+  reportDeferred("far");
+  reportReady("near");
+  scope.phase = "running";
+  reportDeferred("near-after-range-change");
+  reportReady("late-model-resolution");
+  assert.deepEqual(calls, [["deferred", "far"], ["ready", "near"]]);
+  assert.equal(gate.isEnabled(4), false);
 });

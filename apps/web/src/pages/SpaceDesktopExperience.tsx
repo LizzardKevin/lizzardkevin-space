@@ -23,7 +23,6 @@ import {
   bridgeRendererInitialization,
   reportRendererInitializationErrorIfMounted,
 } from "../rendering/rendererLifecycle";
-import { WebGPUErrorBoundary } from "../rendering/WebGPUErrorBoundary";
 import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
 import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
 import { SpaceScene } from "../scenes/SpaceScene";
@@ -72,6 +71,8 @@ import {
   resolveRendererGeneration,
   runForActiveRendererGeneration,
 } from "../boot/rendererGeneration";
+import { BootAttemptErrorBoundary } from "../boot/BootAttemptErrorBoundary.ts";
+import { isBootReportingEnabled } from "../boot/bootReportingGate";
 
 const FocusOverlay = lazy(() =>
   import("../exhibits/FocusOverlay").then((module) => ({
@@ -226,6 +227,15 @@ export function SpaceDesktopExperience({
   const rendererOwnerMountedRef = useRef(true);
   const rendererLossCleanupRef = useRef<(() => void) | null>(null);
   const ownedRendererRef = useRef<DisposableBootRenderer | null>(null);
+  const bootReportingScopeRef = useRef({ attemptId, phase: bootState.phase });
+  useLayoutEffect(() => {
+    bootReportingScopeRef.current = { attemptId, phase: bootState.phase };
+  }, [attemptId, bootState.phase]);
+  const canReportBootProgress = useCallback(
+    (reportedAttemptId: number) =>
+      isBootReportingEnabled(bootReportingScopeRef.current, reportedAttemptId),
+    [],
+  );
   const { quality, settings } = useSpaceVisualSettings();
   const requestedProfile = bootState.forceWebGL ? "simplified" : settings.qualityPreset;
   const [rendererGeneration, setRendererGeneration] = useState(() =>
@@ -340,29 +350,39 @@ export function SpaceDesktopExperience({
   }, [attemptId, failBoot, manifestResolved]);
 
   const handlePhysicsReady = useCallback(() => {
-    milestoneReady(attemptId, "physics");
-  }, [attemptId, milestoneReady]);
+    if (canReportBootProgress(attemptId)) {
+      milestoneReady(attemptId, "physics");
+    }
+  }, [attemptId, canReportBootProgress, milestoneReady]);
 
   const handleEnvironmentReady = useCallback(() => {
-    milestoneReady(attemptId, "environment");
-  }, [attemptId, milestoneReady]);
+    if (canReportBootProgress(attemptId)) {
+      milestoneReady(attemptId, "environment");
+    }
+  }, [attemptId, canReportBootProgress, milestoneReady]);
 
   const handleGalleryReady = useCallback(() => {
-    milestoneReady(attemptId, "gallery");
+    if (canReportBootProgress(attemptId)) {
+      milestoneReady(attemptId, "gallery");
+    }
     onCanvasReady?.();
-  }, [attemptId, milestoneReady, onCanvasReady]);
+  }, [attemptId, canReportBootProgress, milestoneReady, onCanvasReady]);
 
   const handleExhibitReady = useCallback((exhibitId: string) => {
-    exhibitReady(attemptId, exhibitId);
-  }, [attemptId, exhibitReady]);
+    if (canReportBootProgress(attemptId)) exhibitReady(attemptId, exhibitId);
+  }, [attemptId, canReportBootProgress, exhibitReady]);
 
   const handleExhibitFailed = useCallback((exhibitId: string) => {
-    exhibitFailed(attemptId, exhibitId);
-  }, [attemptId, exhibitFailed]);
+    if (canReportBootProgress(attemptId)) exhibitFailed(attemptId, exhibitId);
+  }, [attemptId, canReportBootProgress, exhibitFailed]);
 
   const handleExhibitDeferred = useCallback((exhibitId: string) => {
-    exhibitDeferred(attemptId, exhibitId);
-  }, [attemptId, exhibitDeferred]);
+    if (canReportBootProgress(attemptId)) exhibitDeferred(attemptId, exhibitId);
+  }, [attemptId, canReportBootProgress, exhibitDeferred]);
+
+  const handleBootSubtreeError = useCallback((failedAttemptId: number, error: Error) => {
+    failBoot(failedAttemptId, error);
+  }, [failBoot]);
 
   useEffect(() => {
     if (!devFocusExhibitId || manifest === null || focusedExhibitId || devFocusOpenedRef.current) return;
@@ -626,7 +646,7 @@ export function SpaceDesktopExperience({
           onClose={handleFinishDismissOnboardingFocus}
         />
       ) : null}
-      <WebGPUErrorBoundary>
+      <BootAttemptErrorBoundary attemptId={attemptId} onError={handleBootSubtreeError}>
         {rendererRuntime.error && rendererScopeMatches ? (
           <WebGPUUnavailable />
         ) : bootState.phase === "failed" ? null : (
@@ -670,7 +690,9 @@ export function SpaceDesktopExperience({
                               error: null,
                             };
                           });
-                          milestoneReady(attemptId, "renderer");
+                          if (canReportBootProgress(attemptId)) {
+                            milestoneReady(attemptId, "renderer");
+                          }
                         },
                       );
                     },
@@ -851,7 +873,7 @@ export function SpaceDesktopExperience({
             ) : null}
           </div>
         )}
-      </WebGPUErrorBoundary>
+      </BootAttemptErrorBoundary>
       {bootState.phase === "failed" ? (
         <SpaceBootFailure error={bootState.error} onRetry={retryBoot} />
       ) : null}

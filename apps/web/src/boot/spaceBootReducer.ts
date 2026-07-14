@@ -11,6 +11,8 @@ export type SpaceBootState = Readonly<{
   attemptId: number;
   forceWebGL: boolean;
   deviceLossRecoveryUsed: boolean;
+  manifestResolved: boolean;
+  expectedExhibitIds: readonly string[];
   milestones: Readonly<Record<SpaceBootMilestone, boolean>>;
   items: Readonly<{
     loaded: number;
@@ -58,6 +60,8 @@ export const INITIAL_SPACE_BOOT_STATE: SpaceBootState = Object.freeze({
   attemptId: 0,
   forceWebGL: false,
   deviceLossRecoveryUsed: false,
+  manifestResolved: false,
+  expectedExhibitIds: Object.freeze([]) as readonly string[],
   milestones: EMPTY_MILESTONES,
   items: EMPTY_ITEMS,
   error: null,
@@ -73,6 +77,8 @@ function beginAttempt(
     forceWebGL: options?.forceWebGL ?? state.forceWebGL,
     deviceLossRecoveryUsed:
       options?.deviceLossRecoveryUsed ?? state.deviceLossRecoveryUsed,
+    manifestResolved: false,
+    expectedExhibitIds: [],
     milestones: EMPTY_MILESTONES,
     items: EMPTY_ITEMS,
     error: null,
@@ -103,7 +109,12 @@ function settleExhibit(
   exhibitId: string,
   result: "loaded" | "failed" | "deferred",
 ): SpaceBootState {
-  if (state.phase === "running" || state.items.settledIds.includes(exhibitId)) return state;
+  if (
+    state.phase === "running" ||
+    !state.manifestResolved ||
+    !state.expectedExhibitIds.includes(exhibitId) ||
+    state.items.settledIds.includes(exhibitId)
+  ) return state;
   const settledIds = [...state.items.settledIds, exhibitId];
   const items = {
     ...state.items,
@@ -112,7 +123,7 @@ function settleExhibit(
     deferred: state.items.deferred + (result === "deferred" ? 1 : 0),
     settledIds,
   };
-  const exhibitsReady = settledIds.length >= state.items.total;
+  const exhibitsReady = state.expectedExhibitIds.every((id) => settledIds.includes(id));
   return settleRunning({
     ...state,
     items,
@@ -154,9 +165,12 @@ export function spaceBootReducer(
     });
   }
   if (action.type === "manifest-resolved") {
-    const exhibitIds = [...new Set(action.exhibitIds)];
+    if (state.manifestResolved) return state;
+    const exhibitIds = Object.freeze([...new Set(action.exhibitIds)]);
     return settleRunning({
       ...state,
+      manifestResolved: true,
+      expectedExhibitIds: exhibitIds,
       items: { loaded: 0, total: exhibitIds.length, failed: 0, deferred: 0, settledIds: [] },
       milestones:
         exhibitIds.length === 0

@@ -47,6 +47,8 @@ test("idle starts only after an explicit action and completes from real mileston
     attemptId: 0,
     forceWebGL: false,
     deviceLossRecoveryUsed: false,
+    manifestResolved: false,
+    expectedExhibitIds: [],
     milestones: {
       renderer: false,
       environment: false,
@@ -94,6 +96,8 @@ test("manifest and exhibit events are truthful, deduplicated, and include failur
     deferred: 0,
     settledIds: [],
   });
+  assert.equal(manifest.manifestResolved, true);
+  assert.deepEqual(manifest.expectedExhibitIds, ["first", "second"]);
 
   const loaded = spaceBootReducer(manifest, {
     type: "exhibit-ready",
@@ -120,6 +124,63 @@ test("manifest and exhibit events are truthful, deduplicated, and include failur
     settledIds: ["first", "second"],
   });
   assert.equal(failed.milestones.exhibits, true);
+});
+
+test("exhibit settlement requires one immutable resolved manifest identity", () => {
+  let state = start();
+  const beforeManifest = spaceBootReducer(state, {
+    type: "exhibit-ready",
+    attemptId: 1,
+    exhibitId: "first",
+  });
+  assert.equal(beforeManifest, state, "pre-manifest events are ignored by identity");
+
+  state = spaceBootReducer(state, {
+    type: "manifest-resolved",
+    attemptId: 1,
+    exhibitIds: ["a", "b", "b"],
+  });
+  const repeated = spaceBootReducer(state, {
+    type: "manifest-resolved",
+    attemptId: 1,
+    exhibitIds: ["a", "b"],
+  });
+  assert.equal(repeated, state, "an identical repeated manifest is a strict no-op");
+  assert.equal(spaceBootReducer(state, {
+    type: "manifest-resolved",
+    attemptId: 1,
+    exhibitIds: ["different"],
+  }), state, "a conflicting repeated manifest is ignored without resetting progress");
+
+  const unknown = spaceBootReducer(state, {
+    type: "exhibit-ready",
+    attemptId: 1,
+    exhibitId: "unknown",
+  });
+  assert.equal(unknown, state, "unknown IDs cannot settle counts");
+
+  state = spaceBootReducer(state, {
+    type: "exhibit-ready",
+    attemptId: 1,
+    exhibitId: "a",
+  });
+  assert.equal(spaceBootReducer(state, {
+    type: "exhibit-ready",
+    attemptId: 1,
+    exhibitId: "a",
+  }), state, "duplicate expected IDs cannot settle twice");
+  for (const milestone of MILESTONES) {
+    state = spaceBootReducer(state, { type: "milestone-ready", attemptId: 1, milestone });
+  }
+  assert.equal(state.phase, "booting", "[a,b] + unknown + a cannot run");
+  assert.equal(state.milestones.exhibits, false);
+  assert.deepEqual(state.items, {
+    loaded: 1,
+    total: 2,
+    failed: 0,
+    deferred: 0,
+    settledIds: ["a"],
+  });
 });
 
 test("out-of-range exhibits settle as deferred without pretending to be loaded", () => {
