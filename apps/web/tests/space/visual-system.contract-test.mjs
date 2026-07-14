@@ -155,6 +155,11 @@ assert.equal(declarationValue(settings, "width"), "32px");
 assert.equal(declarationValue(settings, "height"), "32px");
 assert.equal(declarationValue(settings, "border-radius"), "0");
 assert.equal(declarationValue(panel, "max-width"), "360px");
+assert.equal(
+  declarationValue(panel, "box-sizing"),
+  "border-box",
+  "the 360px settings-panel limit must include padding and border",
+);
 assert.equal(declarationValue(panel, "padding"), "12px");
 assert.equal(declarationValue(panel, "gap"), "10px");
 assert.equal(declarationValue(panel, "background"), "var(--space-hud-panel)");

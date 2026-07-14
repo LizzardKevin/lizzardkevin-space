@@ -3164,6 +3164,7 @@ button {
   left: 50%;
   z-index: 12;
   display: grid;
+  box-sizing: border-box;
   width: calc(100vw - 32px);
   max-width: 360px;
   gap: 10px;
