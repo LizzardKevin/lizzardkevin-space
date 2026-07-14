@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAudioDirector } from "../audio/useAudioDirector";
@@ -22,14 +22,14 @@ import {
 } from "./routeConfig";
 import { isKnownExhibitId } from "../content/lightweightExhibitIndex";
 import { useSpaceBootController } from "../boot/useSpaceBootController";
+import { lightweightDesktopRoutePrefetch } from "../desktop/lightweightRoutePrefetch";
 
 const SpaceHost = lazy(() => import("../space/SpaceHost"));
 const DesktopTopBar = lazy(() =>
-  import("../desktop/DesktopChrome").then((module) => ({ default: module.DesktopTopBar })),
+  import("../desktop/DesktopTopBar").then((module) => ({ default: module.DesktopTopBar })),
 );
-const DesktopOverlayLayer = lazy(() =>
-  import("../desktop/DesktopChrome").then((module) => ({ default: module.DesktopOverlayLayer })),
-);
+const ProfileOverlayRoute = lazy(() => import("../desktop/ProfileOverlayRoute"));
+const DevStoriesOverlayRoute = lazy(() => import("../desktop/DevStoriesOverlayRoute"));
 
 type SpaceWordRect = { height: number; width: number; x: number; y: number };
 
@@ -66,6 +66,14 @@ export default function DesktopApp() {
   const focusedExhibitId = route.kind === "work" ? route.exhibitId : null;
   const workRouteSurface = resolveDesktopWorkRouteSurface(route, spaceStarted);
   const routeNavigationState = location.state as { spaceWordSourceRect?: SpaceWordRect | null } | null;
+
+  useEffect(() => {
+    lightweightDesktopRoutePrefetch.update({
+      attemptId: boot.state.attemptId,
+      phase: boot.state.phase,
+    });
+    return () => lightweightDesktopRoutePrefetch.cancel();
+  }, [boot.state.attemptId, boot.state.phase]);
 
   useSpacePointerLockGuard(routeBlocked);
 
@@ -149,16 +157,27 @@ export default function DesktopApp() {
 
       {overlayTab !== null ? (
         <Suspense fallback={null}>
-          <DesktopOverlayLayer
-            tab={overlayTab}
-            closing={closing}
-            spaceWordSourceRect={routeNavigationState?.spaceWordSourceRect ?? null}
-            onRequestClose={beginOverlayClose}
-            onClosed={() => {
-              setClosing(false);
-              navigateToSpace();
-            }}
-          />
+          {overlayTab === "lizzardkevin" ? (
+            <ProfileOverlayRoute
+              closing={closing}
+              spaceWordSourceRect={routeNavigationState?.spaceWordSourceRect ?? null}
+              onRequestClose={beginOverlayClose}
+              onClosed={() => {
+                setClosing(false);
+                navigateToSpace();
+              }}
+            />
+          ) : (
+            <DevStoriesOverlayRoute
+              closing={closing}
+              spaceWordSourceRect={routeNavigationState?.spaceWordSourceRect ?? null}
+              onRequestClose={beginOverlayClose}
+              onClosed={() => {
+                setClosing(false);
+                navigateToSpace();
+              }}
+            />
+          )}
         </Suspense>
       ) : null}
     </div>
