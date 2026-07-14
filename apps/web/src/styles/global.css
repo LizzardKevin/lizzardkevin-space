@@ -4991,3 +4991,33 @@ button {
   gap: 16px;
   text-align: center;
 }
+
+.desktop-route-loading {
+  color: #050505;
+}
+
+.desktop-route-loading__indicator {
+  width: 10px;
+  height: 10px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+  animation: desktopRouteLoadingPulse 900ms ease-in-out infinite alternate;
+}
+
+@keyframes desktopRouteLoadingPulse {
+  from {
+    opacity: 0.24;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-route-loading__indicator {
+    animation: none;
+  }
+}

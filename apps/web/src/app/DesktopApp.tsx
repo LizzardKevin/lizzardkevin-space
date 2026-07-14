@@ -44,6 +44,20 @@ function ColdWorkRoute({ exhibitId }: { exhibitId: string }) {
   );
 }
 
+function DesktopRouteLoading() {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="app-route-layer app-route-message desktop-route-loading"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="desktop-route-loading__indicator" aria-hidden="true" />
+      <p>{t("space.loading")}</p>
+    </div>
+  );
+}
+
 export default function DesktopApp() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -156,7 +170,7 @@ export default function DesktopApp() {
       ) : null}
 
       {overlayTab !== null ? (
-        <Suspense fallback={null}>
+        <Suspense fallback={<DesktopRouteLoading />}>
           {overlayTab === "lizzardkevin" ? (
             <ProfileOverlayRoute
               closing={closing}

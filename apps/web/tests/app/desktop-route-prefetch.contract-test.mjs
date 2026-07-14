@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const sourceRoot = resolve(root, "apps/web/src");
 const entry = resolve(sourceRoot, "desktop/lightweightRoutePrefetch.ts");
+const globalCss = readFileSync(resolve(sourceRoot, "styles/global.css"), "utf8");
 
 assert.equal(existsSync(entry), true, "desktop lightweight route prefetch allowlist must exist");
 
@@ -41,6 +42,31 @@ function dynamicSpecifiers(source) {
 function hasUnresolvedDynamicImport(source) {
   const literalImportCount = dynamicSpecifiers(source).length;
   return [...source.matchAll(/\bimport\s*\(/g)].length !== literalImportCount;
+}
+
+function hasSpeculativeMedia(source) {
+  return (
+    /\bfetch\s*\(/.test(source) ||
+    /\bnew\s+(?:Image|Audio|Video)\s*\(/.test(source) ||
+    /\bdocument\.createElement\s*\(\s*["'](?:img|audio|video|source)["']\s*\)/i.test(source) ||
+    /\.(?:jpe?g|png|webp|avif|gif|svg|mp4|webm|mp3|wav|ogg)(?:[?#["'`)]|$)/i.test(source)
+  );
+}
+
+function is3dRuntimePackage(specifier) {
+  return /^(?:three(?:\/|$)|@react-three\/|@dimforge\/|@react-spring\/three(?:\/|$)|camera-controls(?:\/|$)|troika-(?:three-text|worker-utils)(?:\/|$)|meshline(?:\/|$)|postprocessing(?:\/|$))/.test(specifier);
+}
+
+for (const source of [
+  'fetch("/media/work.jpg")',
+  "const image = new Image()",
+  "const audio = new Audio()",
+  'const video = "/media/work.mp4"',
+]) {
+  assert.equal(hasSpeculativeMedia(source), true, `must reject speculative media source: ${source}`);
+}
+for (const specifier of ["three/webgpu", "@react-three/drei", "@dimforge/rapier3d", "camera-controls"] ) {
+  assert.equal(is3dRuntimePackage(specifier), true, `must reject 3D runtime package: ${specifier}`);
 }
 
 const syntheticDynamicImports = [
@@ -85,6 +111,7 @@ while (pending.length > 0) {
   const source = readFileSync(file, "utf8");
   assert.equal(hasUnresolvedDynamicImport(source), false, `${file} must not hide a non-literal dynamic import`);
   assert.deepEqual(dynamicSpecifiers(source), [], `${file} must not hide another dynamic import boundary`);
+  assert.equal(hasSpeculativeMedia(source), false, `${file} must not issue speculative media requests`);
   for (const specifier of staticSpecifiers(source)) {
     if (!specifier.startsWith(".")) {
       packages.push(specifier);
@@ -95,9 +122,7 @@ while (pending.length > 0) {
 }
 
 const modules = [...visited].map((file) => file.slice(sourceRoot.length + 1).replaceAll("\\", "/"));
-for (const packageName of ["three", "@react-three/fiber", "@react-three/rapier"]) {
-  assert.equal(packages.some((specifier) => specifier === packageName || specifier.startsWith(`${packageName}/`)), false);
-}
+assert.equal(packages.some(is3dRuntimePackage), false, "prefetch graph must exclude all known 3D runtime packages");
 for (const forbidden of [
   "SpaceHost",
   "Focus",
@@ -140,13 +165,11 @@ while (coldDesktopPending.length > 0) {
 }
 const coldDesktopModules = [...coldDesktopVisited]
   .map((file) => file.slice(sourceRoot.length + 1).replaceAll("\\", "/"));
-for (const packageName of ["three", "@react-three/fiber", "@react-three/rapier"]) {
-  assert.equal(
-    coldDesktopPackages.some((specifier) => specifier === packageName || specifier.startsWith(`${packageName}/`)),
-    false,
-    `cold desktop routes must not statically import ${packageName}`,
-  );
-}
+assert.equal(
+  coldDesktopPackages.some(is3dRuntimePackage),
+  false,
+  "cold desktop routes must not statically import a known 3D runtime package",
+);
 assert.equal(coldDesktopModules.includes("space/SpaceHost.tsx"), false);
 assert.equal(coldDesktopModules.includes("exhibits/FocusOverlay.tsx"), false);
 assert.equal(coldDesktopModules.some((module) => module.startsWith("rendering/")), false);
@@ -160,4 +183,8 @@ assert.deepEqual(dynamicSpecifiers(desktop), [
 assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);
 assert.match(desktop, /workRouteSurface\s*===\s*["']cold-work["'][\s\S]*?<ColdWorkRoute/);
 assert.match(desktop, /overlayTab\s*===\s*["']lizzardkevin["'][\s\S]*?<ProfileOverlayRoute[\s\S]*?<DevStoriesOverlayRoute/);
+assert.match(desktop, /function\s+DesktopRouteLoading[\s\S]*?role=["']status["'][\s\S]*?aria-live=["']polite["']/);
+assert.match(desktop, /overlayTab\s*!==\s*null[\s\S]*?<Suspense\s+fallback=\{<DesktopRouteLoading\s*\/>\}/);
+assert.match(globalCss, /\.desktop-route-loading__indicator\s*\{[\s\S]*?animation:/);
+assert.match(globalCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.desktop-route-loading__indicator\s*\{[\s\S]*?animation:\s*none/);
 console.log("desktop lightweight route prefetch contract tests passed");
