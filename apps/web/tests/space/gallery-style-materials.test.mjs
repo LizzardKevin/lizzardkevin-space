@@ -217,3 +217,70 @@ test("light meshes get strong paper emissive materials for bloom", async () => {
   assert.equal(`#${material.color.getHexString()}`, "#f3f0e7");
   assert.equal(`#${material.emissive.getHexString()}`, "#f3f0e7");
 });
+
+test("reuses and reconfigures a runtime-owned light material on repeated preparation", async () => {
+  const style = await importSourceModule("scenes/gallery/galleryStyleMaterials.ts");
+  const { GALLERY_LIGHT_EMISSIVE } = await importSourceModule("scenes/gallery/galleryConfig.ts");
+  const authoredMaterial = new THREE.MeshStandardMaterial({
+    color: "#806040",
+    emissive: "#201000",
+    emissiveIntensity: 0.25,
+  });
+  authoredMaterial.userData = { authored: true };
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), authoredMaterial);
+  mesh.name = "LIGHT_GENERIC_LIGHT_PANEL_REPEAT";
+
+  assert.equal(style.applyGallerySceneMaterialStyle(mesh), true);
+  const runtimeMaterial = mesh.material;
+  assert.notEqual(runtimeMaterial, authoredMaterial);
+  assert.deepEqual(authoredMaterial.userData, { authored: true });
+
+  runtimeMaterial.color.set("#000000");
+  runtimeMaterial.emissive.set("#000000");
+  runtimeMaterial.emissiveIntensity = 0;
+  runtimeMaterial.toneMapped = true;
+
+  assert.equal(style.applyGallerySceneMaterialStyle(mesh), true);
+  assert.equal(mesh.material, runtimeMaterial);
+  assert.deepEqual(authoredMaterial.userData, { authored: true });
+  assert.equal(`#${runtimeMaterial.color.getHexString()}`, GALLERY_LIGHT_EMISSIVE.surfaceColor);
+  assert.equal(`#${runtimeMaterial.emissive.getHexString()}`, GALLERY_LIGHT_EMISSIVE.color);
+  assert.equal(runtimeMaterial.emissiveIntensity, GALLERY_LIGHT_EMISSIVE.intensity);
+  assert.equal(runtimeMaterial.toneMapped, false);
+});
+
+test("reuses every runtime-owned material in a light material array", async () => {
+  const style = await importSourceModule("scenes/gallery/galleryStyleMaterials.ts");
+  const { GALLERY_LIGHT_EMISSIVE } = await importSourceModule("scenes/gallery/galleryConfig.ts");
+  const authoredMaterials = [
+    new THREE.MeshStandardMaterial({ color: "#94724f", emissive: "#100800" }),
+    new THREE.MeshBasicMaterial({ color: "#806c58", opacity: 0.6, transparent: true }),
+  ];
+  authoredMaterials[0].userData = { authoredSlot: 0 };
+  authoredMaterials[1].userData = { authoredSlot: 1 };
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), authoredMaterials);
+  mesh.name = "bulb_REPEAT_ARRAY";
+
+  assert.equal(style.applyGallerySceneMaterialStyle(mesh), true);
+  const runtimeMaterials = [...mesh.material];
+  runtimeMaterials.forEach((material, index) => {
+    assert.notEqual(material, authoredMaterials[index]);
+    material.color.set("#000000");
+    material.emissive.set("#000000");
+    material.emissiveIntensity = 0;
+    material.toneMapped = true;
+  });
+
+  assert.equal(style.applyGallerySceneMaterialStyle(mesh), true);
+  assert.equal(mesh.material[0], runtimeMaterials[0]);
+  assert.equal(mesh.material[1], runtimeMaterials[1]);
+  assert.deepEqual(authoredMaterials[0].userData, { authoredSlot: 0 });
+  assert.deepEqual(authoredMaterials[1].userData, { authoredSlot: 1 });
+  for (const material of mesh.material) {
+    assert.equal(material.isMeshStandardMaterial, true);
+    assert.equal(`#${material.color.getHexString()}`, GALLERY_LIGHT_EMISSIVE.surfaceColor);
+    assert.equal(`#${material.emissive.getHexString()}`, GALLERY_LIGHT_EMISSIVE.color);
+    assert.equal(material.emissiveIntensity, GALLERY_LIGHT_EMISSIVE.intensity);
+    assert.equal(material.toneMapped, false);
+  }
+});

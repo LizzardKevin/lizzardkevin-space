@@ -30,6 +30,11 @@ type MaterialWithEmissive = THREE.Material & {
   emissive: THREE.Color;
   emissiveIntensity: number;
 };
+type GalleryRuntimeLightMaterial = THREE.MeshStandardMaterial & {
+  [GALLERY_RUNTIME_LIGHT_MATERIAL]: true;
+};
+
+const GALLERY_RUNTIME_LIGHT_MATERIAL = Symbol("space.galleryRuntimeLightMaterial");
 
 function startsWithAny(name: string, prefixes: string[]) {
   return prefixes.some((prefix) => name.startsWith(prefix));
@@ -121,16 +126,23 @@ function applyGalleryAluminumMaterial(material: THREE.Material) {
   return changed;
 }
 
+function configureGalleryLightMaterial(material: THREE.MeshStandardMaterial) {
+  if (hasColor(material)) material.color.set(GALLERY_LIGHT_EMISSIVE.surfaceColor);
+  material.emissive.set(GALLERY_LIGHT_EMISSIVE.color);
+  material.emissiveIntensity = GALLERY_LIGHT_EMISSIVE.intensity;
+  material.toneMapped = false;
+  material.needsUpdate = true;
+  (material as GalleryRuntimeLightMaterial)[GALLERY_RUNTIME_LIGHT_MATERIAL] = true;
+  return material as GalleryRuntimeLightMaterial;
+}
+
+function isGalleryRuntimeLightMaterial(material: THREE.Material): material is GalleryRuntimeLightMaterial {
+  return (material as Partial<GalleryRuntimeLightMaterial>)[GALLERY_RUNTIME_LIGHT_MATERIAL] === true;
+}
+
 function toGalleryLightMaterial(source: THREE.Material) {
-  if (hasEmissive(source)) {
-    const material = source.clone() as THREE.MeshStandardMaterial;
-    if (hasColor(material)) material.color.set(GALLERY_LIGHT_EMISSIVE.surfaceColor);
-    material.emissive.set(GALLERY_LIGHT_EMISSIVE.color);
-    material.emissiveIntensity = GALLERY_LIGHT_EMISSIVE.intensity;
-    material.toneMapped = false;
-    material.needsUpdate = true;
-    return material;
-  }
+  if (isGalleryRuntimeLightMaterial(source)) return configureGalleryLightMaterial(source);
+  if (hasEmissive(source)) return configureGalleryLightMaterial(source.clone() as THREE.MeshStandardMaterial);
 
   const material = new THREE.MeshStandardMaterial({
     color: GALLERY_LIGHT_EMISSIVE.surfaceColor,
@@ -144,8 +156,7 @@ function toGalleryLightMaterial(source: THREE.Material) {
     depthWrite: source.depthWrite,
   });
   material.name = `${source.name || "gallery_light"}_emissive`;
-  material.toneMapped = false;
-  return material;
+  return configureGalleryLightMaterial(material);
 }
 
 function applyGalleryLightMaterial(mesh: THREE.Mesh) {
