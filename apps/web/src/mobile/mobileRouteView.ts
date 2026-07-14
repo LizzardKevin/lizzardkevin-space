@@ -7,8 +7,8 @@ export type MobileRouteView =
   | { kind: "not-found" };
 
 export function resolveMobileRouteView(route: AppRoute): MobileRouteView {
-  if (route.kind === "space") return { kind: "root" };
+  if (route.kind === "space" || route.kind === "space-alias") return { kind: "root" };
   if (route.kind === "work") return { kind: "work", projectId: route.exhibitId };
-  if (route.kind === "profile") return { kind: "profile" };
+  if (route.kind === "profile" || route.kind === "profile-alias") return { kind: "profile" };
   return { kind: "not-found" };
 }

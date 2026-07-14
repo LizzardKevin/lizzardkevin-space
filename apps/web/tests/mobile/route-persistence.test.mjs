@@ -37,6 +37,8 @@ test("one mobile experience preserves mount and boot state across canonical rout
       { kind: "work", exhibitId: "arch_treehabitat" },
       { kind: "profile" },
       { kind: "work", exhibitId: "arch_treehabitat" },
+      { kind: "space-alias" },
+      { kind: "profile-alias" },
       { kind: "space" },
     ]) {
       await act(() => { renderer.update(renderRoute(route)); });
@@ -46,6 +48,8 @@ test("one mobile experience preserves mount and boot state across canonical rout
       assert.equal(unmounts, 0);
     }
     assert.deepEqual(resolveMobileRouteView({ kind: "profile" }), { kind: "profile" });
+    assert.deepEqual(resolveMobileRouteView({ kind: "space-alias" }), { kind: "root" });
+    assert.deepEqual(resolveMobileRouteView({ kind: "profile-alias" }), { kind: "profile" });
     assert.deepEqual(resolveMobileRouteView({ kind: "work", exhibitId: "arch_treehabitat" }), {
       kind: "work",
       projectId: "arch_treehabitat",

@@ -8,6 +8,7 @@ import {
   requestPointerLockWithRawFallback,
   resolveGuardedPointerDelta,
 } from "./guardedPointerLock";
+import { resolveSpacePointerLockTarget } from "../../space/spacePointerLockTarget";
 
 const HALF_PI = Math.PI / 2;
 
@@ -26,13 +27,12 @@ export function GuardedPointerLockControls({
 }) {
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
-  const events = useThree((state) => state.events);
   const get = useThree((state) => state.get);
   const setEvents = useThree((state) => state.setEvents);
   const invalidate = useThree((state) => state.invalidate);
 
   const euler = useMemo(() => new THREE.Euler(0, 0, 0, "YXZ"), []);
-  const lockElement = events.connected ?? gl.domElement;
+  const lockElement = resolveSpacePointerLockTarget(gl.domElement) ?? gl.domElement;
   const warmupMovesRef = useRef(POINTER_LOCK_WARMUP_MOVES);
 
   useEffect(() => {

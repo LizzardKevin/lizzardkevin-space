@@ -16,6 +16,8 @@ export default function MobileApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const route = resolveAppRoute(location.pathname);
+  const aliasRedirectTo =
+    route.kind === "space-alias" ? "/" : route.kind === "profile-alias" ? "/profile" : null;
 
   const handleEnter = useCallback(() => {
     entry.freezeButtonFloat();
@@ -24,12 +26,6 @@ export default function MobileApp() {
     entry.startFade();
   }, [audio, entry]);
 
-  if (route.kind === "space-alias") {
-    return <Navigate replace to="/" />;
-  }
-  if (route.kind === "profile-alias") {
-    return <Navigate replace to="/profile" />;
-  }
   if (route.kind === "not-found") return <NotFound terminal />;
 
   const resolvedView = resolveMobileRouteView(route);
@@ -51,6 +47,7 @@ export default function MobileApp() {
           />
         }
       />
+      {aliasRedirectTo ? <Navigate replace to={aliasRedirectTo} /> : null}
     </div>
   );
 }

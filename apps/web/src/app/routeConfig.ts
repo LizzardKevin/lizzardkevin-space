@@ -26,7 +26,9 @@ export function resolveAppRoute(pathname: string): AppRoute {
   if (pathname === "/") return { kind: "space" };
   const workMatch = matchPath({ path: APP_ROUTE_PATHS.work, end: true }, pathname);
   if (workMatch?.params.exhibitId) {
-    return { kind: "work", exhibitId: decodeURIComponent(workMatch.params.exhibitId) };
+    const exhibitId = workMatch.params.exhibitId;
+    if (!/^[A-Za-z0-9_-]+$/.test(exhibitId)) return { kind: "not-found" };
+    return { kind: "work", exhibitId };
   }
   if (pathname === APP_ROUTE_PATHS.profile) return { kind: "profile" };
   if (pathname === APP_ROUTE_PATHS.devStories) return { kind: "devstories" };

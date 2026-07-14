@@ -27,8 +27,10 @@ assert.match(routes, /function\s+SpaceAliasRoute[\s\S]*?<Navigate\s+replace\s+to
 assert.match(routes, /function\s+ProfileAliasRoute[\s\S]*?<Navigate\s+replace\s+to=["']\/profile["']/);
 assert.match(desktop, /path=["']\/space["'][\s\S]*?<SpaceAliasRoute/);
 assert.match(desktop, /path=["']\/lizzardkevin["'][\s\S]*?<ProfileAliasRoute/);
-assert.match(mobile, /route\.kind === ["']space-alias["'][\s\S]*?<Navigate replace to=["']\/["']/);
-assert.match(mobile, /route\.kind === ["']profile-alias["'][\s\S]*?<Navigate replace to=["']\/profile["']/);
+assert.match(mobile, /aliasRedirectTo[\s\S]*?route\.kind === ["']space-alias["'][\s\S]*?["']\/["']/);
+assert.match(mobile, /route\.kind === ["']profile-alias["'][\s\S]*?["']\/profile["']/);
+assert.match(mobile, /<PersistentMobileExperienceBoundary[\s\S]*?aliasRedirectTo\s*\?\s*<Navigate replace to=\{aliasRedirectTo\}/);
+assert.doesNotMatch(mobile, /if \(route\.kind === ["'](?:space|profile)-alias["']\)\s*\{\s*return/);
 assert.match(desktop, /path=["']\*["'][\s\S]*NotFound/);
 assert.match(mobile, /PersistentMobileExperienceBoundary/);
 assert(!/key=\{(?:route|decoded|view)/.test(mobile), "mobile canonical routes must not key the experience by route");

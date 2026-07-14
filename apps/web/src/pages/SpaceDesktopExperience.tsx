@@ -273,15 +273,8 @@ export function SpaceDesktopExperience({
         if (focused) setFocusClosing(focused);
       });
       onNavigateToSpace(opts);
-      if (overlay.isOverlayOpen) return;
-      if (opts?.fromEscape) {
-        resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: overlay.isOverlayOpen });
-        return;
-      }
-      if (entered) resumeSpaceFirstPersonWithCursorReturn();
-      else engageSpaceFirstPerson({ entered, overlayOpen: false });
     },
-    [entered, focused, onNavigateToSpace, overlay.isOverlayOpen],
+    [focused, onNavigateToSpace],
   );
 
   const handleFinishDismissFocus = useCallback(() => {

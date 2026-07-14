@@ -4,6 +4,7 @@ import {
   isPermanentPointerLockFailure,
   POINTER_LOCK_RESUME_TIMEOUT_MS,
 } from "./pointerLockFailure";
+import { resolveSpacePointerLockTarget } from "./spacePointerLockTarget";
 
 let pendingGestureResume = false;
 
@@ -42,14 +43,14 @@ function trackPendingPointerLock(el: HTMLElement) {
 
 /** 在用户点击/按键回调中同步调用，避免 rAF 导致手势失效。 */
 export function requestSpacePointerLock() {
-  const canvas = document.getElementById("space-canvas") as HTMLCanvasElement | null;
+  const canvas = resolveSpacePointerLockTarget();
   if (canvas) {
     requestPointerLockSafely(canvas);
     trackPendingPointerLock(canvas);
     return;
   }
   queueMicrotask(() => {
-    const el = document.getElementById("space-canvas") as HTMLCanvasElement | null;
+    const el = resolveSpacePointerLockTarget();
     if (!el) {
       reportPointerLockFailure("Space canvas was not ready");
       return;
