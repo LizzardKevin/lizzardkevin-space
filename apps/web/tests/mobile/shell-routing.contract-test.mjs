@@ -13,6 +13,16 @@ assert(
   files.mobileApp.includes('from "../pages/MobileExperience"'),
   "MobileApp must statically own the mobile experience",
 );
+assert(
+  files.mobileApp.includes('from "../mobile/MobileStartMenu"'),
+  "MobileApp must statically own the DOM-only mobile start menu",
+);
+assert(files.mobileApp.includes("useState(false)"), "MobileApp must own the document-lifetime mobile start latch");
+assert(files.mobileApp.includes("setMobileStarted(true)"), "MobileApp Enter must irreversibly start the terminal experience");
+assert(!files.mobileApp.includes("EntrySplash"), "MobileApp must not reuse the desktop entry splash");
+assert(!files.mobileApp.includes("useEntryTransition"), "MobileApp must not reuse the desktop entry transition state");
+assert(!files.mobileApp.includes("useAudioDirector"), "MobileApp must not initialize desktop audio from its start menu");
+assert(!files.mobileExperience.includes("EntryTransition"), "MobileExperience must begin booting on first mount after Enter");
 
 assert(files.desktopApp.includes('from "../pages/SpacePage"'), "DesktopApp must own the entry-only SpacePage");
 assert(

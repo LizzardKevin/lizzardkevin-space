@@ -30,6 +30,10 @@ assert.match(desktop, /path=["']\/lizzardkevin["'][\s\S]*?<ProfileAliasRoute/);
 assert.match(mobile, /aliasRedirectTo[\s\S]*?route\.kind === ["']space-alias["'][\s\S]*?["']\/["']/);
 assert.match(mobile, /route\.kind === ["']profile-alias["'][\s\S]*?["']\/profile["']/);
 assert.match(mobile, /<PersistentMobileExperienceBoundary[\s\S]*?aliasRedirectTo\s*\?\s*<Navigate replace to=\{aliasRedirectTo\}/);
+assert.match(
+  mobile,
+  /if\s*\(!mobileStarted\)\s*\{[\s\S]*?if\s*\(aliasRedirectTo\)\s*return\s*<Navigate replace to=\{aliasRedirectTo\}\s*\/>;[\s\S]*?<MobileStartMenu/,
+);
 assert.doesNotMatch(mobile, /if \(route\.kind === ["'](?:space|profile)-alias["']\)\s*\{\s*return/);
 assert.match(desktop, /path=["']\*["'][\s\S]*NotFound/);
 assert.match(mobile, /PersistentMobileExperienceBoundary/);

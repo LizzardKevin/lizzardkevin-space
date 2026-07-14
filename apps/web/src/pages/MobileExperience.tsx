@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode, type UIEvent } from "react";
 import { useTranslation } from "react-i18next";
-import type { EntryTransition } from "../entry/entryTypes";
 import { normalizeSupportedLanguage, readInitialLanguage } from "../i18n/resolveInitialLanguage";
 import {
   getProjectItem,
@@ -163,20 +162,17 @@ function getFoldExpanded(foldState: TerminalFoldState, foldId: string) {
 }
 
 export function MobileExperience({
-  entry,
   routeView,
   onNavigateToProject,
   onNavigateToProfile,
   onNavigateToRoot,
 }: {
-  entry: EntryTransition;
   routeView: MobileRouteView;
   onNavigateToProject?: (projectId: string) => void;
   onNavigateToProfile?: () => void;
   onNavigateToRoot?: () => void;
 }) {
   const { i18n, t } = useTranslation();
-  const { entered } = entry;
   const terminalRootRef = useRef<HTMLDivElement | null>(null);
   const terminalShellRef = useRef<HTMLElement | null>(null);
   const terminalCollapseRef = useRef(0);
@@ -209,8 +205,6 @@ export function MobileExperience({
   const documentLabel = activeTab ? TERMINAL_LABELS[TAB_ORDER.indexOf(activeTab)] : copy.aria.idle;
 
   useEffect(() => {
-    if (!entered) return undefined;
-
     let cancelled = false;
 
     const fontTask = loadTerminalFonts(bootLanguage);
@@ -226,7 +220,7 @@ export function MobileExperience({
     return () => {
       cancelled = true;
     };
-  }, [bootLanguage, entered]);
+  }, [bootLanguage]);
 
   useEffect(() => {
     const syncLanguage = (value: string) => {
@@ -383,23 +377,6 @@ export function MobileExperience({
     setViewLoadKey((key) => key + 1);
     snapTerminalCollapseToNearest();
   };
-
-  if (!entered) {
-    return (
-      <div
-        className={`mobile-site mobile-terminal-site mobile-terminal-site--${theme}`}
-        data-active-tab={activeTab ?? "idle"}
-        data-font-status={fontStatus}
-        data-language={language}
-      >
-        <TerminalBootView
-          ariaLabel={copy.aria.loading}
-          command={copy.boot.command || FALLBACK_BOOT_COMMAND}
-          status={copy.boot.status || FALLBACK_BOOT_STATUS}
-        />
-      </div>
-    );
-  }
 
   return (
     <div

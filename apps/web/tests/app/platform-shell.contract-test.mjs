@@ -152,19 +152,32 @@ function staticRelativeImports(filePath) {
   return imports;
 }
 
-function collectStaticGraph(entry) {
+function collectTransitiveGraph(entry) {
   const pending = [entry];
   const visited = new Set();
   while (pending.length > 0) {
     const filePath = pending.pop();
     if (!filePath || visited.has(filePath)) continue;
     visited.add(filePath);
-    pending.push(...staticRelativeImports(filePath));
+    const source = readFileSync(filePath, "utf8");
+    assert(
+      !hasUnresolvedDynamicImport(source),
+      `${filePath.slice(sourceRoot.length + 1)} must not use an interpolated dynamic import template`,
+    );
+    const relativeSpecifiers = [
+      ...staticDependencySpecifiers(source),
+      ...dynamicImportSpecifiers(source),
+    ].filter((candidate) => candidate.startsWith("."));
+    for (const specifier of relativeSpecifiers) {
+      const imported = resolveRelativeModule(filePath, specifier);
+      assert(imported, `dependency ${specifier} from ${filePath} must resolve`);
+      pending.push(imported);
+    }
   }
   return [...visited];
 }
 
-const mobileGraph = collectStaticGraph(sourcePath("app/MobileApp.tsx"));
+const mobileGraph = collectTransitiveGraph(sourcePath("app/MobileApp.tsx"));
 const mobileGraphModules = mobileGraph
   .map((filePath) => filePath.slice(sourceRoot.length + 1).replaceAll("\\", "/"))
   .join("\n");
@@ -180,7 +193,7 @@ const mobileDynamicImportSpecifiers = mobileGraph.flatMap((filePath) => {
   );
   return dynamicImportSpecifiers(source);
 });
-for (const packageName of ["three", "@react-three/fiber", "@react-three/rapier"]) {
+for (const packageName of ["three", "@react-three/fiber", "@react-three/drei", "@react-three/rapier"]) {
   assert(
     !mobileImportSpecifiers
       .some((specifier) => specifier === packageName || specifier.startsWith(`${packageName}/`)),
@@ -192,7 +205,27 @@ for (const packageName of ["three", "@react-three/fiber", "@react-three/rapier"]
     `MobileApp visited graph must not dynamically import ${packageName}`,
   );
 }
-for (const token of ["desktop", "scenes", "rendering", "SpaceDesktopExperience", "SpaceHost", "StartLobby", ".glb"]) {
+for (const token of [
+  "desktop",
+  "scenes",
+  "rendering",
+  "renderer",
+  "Canvas",
+  "rapier",
+  "SpaceDesktopExperience",
+  "SpaceHost",
+  "SpaceCanvasHost",
+  "SpaceSession",
+  "SpaceScene",
+  "StartLobby",
+  "EntrySplash",
+  "useEntryTransition",
+  "entryTypes",
+  ".glb",
+  ".gltf",
+  "draco",
+  ".wasm",
+]) {
   assert(
     !mobileGraphModules.toLowerCase().includes(token.toLowerCase()) &&
       !mobileImportSpecifiers.some((specifier) => specifier.toLowerCase().includes(token.toLowerCase())),
