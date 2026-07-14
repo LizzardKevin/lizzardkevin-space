@@ -1,4 +1,13 @@
-import { Suspense, lazy, useCallback, useEffect, useReducer, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import { flushSync } from "react-dom";
 import { Link, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAudioDirector } from "../audio/useAudioDirector";
@@ -6,8 +15,10 @@ import { useTranslation } from "react-i18next";
 import type { OverlayTab } from "../overlay/OverlayState";
 import {
   SPACE_POINTER_LOCK_FAILED_EVENT,
+  reserveSpacePointerLockRequestId,
   resumeSpaceFirstPersonAfterEscape,
   resumeSpaceFirstPersonWithCursorReturn,
+  type SpacePointerLockFailureDetail,
 } from "../space/requestSpacePointerLock";
 import {
   shouldGuardSpacePointerLock,
@@ -30,6 +41,7 @@ import {
   reduceStartLobbyHandoff,
 } from "../lobby/startLobbyHandoff";
 import { SPACE_VISUAL_CSS_PROPERTIES } from "../space/spaceVisualTokens";
+import { createSpaceReturnPointerLockAttemptCoordinator } from "../space/spaceReturnPointerLockAttempt";
 
 const SpaceHost = lazy(() => import("../space/SpaceHost"));
 const SpacePage = lazy(() => import("../pages/SpacePage"));
@@ -78,6 +90,7 @@ export default function DesktopApp() {
   const [spaceStarted, setSpaceStarted] = useState(false);
   const [closing, setClosing] = useState(false);
   const [returningToSpace, setReturningToSpace] = useState(false);
+  const returnAttemptRef = useRef(createSpaceReturnPointerLockAttemptCoordinator());
   const route = resolveAppRoute(location.pathname);
   const policyRoute: SpaceRouteKind =
     route.kind === "space-alias"
@@ -112,10 +125,20 @@ export default function DesktopApp() {
   );
 
   useEffect(() => {
-    const cancelReturnHandoff = () => setReturningToSpace(false);
-    window.addEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, cancelReturnHandoff);
-    return () => window.removeEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, cancelReturnHandoff);
+    const onPointerLockFailed = (event: Event) => {
+      const detail = (event as CustomEvent<SpacePointerLockFailureDetail>).detail;
+      if (!detail || !returnAttemptRef.current.fail(detail.requestId)) return;
+      setReturningToSpace(false);
+    };
+    window.addEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, onPointerLockFailed);
+    return () => window.removeEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, onPointerLockFailed);
   }, []);
+
+  useLayoutEffect(() => {
+    if (route.kind === "space") {
+      returnAttemptRef.current.complete();
+    }
+  }, [route.kind]);
 
   useEffect(() => {
     if (!spaceStarted) return;
@@ -155,27 +178,40 @@ export default function DesktopApp() {
 
   const navigateToSpace = useCallback(
     (options?: { fromEscape?: boolean }) => {
+      const returnAttempt = returnAttemptRef.current.begin(reserveSpacePointerLockRequestId);
+      if (!returnAttempt.started) return;
+      const pointerLockRequestId = returnAttempt.requestId;
       flushSync(() => setReturningToSpace(true));
       if (options?.fromEscape) {
-        resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: false });
+        resumeSpaceFirstPersonAfterEscape(
+          { entered, overlayOpen: false },
+          pointerLockRequestId,
+        );
       } else if (entered) {
-        resumeSpaceFirstPersonWithCursorReturn();
+        resumeSpaceFirstPersonWithCursorReturn(pointerLockRequestId);
       }
       navigate(APP_ROUTE_PATHS.space);
+      if (route.kind === "space") returnAttemptRef.current.complete();
     },
-    [entered, navigate],
+    [entered, navigate, route.kind],
   );
 
   const beginOverlayClose = useCallback(
     (options?: { fromEscape?: boolean }) => {
+      const returnAttempt = returnAttemptRef.current.begin(reserveSpacePointerLockRequestId);
+      if (!returnAttempt.started) return;
+      const pointerLockRequestId = returnAttempt.requestId;
       flushSync(() => {
         setClosing(true);
         setReturningToSpace(true);
       });
       if (options?.fromEscape) {
-        resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: false });
+        resumeSpaceFirstPersonAfterEscape(
+          { entered, overlayOpen: false },
+          pointerLockRequestId,
+        );
       } else if (entered) {
-        resumeSpaceFirstPersonWithCursorReturn();
+        resumeSpaceFirstPersonWithCursorReturn(pointerLockRequestId);
       }
     },
     [entered],

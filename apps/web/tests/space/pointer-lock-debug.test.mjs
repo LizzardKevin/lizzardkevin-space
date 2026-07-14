@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { importSourceModule } from "../helpers/projectPaths.mjs";
+import { createSpaceReturnPointerLockAttemptCoordinator } from "../../src/space/spaceReturnPointerLockAttempt.ts";
 
 function degToRad(value) {
   return (value * Math.PI) / 180;
@@ -84,4 +85,51 @@ test("pointer lock retry failures do not permanently disable first person contro
   assert.equal(pointerLock.isPermanentPointerLockFailure("Pointer Lock API is unavailable"), true);
   assert.equal(pointerLock.isPermanentPointerLockFailure("Pointer lock request did not complete"), false);
   assert.equal(pointerLock.isPermanentPointerLockFailure("Space canvas was not ready"), false);
+});
+
+test("duplicate SPACE return starts reserve and request pointer lock exactly once", () => {
+  const coordinator = createSpaceReturnPointerLockAttemptCoordinator();
+  let reservationCount = 0;
+  let requestCount = 0;
+  const reserveRequest = () => {
+    reservationCount += 1;
+    return reservationCount;
+  };
+  const startReturn = () => {
+    const result = coordinator.begin(reserveRequest);
+    if (result.started) requestCount += 1;
+    return result;
+  };
+
+  assert.deepEqual(startReturn(), { requestId: 1, started: true });
+  assert.deepEqual(startReturn(), { requestId: 1, started: false });
+  assert.equal(reservationCount, 1);
+  assert.equal(requestCount, 1);
+});
+
+test("stale failure cannot cancel a newer return and matching failure retains idempotency", () => {
+  const coordinator = createSpaceReturnPointerLockAttemptCoordinator();
+  coordinator.begin(() => 41);
+  coordinator.complete();
+  coordinator.begin(() => 42);
+
+  assert.equal(coordinator.fail(41), false);
+  assert.deepEqual(coordinator.snapshot(), {
+    handoffArmed: true,
+    inFlight: true,
+    requestId: 42,
+  });
+  assert.equal(coordinator.fail(42), true);
+  assert.deepEqual(coordinator.snapshot(), {
+    handoffArmed: false,
+    inFlight: true,
+    requestId: 42,
+  });
+
+  let duplicateReservations = 0;
+  assert.deepEqual(coordinator.begin(() => ++duplicateReservations), {
+    requestId: 42,
+    started: false,
+  });
+  assert.equal(duplicateReservations, 0);
 });

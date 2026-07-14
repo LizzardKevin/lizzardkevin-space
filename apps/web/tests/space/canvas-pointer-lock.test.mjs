@@ -46,6 +46,20 @@ test("route-return and click controls resolve the identical Canvas target", () =
   assert.equal(resolveSpacePointerLockTarget(null, documentRoot), canvas);
 });
 
+test("pointer-lock requests return an id and report every failure against that id", () => {
+  const pointerLockApi = source("space/requestSpacePointerLock.ts");
+  assert.match(pointerLockApi, /export function reserveSpacePointerLockRequestId\(\)/);
+  assert.match(pointerLockApi, /function reportPointerLockFailure\(error: unknown, requestId: number\)/);
+  assert.match(pointerLockApi, /detail:\s*\{\s*requestId,/);
+  assert.match(pointerLockApi, /pendingGestureResumeRequestId/);
+  assert.doesNotMatch(pointerLockApi, /let pendingGestureResume = false/);
+  assert.match(
+    pointerLockApi,
+    /export function requestSpacePointerLock\(requestId = reserveSpacePointerLockRequestId\(\)\)/,
+  );
+  assert.match(pointerLockApi, /return requestId;/);
+});
+
 test("the return handoff only bypasses the blocked-route guard after SPACE was entered", () => {
   const guard = source("space/useSpacePointerLockGuard.ts");
   const policySource = guard.match(
@@ -100,13 +114,13 @@ test("Focus arms the return handoff before making exactly one pointer-lock reque
   const desktop = source("app/DesktopApp.tsx");
   const navigateBody = desktop.match(/const navigateToSpace = useCallback\([\s\S]*?\n  \);/)?.[0] ?? "";
   const armIndex = navigateBody.indexOf("setReturningToSpace(true)");
-  const normalRequestIndex = navigateBody.indexOf("resumeSpaceFirstPersonWithCursorReturn()");
+  const normalRequestIndex = navigateBody.indexOf("resumeSpaceFirstPersonWithCursorReturn(pointerLockRequestId)");
   const escapeRequestIndex = navigateBody.indexOf("resumeSpaceFirstPersonAfterEscape(");
 
-  assert.match(navigateBody, /flushSync\(\(\) => setReturningToSpace\(true\)\)/);
+  assert.match(navigateBody, /returnAttemptRef\.current\.begin\(reserveSpacePointerLockRequestId\)/);
   assert.ok(armIndex >= 0 && armIndex < normalRequestIndex);
   assert.ok(armIndex < escapeRequestIndex);
-  assert.equal((navigateBody.match(/resumeSpaceFirstPersonWithCursorReturn\(\)/g) ?? []).length, 1);
+  assert.equal((navigateBody.match(/resumeSpaceFirstPersonWithCursorReturn\(pointerLockRequestId\)/g) ?? []).length, 1);
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonAfterEscape\(/g) ?? []).length, 1);
 });
 
@@ -117,12 +131,13 @@ test("Profile and DevStories request pointer lock at close start and navigate ro
     (match) => match[1],
   );
   const armIndex = beginCloseBody.indexOf("setReturningToSpace(true)");
-  const normalRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonWithCursorReturn()");
+  const normalRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonWithCursorReturn(pointerLockRequestId)");
   const escapeRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonAfterEscape(");
 
   assert.ok(armIndex >= 0 && armIndex < normalRequestIndex);
   assert.ok(armIndex < escapeRequestIndex);
-  assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonWithCursorReturn\(\)/g) ?? []).length, 1);
+  assert.match(beginCloseBody, /if \(!returnAttempt\.started\) return;/);
+  assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonWithCursorReturn\(pointerLockRequestId\)/g) ?? []).length, 1);
   assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonAfterEscape\(/g) ?? []).length, 1);
   assert.equal(onClosedBodies.length, 2);
   for (const body of onClosedBodies) {
@@ -135,14 +150,15 @@ test("the return handoff clears on SPACE commit and pointer-lock failure or canc
   const desktop = source("app/DesktopApp.tsx");
   assert.match(
     desktop,
-    /window\.addEventListener\(SPACE_POINTER_LOCK_FAILED_EVENT, cancelReturnHandoff\)/,
+    /returnAttemptRef\.current\.fail\(detail\.requestId\)/,
   );
   assert.match(
     desktop,
-    /window\.removeEventListener\(SPACE_POINTER_LOCK_FAILED_EVENT, cancelReturnHandoff\)/,
+    /if \(!detail \|\| !returnAttemptRef\.current\.fail\(detail\.requestId\)\) return;/,
   );
   assert.match(
     desktop,
     /if \(route\.kind === ["']space["'] && returningToSpace\) \{\s*setReturningToSpace\(false\);/,
   );
+  assert.match(desktop, /if \(route\.kind === ["']space["']\) \{\s*returnAttemptRef\.current\.complete\(\);/);
 });
