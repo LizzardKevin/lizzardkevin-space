@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { resolveSpacePointerLockTarget } from "../../src/space/spacePointerLockTarget.ts";
+import {
+  isSpacePointerLockActive,
+  resolveSpacePointerLockTarget,
+} from "../../src/space/spacePointerLockTarget.ts";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const source = (path) => readFileSync(resolve(root, "apps/web/src", path), "utf8");
@@ -30,8 +33,26 @@ test("the production Canvas click chain has exactly one pointer-lock owner", () 
   assert.doesNotMatch(experience, /canvasGesturePointerLock/);
   assert.doesNotMatch(raycast, /resumeSpaceFirstPersonOnGestureIfPending/);
   assert.doesNotMatch(pointerLockApi, /export function resumeSpaceFirstPersonOnGestureIfPending/);
-  assert.match(scene, /<GuardedPointerLockControls selector=["']#space-canvas["'] \/>/);
-  assert.match(controls, /const lock = \(\) => requestPointerLockWithRawFallback\(lockElement\)/);
+  assert.match(
+    scene,
+    /<GuardedPointerLockControls enabled=\{pointerControlsEnabled\} selector=["']#space-canvas["'] \/>/,
+  );
+  assert.doesNotMatch(scene, /pointerControlsEnabled\s*\?\s*<GuardedPointerLockControls/);
+  assert.match(controls, /const enabledRef = useRef\(enabled\)/);
+  assert.match(controls, /enabledRef\.current = enabled/);
+  assert.ok(
+    (controls.match(/if \(!enabledRef\.current\) return;/g) ?? []).length >= 2,
+    "mousemove and Canvas click handlers must both use the current enabled gate",
+  );
+  assert.equal(
+    (controls.match(/if \(!enabled\) return;/g) ?? []).length,
+    1,
+    "only R3F event computation may depend on enabled effect mounting",
+  );
+  assert.match(
+    controls,
+    /const lock = \(\) => \{\s*if \(!enabledRef\.current\) return;\s*requestPointerLockWithRawFallback\(lockElement\);\s*\}/,
+  );
   assert.match(controls, /resolveSpacePointerLockTarget\(gl\.domElement\)/);
   assert.match(pointerLockApi, /resolveSpacePointerLockTarget\(\)/);
   assert.match(targetResolver, /getElementById\(["']space-canvas["']\)/);
@@ -44,6 +65,14 @@ test("route-return and click controls resolve the identical Canvas target", () =
   const documentRoot = { getElementById: () => canvas };
   assert.equal(resolveSpacePointerLockTarget(canvas, documentRoot), canvas);
   assert.equal(resolveSpacePointerLockTarget(null, documentRoot), canvas);
+});
+
+test("camera input accepts the active SPACE canvas across browser element wrappers", () => {
+  const expectedCanvas = { id: "space-canvas" };
+  assert.equal(isSpacePointerLockActive(expectedCanvas, expectedCanvas), true);
+  assert.equal(isSpacePointerLockActive(expectedCanvas, { id: "space-canvas" }), true);
+  assert.equal(isSpacePointerLockActive(expectedCanvas, { id: "other-canvas" }), false);
+  assert.equal(isSpacePointerLockActive(expectedCanvas, null), false);
 });
 
 test("pointer-lock requests return an id and report every failure against that id", () => {

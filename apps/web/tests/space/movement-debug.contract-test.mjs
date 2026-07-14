@@ -21,8 +21,15 @@ assert(
   "SPACE must use the guarded pointer lock controls implementation",
 );
 assert(
-  files.spaceScene.includes('<GuardedPointerLockControls selector="#space-canvas" />'),
-  "SPACE must render guarded pointer lock controls",
+  files.spaceScene.includes(
+    '<GuardedPointerLockControls enabled={pointerControlsEnabled} selector="#space-canvas" />',
+  ),
+  "SPACE must keep guarded pointer lock controls mounted and gate their input explicitly",
+);
+assert(
+  files.guardedPointerLockControls.includes("const enabledRef = useRef(enabled)") &&
+    files.guardedPointerLockControls.includes("enabledRef.current = enabled"),
+  "guarded pointer controls must read current route availability without listener churn",
 );
 assert(!files.spaceScene.includes("@react-three/drei"), "SPACE must not use raw Drei PointerLockControls");
 assert(

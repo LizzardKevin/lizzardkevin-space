@@ -1,5 +1,5 @@
 import { useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import {
   POINTER_LOCK_MOUSE_SENSITIVITY,
@@ -8,7 +8,10 @@ import {
   requestPointerLockWithRawFallback,
   resolveGuardedPointerDelta,
 } from "./guardedPointerLock";
-import { resolveSpacePointerLockTarget } from "../../space/spacePointerLockTarget";
+import {
+  isSpacePointerLockActive,
+  resolveSpacePointerLockTarget,
+} from "../../space/spacePointerLockTarget";
 
 const HALF_PI = Math.PI / 2;
 
@@ -34,6 +37,11 @@ export function GuardedPointerLockControls({
   const euler = useMemo(() => new THREE.Euler(0, 0, 0, "YXZ"), []);
   const lockElement = resolveSpacePointerLockTarget(gl.domElement) ?? gl.domElement;
   const warmupMovesRef = useRef(POINTER_LOCK_WARMUP_MOVES);
+  const enabledRef = useRef(enabled);
+
+  useLayoutEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -52,14 +60,13 @@ export function GuardedPointerLockControls({
   }, [enabled, get, setEvents]);
 
   useEffect(() => {
-    if (!enabled) return;
-
     const onPointerLockChange = () => {
       warmupMovesRef.current = POINTER_LOCK_WARMUP_MOVES;
     };
 
     const onMouseMove = (event: MouseEvent) => {
-      if (document.pointerLockElement !== lockElement) return;
+      if (!enabledRef.current) return;
+      if (!isSpacePointerLockActive(lockElement)) return;
 
       const delta = resolveGuardedPointerDelta({
         movementX: event.movementX,
@@ -86,7 +93,10 @@ export function GuardedPointerLockControls({
       invalidate();
     };
 
-    const lock = () => requestPointerLockWithRawFallback(lockElement);
+    const lock = () => {
+      if (!enabledRef.current) return;
+      requestPointerLockWithRawFallback(lockElement);
+    };
     const elements = selector ? Array.from(document.querySelectorAll(selector)) : [lockElement];
 
     document.addEventListener("pointerlockchange", onPointerLockChange);
@@ -100,7 +110,6 @@ export function GuardedPointerLockControls({
     };
   }, [
     camera,
-    enabled,
     euler,
     invalidate,
     lockElement,
