@@ -1,16 +1,28 @@
 import type { ExhibitManifestItem } from "./manifest.ts";
+import type { SelectedWorkImage } from "./selectedWorkMedia.ts";
 
 export type FocusMediaItem =
   | { kind: "model"; url: string }
   | { kind: "video"; url: string }
   | { kind: "image"; url: string };
 
-export function getFocusMediaItems(exhibit: Pick<ExhibitManifestItem, "focusGlbUrl" | "media">) {
+export function getFocusMediaItems(
+  exhibit: Pick<ExhibitManifestItem, "focusGlbUrl" | "media">,
+  selectedImages?: readonly SelectedWorkImage[],
+) {
   const items: FocusMediaItem[] = [{ kind: "model", url: exhibit.focusGlbUrl }];
   if (exhibit.media?.videoUrl?.trim()) {
     items.push({ kind: "video", url: exhibit.media.videoUrl });
   }
-  for (const url of exhibit.media?.imageUrls ?? []) {
+  const settledSelectedImages = selectedImages?.some((image) => image.status === "loading")
+    ? []
+    : selectedImages;
+  const imageUrls = settledSelectedImages
+    ? settledSelectedImages.flatMap((image) =>
+        image.status === "loaded" && image.displayUrl ? [image.displayUrl] : [],
+      )
+    : exhibit.media?.imageUrls ?? [];
+  for (const url of imageUrls) {
     if (url.trim()) items.push({ kind: "image", url });
   }
   return items;

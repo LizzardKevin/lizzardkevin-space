@@ -2737,6 +2737,46 @@ button {
   transform: translateX(-50%);
 }
 
+.focus-media-progress {
+  position: absolute;
+  left: 50%;
+  bottom: 108px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(84%, 520px);
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(244, 244, 239, 0.88);
+  color: rgba(12, 14, 14, 0.72);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  box-shadow: 0 5px 16px rgba(12, 14, 14, 0.08);
+}
+
+.focus-media-progress__indicator {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(12, 14, 14, 0.2);
+  border-top-color: rgba(12, 14, 14, 0.72);
+  border-radius: 50%;
+  animation: focus-media-progress-spin 700ms linear infinite;
+}
+
+.focus-media-progress__error {
+  color: #8a2b22;
+}
+
+@keyframes focus-media-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .focus-media-dot {
   position: relative;
   width: 18px;
@@ -4344,6 +4384,7 @@ button {
   .focus-image-frame,
   .focus-title,
   .focus-orbit-hint,
+  .focus-media-progress__indicator,
   .mobile-site,
   .mobile-site::before,
   .mobile-touch-glow,

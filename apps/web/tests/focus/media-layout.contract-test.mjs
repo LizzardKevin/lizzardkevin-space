@@ -61,12 +61,11 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
     "Focus media arrows should follow the measured normal image width instead of a viewport-only fallback",
   );
   assert.ok(
-    overlaySource.includes("preloadedFocusImagesRef") &&
-      overlaySource.includes("preloadFocusImages(mediaItems)") &&
-      overlaySource.includes("Promise.allSettled") &&
-      overlaySource.includes(".ready") &&
+    overlaySource.includes("selectedWorkMediaController.select(exhibit") &&
+      overlaySource.includes("setSelectedMediaSnapshot") &&
+      overlaySource.includes("session.cancel()") &&
       overlaySource.includes('loading="eager"'),
-    "Focus should eagerly start and decode all images for the selected exhibit when the overlay opens",
+    "Focus should eagerly decode all selected-work images through the cancellable media controller",
   );
   assert.ok(
     overlaySource.includes("mediaTransitionDirection") &&

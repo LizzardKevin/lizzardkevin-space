@@ -71,7 +71,10 @@ import {
   resolveFocusSafeAreaPx,
   type FocusImageFrameSize,
 } from "./focusImageFrameSize.ts";
-import { preloadFocusImages, type PreloadedFocusImage } from "./focusImagePreload.ts";
+import {
+  selectedWorkMediaController,
+  type SelectedWorkMediaSnapshot,
+} from "./selectedWorkMedia.ts";
 import { resolveFocusDisplayTitle } from "./focusDisplayTitle";
 import * as THREE from "three";
 import type { ThreeEvent } from "@react-three/fiber";
@@ -536,7 +539,19 @@ export function FocusOverlay({
   const contentLoading = !contentMatches;
   const displayTitle = resolveFocusDisplayTitle(content, exhibit.exhibitId, focusLanguage);
   const videoUrl = exhibit.media?.videoUrl;
-  const mediaItems = useMemo(() => getFocusMediaItems(exhibit), [exhibit]);
+  const [selectedMediaSnapshot, setSelectedMediaSnapshot] =
+    useState<SelectedWorkMediaSnapshot | null>(null);
+  const selectedImages = useMemo(
+    () =>
+      selectedMediaSnapshot?.exhibitId === exhibit.exhibitId
+        ? selectedMediaSnapshot.images
+        : [],
+    [exhibit.exhibitId, selectedMediaSnapshot],
+  );
+  const mediaItems = useMemo(
+    () => getFocusMediaItems(exhibit, selectedImages),
+    [exhibit, selectedImages],
+  );
   const [activeMediaState, setActiveMediaState] = useState({
     exhibitId: exhibit.exhibitId,
     index: 0,
@@ -556,7 +571,7 @@ export function FocusOverlay({
   const imageMotionLiveRef = useRef(false);
   const departingImageIdRef = useRef(0);
   const departingImageTimerRef = useRef<number | null>(null);
-  const preloadedFocusImagesRef = useRef<PreloadedFocusImage[]>([]);
+  const selectedMediaSessionRef = useRef<{ cancel: () => void } | null>(null);
   const activeMediaIndex =
     activeMediaState.exhibitId === exhibit.exhibitId
       ? Math.min(activeMediaState.index, mediaItems.length - 1)
@@ -567,6 +582,12 @@ export function FocusOverlay({
   const focusTags = content?.tags ?? fallbackFocusTags;
   const hasOrbitInteracted =
     orbitHintState?.exhibitId === exhibit.exhibitId ? orbitHintState.interacted : false;
+  const mediaProgress =
+    selectedMediaSnapshot?.exhibitId === exhibit.exhibitId
+      ? selectedMediaSnapshot.progress
+      : null;
+  const mediaSettled = mediaProgress ? mediaProgress.loaded + mediaProgress.failed : 0;
+  const mediaLoading = mediaProgress ? mediaSettled < mediaProgress.total : false;
 
   useEffect(() => {
     useGLTF.preload(exhibit.focusGlbUrl, GLTF_DRACO_DECODER_PATH);
@@ -584,13 +605,10 @@ export function FocusOverlay({
   }, [activeMedia.kind, activeMedia.url]);
 
   useEffect(() => {
-    const preloadImages = preloadFocusImages(mediaItems);
-    preloadedFocusImagesRef.current = preloadImages;
-    void Promise.allSettled(preloadImages.map((preload) => preload.ready));
-    return () => {
-      preloadedFocusImagesRef.current = [];
-    };
-  }, [mediaItems]);
+    const session = selectedWorkMediaController.select(exhibit, setSelectedMediaSnapshot);
+    selectedMediaSessionRef.current = session;
+    return () => session.cancel();
+  }, [exhibit]);
 
   useEffect(() => {
     let cancelled = false;
@@ -638,6 +656,7 @@ export function FocusOverlay({
     (opts?: { fromEscape?: boolean }) => {
       if (closingRef.current) return;
       closingRef.current = true;
+      selectedMediaSessionRef.current?.cancel();
       onBeginDismiss(opts);
       playback.stop();
       setContentVisible(false);
@@ -1030,6 +1049,23 @@ export function FocusOverlay({
           <FocusBlank
             className={`focus-blank--fill${SHOW_FOCUS_BLANK_DEBUG ? " focus-blank--debug-center" : ""}`}
           />
+
+          {mediaProgress && mediaProgress.total > 0 && (mediaLoading || mediaProgress.failed > 0) ? (
+            <div className="focus-media-progress" role="status" aria-live="polite">
+              {mediaLoading ? <span className="focus-media-progress__indicator" aria-hidden /> : null}
+              <span>
+                {t("focus.mediaLoadProgress", {
+                  loaded: mediaProgress.loaded,
+                  total: mediaProgress.total,
+                })}
+              </span>
+              {mediaProgress.failed > 0 ? (
+                <span className="focus-media-progress__error" role="alert">
+                  {t("focus.mediaLoadFailed", { failed: mediaProgress.failed })}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
 
           {videoUrl ? (
             <video
