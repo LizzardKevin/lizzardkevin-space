@@ -20,11 +20,11 @@ export type SpaceQualityConfig = {
 };
 
 export type SpaceVisualSettings = {
-  antialias: boolean;
+  qualityPreset: "full" | "simplified";
 };
 
 export const DEFAULT_SPACE_VISUAL_SETTINGS: SpaceVisualSettings = {
-  antialias: false,
+  qualityPreset: "full",
 };
 
 export const SPACE_QUALITY_CONFIG: SpaceQualityConfig = {
@@ -40,15 +40,11 @@ const listeners = new Set<() => void>();
 
 let currentSettings = DEFAULT_SPACE_VISUAL_SETTINGS;
 
-function readStoredBoolean(value: unknown, fallback: boolean) {
-  return typeof value === "boolean" ? value : fallback;
-}
-
-function normalizeSpaceVisualSettings(value: unknown): SpaceVisualSettings {
+export function normalizeSpaceVisualSettings(value: unknown): SpaceVisualSettings {
   if (!value || typeof value !== "object") return DEFAULT_SPACE_VISUAL_SETTINGS;
-  const stored = value as Partial<Record<keyof SpaceVisualSettings, unknown>>;
+  const stored = value as Record<string, unknown>;
   return {
-    antialias: readStoredBoolean(stored.antialias, DEFAULT_SPACE_VISUAL_SETTINGS.antialias),
+    qualityPreset: stored.qualityPreset === "simplified" ? "simplified" : "full",
   };
 }
 
@@ -101,8 +97,8 @@ export function writeSpaceVisualSettings(settings: SpaceVisualSettings) {
   emitSpaceVisualSettingsChange();
 }
 
-export function setSpaceAntialias(antialias: boolean) {
-  writeSpaceVisualSettings({ ...currentSettings, antialias });
+export function setSpaceQualityPreset(qualityPreset: SpaceVisualSettings["qualityPreset"]) {
+  writeSpaceVisualSettings({ qualityPreset });
 }
 
 export function subscribeSpaceVisualSettings(listener: () => void) {
@@ -117,13 +113,13 @@ export function useSpaceVisualSettings() {
     () => DEFAULT_SPACE_VISUAL_SETTINGS,
   );
 
-  const toggleAntialias = useCallback((enabled: boolean) => {
-    setSpaceAntialias(enabled);
+  const setQualityPreset = useCallback((qualityPreset: SpaceVisualSettings["qualityPreset"]) => {
+    setSpaceQualityPreset(qualityPreset);
   }, []);
 
   return {
     quality: getSpaceQualityConfig(),
     settings,
-    toggleAntialias,
+    setQualityPreset,
   };
 }

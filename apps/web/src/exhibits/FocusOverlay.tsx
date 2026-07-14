@@ -20,6 +20,7 @@ import type { ExhibitManifestItem } from "./manifest";
 import type { ExhibitButtonAction } from "./manifest";
 import { usePlayback } from "../media/usePlayback";
 import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
+import type { RendererProfileId } from "../rendering/rendererProfile";
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
 import { loadExhibitContent, type ExhibitContent } from "./exhibitContent";
 import { normalizeSupportedLanguage, type SupportedLanguage } from "../i18n/resolveInitialLanguage";
@@ -397,10 +398,12 @@ class FocusModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundar
 
 export function FocusOverlay({
   exhibit,
+  profile,
   onBeginDismiss,
   onClose,
 }: {
   exhibit: ExhibitManifestItem;
+  profile: RendererProfileId;
   /** 退出时同步恢复 SPACE 控制；fromEscape 时延后到 keyup 再锁定鼠标。 */
   onBeginDismiss: (opts?: { fromEscape?: boolean }) => void;
   onClose: () => void;
@@ -412,6 +415,14 @@ export function FocusOverlay({
   const [blurOn, setBlurOn] = useState(false);
   const [dimOn, setDimOn] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
+  const [focusRenderer, setFocusRenderer] = useState<{
+    requestedProfile: RendererProfileId;
+    resolvedProfile: RendererProfileId | null;
+  }>({ requestedProfile: profile, resolvedProfile: null });
+  const resolvedFocusProfile = focusRenderer.resolvedProfile;
+  if (focusRenderer.requestedProfile !== profile) {
+    setFocusRenderer({ requestedProfile: profile, resolvedProfile: null });
+  }
   const [loadedContent, setLoadedContent] = useState<LoadedFocusContent | null>(null);
   const [orbitHintState, setOrbitHintState] = useState<{
     exhibitId: string;
@@ -940,34 +951,45 @@ export function FocusOverlay({
           <FocusModelErrorBoundary message={t("focus.modelLoadFailed")} url={exhibit.focusGlbUrl}>
             <Suspense fallback={<FocusLoading label={t("focus.loadingExhibit")} />}>
               <Canvas
+                key={`focus-canvas-${profile}`}
                 id="focus-canvas"
                 frameloop={activeMedia.kind === "model" ? "always" : "never"}
+                dpr={resolvedFocusProfile === "full" ? [1, 2] : 1}
                 data-cursor={focusCanvasInteractive ? "drag-model" : undefined}
                 className={`focus-canvas${focusCanvasInteractive ? " focus-canvas--visible" : ""}`}
                 gl={(props) =>
                   createWebGPURenderer({
                     canvas: props.canvas as HTMLCanvasElement,
-                    antialias: props.antialias,
+                    requestedProfile: profile,
+                    onResolved: (resolution) => {
+                      setFocusRenderer((current) =>
+                        current.requestedProfile === profile
+                          ? { ...current, resolvedProfile: resolution.profile }
+                          : current,
+                      );
+                    },
                     alpha: true,
                   })
                 }
                 camera={{
-                fov: FOCUS_FRAME.cameraFov,
-                near: 0.01,
-                far: 200,
-                position: [0, FOCUS_FRAME.orbitTargetY + FOCUS_FRAME.cameraHeightOffset, 3.6],
-              }}
+                  fov: FOCUS_FRAME.cameraFov,
+                  near: 0.01,
+                  far: 200,
+                  position: [0, FOCUS_FRAME.orbitTargetY + FOCUS_FRAME.cameraHeightOffset, 3.6],
+                }}
                 onCreated={({ gl }) => {
                   gl.domElement.id = "focus-canvas";
                 }}
               >
-                <FocusScene
-                  exhibit={exhibit}
-                  onButtonAction={onButtonAction}
-                  onOrbitInteract={handleOrbitInteract}
-                  orbitEnabled={contentVisible && activeMedia.kind === "model"}
-                  onBlankDoubleClick={handleBlankDoubleClick}
-                />
+                {resolvedFocusProfile ? (
+                  <FocusScene
+                    exhibit={exhibit}
+                    onButtonAction={onButtonAction}
+                    onOrbitInteract={handleOrbitInteract}
+                    orbitEnabled={contentVisible && activeMedia.kind === "model"}
+                    onBlankDoubleClick={handleBlankDoubleClick}
+                  />
+                ) : null}
               </Canvas>
             </Suspense>
           </FocusModelErrorBoundary>

@@ -138,12 +138,12 @@ test("metal aluminum is darker than floor with a matte metallic finish", async (
   );
 });
 
-test("gallery visual settings default to fixed 2K 30fps quality with AA off and restrained bloom", async () => {
+test("gallery visual settings default to the full renderer profile with restrained bloom", async () => {
   const visual = await importSourceModule("space/spaceVisualSettings.ts");
   const config = visual.getSpaceQualityConfig();
 
-  assert.equal("qualityPreset" in visual.DEFAULT_SPACE_VISUAL_SETTINGS, false);
-  assert.equal(visual.DEFAULT_SPACE_VISUAL_SETTINGS.antialias, false);
+  assert.equal(visual.DEFAULT_SPACE_VISUAL_SETTINGS.qualityPreset, "full");
+  assert.equal("antialias" in visual.DEFAULT_SPACE_VISUAL_SETTINGS, false);
   assert.equal("motionBlur" in visual.DEFAULT_SPACE_VISUAL_SETTINGS, false);
   assert.equal(config.performance.targetFps, 30);
   assert.equal(config.post.bloom.enabled, true);

@@ -90,6 +90,7 @@ export function GalleryRenderPipeline({ bloom: bloomConfig }: { bloom: BloomConf
     pipelineRef.current = pipeline;
 
     return () => {
+      pipeline.dispose();
       pipelineRef.current = null;
     };
   }, [

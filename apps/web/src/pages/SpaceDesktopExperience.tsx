@@ -13,9 +13,11 @@ import type { ExhibitManifestItem } from "../exhibits/manifest";
 import { PlaybackBar } from "../media/PlaybackBar";
 import { createWebGPURenderer } from "../rendering/createWebGPURenderer";
 import { GalleryRenderPipeline } from "../rendering/GalleryRenderPipeline";
-import { isWebGPUSupported } from "../rendering/webgpuSupport";
+import {
+  RENDERER_PROFILES,
+  type RendererProfile,
+} from "../rendering/rendererProfile";
 import { WebGPUErrorBoundary } from "../rendering/WebGPUErrorBoundary";
-import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
 import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
 import { SpaceScene } from "../scenes/SpaceScene";
 import type { SpaceJumpNoticeKey } from "../scenes/Player/PlayerController";
@@ -125,7 +127,6 @@ export function SpaceDesktopExperience({
   onCanvasReady?: () => void;
 }) {
   const [exhibitTarget, setExhibitTarget] = useState<ExhibitTarget | null>(null);
-  const [webgpuReady, setWebgpuReady] = useState<boolean | null>(null);
   const { t } = useTranslation();
   const [manifest, setManifest] = useState<ExhibitManifestItem[] | null>(null);
   const [focused, setFocused] = useState<ExhibitManifestItem | null>(null);
@@ -150,10 +151,18 @@ export function SpaceDesktopExperience({
   const projectorSlideCommandNonceRef = useRef(0);
   const devFocusOpenedRef = useRef(false);
   const { quality, settings } = useSpaceVisualSettings();
-  const [rendererSettings, setRendererSettings] = useState(() => ({
-    antialias: settings.antialias,
+  const [rendererRuntime, setRendererRuntime] = useState<{
+    requestedProfile: "full" | "simplified";
+    initialPose: SpacePlayerPose | null;
+    nonce: number;
+    resolvedProfile: RendererProfile | null;
+  }>(() => ({
+    requestedProfile: settings.qualityPreset,
     initialPose: dailyResumePose,
+    nonce: 0,
+    resolvedProfile: null,
   }));
+  const resolvedProfile = rendererRuntime.resolvedProfile;
 
   const { entered, fading: entryIsFading } = entry;
 
@@ -184,24 +193,19 @@ export function SpaceDesktopExperience({
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    isWebGPUSupported().then((ok) => {
-      if (!cancelled) setWebgpuReady(ok);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    setRendererSettings((current) => {
-      if (current.antialias === settings.antialias) return current;
-      return {
-        antialias: settings.antialias,
-        initialPose: latestSpacePoseRef.current ?? dailyResumePose,
-      };
-    });
-  }, [dailyResumePose, settings.antialias]);
+    const timer = window.setTimeout(() => {
+      setRendererRuntime((current) => {
+        if (current.requestedProfile === settings.qualityPreset) return current;
+        return {
+          requestedProfile: settings.qualityPreset,
+          initialPose: latestSpacePoseRef.current ?? dailyResumePose,
+          nonce: current.nonce + 1,
+          resolvedProfile: null,
+        };
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [dailyResumePose, settings.qualityPreset]);
 
   useEffect(() => {
     let cancelled = false;
@@ -432,7 +436,6 @@ export function SpaceDesktopExperience({
   );
 
   const useShadows = !ENABLE_GALLERY_GLB || ENABLE_GALLERY_RUNTIME_SHADOWS;
-  const canRender3d = webgpuReady === true;
 
   return (
     <>
@@ -450,30 +453,12 @@ export function SpaceDesktopExperience({
       />
       {hud}
       <PlaybackBar elevated={focusSurfaceOpen} />
-      {webgpuReady === null ? (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 25,
-            display: "grid",
-            placeItems: "center",
-            background: "#050505",
-            color: "rgba(255,255,255,0.75)",
-            fontFamily: "system-ui",
-            fontSize: 13,
-            letterSpacing: "0.06em",
-          }}
-        >
-          {t("space.loading")}
-        </div>
-      ) : null}
-      {webgpuReady === false ? <WebGPUUnavailable /> : null}
-      {focusOverlayExhibit ? (
+      {focusOverlayExhibit && resolvedProfile ? (
         <Suspense fallback={null}>
           <FocusOverlay
             key={focusOverlayExhibit.exhibitId}
             exhibit={focusOverlayExhibit}
+            profile={resolvedProfile.id}
             onBeginDismiss={handleBeginDismissFocus}
             onClose={handleFinishDismissFocus}
           />
@@ -485,20 +470,30 @@ export function SpaceDesktopExperience({
           onClose={handleFinishDismissOnboardingFocus}
         />
       ) : null}
-      {canRender3d ? (
-        <WebGPUErrorBoundary>
+      <WebGPUErrorBoundary>
           <div
             className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${spaceRenderPaused ? " space-canvasWrap--disabled" : ""}`}
           >
             <Canvas
-              key={rendererSettings.antialias ? "space-canvas-aa" : "space-canvas-raw"}
+              key={`space-canvas-${rendererRuntime.requestedProfile}-${rendererRuntime.nonce}`}
               frameloop={spaceRenderPaused ? "never" : "always"}
               id="space-canvas"
               style={{ position: "absolute", inset: 0 }}
+              dpr={resolvedProfile?.id === "full" ? [1, 2] : 1}
               gl={(props) =>
                 createWebGPURenderer({
                   canvas: props.canvas as HTMLCanvasElement,
-                  antialias: rendererSettings.antialias,
+                  requestedProfile: rendererRuntime.requestedProfile,
+                  onResolved: (resolution) => {
+                    setRendererRuntime((current) =>
+                      current.nonce === rendererRuntime.nonce
+                        ? {
+                            ...current,
+                            resolvedProfile: RENDERER_PROFILES[resolution.profile],
+                          }
+                        : current,
+                    );
+                  },
                 })
               }
               camera={{
@@ -507,47 +502,54 @@ export function SpaceDesktopExperience({
                 far: 200,
                 position: ENABLE_GALLERY_GLB ? spawnToCameraPosition(GALLERY_SPAWN) : [0, 1.6, 6],
               }}
-              shadows={useShadows}
+              shadows={resolvedProfile ? resolvedProfile.shadows && useShadows : false}
               onCreated={({ gl }) => {
                 gl.domElement.id = "space-canvas";
               }}
             >
-              <color attach="background" args={[GALLERY_TOON.background]} />
-              {ENABLE_GALLERY_TOON ? <GalleryAtmosphere /> : null}
-              <ambientLight intensity={ENABLE_GALLERY_TOON ? GALLERY_TOON.ambientIntensity : 0.42} />
-              {ENABLE_GALLERY_TOON ? (
+              {resolvedProfile ? (
                 <>
-                  <directionalLight
-                    position={GALLERY_TOON.keyLight.position}
-                    intensity={GALLERY_TOON.keyLight.intensity}
-                    color={GALLERY_TOON.keyLight.color}
+                  <color attach="background" args={[GALLERY_TOON.background]} />
+                  {ENABLE_GALLERY_TOON &&
+                  resolvedProfile.expensiveLeaves.galleryAtmosphere ? (
+                    <GalleryAtmosphere />
+                  ) : null}
+                  <ambientLight
+                    intensity={ENABLE_GALLERY_TOON ? GALLERY_TOON.ambientIntensity : 0.42}
                   />
-                  <directionalLight
-                    position={GALLERY_TOON.fillLight.position}
-                    intensity={GALLERY_TOON.fillLight.intensity}
-                    color={GALLERY_TOON.fillLight.color}
-                  />
-                </>
-              ) : null}
-              <hemisphereLight
-                args={
+                  {ENABLE_GALLERY_TOON ? (
+                    <>
+                      <directionalLight
+                        position={GALLERY_TOON.keyLight.position}
+                        intensity={GALLERY_TOON.keyLight.intensity}
+                        color={GALLERY_TOON.keyLight.color}
+                      />
+                      <directionalLight
+                        position={GALLERY_TOON.fillLight.position}
+                        intensity={GALLERY_TOON.fillLight.intensity}
+                        color={GALLERY_TOON.fillLight.color}
+                      />
+                    </>
+                  ) : null}
+                  <hemisphereLight
+                    args={
                   ENABLE_GALLERY_TOON
                     ? [GALLERY_TOON.hemisphere.sky, GALLERY_TOON.hemisphere.ground, GALLERY_TOON.hemisphere.intensity]
                     : ["#e8eef5", "#8a8078", 0.35]
-                }
-              />
-              <Suspense
-                fallback={
-                  <group>
-                    <mesh position={[0, 1.6, 0]}>
-                      <boxGeometry args={[0.8, 0.2, 0.8]} />
-                      <meshToonMaterial color="#7a7a7a" />
-                    </mesh>
-                  </group>
-                }
-              >
-                <Physics gravity={[0, -9.81, 0]} timeStep={SPACE_PHYSICS_TIME_STEP}>
-                  <SpaceScene
+                    }
+                  />
+                  <Suspense
+                    fallback={
+                      <group>
+                        <mesh position={[0, 1.6, 0]}>
+                          <boxGeometry args={[0.8, 0.2, 0.8]} />
+                          <meshToonMaterial color="#7a7a7a" />
+                        </mesh>
+                      </group>
+                    }
+                  >
+                    <Physics gravity={[0, -9.81, 0]} timeStep={SPACE_PHYSICS_TIME_STEP}>
+                      <SpaceScene
                     exhibitTarget={exhibitTarget}
                     onTargetChange={setExhibitTarget}
                     loadExhibits={loadExhibits}
@@ -565,18 +567,21 @@ export function SpaceDesktopExperience({
                     onboardingEnabled={onboardingEnabled}
                     pointerLocked={pointerLocked}
                     onboardingFocusVisible={onboardingFocusVisible}
-                    initialPose={rendererSettings.initialPose}
+                    initialPose={rendererRuntime.initialPose}
                     onPoseSample={handleSpacePoseSample}
                     onOnboardingCompleted={() => setOnboardingCompleted(true)}
                     quality={quality}
-                  />
-                </Physics>
-                <GalleryRenderPipeline bloom={quality.post.bloom} />
-              </Suspense>
+                      />
+                    </Physics>
+                    {resolvedProfile.postProcessing ? (
+                      <GalleryRenderPipeline bloom={quality.post.bloom} />
+                    ) : null}
+                  </Suspense>
+                </>
+              ) : null}
             </Canvas>
           </div>
-        </WebGPUErrorBoundary>
-      ) : null}
+      </WebGPUErrorBoundary>
     </>
   );
 }

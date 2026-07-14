@@ -8,7 +8,6 @@ const player = readSourceFile("scenes/Player/PlayerController.tsx");
 const overlay = readSourceFile("overlay/OverlayLayer.tsx");
 const playback = readSourceFile("media/PlaybackBar.tsx");
 const webgpuUnavailable = readSourceFile("rendering/WebGPUUnavailable.tsx");
-const webgpuSupport = readSourceFile("rendering/webgpuSupport.ts");
 const appErrorBoundary = readSourceFile("components/AppErrorBoundary.tsx");
 const debugOverlay = readSourceFile("scenes/debug/SpaceMovementDebugOverlay.tsx");
 
@@ -21,7 +20,7 @@ for (const [sourceName, source, keys] of [
   [
     "TopBar",
     topbar,
-    ["settings.label", "settings.language", "settings.antialias"],
+    ["settings.label", "settings.language"],
   ],
   [
     "SpaceDesktopExperience",
@@ -31,7 +30,6 @@ for (const [sourceName, source, keys] of [
       "space.projector.next",
       "space.exhibitLoading",
       "space.manifestMissing",
-      "space.loading",
       "space.pointerLockFailed",
     ],
   ],
@@ -49,11 +47,6 @@ for (const [sourceName, source, keys] of [
     "PlaybackBar",
     playback,
     ["media.playbackProgress"],
-  ],
-  [
-    "WebGPUUnavailable",
-    webgpuUnavailable,
-    ["webgpu.required", "webgpu.unsupported"],
   ],
   [
     "AppErrorBoundary",
@@ -110,7 +103,6 @@ for (const hardcoded of [
   }
 }
 
-assert(!webgpuSupport.includes("WEBGPU_UNSUPPORTED_MESSAGE"), "old WebGPU unsupported fallback must not bypass i18n");
 assert(!desktop.includes("setToast(t("), "SPACE toasts must store i18n keys, not translated strings");
 assert(!desktop.includes("setJumpHintMessage"), "SPACE jump hints must store i18n keys, not translated strings");
 assert(

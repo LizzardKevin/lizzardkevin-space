@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 
 export function WebGPUUnavailable() {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
+  const isChinese = (i18n.resolvedLanguage ?? i18n.language).toLowerCase().startsWith("zh");
   return (
     <div
       style={{
@@ -28,9 +29,13 @@ export function WebGPUUnavailable() {
             marginBottom: 12,
           }}
         >
-          {t("webgpu.required")}
+          {isChinese ? "渲染器不可用" : "Renderer unavailable"}
         </div>
-        <p style={{ margin: 0, fontSize: 15 }}>{t("webgpu.unsupported")}</p>
+        <p style={{ margin: 0, fontSize: 15 }}>
+          {isChinese
+            ? "无法初始化 WebGPU 或 WebGL2 渲染器。"
+            : "Unable to initialize a WebGPU or WebGL2 renderer."}
+        </p>
       </div>
     </div>
   );

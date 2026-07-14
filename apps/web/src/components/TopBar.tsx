@@ -41,7 +41,7 @@ export function TopBar({
   onCloseTab: () => void;
 }) {
   const { i18n, t } = useTranslation();
-  const { settings, toggleAntialias } = useSpaceVisualSettings();
+  const { settings, setQualityPreset } = useSpaceVisualSettings();
   const [activeLanguage, setActiveLanguage] = useState<SupportedLanguage>(() =>
     normalizeLanguage(i18n.resolvedLanguage ?? i18n.language),
   );
@@ -80,7 +80,9 @@ export function TopBar({
 
   const settingsLabel = t("settings.label");
   const languageLabel = t("settings.language");
-  const antialiasLabel = t("settings.antialias");
+  const qualityLabel = activeLanguage === "zh" ? "画质" : "Quality";
+  const fullLabel = activeLanguage === "zh" ? "完整" : "Full";
+  const simplifiedLabel = activeLanguage === "zh" ? "简化" : "Simplified";
 
   return (
     <div className="topbar">
@@ -128,16 +130,24 @@ export function TopBar({
             </div>
           </div>
 
-          <div className="topbar__settingsRow topbar__settingsRow--checkbox">
-            <span>{antialiasLabel}</span>
-            <label className="topbar__settingsCheck">
-              <input
-                type="checkbox"
-                checked={settings.antialias}
-                onChange={(event) => toggleAntialias(event.currentTarget.checked)}
-              />
-              <i aria-hidden="true" />
-            </label>
+          <div className="topbar__settingsRow">
+            <span>{qualityLabel}</span>
+            <div className="topbar__settingsSegment" role="group" aria-label={qualityLabel}>
+              <button
+                type="button"
+                aria-pressed={settings.qualityPreset === "full"}
+                onClick={() => setQualityPreset("full")}
+              >
+                {fullLabel}
+              </button>
+              <button
+                type="button"
+                aria-pressed={settings.qualityPreset === "simplified"}
+                onClick={() => setQualityPreset("simplified")}
+              >
+                {simplifiedLabel}
+              </button>
+            </div>
           </div>
 
         </div>

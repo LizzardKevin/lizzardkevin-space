@@ -1,22 +1,35 @@
 import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
-import { logWebGPUAdapterInfo } from "./webgpuSupport";
+import {
+  initializeProfiledRenderer,
+  type RendererProfileId,
+  type RendererResolution,
+} from "./rendererProfile";
 
 type WebGPUCanvasProps = {
   canvas: HTMLCanvasElement;
-  antialias?: boolean;
+  requestedProfile?: RendererProfileId;
   /** Transparent clear for Focus overlay canvas stacked over blurred SPACE. */
   alpha?: boolean;
+  onResolved?: (resolution: RendererResolution) => void;
 };
 
 export async function createWebGPURenderer(props: WebGPUCanvasProps): Promise<WebGPURenderer> {
-  const renderer = new WebGPURenderer({
-    canvas: props.canvas,
-    antialias: props.antialias ?? true,
-    alpha: props.alpha ?? false,
-  });
+  const { renderer, resolution } = await initializeProfiledRenderer(
+    props.requestedProfile ?? "full",
+    (forceWebGL) =>
+      new WebGPURenderer({
+        canvas: props.canvas,
+        antialias: false,
+        alpha: props.alpha ?? false,
+        forceWebGL,
+      }),
+  );
 
-  await renderer.init();
+  if (!props.canvas.isConnected) {
+    renderer.dispose();
+    throw new Error("Renderer initialization cancelled because its canvas was unmounted");
+  }
 
   // Tone mapping (game-like highlight compression) + output color space.
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -26,11 +39,11 @@ export async function createWebGPURenderer(props: WebGPUCanvasProps): Promise<We
   if (props.alpha) {
     renderer.setClearColor(0x000000, 0);
   }
-  void logWebGPUAdapterInfo();
-
   if (import.meta.env.DEV) {
-    console.info("[WebGPU] renderer initialized");
+    console.info(`[Renderer] ${resolution.backend} initialized (${resolution.profile})`);
   }
+
+  props.onResolved?.(resolution);
 
   return renderer;
 }

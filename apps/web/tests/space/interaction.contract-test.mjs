@@ -78,12 +78,13 @@ assert(files.topbar.includes("await i18n.changeLanguage(next)"), "language toggl
 assert(files.topbar.includes("document.documentElement.lang = next"), "language toggle must sync document language");
 assert(files.topbar.includes("topbar__settingsButton"), "TopBar must expose a compact settings icon button");
 assert(files.topbar.includes("topbar__settingsPanel"), "TopBar must render language and visual controls in a settings panel");
-assert(!files.topbar.includes("setQualityPreset"), "settings panel must no longer expose SPACE quality preset controls");
-assert(!files.topbar.includes("SPACE_QUALITY_PRESET_ORDER"), "settings panel must not render quality preset options");
-assert(files.topbar.includes("toggleAntialias"), "settings panel must update the WebGPU antialias preference");
+assert(files.topbar.includes("setQualityPreset"), "settings panel must update the SPACE renderer profile");
+assert(files.topbar.includes('setQualityPreset("full")'), "settings panel must expose the full profile");
+assert(files.topbar.includes('setQualityPreset("simplified")'), "settings panel must expose the simplified profile");
+assert(!files.topbar.includes("toggleAntialias"), "settings panel must not expose a separate antialias preference");
 assert(!files.topbar.includes("toggleMotionBlur"), "settings panel must not expose motion blur controls");
 assert(!files.topbar.includes("motionBlur"), "TopBar must not keep motion blur copy or state");
-assert(files.topbar.includes('type="checkbox"'), "visual controls must render as checkboxes");
+assert(!files.topbar.includes('type="checkbox"'), "profile selection must use exactly two buttons, not a checkbox");
 assert(!files.topbar.includes("topbar__button--language"), "language should no longer be a standalone topbar text toggle");
 
 const topbarButtonRule = cssRule(files.css, ".topbar__button");

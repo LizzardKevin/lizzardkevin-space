@@ -18,7 +18,7 @@ export class WebGPUErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     if (import.meta.env.DEV) {
-      console.error("[WebGPU] render init failed", error, info.componentStack);
+      console.error("[Renderer] initialization failed", error, info.componentStack);
     }
   }
 
