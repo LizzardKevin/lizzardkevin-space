@@ -8,8 +8,10 @@ import { resolveSpacePointerLockTarget } from "./spacePointerLockTarget";
 
 let nextPointerLockRequestId = 0;
 let pendingGestureResumeRequestId: number | null = null;
+let pendingEscapePointerLockRecovery: { cancel: () => void } | null = null;
 
 export const SPACE_POINTER_LOCK_FAILED_EVENT = "space:pointer-lock-failed";
+const ESCAPE_POINTER_LOCK_RECOVERY_EXPIRY_MS = 2_000;
 
 export type SpacePointerLockFailureDetail = {
   message: string;
@@ -128,14 +130,45 @@ export function resumeSpaceFirstPersonAfterEscape(
   opts: { entered: boolean; overlayOpen: boolean },
   requestId = reserveSpacePointerLockRequestId(),
 ) {
-  const onKeyUp = (e: KeyboardEvent) => {
+  pendingEscapePointerLockRecovery?.cancel();
+
+  let cancelled = false;
+  let expiryTimerId: number | null = null;
+  let relockTimerId: number | null = null;
+
+  function cleanup() {
+    if (cancelled) return;
+    cancelled = true;
+    window.removeEventListener("keyup", onKeyUp);
+    window.removeEventListener("blur", cleanup);
+    window.removeEventListener("pagehide", cleanup);
+    if (expiryTimerId !== null) window.clearTimeout(expiryTimerId);
+    if (relockTimerId !== null) window.clearTimeout(relockTimerId);
+    if (pendingEscapePointerLockRecovery === recovery) {
+      pendingEscapePointerLockRecovery = null;
+    }
+  }
+
+  function onKeyUp(e: KeyboardEvent) {
     if (e.key !== "Escape") return;
     window.removeEventListener("keyup", onKeyUp);
+    if (expiryTimerId !== null) {
+      window.clearTimeout(expiryTimerId);
+      expiryTimerId = null;
+    }
     requestSpaceCursorReturn({ target: "center" });
-    window.setTimeout(() => {
+    relockTimerId = window.setTimeout(() => {
+      relockTimerId = null;
+      cleanup();
       engageSpaceFirstPersonNow(opts, requestId);
     }, 500);
-  };
+  }
+
+  const recovery = { cancel: cleanup };
+  pendingEscapePointerLockRecovery = recovery;
   window.addEventListener("keyup", onKeyUp);
+  window.addEventListener("blur", cleanup);
+  window.addEventListener("pagehide", cleanup);
+  expiryTimerId = window.setTimeout(cleanup, ESCAPE_POINTER_LOCK_RECOVERY_EXPIRY_MS);
   return requestId;
 }

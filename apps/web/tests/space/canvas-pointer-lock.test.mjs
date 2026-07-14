@@ -107,7 +107,10 @@ test("Focus close delegates route and pointer-lock resume to DesktopApp exactly 
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonAfterEscape/g) ?? []).length, 1);
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonWithCursorReturn/g) ?? []).length, 1);
   assert.equal((escapeBody.match(/addEventListener\(["']keyup["']/g) ?? []).length, 1);
-  assert.equal((escapeBody.match(/setTimeout/g) ?? []).length, 1);
+  assert.equal((escapeBody.match(/setTimeout/g) ?? []).length, 2);
+  assert.match(escapeBody, /addEventListener\(["']blur["']/);
+  assert.match(escapeBody, /addEventListener\(["']pagehide["']/);
+  assert.match(escapeBody, /clearTimeout/);
 });
 
 test("Focus arms the return handoff before making exactly one pointer-lock request", () => {

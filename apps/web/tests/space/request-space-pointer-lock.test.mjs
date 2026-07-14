@@ -45,7 +45,9 @@ async function withMockedPointerLockBrowser(requestPointerLockWithRawFallback, r
     names.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   const canvas = { id: "space-canvas" };
+  const cursorReturns = [];
   const events = [];
+  const listeners = new Map();
   const microtasks = [];
   const timers = [];
 
@@ -61,12 +63,23 @@ async function withMockedPointerLockBrowser(requestPointerLockWithRawFallback, r
     document: { pointerLockElement: null },
     queueMicrotask: (callback) => microtasks.push(callback),
     window: {
+      addEventListener: (type, listener) => {
+        const typeListeners = listeners.get(type) ?? new Set();
+        typeListeners.add(listener);
+        listeners.set(type, typeListeners);
+      },
+      clearTimeout: (timerId) => {
+        const timer = timers[timerId - 1];
+        if (timer) timer.cancelled = true;
+      },
       dispatchEvent: (event) => {
-        events.push(event);
+        if (event.type === "space:pointer-lock-failed") events.push(event);
+        for (const listener of [...(listeners.get(event.type) ?? [])]) listener(event);
         return true;
       },
+      removeEventListener: (type, listener) => listeners.get(type)?.delete(listener),
       setTimeout: (callback) => {
-        timers.push(callback);
+        timers.push({ callback, cancelled: false, ran: false });
         return timers.length;
       },
     },
@@ -74,7 +87,7 @@ async function withMockedPointerLockBrowser(requestPointerLockWithRawFallback, r
       POINTER_LOCK_RESUME_TIMEOUT_MS: 900,
       isPermanentPointerLockFailure: () => false,
       requestPointerLockWithRawFallback,
-      requestSpaceCursorReturn: () => {},
+      requestSpaceCursorReturn: (options) => cursorReturns.push(options),
       resolveSpacePointerLockTarget: () => canvas,
     },
   };
@@ -84,7 +97,33 @@ async function withMockedPointerLockBrowser(requestPointerLockWithRawFallback, r
       Object.defineProperty(globalThis, name, { configurable: true, value, writable: true });
     }
     const pointerLock = await importPointerLockModule();
-    await run({ canvas, events, microtasks, pointerLock, timers });
+    const dispatchWindowEvent = (type, detail = {}) => globals.window.dispatchEvent({
+      ...detail,
+      type,
+    });
+    const runTimer = (timerId) => {
+      const timer = timers[timerId - 1];
+      if (!timer || timer.cancelled || timer.ran) return false;
+      timer.ran = true;
+      timer.callback();
+      return true;
+    };
+    const runAllTimers = () => {
+      for (let timerId = 1; timerId <= timers.length; timerId += 1) runTimer(timerId);
+    };
+    await run({
+      activeTimerCount: () => timers.filter((timer) => !timer.cancelled && !timer.ran).length,
+      canvas,
+      cursorReturns,
+      dispatchWindowEvent,
+      events,
+      listenerCount: (type) => listeners.get(type)?.size ?? 0,
+      microtasks,
+      pointerLock,
+      runAllTimers,
+      runTimer,
+      timers,
+    });
   } finally {
     for (const name of names) {
       const original = originals.get(name);
@@ -121,16 +160,141 @@ test("reserved and explicit pointer-lock request IDs survive failure reporting",
 });
 
 test("an older timeout cannot report itself as the newer pointer-lock request", async () => {
-  await withMockedPointerLockBrowser(() => {}, ({ events, pointerLock, timers }) => {
+  await withMockedPointerLockBrowser(() => {}, ({ events, pointerLock, runTimer, timers }) => {
     assert.equal(pointerLock.requestSpacePointerLock(101), 101);
     assert.equal(pointerLock.requestSpacePointerLock(202), 202);
     assert.equal(timers.length, 2);
 
-    timers[0]();
+    runTimer(1);
     assert.deepEqual(events, []);
 
-    timers[1]();
+    runTimer(2);
     assert.equal(events.length, 1);
     assert.equal(events[0].detail.requestId, 202);
   });
+});
+
+for (const lifecycleEvent of ["blur", "pagehide"]) {
+  test(`a lost Escape keyup is cancelled on ${lifecycleEvent}`, async () => {
+    const pointerLockCalls = [];
+    await withMockedPointerLockBrowser(
+      (canvas) => pointerLockCalls.push(canvas),
+      ({ dispatchWindowEvent, listenerCount, pointerLock, runAllTimers }) => {
+        assert.equal(
+          pointerLock.resumeSpaceFirstPersonAfterEscape(
+            { entered: true, overlayOpen: false },
+            301,
+          ),
+          301,
+        );
+        dispatchWindowEvent(lifecycleEvent);
+        dispatchWindowEvent("keyup", { key: "Escape" });
+        runAllTimers();
+        assert.equal(pointerLockCalls.length, 0);
+        assert.equal(listenerCount("keyup"), 0);
+        assert.equal(listenerCount("blur"), 0);
+        assert.equal(listenerCount("pagehide"), 0);
+      },
+    );
+  });
+}
+
+test("a newer Escape recovery cancels the older pending recovery", async () => {
+  const pointerLockCalls = [];
+  await withMockedPointerLockBrowser(
+    (canvas, onError) => {
+      pointerLockCalls.push(canvas);
+      onError("mock rejection");
+    },
+    ({ dispatchWindowEvent, events, listenerCount, pointerLock, runAllTimers }) => {
+      pointerLock.resumeSpaceFirstPersonAfterEscape(
+        { entered: true, overlayOpen: false },
+        401,
+      );
+      pointerLock.resumeSpaceFirstPersonAfterEscape(
+        { entered: true, overlayOpen: false },
+        402,
+      );
+      assert.equal(listenerCount("keyup"), 1);
+      assert.equal(listenerCount("blur"), 1);
+      assert.equal(listenerCount("pagehide"), 1);
+      dispatchWindowEvent("keyup", { key: "Escape" });
+      runAllTimers();
+
+      assert.equal(pointerLockCalls.length, 1);
+      assert.deepEqual(events.map((event) => event.detail.requestId), [402]);
+    },
+  );
+});
+
+for (const lifecycleEvent of ["blur", "pagehide"]) {
+  test(`${lifecycleEvent} cancels a relock already scheduled by Escape keyup`, async () => {
+    const pointerLockCalls = [];
+    await withMockedPointerLockBrowser(
+      (canvas) => pointerLockCalls.push(canvas),
+      ({ dispatchWindowEvent, listenerCount, pointerLock, runAllTimers }) => {
+        pointerLock.resumeSpaceFirstPersonAfterEscape(
+          { entered: true, overlayOpen: false },
+          501,
+        );
+        dispatchWindowEvent("keyup", { key: "Escape" });
+        dispatchWindowEvent(lifecycleEvent);
+        runAllTimers();
+        assert.equal(pointerLockCalls.length, 0);
+        assert.equal(listenerCount("keyup"), 0);
+        assert.equal(listenerCount("blur"), 0);
+        assert.equal(listenerCount("pagehide"), 0);
+      },
+    );
+  });
+}
+
+test("Escape recovery expires after one bounded timeout when keyup is lost", async () => {
+  const pointerLockCalls = [];
+  await withMockedPointerLockBrowser(
+    (canvas) => pointerLockCalls.push(canvas),
+    ({ activeTimerCount, dispatchWindowEvent, listenerCount, pointerLock, runAllTimers }) => {
+      pointerLock.resumeSpaceFirstPersonAfterEscape(
+        { entered: true, overlayOpen: false },
+        601,
+      );
+      assert.equal(activeTimerCount(), 1);
+      runAllTimers();
+      dispatchWindowEvent("keyup", { key: "Escape" });
+      runAllTimers();
+      assert.equal(pointerLockCalls.length, 0);
+      assert.equal(listenerCount("keyup"), 0);
+      assert.equal(listenerCount("blur"), 0);
+      assert.equal(listenerCount("pagehide"), 0);
+    },
+  );
+});
+
+test("ordinary Escape keyup issues one correlated pointer-lock request", async () => {
+  const pointerLockCalls = [];
+  await withMockedPointerLockBrowser(
+    (canvas, onError) => {
+      pointerLockCalls.push(canvas);
+      onError("mock rejection");
+    },
+    ({ cursorReturns, dispatchWindowEvent, events, listenerCount, pointerLock, runAllTimers }) => {
+      assert.equal(
+        pointerLock.resumeSpaceFirstPersonAfterEscape(
+          { entered: true, overlayOpen: false },
+          701,
+        ),
+        701,
+      );
+      dispatchWindowEvent("keyup", { key: "Escape" });
+      assert.deepEqual(cursorReturns, [{ target: "center" }]);
+      assert.equal(pointerLockCalls.length, 0);
+      runAllTimers();
+
+      assert.equal(pointerLockCalls.length, 1);
+      assert.deepEqual(events.map((event) => event.detail.requestId), [701]);
+      assert.equal(listenerCount("keyup"), 0);
+      assert.equal(listenerCount("blur"), 0);
+      assert.equal(listenerCount("pagehide"), 0);
+    },
+  );
 });
