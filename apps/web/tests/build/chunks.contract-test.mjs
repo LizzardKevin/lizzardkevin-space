@@ -19,6 +19,35 @@ function assetPathFromHtmlPath(htmlPath) {
   return htmlPath.replace(/^\.\//, "").replace(/^\//, "");
 }
 
+function staticJavaScriptImports(fileName) {
+  const source = readText(join(assetsDir, fileName));
+  return [...source.matchAll(/\bimport(?!\s*\()\s*(?:[^;"']*?\s*from\s*)?["']([^"']+)["']/g)]
+    .map((match) => match[1])
+    .filter((specifier) => specifier.startsWith("./") && specifier.endsWith(".js"))
+    .map((specifier) => specifier.slice(2));
+}
+
+function findStaticImportPath(rootFile, targetPattern) {
+  const queue = [[rootFile]];
+  const visited = new Set();
+
+  while (queue.length > 0) {
+    const importPath = queue.shift();
+    const fileName = importPath.at(-1);
+    if (visited.has(fileName)) continue;
+    visited.add(fileName);
+
+    if (targetPattern.test(fileName)) return importPath;
+
+    for (const dependency of staticJavaScriptImports(fileName)) {
+      assert(assetFiles.includes(dependency), `${fileName} statically imports missing asset ${dependency}`);
+      queue.push([...importPath, dependency]);
+    }
+  }
+
+  return null;
+}
+
 const indexHtml = readText(indexHtmlPath);
 assert(existsSync(assetsDir), "dist/assets must exist. Run npm run build first.");
 
@@ -59,5 +88,26 @@ assert(
   !entryJs.includes("rapier-vendor"),
   "main index-*.js must not eagerly reference rapier-vendor through preload metadata",
 );
+
+const startLobbyRoots = assetFiles.filter((file) => {
+  const source = readText(join(assetsDir, file));
+  return source.includes("start-lobby") && source.includes("data-disposing") && source.includes("LizzardKevin Space");
+});
+assert(
+  startLobbyRoots.length > 0,
+  "production build must contain a chunk with the Desktop StartLobby implementation",
+);
+
+const preEnterRoots = [entryAssetPath.replace(/^assets\//, ""), ...startLobbyRoots];
+
+for (const rootFile of preEnterRoots) {
+  const rapierImportPath = findStaticImportPath(rootFile, /^rapier-vendor-[\w.-]+\.js$/);
+  assert(
+    !rapierImportPath,
+    `${rootFile} must not statically reach Rapier before Enter${
+      rapierImportPath ? `: ${rapierImportPath.join(" -> ")}` : ""
+    }`,
+  );
+}
 
 console.log("build chunk contract tests passed");

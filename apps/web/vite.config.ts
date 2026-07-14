@@ -26,6 +26,12 @@ export default defineConfig({
               priority: 30,
             },
             {
+              name: "three-core-vendor",
+              test: /node_modules[\\/](three|@react-three[\\/]fiber)[\\/]/,
+              priority: 28,
+              maxSize: 450_000,
+            },
+            {
               name: "rapier-vendor",
               test: /node_modules[\\/](@react-three[\\/]rapier|@dimforge)[\\/]/,
               priority: 25,
