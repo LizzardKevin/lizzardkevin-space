@@ -14,7 +14,12 @@ import { useSpacePointerLockGuard } from "../space/useSpacePointerLockGuard";
 import { PersistentSpaceHostBoundary } from "../space/PersistentSpaceHostBoundary";
 import { resolveSpaceRouteRuntimePolicy, type SpaceRouteKind } from "../space/routeRuntimePolicy";
 import { NotFound, ProfileAliasRoute, SpaceAliasRoute } from "./appRoutes";
-import { APP_ROUTE_PATHS, resolveAppRoute, workRoute } from "./routeConfig";
+import {
+  APP_ROUTE_PATHS,
+  resolveAppRoute,
+  resolveDesktopWorkRouteSurface,
+  workRoute,
+} from "./routeConfig";
 import { isKnownExhibitId } from "../content/lightweightExhibitIndex";
 
 const SpaceHost = lazy(() => import("../space/SpaceHost"));
@@ -57,6 +62,7 @@ export default function DesktopApp() {
   const overlayTab: OverlayTab =
     route.kind === "profile" ? "lizzardkevin" : route.kind === "devstories" ? "devStories" : null;
   const focusedExhibitId = route.kind === "work" ? route.exhibitId : null;
+  const workRouteSurface = resolveDesktopWorkRouteSurface(route, spaceStarted);
   const routeNavigationState = location.state as { spaceWordSourceRect?: SpaceWordRect | null } | null;
 
   useSpacePointerLockGuard(routeBlocked);
@@ -107,9 +113,9 @@ export default function DesktopApp() {
             <Route
               path="/works/:exhibitId"
               element={
-                spaceStarted || route.kind !== "work" ? null : (
+                workRouteSurface === "not-found" ? <NotFound /> : workRouteSurface === "cold-work" && route.kind === "work" ? (
                   <ColdWorkRoute exhibitId={route.exhibitId} />
-                )
+                ) : null
               }
             />
             <Route path="/profile" element={null} />

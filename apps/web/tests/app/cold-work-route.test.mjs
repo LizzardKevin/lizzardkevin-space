@@ -3,7 +3,12 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { generatedExhibitLabels } from "../../src/generated/exhibitLabels.generated.ts";
 import { isKnownExhibitId, knownExhibitIds } from "../../src/content/lightweightExhibitIndex.ts";
-import { resolveAppRoute, workRoute } from "../../src/app/routeConfig.ts";
+import { matchRoutes } from "react-router-dom";
+import {
+  resolveAppRoute,
+  resolveDesktopWorkRouteSurface,
+  workRoute,
+} from "../../src/app/routeConfig.ts";
 
 test("cold work validation uses the lightweight exhibit index", () => {
   assert.equal(isKnownExhibitId("arch_treehabitat"), true);
@@ -28,6 +33,32 @@ test("the shared resolver accepts the safe exhibit ID domain without decoding", 
 });
 
 test("malformed work route encoding becomes not-found without throwing", () => {
-  assert.doesNotThrow(() => resolveAppRoute("/works/%E0%A4%A"));
-  assert.deepEqual(resolveAppRoute("/works/%E0%A4%A"), { kind: "not-found" });
+  const pathname = "/works/%E0%A4%A";
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  let route;
+  let matches;
+  try {
+    assert.doesNotThrow(() => resolveAppRoute(pathname));
+    route = resolveAppRoute(pathname);
+    matches = matchRoutes(
+      [
+        { id: "work", path: "/works/:exhibitId" },
+        { id: "wildcard", path: "*" },
+      ],
+      pathname,
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+  assert.deepEqual(route, { kind: "not-found" });
+  assert.equal(matches?.at(-1)?.route.id, "work");
+  assert.equal(resolveDesktopWorkRouteSurface(route, false), "not-found");
+  assert.equal(resolveDesktopWorkRouteSurface(route, true), "not-found");
+});
+
+test("valid work route surface switches from cold message to the warm persistent host", () => {
+  const route = resolveAppRoute("/works/arch_treehabitat");
+  assert.equal(resolveDesktopWorkRouteSurface(route, false), "cold-work");
+  assert.equal(resolveDesktopWorkRouteSurface(route, true), "host");
 });
