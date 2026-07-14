@@ -28,6 +28,7 @@ import {
 } from "../space/spaceDailyResume";
 import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
+import { resolveSpaceFocusSurfaceState } from "../space/spaceFocusSurfaceState";
 import type { SpaceBootController } from "../boot/useSpaceBootController";
 
 const FocusOverlay = lazy(() =>
@@ -191,7 +192,7 @@ export function SpaceDesktopExperience({
     return () => window.clearTimeout(timer);
   }, [devFocusExhibitId, focusedExhibitId, manifest, onNavigateToWork]);
 
-  const focused = focusedExhibitId
+  const focused = entered && focusedExhibitId
     ? manifest?.find((item) => item.exhibitId === focusedExhibitId) ?? null
     : null;
 
@@ -212,11 +213,20 @@ export function SpaceDesktopExperience({
     setFocusClosing(null);
   }, []);
 
-  const focusOverlayExhibit = focused ?? focusClosing;
-  const invalidFocusedRoute =
-    focusedExhibitId !== null && manifest !== null && focused === null && focusClosing === null;
-  const onboardingFocusVisible = onboardingFocusOpen || onboardingFocusClosing;
-  const focusSurfaceOpen = focusOverlayExhibit !== null || onboardingFocusVisible || invalidFocusedRoute;
+  const {
+    focusOverlayExhibit,
+    invalidFocusedRoute,
+    onboardingFocusVisible,
+    focusSurfaceOpen,
+  } = resolveSpaceFocusSurfaceState({
+    entered,
+    focused,
+    focusClosing,
+    focusedRoutePending:
+      focusedExhibitId !== null && manifest !== null && focused === null && focusClosing === null,
+    onboardingFocusOpen,
+    onboardingFocusClosing,
+  });
   const spaceRenderPaused = focusSurfaceOpen || routeBlocked;
   const dailyResumeSavingEnabled = shouldSaveSpaceDailyResume({
     onboardingCompleted,

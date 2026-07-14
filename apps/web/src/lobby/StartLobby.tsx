@@ -1,16 +1,44 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, type RefObject } from "react";
 import {
   createRoot,
+  extend,
   unmountComponentAtNode,
   useLoader,
   type RootStore,
 } from "@react-three/fiber";
-import { Group, WebGLRenderer } from "three";
+import {
+  AmbientLight,
+  BoxGeometry,
+  Color,
+  DirectionalLight,
+  Fog,
+  Group,
+  Mesh,
+  MeshToonMaterial,
+  WebGLRenderer,
+} from "three";
 import { FontLoader, type Font } from "three/addons/loaders/FontLoader.js";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import helvetikerFontUrl from "three/examples/fonts/helvetiker_bold.typeface.json?url";
 import { resolveStartLobbyTilt } from "./startLobbyHandoff";
+import {
+  createStartLobbyRootOwner,
+  type StartLobbyRootOwner,
+} from "./startLobbyRootOwner";
 import "./startLobby.css";
+
+extend({
+  AmbientLight,
+  BoxGeometry,
+  Color,
+  DirectionalLight,
+  Fog,
+  Group,
+  Mesh,
+  MeshToonMaterial,
+});
+
+type LobbyRoot = ReturnType<typeof createRoot>;
 
 type StartLobbyProps = {
   disposing: boolean;
@@ -98,7 +126,8 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
   const artRef = useRef<Group>(null);
   const storeRef = useRef<RootStore | null>(null);
   const rendererRef = useRef<WebGLRenderer | null>(null);
-  const rootCreatedRef = useRef(false);
+  const rootOwnerRef = useRef<StartLobbyRootOwner<LobbyRoot> | null>(null);
+  const effectMountedRef = useRef(false);
   const releaseStartedRef = useRef(false);
   const disposedRef = useRef(false);
   const initPromiseRef = useRef<Promise<void> | null>(null);
@@ -106,12 +135,19 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    let mounted = true;
+    effectMountedRef.current = true;
+
+    rootOwnerRef.current ??= createStartLobbyRootOwner(
+      () => createRoot(canvas),
+      (_root, onReleased) => {
+        unmountComponentAtNode(canvas, () => onReleased?.());
+      },
+    );
+    const rootOwner = rootOwnerRef.current;
 
     try {
-      const root = createRoot(canvas);
-      rootCreatedRef.current = true;
-      initPromiseRef.current = root
+      const root = rootOwner.mount();
+      initPromiseRef.current ??= root
         .configure({
           frameloop: "demand",
           dpr: [1, 1.25],
@@ -129,31 +165,26 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
           },
         })
         .then((configuredRoot) => {
-          if (!mounted || releaseStartedRef.current) return;
+          if (!effectMountedRef.current || releaseStartedRef.current) return;
           storeRef.current = configuredRoot.render(<LobbyScene artRef={artRef} />);
         })
         .catch(() => {
           storeRef.current = null;
         });
     } catch {
-      rootCreatedRef.current = false;
       initPromiseRef.current = Promise.resolve();
     }
 
     return () => {
-      mounted = false;
-      if (rootCreatedRef.current && !disposedRef.current && !releaseStartedRef.current) {
-        unmountComponentAtNode(canvas);
-      }
+      effectMountedRef.current = false;
+      rootOwner.scheduleUnmount();
     };
   }, []);
 
   useEffect(() => {
     if (!disposing || releaseStartedRef.current) return;
     releaseStartedRef.current = true;
-    const canvas = canvasRef.current;
-
-    const finishWithoutContext = () => {
+    const finishDisposal = () => {
       if (disposedRef.current) return;
       disposedRef.current = true;
       storeRef.current = null;
@@ -162,15 +193,9 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
     };
 
     void (initPromiseRef.current ?? Promise.resolve()).then(() => {
-      if (!canvas || !rootCreatedRef.current) {
-        finishWithoutContext();
-        return;
-      }
-      const hadWebGLContext = rendererRef.current !== null;
-      unmountComponentAtNode(canvas, () => {
-        finishWithoutContext();
-      });
-      if (!hadWebGLContext) finishWithoutContext();
+      const rootOwner = rootOwnerRef.current;
+      if (!rootOwner) finishDisposal();
+      else rootOwner.dispose(finishDisposal);
     });
   }, [disposing, onDisposed]);
 

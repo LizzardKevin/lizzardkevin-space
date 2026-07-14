@@ -21,6 +21,28 @@ test("StartLobby is a demand-rendered raw R3F canvas with one native Enter", () 
   assert.doesNotMatch(source, /<Canvas\b|useFrame\s*\(|requestAnimationFrame|setInterval\s*\(/);
 });
 
+test("raw R3F registers its exact Three JSX catalog and reuses a StrictMode-safe root owner", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+
+  assert.match(source, /extend\s*\(\s*\{/);
+  for (const constructor of [
+    "AmbientLight",
+    "BoxGeometry",
+    "Color",
+    "DirectionalLight",
+    "Fog",
+    "Group",
+    "Mesh",
+    "MeshToonMaterial",
+  ]) {
+    assert.match(source, new RegExp(`\\b${constructor}\\b`));
+  }
+  assert.doesNotMatch(source, /extend\s*\(\s*THREE\s*\)/);
+  assert.match(source, /createStartLobbyRootOwner/);
+  assert.match(source, /\.mount\s*\(\s*\)/);
+  assert.match(source, /\.scheduleUnmount\s*\(\s*\)/);
+});
+
 test("StartLobby uses real extruded text and the approved restrained palette", () => {
   const source = readSource("lobby/StartLobby.tsx");
 
@@ -49,8 +71,17 @@ test("StartLobby limits input work and becomes static for reduced motion", () =>
 test("StartLobby releases the R3F context through its callback without a forced timeout", () => {
   const source = readSource("lobby/StartLobby.tsx");
 
-  assert.match(source, /unmountComponentAtNode\s*\([\s\S]*onDisposed/);
+  assert.match(source, /unmountComponentAtNode\s*\([\s\S]*onReleased/);
+  assert.doesNotMatch(source, /hadWebGLContext|finishWithoutContext/);
   assert.doesNotMatch(source, /setTimeout\s*\(/);
+});
+
+test("Focus viewer surfaces are resolved behind the entered gate", () => {
+  const source = readSource("pages/SpaceDesktopExperience.tsx");
+
+  assert.match(source, /resolveSpaceFocusSurfaceState\s*\(\s*\{/);
+  assert.match(source, /entered,/);
+  assert.match(source, /focusedRoutePending:/);
 });
 
 test("desktop starts boot and the persistent host only after lobby disposal", () => {
