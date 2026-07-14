@@ -30,7 +30,7 @@ Result: PASS (exit code 0). npm added 28 packages and audited 279 packages in 86
 | CSS | 15.19 kB |
 | React | 59.65 kB |
 | Index | 62.59 kB |
-| Largest three application chunks combined | 169.43 kB |
+| Largest Three.js vendor chunk | 169.43 kB |
 | Rapier | 1086.02 kB |
 
 These values are comparison points for Architecture V2, not new budgets. Future verification must continue to run the repository's chunk contract and explain any material regression, especially movement of Rapier into an eager shell or non-SPACE route.

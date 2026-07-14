@@ -4,7 +4,7 @@
 
 **Goal:** Implement approved Solution B: a route-driven, persistent desktop SPACE runtime with truthful WebGPU/WebGL2 profiles and a completely 3D-free mobile terminal.
 
-**Architecture:** `main.tsx` resolves the platform once and lazy-loads either `DesktopApp` or `MobileApp`. Desktop uses React Router as the only URL authority and, after the first visit to `/`, retains one `SpaceCanvasHost`, one Rapier world, and one `SpaceScene` for the document lifetime; renderer profiles alter quality leaves, never runtime structure. Boot, routing, lobby, media loading, and HUD coordination are focused modules around that single runtime.
+**Architecture:** `main.tsx` resolves the platform once and lazy-loads either `DesktopApp` or `MobileApp`; `DesktopApp` alone owns the document-lifetime `spaceStarted` latch. Before Enter, `/` runs only a disposable lightweight WebGL2/R3F lobby Canvas. Enter unmounts that Canvas before Boot mounts the one main `SpaceCanvasHost`, Rapier world, and `SpaceScene`; that started session then persists across same-document routes, while renderer profiles alter quality leaves rather than runtime structure.
 
 **Tech Stack:** React 19, React Router DOM 7, TypeScript 6, Vite 8, React Three Fiber 9, Three.js r184 `WebGPURenderer`, Rapier, node:test contract tests.
 
@@ -14,8 +14,9 @@
 
 - Canonical URLs are `/`, `/works/:exhibitId`, `/profile`, and `/devstories`. React Router owns navigation; aliases use `<Navigate replace>`. Do not add custom History API routing.
 - `full` means an actually initialized WebGPU backend. WebGPU initialization failure, device-loss recovery, or explicit `forceWebGL` creates `WebGPURenderer({ forceWebGL: true })`, reports WebGL2, and uses `simplified`. WebGL2 is never `full`.
-- Both profiles use the same Canvas, Rapier world, interaction rules, `SpaceScene`, assets, and Focus quality tier. Profile flags control only DPR, post-processing, shadows, and named expensive leaf effects.
-- A cold content deep link does not import or start Three, R3F, Rapier, GLBs, renderer initialization, or the boot attempt. After `/` has started SPACE, `SpaceHost` remains mounted across same-document route changes.
+- Both profiles use the same main Canvas, Rapier world, interaction rules, `SpaceScene`, assets, and Focus quality tier. Profile flags control only DPR, post-processing, shadows, and named expensive leaf effects. `FocusOverlay` may retain its local viewer Canvas, but it consumes the resolved profile and handles viewer renderer failure locally without downgrading/restarting the main runtime.
+- A cold content deep link does not import `SpaceHost` or start Three, R3F, Rapier, GLBs, renderer initialization, or the boot attempt. `DesktopApp` alone latches `spaceStarted` at the trusted Enter handoff; `SpaceHost` owns only the already-started session lifecycle and remains mounted across later same-document route changes.
+- The lobby Canvas is a temporary WebGL2/R3F context, not the main Canvas. Lobby and main contexts never coexist: Enter locks the lobby behind opaque loading, disposes/unmounts it, then starts Boot and mounts the main Canvas. The Focus viewer is the only additional Canvas exception and cannot mount during lobby or Boot.
 - A hard refresh may restore only a versioned, validated semantic player pose from `sessionStorage`; renderer/boot/assets/pointer-lock/audio state are never restored.
 - Mobile lazy-loads terminal code only. It never imports StartLobby, Three, R3F, Rapier, renderer code, `SpaceHost`, or GLBs.
 - Do not create `FullSpaceRuntime`/`SimplifiedSpaceRuntime`, duplicate the main scene, add a state library, or put per-frame position/rotation data in React Context.
@@ -25,14 +26,15 @@
 
 - `apps/web/src/main.tsx`: resolve platform once, mount providers/router, and lazy-load exactly one platform app.
 - `apps/web/src/app/DesktopApp.tsx`, `MobileApp.tsx`, `appRoutes.tsx`: platform roots and canonical route tree.
-- `apps/web/src/space/SpaceHost.tsx`: document-lifetime start latch and semantic session state.
-- `apps/web/src/space/SpaceCanvasHost.tsx`: the only R3F Canvas and renderer ownership.
+- `apps/web/src/app/DesktopApp.tsx`: the sole owner of the document-lifetime `spaceStarted` latch.
+- `apps/web/src/space/SpaceHost.tsx`: already-started session lifecycle and semantic session state; never imported by a cold content deep link.
+- `apps/web/src/space/SpaceCanvasHost.tsx`: the only main SPACE Canvas and renderer ownership.
 - `apps/web/src/space/SpaceSession.tsx`: the only Rapier/`SpaceScene` composition.
 - `apps/web/src/space/SpaceRouteCoordinator.tsx`: URL-to-overlay/input/pause coordination.
 - `apps/web/src/space/SpaceHud.tsx`: DOM HUD, boot/error/progress, and pointer-lock surfaces.
 - `apps/web/src/rendering/rendererProfile.ts`, `createWebGPURenderer.ts`: actual backend resolution and quality flags.
 - `apps/web/src/boot/spaceBootReducer.ts`, `useSpaceBootController.ts`: pure attempt state and asynchronous effects.
-- `apps/web/src/lobby/StartLobby.tsx`: screenshot-grounded 3D word art and the single DOM Enter button.
+- `apps/web/src/lobby/StartLobby.tsx`: screenshot-grounded 3D word art, its disposable WebGL2/R3F Canvas, and the single DOM Enter button.
 - `apps/web/src/exhibits/workMediaLoader.ts`: selected-work eager image decode, video metadata, cancellation, and two-work cache.
 
 ### Phase 1: Split the platform app shell
@@ -43,11 +45,12 @@
 - Create: `apps/web/tests/app/platform-shell.contract-test.mjs`
 - Modify: `apps/web/src/main.tsx`
 - Modify: `apps/web/src/App.tsx`
+- Modify: `apps/web/src/pages/MobileExperience.tsx`
 - Modify: `package.json`
 
 - [ ] **Write the failing import-graph contract.** Assert that `main.tsx` calls the existing client-platform resolver once, memoizes that result for the root lifetime, and lazy-imports either `DesktopApp` or `MobileApp`. Walk the `MobileApp` transitive import graph and fail on `three`, `@react-three/fiber`, `@react-three/rapier`, renderer modules, scene modules, GLB URLs, `SpaceHost`, or StartLobby.
 - [ ] **Verify red.** Run `node apps/web/tests/app/platform-shell.contract-test.mjs`; expect failure because `App.tsx` and `SpacePage.tsx` currently mix both platforms.
-- [ ] **Implement the stable branch.** Keep global providers and the router above the lazy boundary, but choose the platform only once. `DesktopApp` may reach SPACE modules; `MobileApp` may reach only terminal/data modules. Remove the second platform check from `SpacePage` and make `App.tsx` a compatibility-free shell export or delete it if no import remains.
+- [ ] **Implement the stable branch.** Keep global providers and the router above the lazy boundary, but choose the platform only once. `DesktopApp` may reach SPACE modules; `MobileApp` may reach only terminal/data modules. Remove the second platform check from `SpacePage`, remove `EntryTransition` from `MobileExperience` so terminal boot is route-owned, and make `App.tsx` a compatibility-free shell export or delete it if no import remains.
 - [ ] **Verify green.** Run `node apps/web/tests/app/platform-shell.contract-test.mjs` and `npm exec -w apps/web tsc -- --noEmit -p tsconfig.app.json`; expect pass.
 - [ ] **Commit independently.** Stage only the files above and run `git commit -m "refactor: split desktop and mobile app shells"`.
 
@@ -58,6 +61,7 @@
 - Create: `apps/web/tests/space/renderer-profile.test.mjs`
 - Modify: `apps/web/src/rendering/createWebGPURenderer.ts`
 - Modify: `apps/web/src/rendering/GalleryRenderPipeline.tsx`
+- Modify: `apps/web/src/pages/SpaceDesktopExperience.tsx`
 - Modify: `apps/web/src/scenes/SpaceScene.tsx`
 - Modify: `apps/web/src/exhibits/FocusOverlay.tsx`
 - Modify: `package.json`
@@ -77,8 +81,9 @@ type RendererProfile = {
 ```
 
 - [ ] **Implement backend resolution.** Await `renderer.init()` before returning the profile. On failure, dispose the failed renderer, instantiate `WebGPURenderer({ forceWebGL: true })`, await its `init()`, and return `simplified`; never infer `full` from feature detection alone.
-- [ ] **Apply only leaf quality flags.** Use profile values for Canvas DPR, post, shadows, and the named expensive leaves. Keep the same Rapier, controls, interaction registry, `SpaceScene`, assets, and Focus behavior in both modes.
-- [ ] **Add the single-runtime contract and verify.** Fail if more than one production owner exists for `<Canvas>`, `<Physics>`, or `<SpaceScene>`, or if names such as `FullSpaceRuntime`/`SimplifiedSpaceRuntime` appear. Run `node --test apps/web/tests/space/renderer-profile.test.mjs` and `npm run build:chunks`; expect pass and no duplicated runtime chunk.
+- [ ] **Apply only leaf quality flags at the real owner.** Migrate Canvas DPR and renderer creation in `SpaceDesktopExperience.tsx`, then pass the resolved profile through its existing Physics/`SpaceScene` composition to post, shadows, named expensive leaves, and `FocusOverlay`. Keep Rapier, controls, interaction registry, `SpaceScene`, assets, and Focus quality behavior identical across profiles.
+- [ ] **Handle the Focus viewer exception.** Its local viewer Canvas uses the same resolved profile contract. If only that viewer renderer fails, show/degrade the viewer locally; do not change the main profile, recreate the main renderer, or restart Rapier/`SpaceScene`.
+- [ ] **Add the single-main-runtime contract and verify.** Assert exactly one main SPACE Canvas owner, one `<Physics>` owner, and one `<SpaceScene>` owner. Permit the explicitly identified Focus local viewer Canvas, and later the mutually exclusive pre-entry lobby Canvas, without counting either as a second main runtime. Fail on `FullSpaceRuntime`/`SimplifiedSpaceRuntime` or duplicated main composition. Run `node --test apps/web/tests/space/renderer-profile.test.mjs` and `npm run build:chunks`; expect pass and no duplicated main runtime chunk.
 - [ ] **Commit independently.** `git commit -m "feat: add truthful shared renderer profiles"`.
 
 ### Phase 3: Make real URLs coexist with a persistent SPACE host
@@ -95,9 +100,9 @@ type RendererProfile = {
 - Modify: `apps/web/src/desktop/DesktopChrome.tsx`
 - Modify: `package.json`
 
-- [ ] **Write failing router tests.** Assert `BrowserRouter basename={import.meta.env.BASE_URL}`, canonical routes `/`, `/works/:exhibitId`, `/profile`, `/devstories`, and every existing legacy alias mapped with `<Navigate replace>`. Assert route UI uses `Link`/`NavLink`/`useNavigate`/`useParams`; forbid application `pushState`, `popstate`, and mirrored pathname state.
-- [ ] **Write failing lifecycle tests.** A cold content route must not import or mount `SpaceHost`. Visiting `/` latches `spaceStarted=true`; later route changes preserve the same host key, Canvas node, renderer, Rapier world, loaded GLBs, and live pose. Back/Forward must change overlays without reconstructing SPACE.
-- [ ] **Implement the route tree and host latch.** `DesktopApp` owns the routes and a document-lifetime start latch. Lazy-import `SpaceHost` only after `/` is visited, never reset the latch, and place routed content above it. `SpaceRouteCoordinator` pauses input/releases pointer lock when an overlay route opens and resumes eligible controls on return.
+- [ ] **Write failing router tests.** Assert `BrowserRouter basename={import.meta.env.BASE_URL}`, canonical routes `/`, `/works/:exhibitId`, `/profile`, `/devstories`, plus exactly the approved legacy aliases `/space -> /` and `/lizzardkevin -> /profile` via `<Navigate replace>`. Assert route UI uses `Link`/`NavLink`/`useNavigate`/`useParams`; forbid application `pushState`, `popstate`, and mirrored pathname state.
+- [ ] **Write failing lifecycle tests.** A cold content route must not import or mount `SpaceHost`. Visiting `/` alone leaves `spaceStarted=false`; the trusted Enter handoff changes it to true exactly once. Later route changes preserve the same host key, Canvas node, renderer, Rapier world, loaded GLBs, and live pose. Back/Forward must change overlays without reconstructing SPACE.
+- [ ] **Implement the route tree and sole start latch.** `DesktopApp` owns the routes and the only document-lifetime `spaceStarted` latch. A cold content route must not even import `SpaceHost`; `/` initially renders the lobby without that import. The Enter handoff sets the latch, which never resets, and only then enables the lazy `SpaceHost` import. `SpaceHost` receives an already-started session and does not own a second latch. `SpaceRouteCoordinator` pauses input/releases pointer lock when an overlay route opens and resumes eligible controls on return.
 - [ ] **Implement refresh semantics.** Persist only `{ version, position:[x,y,z], yaw, pitch }`; reject non-finite/out-of-bounds values. Read it only on a new SPACE session after hard refresh, never on same-document navigation, and never serialize boot/backend/resources/audio/pointer lock.
 - [ ] **Map mobile canonical routes.** Each URL renders deterministic terminal content or terminal not-found content without entering the desktop import graph.
 - [ ] **Verify and commit.** Run both new tests, `npm run test:contracts`, and TypeScript; expect aliases to replace, cold routes to remain 3D-free, and host identity to persist. Commit with `git commit -m "feat: add persistent route-driven SPACE host"`.
@@ -109,11 +114,16 @@ type RendererProfile = {
 - Create: `apps/web/src/boot/useSpaceBootController.ts`
 - Create: `apps/web/tests/boot/space-boot-reducer.test.mjs`
 - Modify: `apps/web/src/space/SpaceHost.tsx`
+- Modify: `apps/web/src/pages/SpaceDesktopExperience.tsx`
+- Modify: `apps/web/src/scenes/SpaceScene.tsx`
+- Modify: `apps/web/src/scenes/gallery/GalleryModel.tsx`
+- Modify: `apps/web/src/scenes/exhibits/SceneExhibitPlacement.tsx`
 - Modify: `package.json`
 
 - [ ] **Write reducer tests first.** Cover `idle -> booting -> running`, monotonically increasing `attemptId`, real milestones (`renderer`, `environment`, `gallery`, `physics`, `exhibits`), real item `{loaded,total}`, failure, manual retry, stale-action rejection, and one device-loss fallback.
 - [ ] **Use a pure reducer boundary.** Every async action includes `attemptId`; stale actions return the identical state. Milestone/item actions received in `running` also return the identical state. The reducer performs no I/O and stores no renderer/resource objects.
-- [ ] **Wire only real progress.** Dispatch renderer completion after `init()`, asset items from actual loader completion, Physics readiness from the mounted boundary, and exhibit readiness from actual manifest/asset completion. Derive the UI ratio from those events; do not use fake percentages, intervals, animation-frame dispatch, or progress timers.
+- [ ] **Expose start without auto-starting.** Creating/mounting controller state must not initialize a renderer. Its explicit `start()` is invoked only by the trusted Enter sequence in Phase 5; therefore the `renderer` milestone can occur only after Enter.
+- [ ] **Wire only real progress from existing sources.** `SpaceDesktopExperience` reports renderer completion only after `createWebGPURenderer().init()` resolves and Physics after its mounted readiness boundary. `SpaceScene`/`GalleryModel.onSceneReady` report the world/gallery GLB milestone. `SceneExhibitPlacement` reports each actual exhibit ID and final `onReady`; manifest completion comes from the real `loadManifest()` promise. Derive UI progress from these events and real item counts; do not use fake percentages, intervals, animation-frame dispatch, or progress timers.
 - [ ] **Recover once from device loss.** Dispose the lost WebGPU renderer and resources, increment `attemptId`, and retry once with `forceWebGL=true`. A failure/loss after that enters `failed` and waits for an explicit user retry. Cleanup listeners for superseded attempts.
 - [ ] **Prove quiescence and commit.** A source/runtime test must show no recurring timer or dispatch after `running`. Run `node --test apps/web/tests/boot/space-boot-reducer.test.mjs` and `npm run test:unit`; commit with `git commit -m "feat: add attempt-scoped SPACE boot controller"`.
 
@@ -127,14 +137,18 @@ type RendererProfile = {
 - Create: `apps/web/tests/lobby/start-lobby.contract-test.mjs`
 - Delete: `apps/web/src/components/entry/EntrySplash.tsx`
 - Delete: `apps/web/src/hooks/useEntryTransition.ts`
+- Modify: `apps/web/src/pages/SpacePage.tsx`
+- Modify: `apps/web/src/pages/SpaceDesktopExperience.tsx`
+- Delete: `apps/web/src/entry/entryTypes.ts`
 - Modify: `apps/web/src/styles/global.css`
 - Modify: `package.json`
 
-- [ ] **Capture both references before implementation.** Successfully load the current deployed entry and the approved Messenger reference at the same viewport/device scale. Save screenshots and record viewport, timestamp, type scale, spacing, camera, lighting, and interaction observations in execution evidence. If either capture fails, stop this phase.
 - [ ] **Write failing visual/interaction contracts.** Require interactive 3D `LizzardKevin SPACE` word art and exactly one DOM interactive element: Enter. Require mouse and touch/pointer response, keyboard activation, visible focus, `frameloop="demand"` before entry, and a static reduced-motion path. Forbid lobby links, blank-page click targets, secret/easter-egg handlers, and legacy splash imports.
-- [ ] **Implement inside the one Canvas.** Extract the existing Canvas into `SpaceCanvasHost`, the sole Canvas owner. It renders the lobby title before Enter, then the existing SPACE session subtree after successful boot; Phase 6 extracts that subtree into `SpaceSession` without changing its identity. In demand mode, invalidate only for pointer/touch changes and finite entrance frames; reduced motion skips automatic movement.
-- [ ] **Make Enter the only DOM action.** The trusted gesture unlocks audio and starts/resumes the boot attempt. Show reducer-derived milestone and `loaded/total`; request pointer lock only after Enter and scene readiness. Do not add profile, devstories, archive, retry, or hidden controls while idle; a real failure may replace Enter with one retry action.
-- [ ] **Remove legacy entry behavior.** Delete `EntrySplash` and `useEntryTransition`, then remove blank-click, empty-page, click-secret, and easter-egg paths. Mobile bypasses this module entirely.
+- [ ] **Prepare the nonvisual handoff seam.** Extract the existing main Canvas from `SpaceDesktopExperience.tsx` into `SpaceCanvasHost`, add opaque boot/error UI in `SpaceHud`, and replace scene/exhibit callbacks with Boot Controller events. Keep the current splash usable until StartLobby passes its visual gate. This structural work is not blocked by browser capture and lets Phase 6 continue.
+- [ ] **Capture both references before any StartLobby visual implementation.** Load current `https://lizzardkevin.github.io/lizzardkevin-space/` and reference `https://messenger.abeto.co/` at the same viewport/device scale. Save them outside the repository as `C:\Users\lizza\.codex\visualizations\2026\07\14\019f5ea2-1eef-74e3-8dbe-cfd03eafb830\space-architecture-v2\current-site.png` and `C:\Users\lizza\.codex\visualizations\2026\07\14\019f5ea2-1eef-74e3-8dbe-cfd03eafb830\space-architecture-v2\messenger-reference.png`; record both absolute paths, viewport, timestamp, type scale, spacing, camera, lighting, and interaction observations in execution evidence. If browser capture still fails, do not implement or approximate StartLobby visuals and do not remove the working legacy splash; continue the nonvisual phases, including Phase 6, and return later when both captures succeed.
+- [ ] **Implement a separate temporary lobby Canvas.** `StartLobby` owns a lightweight WebGL2/R3F Canvas with `frameloop="demand"`; it is not `SpaceCanvasHost` and does not initialize the WebGPU/WebGL2 main profile. Invalidate only for pointer/touch changes and finite entrance frames; reduced motion skips automatic movement.
+- [ ] **Make Enter the strict handoff boundary.** The trusted gesture unlocks audio, locks further lobby input, and immediately covers the viewport with opaque loading. Dispose/unmount the lobby Canvas and verify its context is gone; only then call Boot Controller `start()`, mount the unique main `SpaceCanvasHost`, initialize WebGPU with forced-WebGL2 fallback, and load world/Physics/assets. After real readiness, fade out loading and only then allow pointer lock. At every instant, at most one lobby/main context exists; Focus is absent during lobby/Boot and may mount only after the main session is ready.
+- [ ] **Migrate every real entry caller.** In `SpacePage.tsx`, replace `EntrySplash`/`useEntryTransition` orchestration with StartLobby and handoff state. In `SpaceDesktopExperience.tsx`, replace `entry`, `loadExhibits`, `onCanvasReady`, and `onSceneExhibitsReady` coupling with Boot/session readiness events. Confirm Phase 1 removed the `MobileExperience` entry prop, then delete `entryTypes.ts`, blank-click, empty-page, click-secret, and easter-egg paths. Mobile bypasses this module entirely.
 - [ ] **Verify and commit.** Compare against both screenshots, then run the lobby contract, `npm run lint`, and the mobile import-graph contract. Commit with `git commit -m "feat: replace splash with screenshot-grounded StartLobby"`.
 
 ### Phase 6: Split runtime responsibilities without duplicating runtime state
@@ -149,10 +163,10 @@ type RendererProfile = {
 - Modify: `apps/web/src/space/SpaceHost.tsx`
 - Modify: `package.json`
 
-- [ ] **Write failing ownership contracts.** Assert responsibilities: `SpaceCanvasHost` owns renderer/Canvas; `SpaceSession` owns the only Physics/scene composition; `SpaceRouteCoordinator` owns route-to-pause/input effects; `SpaceHud` owns DOM status/controls; `SpaceHost` owns session lifecycle and low-frequency semantic state.
+- [ ] **Write failing ownership contracts.** Assert responsibilities: `DesktopApp` alone owns the start latch; `SpaceHost` owns only an already-started session lifecycle; `SpaceCanvasHost` owns the unique main renderer/Canvas; `SpaceSession` owns the only Physics/scene composition; `SpaceRouteCoordinator` owns route-to-pause/input effects; `SpaceHud` owns DOM status/controls. Treat StartLobby as a mutually exclusive temporary Canvas and Focus as a ready-session local viewer, not main runtime owners.
 - [ ] **Extract one responsibility at a time.** Move existing behavior without cloning it. Preserve one interaction registry, one scene graph, one audio/playback integration, and one Focus tier. Delete obsolete ownership from `SpaceDesktopExperience` as each extraction lands.
 - [ ] **Keep frame data out of React Context.** Player transform, raycast samples, and frame-loop values remain in R3F refs/store or imperative adapters. React state/context may carry only low-frequency semantic events such as selected exhibit, route-blocked, boot phase, and renderer profile.
-- [ ] **Forbid architectural regressions.** Contract tests reject a second Canvas/Physics/`SpaceScene`, `FullSpaceRuntime`, `SimplifiedSpaceRuntime`, conditional Rapier removal, and new state-library dependencies.
+- [ ] **Forbid architectural regressions.** Contract tests reject a second main SPACE Canvas, a second Physics/`SpaceScene`, lobby/main context overlap, `FullSpaceRuntime`, `SimplifiedSpaceRuntime`, conditional Rapier removal, and new state-library dependencies. The test explicitly permits only the mutually exclusive lobby Canvas and the ready-session Focus viewer Canvas.
 - [ ] **Verify and commit.** Run `node apps/web/tests/space/runtime-boundaries.contract-test.mjs`, existing SPACE interaction/pointer-lock tests, TypeScript, and `npm run build:chunks`; commit with `git commit -m "refactor: separate SPACE runtime responsibilities"`.
 
 ### Phase 7: Eagerly prepare every selected-work image
@@ -187,11 +201,11 @@ type RendererProfile = {
 ## Plan self-review checklist
 
 - [ ] Platform is chosen once; mobile's transitive graph is 3D-free.
-- [ ] WebGPU alone is full; every WebGL2 path is simplified.
-- [ ] One Canvas, one Rapier world, one `SpaceScene`, one interaction model, and one Focus tier serve both profiles.
+- [ ] WebGPU alone is full; every main-runtime WebGL2 path is simplified; the temporary lobby is WebGL2-only and has no main profile.
+- [ ] Exactly one main Canvas, one Rapier world, one `SpaceScene`, one interaction model, and one Focus tier serve both profiles; the Focus viewer exception is local and the lobby/main contexts never overlap.
 - [ ] React Router plus `BASE_URL` basename is the only URL authority; cold content routes do not start 3D; a started host persists.
 - [ ] Boot progress comes only from real attempt-scoped events and device loss retries once.
-- [ ] StartLobby is based on two successful captures, has only 3D title plus one DOM Enter, and deletes every old entry path.
+- [ ] StartLobby is based on the two named URLs and thread-scoped screenshots, has only 3D title plus one DOM Enter, then disposes before Boot/main Canvas begins; every old entry caller/path is removed.
 - [ ] Runtime modules have narrow ownership; per-frame data never enters React Context; no state library is added.
 - [ ] A selected work requests and decodes all images immediately, handles stale work, prepares video metadata, and caches current plus last.
 - [ ] Required builds, route/pointer/profile/mobile/performance/memory QA, then requirements and quality reviews, all pass.
