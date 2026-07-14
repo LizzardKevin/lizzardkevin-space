@@ -50,6 +50,11 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
   const threeFog = source.match(/<fog\s+attach=["']fog["']\s+args=\{\[["'](#[0-9a-f]{6})["']/i);
   const lobbyRule = css.match(/\.start-lobby\s*\{([\s\S]*?)\}/);
   const cssBackground = lobbyRule?.[1].match(/\bbackground:\s*(#[0-9a-f]{6})\s*;/i);
+  const geometryAccentColors = [
+    ...source.matchAll(
+      /<boxGeometry\b[^>]*\/>\s*<meshToonMaterial\s+color=["'](#[0-9a-f]{6})["']\s*\/>/gi,
+    ),
+  ].map(([, color]) => color.toLowerCase());
 
   assert.match(source, /TextGeometry/);
   assert.match(source, /FontLoader/);
@@ -61,8 +66,11 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
     ["#69827e", "#69827e", "#69827e"],
     "Three background, Three fog, and CSS fallback must share the approved field color",
   );
-  const nonFieldPalette = `${source.replace(threeBackground?.[0] ?? "", "").replace(threeFog?.[0] ?? "", "")}\n${css.replace(lobbyRule?.[0] ?? "", "")}`;
-  assert.match(nonFieldPalette, /#67c2be/i, "the brighter teal must remain available as an accent");
+  assert.deepEqual(
+    geometryAccentColors,
+    ["#4aa7a5", "#79cbc6", "#358d8e"],
+    "the three block geometry accents must retain their approved colors",
+  );
   for (const forbidden of ["@react-three/drei", "@react-three/rapier", ".glb", ".gltf", "postprocessing", "Howl"])
     assert.equal(source.includes(forbidden), false, `StartLobby must not contain ${forbidden}`);
 });
