@@ -4,8 +4,8 @@ import { importSourceModule } from "../helpers/projectPaths.mjs";
 
 test("renderer profiles expose immutable full and simplified capabilities", async () => {
   const { RENDERER_PROFILES } = await importSourceModule("rendering/rendererProfile.ts");
-  assert.deepEqual(RENDERER_PROFILES.full, { id: "full", maxDpr: 2, postProcessing: true, shadows: true, expensiveLeaves: { galleryAtmosphere: true }, physics: true, interaction: true, spaceScene: true, focus: true });
-  assert.deepEqual(RENDERER_PROFILES.simplified, { id: "simplified", maxDpr: 1, postProcessing: false, shadows: false, expensiveLeaves: { galleryAtmosphere: false }, physics: true, interaction: true, spaceScene: true, focus: true });
+  assert.deepEqual(RENDERER_PROFILES.full, { id: "full", maxDpr: 2, postProcessing: true, shadows: true, expensiveLeaves: { galleryPointLights: true }, physics: true, interaction: true, spaceScene: true, focus: true });
+  assert.deepEqual(RENDERER_PROFILES.simplified, { id: "simplified", maxDpr: 1, postProcessing: false, shadows: false, expensiveLeaves: { galleryPointLights: false }, physics: true, interaction: true, spaceScene: true, focus: true });
   assert.equal(Object.isFrozen(RENDERER_PROFILES.full), true);
   assert.equal(Object.isFrozen(RENDERER_PROFILES.full.expensiveLeaves), true);
 });

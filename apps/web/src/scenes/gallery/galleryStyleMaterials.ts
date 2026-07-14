@@ -43,12 +43,6 @@ function hasEmissive(material: THREE.Material): material is MaterialWithEmissive
   return (material as { emissive?: unknown }).emissive instanceof THREE.Color;
 }
 
-function neutralizeColor(color: THREE.Color) {
-  const hsl = { h: 0, s: 0, l: 0 };
-  color.getHSL(hsl);
-  color.setHSL(0, 0, hsl.l);
-}
-
 export function shouldPreserveGalleryMaterial(name: string) {
   return startsWithAny(name, PRESERVED_PREFIXES);
 }
@@ -101,20 +95,6 @@ export function applyGalleryStylizedMaterial(mesh: THREE.Mesh) {
   if (getGalleryMaterialStyleAction(mesh.name) !== "stylize") return false;
   mesh.material = getGalleryStylizedMaterial(mesh.name);
   return true;
-}
-
-function neutralizeMaterial(material: THREE.Material) {
-  let changed = false;
-  if (hasColor(material)) {
-    neutralizeColor(material.color);
-    changed = true;
-  }
-  if (hasEmissive(material)) {
-    neutralizeColor(material.emissive);
-    changed = true;
-  }
-  if (changed) material.needsUpdate = true;
-  return changed;
 }
 
 function applyGalleryAluminumMaterial(material: THREE.Material) {
@@ -175,7 +155,7 @@ function applyGalleryLightMaterial(mesh: THREE.Mesh) {
   return true;
 }
 
-export function applyGalleryNeutralMaterialTone(mesh: THREE.Mesh) {
+export function applyGalleryPreservedMaterialStyle(mesh: THREE.Mesh) {
   if (mesh.name.startsWith("METAL_ALUMINUM_")) {
     if (Array.isArray(mesh.material)) {
       return mesh.material.some((material) => applyGalleryAluminumMaterial(material));
@@ -183,16 +163,13 @@ export function applyGalleryNeutralMaterialTone(mesh: THREE.Mesh) {
     return applyGalleryAluminumMaterial(mesh.material);
   }
 
-  if (Array.isArray(mesh.material)) {
-    return mesh.material.some((material) => neutralizeMaterial(material));
-  }
-  return neutralizeMaterial(mesh.material);
+  return false;
 }
 
 export function applyGallerySceneMaterialStyle(mesh: THREE.Mesh) {
   if (isGalleryLightMesh(mesh.name)) return applyGalleryLightMaterial(mesh);
   if (getGalleryMaterialStyleAction(mesh.name) === "stylize") return applyGalleryStylizedMaterial(mesh);
-  return applyGalleryNeutralMaterialTone(mesh);
+  return applyGalleryPreservedMaterialStyle(mesh);
 }
 
 export function applyGalleryLightEmissiveIntensity(root: THREE.Object3D, intensity: number) {

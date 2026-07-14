@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readProjectFile } from "../helpers/projectPaths.mjs";
+import "../space/visual-system.contract-test.mjs";
 
 const desktop = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
 const canvasHost = readProjectFile("apps/web/src/space/SpaceCanvasHost.tsx");
@@ -20,7 +21,8 @@ assert.match(canvasHost, /dpr=\{resolveRendererDpr\(resolvedProfile\)\}/);
 assert.match(canvasHost, /switchRendererProfileState\(/);
 assert.match(canvasHost, /resolvedProfile \? \(/, "scene must wait until the actual backend resolves");
 assert.match(session, /profile\.postProcessing \? <GalleryRenderPipeline/);
-assert.match(session, /profile\.expensiveLeaves\.galleryAtmosphere/);
+assert.match(session, /<GalleryAtmosphere\s*\/>/);
+assert.doesNotMatch(session, /profile\.expensiveLeaves\.galleryAtmosphere/);
 assert.match(canvasHost, /resolvedProfile\.shadows && useShadows/);
 assert.match(factory, /requestedProfile/);
 assert.match(factory, /onResolved/);

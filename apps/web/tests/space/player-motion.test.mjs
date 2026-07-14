@@ -51,3 +51,18 @@ test("player spawn reset starts grounded without an artificial landing step", as
     landingStepArmed: false,
   });
 });
+
+test("reduced motion keeps player input while disabling ambient motion", async () => {
+  const policy = await importSourceModule("space/spaceMotionPolicy.ts");
+
+  assert.deepEqual(policy.resolveSpaceMotionPolicy(false), {
+    allowIdleCameraDrift: true,
+    allowOnboardingFloat: true,
+    allowHudAnimation: true,
+  });
+  assert.deepEqual(policy.resolveSpaceMotionPolicy(true), {
+    allowIdleCameraDrift: false,
+    allowOnboardingFloat: false,
+    allowHudAnimation: false,
+  });
+});

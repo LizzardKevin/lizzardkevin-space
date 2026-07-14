@@ -56,27 +56,25 @@ test("returns explicit material style actions for visible mesh families", async 
   assert.equal(style.getGalleryMaterialStyleAction("EXHIBITS_FRAME_001"), "preserve");
 });
 
-test("gallery toon palette keeps architecture fog and lights near neutral", async () => {
+test("gallery toon palette uses the approved SPACE hierarchy", async () => {
   const { GALLERY_BULB, GALLERY_LIGHT_EMISSIVE, GALLERY_TOON } = await importSourceModule(
     "scenes/gallery/galleryConfig.ts",
   );
 
-  const checked = [
-    GALLERY_TOON.background,
-    GALLERY_TOON.fogColor,
-    GALLERY_TOON.hemisphere.sky,
-    GALLERY_TOON.hemisphere.ground,
-    GALLERY_TOON.keyLight.color,
-    GALLERY_TOON.fillLight.color,
-    GALLERY_BULB.color,
-    GALLERY_LIGHT_EMISSIVE.color,
-    ...Object.values(GALLERY_TOON.gradientStops),
-    ...Object.values(GALLERY_TOON.stylizedMaterials),
-  ];
-
-  for (const color of checked) {
-    assert.ok(channelSpread(color) <= 8, `${color} should be visually neutral`);
-  }
+  assert.equal(GALLERY_TOON.background, "#a9bfbc");
+  assert.equal(GALLERY_TOON.fogColor, "#a9bfbc");
+  assert.equal(GALLERY_TOON.hemisphere.sky, "#dce9e4");
+  assert.equal(GALLERY_TOON.hemisphere.ground, "#3f4d4d");
+  assert.equal(GALLERY_TOON.keyLight.color, "#f3f0e7");
+  assert.equal(GALLERY_TOON.fillLight.color, "#67c2be");
+  assert.equal(GALLERY_BULB.color, "#f3f0e7");
+  assert.equal(GALLERY_LIGHT_EMISSIVE.color, "#f3f0e7");
+  assert.deepEqual(GALLERY_TOON.gradientStops, {
+    shadow: "#31413f",
+    mid: "#69827e",
+    light: "#b9cbc6",
+    highlight: "#f3f0e7",
+  });
 });
 
 test("stairs align to floor tone and white plaster aligns to wall tone", async () => {
@@ -90,11 +88,11 @@ test("stairs align to floor tone and white plaster aligns to wall tone", async (
   const stair = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
   stair.name = "ARCH_STAIR_001";
 
-  assert.equal(style.getGalleryStylizedMaterial(plaster.name).color.getHexString(), "c8c8c8");
-  assert.equal(style.getGalleryStylizedMaterial(stair.name).color.getHexString(), "787878");
+  assert.equal(style.getGalleryStylizedMaterial(plaster.name).color.getHexString(), "9eaeaa");
+  assert.equal(style.getGalleryStylizedMaterial(stair.name).color.getHexString(), "3f4d4d");
 });
 
-test("metal aluminum is darker than floor with a matte metallic finish", async () => {
+test("metal aluminum is darker than walls and ceiling with a matte metallic finish", async () => {
   const style = await importSourceModule("scenes/gallery/galleryStyleMaterials.ts");
   const { GALLERY_ALUMINUM_MATERIAL, GALLERY_TOON } = await importSourceModule(
     "scenes/gallery/galleryConfig.ts",
@@ -109,18 +107,20 @@ test("metal aluminum is darker than floor with a matte metallic finish", async (
 
   const material = metal.material;
   assert.equal(`#${material.color.getHexString()}`, GALLERY_ALUMINUM_MATERIAL.color);
-  const metalValue = hexToRgb(GALLERY_ALUMINUM_MATERIAL.color).r;
-  const floorValue = hexToRgb(GALLERY_TOON.stylizedMaterials.floor).r;
-  assert.ok(metalValue < floorValue);
-  assert.ok(floorValue - metalValue >= 1);
-  assert.ok(floorValue - metalValue <= 3);
+  assert.equal(GALLERY_ALUMINUM_MATERIAL.color, "#667271");
+  const metalRgb = hexToRgb(GALLERY_ALUMINUM_MATERIAL.color);
+  const wallRgb = hexToRgb(GALLERY_TOON.stylizedMaterials.wall);
+  const ceilingRgb = hexToRgb(GALLERY_TOON.stylizedMaterials.ceiling);
+  const channelTotal = ({ r, g, b }) => r + g + b;
+  assert.ok(channelTotal(metalRgb) < channelTotal(wallRgb));
+  assert.ok(channelTotal(metalRgb) < channelTotal(ceilingRgb));
   assert.equal(`#${material.emissive.getHexString()}`, GALLERY_ALUMINUM_MATERIAL.emissive);
   assert.equal(material.emissiveIntensity, 0);
   assert.equal(GALLERY_ALUMINUM_MATERIAL.metalness, 0.29);
   assert.equal(material.metalness, GALLERY_ALUMINUM_MATERIAL.metalness);
   assert.equal(material.roughness, GALLERY_ALUMINUM_MATERIAL.roughness);
   assert.equal(material.envMapIntensity, GALLERY_ALUMINUM_MATERIAL.envMapIntensity);
-  assert.equal(channelSpread(`#${material.color.getHexString()}`), 0);
+  assert.ok(channelSpread(`#${material.color.getHexString()}`) > 0);
   assert.equal(channelSpread(`#${material.emissive.getHexString()}`), 0);
 
   const materialScript = readProjectFile("scripts/apply-space-main-materials.py");
@@ -155,16 +155,38 @@ test("gallery visual settings default to the full renderer profile with restrain
   assert.ok(config.lighting.lightEmissiveIntensity >= 6);
 });
 
-test("legacy full-screen post and optional halos stay off by default", async () => {
+test("quality profile is the only bloom authority and optional global effects stay off", async () => {
   const config = await importSourceModule("scenes/gallery/galleryConfig.ts");
 
-  assert.equal(config.ENABLE_GALLERY_BLOOM, false);
+  assert.equal("ENABLE_GALLERY_BLOOM" in config, false);
+  assert.equal("GALLERY_BLOOM" in config, false);
   assert.equal(config.ENABLE_GALLERY_VIGNETTE, false);
   assert.equal(config.ENABLE_GALLERY_COLOR_GRADE, false);
   assert.equal(config.ENABLE_GALLERY_LIGHT_HALOS, false);
   assert.ok(config.GALLERY_LIGHT_HALO.opacity >= 0.1);
   assert.ok(config.GALLERY_LIGHT_HALO.scale >= 4);
   assert.equal(config.GALLERY_LIGHT_HALO.maxCount, 0);
+});
+
+test("preserved exhibit materials keep their authored color and properties", async () => {
+  const style = await importSourceModule("scenes/gallery/galleryStyleMaterials.ts");
+  const material = new THREE.MeshStandardMaterial({
+    color: "#b13456",
+    emissive: "#1256a0",
+    emissiveIntensity: 0.7,
+    metalness: 0.41,
+    roughness: 0.23,
+  });
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material);
+  mesh.name = "EXHIBITS_AUTHORED_COLOR_001";
+
+  assert.equal(style.applyGallerySceneMaterialStyle(mesh), false);
+  assert.equal(mesh.material, material);
+  assert.equal(`#${material.color.getHexString()}`, "#b13456");
+  assert.equal(`#${material.emissive.getHexString()}`, "#1256a0");
+  assert.equal(material.emissiveIntensity, 0.7);
+  assert.equal(material.metalness, 0.41);
+  assert.equal(material.roughness, 0.23);
 });
 
 test("gallery does not render screen-edge overlay bars", () => {
@@ -177,7 +199,7 @@ test("gallery does not render screen-edge overlay bars", () => {
   assert.doesNotMatch(desktop, /GalleryCelDepthLayer|celDepthLayer/);
 });
 
-test("light meshes get strong neutral emissive materials for bloom", async () => {
+test("light meshes get strong paper emissive materials for bloom", async () => {
   const style = await importSourceModule("scenes/gallery/galleryStyleMaterials.ts");
   const { GALLERY_LIGHT_EMISSIVE } = await importSourceModule("scenes/gallery/galleryConfig.ts");
   const mesh = new THREE.Mesh(
@@ -192,6 +214,6 @@ test("light meshes get strong neutral emissive materials for bloom", async () =>
   assert.equal(material.isMeshStandardMaterial, true);
   assert.equal(material.toneMapped, false);
   assert.ok(material.emissiveIntensity >= GALLERY_LIGHT_EMISSIVE.intensity);
-  assert.equal(channelSpread(`#${material.color.getHexString()}`), 0);
-  assert.equal(channelSpread(`#${material.emissive.getHexString()}`), 0);
+  assert.equal(`#${material.color.getHexString()}`, "#f3f0e7");
+  assert.equal(`#${material.emissive.getHexString()}`, "#f3f0e7");
 });

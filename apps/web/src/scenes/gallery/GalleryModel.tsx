@@ -5,6 +5,7 @@ import { ColColliders } from "../collision/colColliders";
 import { ExhibitPlacement } from "../exhibits/SceneExhibitPlacement";
 import type { ExhibitManifestItem } from "../../exhibits/manifest";
 import type { SpaceQualityConfig } from "../../space/spaceVisualSettings";
+import type { RendererProfile } from "../../rendering/rendererProfile";
 import { SpaceProjectorInstallation } from "../projector/SpaceProjectorInstallation";
 import type { ProjectorSlideCommand } from "../projector/projectorSlides";
 import { TempBlockerNotices } from "./TempBlockerNotices";
@@ -31,15 +32,19 @@ import { applyGalleryLightEmissiveIntensity } from "./galleryStyleMaterials";
 function GalleryBulbLights({
   bulbs,
   quality,
+  enabled,
 }: {
   bulbs: { name: string; position: [number, number, number] }[];
   quality: SpaceQualityConfig;
+  enabled: boolean;
 }) {
-  if (bulbs.length === 0) return null;
+  if (!enabled || bulbs.length === 0) return null;
+
+  const visibleBulbs = bulbs.slice(0, GALLERY_BULB.maxCount);
 
   return (
     <>
-      {bulbs.map((b) => (
+      {visibleBulbs.map((b) => (
         <pointLight
           key={b.name}
           position={b.position}
@@ -113,6 +118,7 @@ export function GalleryModel({
   onExhibitFailed,
   onExhibitDeferred,
   quality,
+  profile,
   projectorExhibits,
   projectorInteractive,
   projectorCommand,
@@ -125,6 +131,7 @@ export function GalleryModel({
   onExhibitFailed: (exhibitId: string) => void;
   onExhibitDeferred: (exhibitId: string) => void;
   quality: SpaceQualityConfig;
+  profile: RendererProfile;
   projectorExhibits: ExhibitManifestItem[] | null;
   projectorInteractive: boolean;
   projectorCommand: ProjectorSlideCommand | null;
@@ -157,7 +164,11 @@ export function GalleryModel({
     <group>
       <primitive object={gltf.scene} />
       {ENABLE_GALLERY_LIGHT_HALOS ? <GalleryLightHalos lights={lightHalos} /> : null}
-      <GalleryBulbLights bulbs={bulbs} quality={quality} />
+      <GalleryBulbLights
+        bulbs={bulbs}
+        quality={quality}
+        enabled={profile.expensiveLeaves.galleryPointLights}
+      />
       <SpaceProjectorInstallation
         root={gltf.scene}
         exhibits={projectorExhibits}

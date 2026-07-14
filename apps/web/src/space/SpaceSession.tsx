@@ -61,9 +61,7 @@ export function SpaceSession({
   return (
     <>
       <color attach="background" args={[GALLERY_TOON.background]} />
-      {ENABLE_GALLERY_TOON && profile.expensiveLeaves.galleryAtmosphere ? (
-        <GalleryAtmosphere />
-      ) : null}
+      <GalleryAtmosphere />
       <ambientLight intensity={ENABLE_GALLERY_TOON ? GALLERY_TOON.ambientIntensity : 0.42} />
       {ENABLE_GALLERY_TOON ? (
         <>
@@ -102,7 +100,7 @@ export function SpaceSession({
       >
         <Physics gravity={[0, -9.81, 0]} timeStep={SPACE_PHYSICS_TIME_STEP}>
           <PhysicsBootBoundary onReady={onPhysicsReady} />
-          <SpaceScene {...sceneProps} quality={quality} />
+          <SpaceScene {...sceneProps} quality={quality} profile={profile} />
         </Physics>
         {profile.postProcessing ? <GalleryRenderPipeline bloom={quality.post.bloom} /> : null}
       </Suspense>

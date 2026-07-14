@@ -25,6 +25,7 @@ import {
   INITIAL_START_LOBBY_HANDOFF_STATE,
   reduceStartLobbyHandoff,
 } from "../lobby/startLobbyHandoff";
+import { SPACE_VISUAL_CSS_PROPERTIES } from "../space/spaceVisualTokens";
 
 const SpaceHost = lazy(() => import("../space/SpaceHost"));
 const SpacePage = lazy(() => import("../pages/SpacePage"));
@@ -158,7 +159,15 @@ export default function DesktopApp() {
   );
 
   return (
-    <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
+    <div
+      className="desktop-app"
+      style={{
+        ...SPACE_VISUAL_CSS_PROPERTIES,
+        height: "100vh",
+        width: "100vw",
+        overflow: "hidden",
+      }}
+    >
       {spaceStarted && entered && route.kind === "space" ? (
         <Suspense fallback={null}>
           <DesktopTopBar onNavigateToSpace={() => navigateToSpace()} />

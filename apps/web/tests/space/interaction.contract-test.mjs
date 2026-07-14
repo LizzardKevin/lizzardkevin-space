@@ -59,15 +59,15 @@ assert(
   "projector hover must expose a small center-bottom Q/E hint outside the 3D mesh",
 );
 const projectorHintRule = cssRule(files.css, ".projector-controls-hint");
-assert.doesNotMatch(
-  projectorHintRule,
-  /\bbackground\s*:/,
-  "projector Q/E hint should be glowing text without a boxed background",
+assert.equal(
+  declarationValue(projectorHintRule, "background"),
+  "var(--space-hud-surface)",
+  "projector Q/E hint should use the shared HUD surface",
 );
-assert.match(
+assert.equal(
   declarationValue(projectorHintRule, "text-shadow"),
-  /0 0 10px rgba\(255, 255, 255, 0\.5\)/,
-  "projector Q/E hint should read as glowing text",
+  "none",
+  "projector Q/E hint should not use text glow",
 );
 assert(
   files.desktop.includes("event.repeat"),
@@ -92,28 +92,28 @@ const topbarButtonRule = cssRule(files.css, ".topbar__button");
 const topbarSettingsRule = cssRule(files.css, ".topbar__settingsButton");
 assert.equal(
   declarationValue(topbarButtonRule, "mix-blend-mode"),
-  "difference",
-  "TopBar text buttons should stay readable against bright and dark SPACE backgrounds",
+  "normal",
+  "TopBar text must use the shared ink surface instead of scene-dependent blending",
 );
 assert.equal(
   declarationValue(topbarButtonRule, "font-weight"),
-  "600",
+  "650",
   "TopBar text should be sturdy enough to survive the bright gallery ceiling",
 );
-assert.match(
+assert.equal(
   declarationValue(topbarButtonRule, "text-shadow"),
-  /rgba\(0, 0, 0, 0\.55\)/,
-  "TopBar text should keep a crisp dark edge over bright SPACE surfaces",
+  "none",
+  "TopBar text should not rely on glow or shadow",
 );
 assert.equal(
   declarationValue(topbarSettingsRule, "mix-blend-mode"),
-  "difference",
-  "TopBar settings icon should stay readable against bright and dark SPACE backgrounds",
+  "normal",
+  "TopBar settings icon must use the shared HUD surface",
 );
-assert.match(
+assert.equal(
   declarationValue(topbarSettingsRule, "filter"),
-  /drop-shadow/,
-  "TopBar settings icon should keep a default shadow before hover",
+  "none",
+  "TopBar settings icon should not add a glow or drop shadow",
 );
 
 console.log("space interaction contract tests passed");

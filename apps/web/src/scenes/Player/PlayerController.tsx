@@ -32,6 +32,10 @@ import {
   walkHeadBobOffset,
 } from "./playerMotion";
 import type { SpacePlayerPose } from "../../space/spaceDailyResume";
+import {
+  readSpaceReducedMotionPreference,
+  resolveSpaceMotionPolicy,
+} from "../../space/spaceMotionPolicy";
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
 export type SpaceJumpNoticeKey = "space.jumpQuiet" | "space.jumpUnlocked";
@@ -80,6 +84,10 @@ export function PlayerController({
   const { world } = useRapier();
   const audio = useAudioDirector();
   const { onPhysicsStep: onFootstepPhysics } = useFootsteps();
+  const motionPolicy = useMemo(
+    () => resolveSpaceMotionPolicy(readSpaceReducedMotionPreference()),
+    [],
+  );
 
   const rb = useRef<RigidBodyRef>(null);
   const colliderRef = useRef<RapierCollider>(null);
@@ -367,9 +375,8 @@ export function PlayerController({
       }
     }
 
-    // Idle camera drift: only when not moving (subtle, natural).
-    // Uses a slow multi-sine to avoid jitter and keeps amplitude tiny.
-    if (!isLocomoting && grounded.current) {
+    // Idle camera drift is optional ambient motion; reduced motion keeps it at zero.
+    if (motionPolicy.allowIdleCameraDrift && !isLocomoting && grounded.current) {
       idlePhase.current += dt;
       const s =
         Math.sin(idlePhase.current * 0.9) * 0.6 +

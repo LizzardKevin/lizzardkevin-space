@@ -49,22 +49,8 @@ function ProjectorControlsHint({ visible }: { visible: boolean }) {
 function SpaceBootFailure({ error, onRetry }: { error: string | null; onRetry: () => void }) {
   const { t } = useTranslation();
   return (
-    <div
-      role="alert"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 90,
-        display: "grid",
-        placeItems: "center",
-        padding: 24,
-        background: "#050505",
-        color: "rgba(255,255,255,0.92)",
-        fontFamily: "system-ui",
-        textAlign: "center",
-      }}
-    >
-      <div style={{ maxWidth: 480 }}>
+    <div className="space-boot-failure" role="alert">
+      <div className="space-boot-failure__content">
         <p>{error ?? t("space.rendererUnavailableBody")}</p>
         <button type="button" onClick={onRetry}>{t("space.retry")}</button>
       </div>
@@ -131,20 +117,8 @@ export function SpaceHud({
       {rendererFailed ? <WebGPUUnavailable /> : null}
       {rendererLoading ? (
         <div
+          className="space-renderer-loading"
           role="status"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 25,
-            display: "grid",
-            placeItems: "center",
-            background: "#050505",
-            color: "rgba(255,255,255,0.75)",
-            fontFamily: "system-ui",
-            fontSize: 13,
-            letterSpacing: "0.06em",
-            pointerEvents: "none",
-          }}
         >
           <span>
             {t("space.loading")}

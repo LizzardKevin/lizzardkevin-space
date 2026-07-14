@@ -51,6 +51,75 @@ button {
   animation: spaceRendererLoadingPulse 900ms ease-in-out infinite alternate;
 }
 
+.space-renderer-loading,
+.space-renderer-unavailable,
+.space-boot-failure {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--space-ink);
+  color: var(--space-paper);
+  font-family: system-ui, sans-serif;
+  text-align: center;
+}
+
+.space-renderer-loading {
+  z-index: 25;
+  gap: 8px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+}
+
+.space-boot-failure {
+  z-index: 90;
+}
+
+.space-renderer-unavailable__content,
+.space-boot-failure__content {
+  width: min(480px, 100%);
+  padding: 12px;
+  border: 1px solid var(--space-hud-panel-border);
+  border-radius: 0;
+  background: var(--space-hud-panel);
+  line-height: 1.6;
+}
+
+.space-renderer-unavailable__content {
+  max-width: 420px;
+}
+
+.space-renderer-unavailable__title {
+  margin-bottom: 12px;
+  color: var(--space-brand-teal);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.space-renderer-unavailable p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.space-boot-failure button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--space-hud-border);
+  border-radius: 0;
+  background: var(--space-hud-selected);
+  color: var(--space-paper);
+  cursor: pointer;
+}
+
+.space-boot-failure button:focus-visible {
+  outline: 3px solid var(--space-paper);
+  outline-offset: 3px;
+}
+
 @keyframes spaceRendererLoadingPulse {
   from {
     opacity: 0.28;
@@ -1154,7 +1223,11 @@ button {
   width: min(680px, 86vw);
   z-index: 80;
   font-family: system-ui, sans-serif;
-  color: rgba(255, 255, 255, 0.75);
+  padding: 8px 10px;
+  border: 1px solid var(--space-hud-border);
+  border-radius: 0;
+  background: var(--space-hud-surface);
+  color: var(--space-paper);
   user-select: none;
   opacity: 0;
   transition-property: opacity;
@@ -1187,17 +1260,22 @@ button {
 .playback-bar__track {
   height: 10px;
   margin-top: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--space-hud-border);
+  border-radius: 0;
+  background: rgb(243 240 231 / 0.12);
   cursor: pointer;
   overflow: hidden;
 }
 
 .playback-bar__fill {
   height: 100%;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--space-brand-teal);
   pointer-events: none;
+}
+
+.playback-bar__track:focus-visible {
+  outline: 3px solid var(--space-paper);
+  outline-offset: 3px;
 }
 
 .crosshair {
@@ -1209,8 +1287,8 @@ button {
   margin-left: -3px;
   margin-top: -3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
+  background: var(--space-paper);
+  box-shadow: 0 0 0 1px var(--space-ink);
   z-index: 20;
   pointer-events: none;
   transform: scale(1);
@@ -1234,12 +1312,9 @@ button {
 }
 
 .crosshair--active {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow:
-    0 0 8px rgba(255, 255, 255, 0.95),
-    0 0 18px rgba(255, 255, 255, 0.6),
-    0 0 34px rgba(255, 255, 255, 0.28);
-  filter: blur(0.4px);
+  background: var(--space-brand-teal);
+  box-shadow: 0 0 0 2px var(--space-paper);
+  filter: none;
   transform: scale(1.65);
 }
 
@@ -1254,7 +1329,11 @@ button {
   z-index: 21;
   pointer-events: none;
   user-select: none;
-  color: rgba(255, 255, 255, 0.48);
+  padding: 6px 8px;
+  border: 1px solid var(--space-hud-border);
+  border-radius: 0;
+  background: var(--space-hud-surface);
+  color: var(--space-paper);
   font-size: 12px;
   line-height: 1;
   white-space: nowrap;
@@ -1270,15 +1349,15 @@ button {
   gap: 18px;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  color: rgba(255, 255, 255, 0.74);
+  padding: 6px 8px;
+  border: 1px solid var(--space-hud-border);
+  border-radius: 0;
+  background: var(--space-hud-surface);
+  color: var(--space-paper);
   font-size: 11px;
   line-height: 1;
   letter-spacing: 0;
-  text-shadow:
-    0 1px 8px rgba(0, 0, 0, 0.42),
-    0 0 10px rgba(255, 255, 255, 0.5),
-    0 0 24px rgba(255, 255, 255, 0.22);
+  text-shadow: none;
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
@@ -2969,33 +3048,33 @@ button {
 
 .topbar__cluster {
   display: flex;
-  gap: 10px;
+  gap: 0;
+  padding: 0 4px;
+  border: 1px solid var(--space-hud-border);
+  border-radius: 0;
+  background: var(--space-hud-surface);
   pointer-events: auto;
 }
 
 .topbar__button {
-  padding: 8px 10px;
+  min-height: 32px;
+  padding: 0 10px;
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--space-paper);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 650;
   line-height: 1;
   letter-spacing: 0.08em;
-  mix-blend-mode: difference;
+  mix-blend-mode: normal;
   text-decoration: none;
-  text-shadow:
-    0 0 1px rgba(0, 0, 0, 0.55),
-    0 1px 2px rgba(0, 0, 0, 0.44),
-    0 0 12px rgba(0, 0, 0, 0.28);
+  text-shadow: none;
   text-transform: uppercase;
   transform-origin: center;
   transition:
-    color 260ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 260ms cubic-bezier(0.16, 1, 0.3, 1),
-    text-shadow 260ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+    color 180ms ease,
+    background 180ms ease;
 }
 
 .topbar__button:disabled {
@@ -3003,51 +3082,44 @@ button {
   pointer-events: none;
 }
 
-.topbar__button:hover,
 .topbar__button:focus-visible {
-  color: rgba(255, 255, 255, 0.98);
-  filter: brightness(1.08);
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.26),
-    0 0 16px rgba(255, 255, 255, 0.34);
-  transform: scale(1.045);
+  outline: 3px solid var(--space-paper);
+  outline-offset: 3px;
 }
 
+.topbar__button:hover,
 .topbar__button:focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.32);
-  outline-offset: 5px;
+  background: var(--space-hud-selected);
+  color: var(--space-paper);
 }
 
 .topbar__settingsButton {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   margin-left: 10px;
-  border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.66);
+  border: 1px solid var(--space-hud-border);
+  border-radius: 0;
+  background: var(--space-hud-surface);
+  color: var(--space-paper);
   cursor: pointer;
-  filter:
-    drop-shadow(0 0 1px rgba(0, 0, 0, 0.54))
-    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
-  mix-blend-mode: difference;
+  filter: none;
+  mix-blend-mode: normal;
   pointer-events: auto;
   transition:
-    color 220ms ease,
-    filter 220ms ease,
-    transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    color 180ms ease,
+    background 180ms ease;
 }
 
 .topbar__settingsButton:hover,
 .topbar__settingsButton:focus-visible,
 .topbar__settingsButton[aria-expanded="true"] {
-  color: rgba(255, 255, 255, 0.96);
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.22));
-  transform: scale(1.05);
+  background: var(--space-hud-selected);
+  color: var(--space-paper);
 }
 
 .topbar__settingsButton:focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.32);
-  outline-offset: 4px;
+  outline: 3px solid var(--space-paper);
+  outline-offset: 3px;
 }
 
 .topbar__settingsIcon {
@@ -3092,15 +3164,16 @@ button {
   left: 50%;
   z-index: 12;
   display: grid;
-  width: min(360px, calc(100vw - 32px));
+  width: calc(100vw - 32px);
+  max-width: 360px;
   gap: 10px;
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-  background: rgba(10, 11, 11, 0.72);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 11px;
+  border: 1px solid var(--space-hud-panel-border);
+  border-radius: 0;
+  background: var(--space-hud-panel);
+  box-shadow: none;
+  color: var(--space-paper);
+  font-size: 12px;
   pointer-events: auto;
   transform: translateX(44px);
 }
@@ -3113,7 +3186,7 @@ button {
 }
 
 .topbar__settingsRow > span {
-  color: rgba(255, 255, 255, 0.56);
+  color: var(--space-paper);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -3124,23 +3197,28 @@ button {
   grid-auto-flow: column;
   gap: 1px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border: 1px solid var(--space-hud-panel-border);
+  border-radius: 0;
 }
 
 .topbar__settingsSegment button {
-  min-height: 28px;
+  min-height: 32px;
   border: 0;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.62);
+  background: transparent;
+  color: var(--space-paper);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1;
 }
 
 .topbar__settingsSegment button[aria-pressed="true"] {
-  background: rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.96);
+  background: var(--space-hud-selected);
+  color: var(--space-paper);
+}
+
+.topbar__settingsSegment button:focus-visible {
+  outline: 3px solid var(--space-paper);
+  outline-offset: 3px;
 }
 
 .topbar__settingsSegment button:disabled {
@@ -3213,6 +3291,24 @@ button {
   color: rgba(255, 255, 255, 0.42);
   font-size: 10px;
   line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-onboarding-sign,
+  .space-cursor-clickPulse,
+  .space-cursor-scrollBurst i,
+  .crosshair-burst {
+    animation: none !important;
+  }
+
+  .space-cursor-layer,
+  .space-cursor-dot,
+  .space-cursor-halo,
+  .crosshair,
+  .crosshair::after,
+  .playback-bar {
+    transition: none;
+  }
 }
 
 .overlay-layer {

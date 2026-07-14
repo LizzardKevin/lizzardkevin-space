@@ -16,6 +16,7 @@ import { WallPicture } from "./gallery/WallPicture";
 import { SpaceOnboarding } from "./onboarding/SpaceOnboarding";
 import type { SpacePlayerPose } from "../space/spaceDailyResume";
 import type { SpaceQualityConfig } from "../space/spaceVisualSettings";
+import type { RendererProfile } from "../rendering/rendererProfile";
 import type { ProjectorSlideCommand } from "./projector/projectorSlides";
 
 function SpaceSceneContent({
@@ -43,6 +44,7 @@ function SpaceSceneContent({
   onPoseSample,
   onOnboardingCompleted,
   quality,
+  profile,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -68,6 +70,7 @@ function SpaceSceneContent({
   onPoseSample?: (pose: SpacePlayerPose) => void;
   onOnboardingCompleted?: () => void;
   quality: SpaceQualityConfig;
+  profile: RendererProfile;
 }) {
   const { spawn, safetyGroundY, safetyCenterX, safetyCenterZ } = useGallerySpawn();
 
@@ -86,6 +89,7 @@ function SpaceSceneContent({
           onExhibitFailed={onExhibitFailed}
           onExhibitDeferred={onExhibitDeferred}
           quality={quality}
+          profile={profile}
           projectorExhibits={projectorExhibits}
           projectorInteractive={controlsEnabled && !onboardingEnabled}
           projectorCommand={projectorCommand}
@@ -186,6 +190,7 @@ export function SpaceScene({
   onPoseSample,
   onOnboardingCompleted,
   quality,
+  profile,
 }: {
   exhibitTarget: ExhibitTarget | null;
   onTargetChange: (target: ExhibitTarget | null) => void;
@@ -211,6 +216,7 @@ export function SpaceScene({
   onPoseSample?: (pose: SpacePlayerPose) => void;
   onOnboardingCompleted?: () => void;
   quality: SpaceQualityConfig;
+  profile: RendererProfile;
 }) {
   if (ENABLE_GALLERY_GLB) {
     return (
@@ -240,6 +246,7 @@ export function SpaceScene({
           onPoseSample={onPoseSample}
           onOnboardingCompleted={onOnboardingCompleted}
           quality={quality}
+          profile={profile}
         />
       </GallerySpawnProvider>
     );
@@ -271,6 +278,7 @@ export function SpaceScene({
       onPoseSample={onPoseSample}
       onOnboardingCompleted={onOnboardingCompleted}
       quality={quality}
+      profile={profile}
     />
   );
 }

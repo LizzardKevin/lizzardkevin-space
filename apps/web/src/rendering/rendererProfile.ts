@@ -6,7 +6,7 @@ export type RendererProfile = Readonly<{
   maxDpr: 1 | 2;
   postProcessing: boolean;
   shadows: boolean;
-  expensiveLeaves: Readonly<{ galleryAtmosphere: boolean }>;
+  expensiveLeaves: Readonly<{ galleryPointLights: boolean }>;
   physics: true;
   interaction: true;
   spaceScene: true;
@@ -18,7 +18,7 @@ const full = Object.freeze({
   maxDpr: 2,
   postProcessing: true,
   shadows: true,
-  expensiveLeaves: Object.freeze({ galleryAtmosphere: true }),
+  expensiveLeaves: Object.freeze({ galleryPointLights: true }),
   physics: true,
   interaction: true,
   spaceScene: true,
@@ -30,7 +30,7 @@ const simplified = Object.freeze({
   maxDpr: 1,
   postProcessing: false,
   shadows: false,
-  expensiveLeaves: Object.freeze({ galleryAtmosphere: false }),
+  expensiveLeaves: Object.freeze({ galleryPointLights: false }),
   physics: true,
   interaction: true,
   spaceScene: true,
