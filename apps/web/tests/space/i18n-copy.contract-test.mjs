@@ -12,6 +12,8 @@ const focus = readSourceFile("exhibits/FocusOverlay.tsx");
 const i18nRuntime = readSourceFile("i18n/i18n.ts");
 const appErrorBoundary = readSourceFile("components/AppErrorBoundary.tsx");
 const debugOverlay = readSourceFile("scenes/debug/SpaceMovementDebugOverlay.tsx");
+const desktopApp = readSourceFile("app/DesktopApp.tsx");
+const appRoutes = readSourceFile("app/appRoutes.tsx");
 
 for (const [sourceName, source, keys] of [
   [
@@ -82,6 +84,11 @@ for (const [sourceName, source, keys] of [
   }
 }
 
+assert(desktopApp.includes('t("route.workRequiresSpace"'), "cold work route must use i18n");
+assert(appRoutes.includes('t("route.notFound"'), "desktop not-found must use i18n");
+assert(appRoutes.includes('t("route.notFoundTerminal"'), "terminal not-found must use i18n");
+assert(desktop.includes('t("route.invalidWorkReturn"'), "invalid exhibit route must use i18n");
+
 for (const key of [
   "quality",
   "qualityFull",
@@ -89,6 +96,10 @@ for (const key of [
   "rendererUnavailableTitle",
   "rendererUnavailableBody",
   "rendererLoadFailed",
+  "workRequiresSpace",
+  "notFound",
+  "notFoundTerminal",
+  "invalidWorkReturn",
 ]) {
   assert(i18nRuntime.includes(`${key}:`), `runtime i18n augmentation must define ${key}`);
 }

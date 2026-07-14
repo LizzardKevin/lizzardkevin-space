@@ -25,7 +25,8 @@ assert.match(host, /<SpaceDesktopExperience/);
 assert(!/key=\{(?:location|pathname)/.test(host), "host identity must not depend on location");
 assert.match(coordinator, /releaseSpacePointerLock/);
 assert.match(coordinator, /routeBlocked/);
-assert.match(coordinator, /setRoutePaused\(routeBlocked\)/);
+assert.match(coordinator, /setRoutePaused\(pauseMainAudio\)/);
+assert(!coordinator.includes("usePlayback"), "route coordinator must not subscribe to unstable playback API state");
 assert.match(audioDirector, /setRoutePaused\(paused:\s*boolean\)/);
 assert.match(experience, /frameloop=\{spaceRenderPaused\s*\?\s*["']never["']\s*:\s*["']always["']\}/);
 assert.match(experience, /routeBlocked/);
@@ -33,6 +34,7 @@ assert.match(experience, /onNavigateToWork/);
 assert.match(experience, /onNavigateToSpace/);
 assert.match(experience, /invalidFocusedRoute/);
 assert.match(experience, /data-work-route-not-found/);
+assert.match(desktop, /route\.kind\s*===\s*["']space["']\s*&&\s*entry\.showSplash/);
 
 assert.match(pose, /sessionStorage/);
 assert.match(pose, /version:\s*1/);

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 
 export function SpaceAliasRoute() {
@@ -9,6 +10,7 @@ export function ProfileAliasRoute() {
 }
 
 export function NotFound({ terminal = false }: { terminal?: boolean }) {
+  const { t } = useTranslation();
   return (
     <main
       role="main"
@@ -16,7 +18,7 @@ export function NotFound({ terminal = false }: { terminal?: boolean }) {
       className={terminal ? "mobile-site mobile-terminal-site" : undefined}
       style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#fff" }}
     >
-      <p>{terminal ? "$ route: 404 not found" : "404 — Page not found"}</p>
+      <p>{terminal ? t("route.notFoundTerminal") : t("route.notFound")}</p>
     </main>
   );
 }

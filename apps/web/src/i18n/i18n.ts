@@ -34,6 +34,21 @@ export const runtimeResourceAugmentation = {
   },
 } as const;
 
+export const runtimeRouteResourceAugmentation = {
+  en: {
+    workRequiresSpace: "Work {{id}} is available after entering SPACE.",
+    notFound: "404 — Page not found",
+    notFoundTerminal: "$ route: 404 not found",
+    invalidWorkReturn: "404 — return to SPACE",
+  },
+  zh: {
+    workRequiresSpace: "进入 SPACE 后可查看作品 {{id}}。",
+    notFound: "404 — 页面不存在",
+    notFoundTerminal: "$ route: 404 路径不存在",
+    invalidWorkReturn: "404 — 返回 SPACE",
+  },
+} as const;
+
 export const resources = {
   en: {
     translation: {
@@ -50,6 +65,7 @@ export const resources = {
         ...generatedResources.en.translation.focus,
         ...runtimeResourceAugmentation.en.focus,
       },
+      route: runtimeRouteResourceAugmentation.en,
     },
   },
   zh: {
@@ -67,6 +83,7 @@ export const resources = {
         ...generatedResources.zh.translation.focus,
         ...runtimeResourceAugmentation.zh.focus,
       },
+      route: runtimeRouteResourceAugmentation.zh,
     },
   },
 };

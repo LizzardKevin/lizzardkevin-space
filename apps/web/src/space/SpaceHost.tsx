@@ -2,30 +2,38 @@ import { Suspense, useCallback, useRef } from "react";
 import type { EntryTransition } from "../entry/entryTypes";
 import { SpaceDesktopExperience } from "../pages/SpaceDesktopExperience";
 import { SpaceRouteCoordinator } from "./SpaceRouteCoordinator";
+import {
+  completeEntryAfterHostReady,
+  type PersistentHostLifecycle,
+} from "./persistentHostLifecycle";
 
 export default function SpaceHost({
   entry,
   focusedExhibitId,
   onNavigateToSpace,
   onNavigateToWork,
+  pauseMainAudio,
   routeBlocked,
+  sessionLifecycle,
 }: {
   entry: EntryTransition;
   focusedExhibitId: string | null;
   onNavigateToSpace: (options?: { fromEscape?: boolean }) => void;
   onNavigateToWork: (exhibitId: string) => void;
+  pauseMainAudio: boolean;
   routeBlocked: boolean;
+  sessionLifecycle: PersistentHostLifecycle;
 }) {
   const entryWaitingForExhibitsRef = useRef(true);
   const handleSceneExhibitsReady = useCallback(() => {
     if (!entryWaitingForExhibitsRef.current) return;
     entryWaitingForExhibitsRef.current = false;
-    entry.startFade();
+    completeEntryAfterHostReady(entry.startFade);
   }, [entry]);
 
   return (
     <>
-      <SpaceRouteCoordinator routeBlocked={routeBlocked} />
+      <SpaceRouteCoordinator pauseMainAudio={pauseMainAudio} routeBlocked={routeBlocked} />
       <Suspense fallback={null}>
         <SpaceDesktopExperience
           entry={entry}
@@ -33,6 +41,7 @@ export default function SpaceHost({
           loadExhibits
           onNavigateToSpace={onNavigateToSpace}
           onNavigateToWork={onNavigateToWork}
+          onPersistentPoseSample={sessionLifecycle.recordPose}
           onSceneExhibitsReady={handleSceneExhibitsReady}
           overlay={{ isOverlayOpen: routeBlocked }}
           routeBlocked={routeBlocked}

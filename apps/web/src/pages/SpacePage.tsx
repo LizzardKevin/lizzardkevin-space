@@ -8,10 +8,5 @@ export function SpacePage({
   entry: EntryTransition;
   onTrustedEnter: () => void;
 }) {
-
-  return (
-    <div style={{ height: "100vh", width: "100vw", background: "#ffffff" }}>
-      {entry.showSplash ? <EntrySplash entry={entry} onEnter={onTrustedEnter} /> : null}
-    </div>
-  );
+  return entry.showSplash ? <EntrySplash entry={entry} onEnter={onTrustedEnter} /> : null;
 }

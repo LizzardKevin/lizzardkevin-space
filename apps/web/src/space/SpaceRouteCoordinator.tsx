@@ -1,22 +1,25 @@
 import { useEffect } from "react";
 import { useAudioDirector } from "../audio/useAudioDirector";
-import { usePlayback } from "../media/usePlayback";
 import { releaseSpacePointerLock } from "./requestSpacePointerLock";
 
-export function SpaceRouteCoordinator({ routeBlocked }: { routeBlocked: boolean }) {
+export function SpaceRouteCoordinator({
+  pauseMainAudio,
+  routeBlocked,
+}: {
+  pauseMainAudio: boolean;
+  routeBlocked: boolean;
+}) {
   const audio = useAudioDirector();
-  const playback = usePlayback();
 
   useEffect(() => {
     if (routeBlocked) {
       releaseSpacePointerLock();
-      playback.pause();
     }
-    audio.setRoutePaused(routeBlocked);
+    audio.setRoutePaused(pauseMainAudio);
     return () => {
       audio.setRoutePaused(false);
     };
-  }, [audio, playback, routeBlocked]);
+  }, [audio, pauseMainAudio, routeBlocked]);
 
   return null;
 }

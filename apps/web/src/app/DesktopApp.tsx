@@ -1,7 +1,8 @@
-import { Suspense, lazy, useCallback, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAudioDirector } from "../audio/useAudioDirector";
+import { useTranslation } from "react-i18next";
 import type { OverlayTab } from "../overlay/OverlayState";
 import { SpacePage } from "../pages/SpacePage";
 import { useEntryTransition } from "../hooks/useEntryTransition";
@@ -11,6 +12,8 @@ import {
   resumeSpaceFirstPersonWithCursorReturn,
 } from "../space/requestSpacePointerLock";
 import { useSpacePointerLockGuard } from "../space/useSpacePointerLockGuard";
+import { createPersistentHostLifecycle } from "../space/persistentHostLifecycle";
+import { resolveSpaceRouteRuntimePolicy, type SpaceRouteKind } from "../space/routeRuntimePolicy";
 import { NotFound, ProfileAliasRoute, SpaceAliasRoute } from "./appRoutes";
 import { APP_ROUTE_PATHS, resolveAppRoute, workRoute } from "./routeConfig";
 
@@ -25,9 +28,10 @@ const DesktopOverlayLayer = lazy(() =>
 type SpaceWordRect = { height: number; width: number; x: number; y: number };
 
 function ColdWorkRoute({ exhibitId }: { exhibitId: string }) {
+  const { t } = useTranslation();
   return (
     <main role="main" style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-      <p>Work {exhibitId} is available after entering SPACE.</p>
+      <p>{t("route.workRequiresSpace", { id: exhibitId })}</p>
     </main>
   );
 }
@@ -37,10 +41,18 @@ export default function DesktopApp() {
   const navigate = useNavigate();
   const audio = useAudioDirector();
   const entry = useEntryTransition();
+  const sessionLifecycle = useMemo(() => createPersistentHostLifecycle(), []);
   const [spaceStarted, setSpaceStarted] = useState(false);
   const [closing, setClosing] = useState(false);
   const route = resolveAppRoute(location.pathname);
-  const routeBlocked = route.kind !== "space";
+  const policyRoute: SpaceRouteKind =
+    route.kind === "space-alias"
+      ? "space"
+      : route.kind === "profile-alias"
+        ? "profile"
+        : route.kind;
+  const routePolicy = resolveSpaceRouteRuntimePolicy(policyRoute);
+  const routeBlocked = routePolicy.routeBlocked;
   const overlayTab: OverlayTab =
     route.kind === "profile" ? "lizzardkevin" : route.kind === "devstories" ? "devStories" : null;
   const focusedExhibitId = route.kind === "work" ? route.exhibitId : null;
@@ -48,15 +60,19 @@ export default function DesktopApp() {
 
   useSpacePointerLockGuard(routeBlocked);
 
+  useEffect(() => {
+    sessionLifecycle.observeRoute(location.pathname);
+  }, [location.pathname, sessionLifecycle]);
+
   const onTrustedEnter = useCallback(() => {
-    if (spaceStarted || route.kind !== "space") return;
+    if (route.kind !== "space" || !sessionLifecycle.trustedEnter()) return;
     entry.freezeButtonFloat();
     entry.beginLoading();
     audio.unlock();
     setSpaceStarted(true);
     resumeSpaceFirstPerson();
     void audio.setZone("architecture");
-  }, [audio, entry, route.kind, spaceStarted]);
+  }, [audio, entry, route.kind, sessionLifecycle]);
 
   const navigateToSpace = useCallback(
     (options?: { fromEscape?: boolean }) => {
@@ -82,7 +98,7 @@ export default function DesktopApp() {
 
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
-      {spaceStarted && route.kind === "space" ? (
+      {spaceStarted && entry.entered && route.kind === "space" ? (
         <Suspense fallback={null}>
           <DesktopTopBar onNavigateToSpace={() => navigateToSpace()} />
         </Suspense>
@@ -91,9 +107,7 @@ export default function DesktopApp() {
       <Routes>
         <Route
           path="/"
-          element={
-            spaceStarted ? null : <SpacePage entry={entry} onTrustedEnter={onTrustedEnter} />
-          }
+          element={null}
         />
         <Route
           path="/works/:exhibitId"
@@ -111,8 +125,14 @@ export default function DesktopApp() {
         focusedExhibitId={focusedExhibitId}
         onNavigateToSpace={navigateToSpace}
         onNavigateToWork={(exhibitId) => navigate(workRoute(exhibitId))}
+        pauseMainAudio={routePolicy.pauseMainAudio}
         routeBlocked={routeBlocked}
+        sessionLifecycle={sessionLifecycle}
       /> : null}
+
+      {route.kind === "space" && entry.showSplash ? (
+        <SpacePage entry={entry} onTrustedEnter={onTrustedEnter} />
+      ) : null}
 
       {overlayTab !== null ? (
         <Suspense fallback={null}>

@@ -1,10 +1,15 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useReducer, useRef } from "react";
 import type { EntryTransition } from "../entry/entryTypes";
+import {
+  INITIAL_ENTRY_TRANSITION_STATE,
+  reduceEntryTransitionState,
+} from "../entry/entryTransitionState";
 
 export function useEntryTransition(): EntryTransition {
-  const [entered, setEntered] = useState(false);
-  const [fading, setFading] = useState(false);
-  const [hideButton, setHideButton] = useState(false);
+  const [{ entered, fading, hideButton }, dispatch] = useReducer(
+    reduceEntryTransitionState,
+    INITIAL_ENTRY_TRANSITION_STATE,
+  );
   const enterWrapRef = useRef<HTMLDivElement>(null);
 
   const freezeButtonFloat = useCallback(() => {
@@ -22,20 +27,18 @@ export function useEntryTransition(): EntryTransition {
   }, []);
 
   const beginLoading = useCallback(() => {
-    setHideButton(true);
+    dispatch({ type: "begin-loading" });
   }, []);
 
   const startFade = useCallback(() => {
-    setHideButton(true);
-    setFading(true);
+    dispatch({ type: "start-fade" });
   }, []);
 
   const onSplashTransitionEnd = useCallback(
     (e: React.TransitionEvent<HTMLDivElement>) => {
       if (e.target !== e.currentTarget) return;
       if (!fading) return;
-      setEntered(true);
-      setFading(false);
+      dispatch({ type: "splash-transition-end" });
     },
     [fading],
   );
