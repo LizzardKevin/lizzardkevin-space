@@ -28,9 +28,20 @@ assert(
   !files.cursorController.includes("onComplete"),
   "cursor return controller must no longer delay pointer lock through an animation completion callback",
 );
+const cursorReturnResume =
+  files.pointerLock.match(
+    /export function resumeSpaceFirstPersonWithCursorReturn[\s\S]*?\n\}/,
+  )?.[0] ?? "";
+const pointerLockRequestIndex = cursorReturnResume.search(
+  /\brequestSpacePointerLock\s*\(\s*(?:requestId\s*)?\)/,
+);
+const cursorReturnRequestIndex = cursorReturnResume.indexOf(
+  'requestSpaceCursorReturn({ target: "center" });',
+);
+assert(pointerLockRequestIndex >= 0, "cursor return must request pointer lock");
+assert(cursorReturnRequestIndex >= 0, "cursor return must request the visual return animation");
 assert(
-  files.pointerLock.indexOf("requestSpacePointerLock();") <
-    files.pointerLock.indexOf('requestSpaceCursorReturn({ target: "center" });'),
+  pointerLockRequestIndex < cursorReturnRequestIndex,
   "pointer lock must be requested before the cursor return visual animation",
 );
 assert(cursorReturningCss.includes("left 500ms") && cursorReturningCss.includes("top 500ms"), "returning cursor must animate left/top");
