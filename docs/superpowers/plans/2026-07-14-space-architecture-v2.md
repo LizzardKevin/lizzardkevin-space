@@ -12,23 +12,23 @@
 
 ## Execution status snapshot
 
-**Authority and date:** 2026-07-14, implementation snapshot `4492983`. This ledger records evidence already produced; it does not mark the Architecture V2 Goal complete or blocked, and it does not convert unmeasured browser work into a pass.
+**Authority and date:** 2026-07-14, implementation snapshot `4492983`. This top ledger is the sole authority for live execution status. The lower phase checkboxes are the original normative execution checklist, not live completion markers. This ledger records evidence already produced; it does not mark the Architecture V2 Goal complete or blocked, and it does not convert unmeasured browser work into a pass.
 
 Two-SHA spans in the table use an en dash and are inclusive of both named commits.
 
 | Scope | Status at `4492983` | Representative commits | Current evidence / remaining gate |
 | --- | --- | --- | --- |
-| Phase 1 — platform app shell | Completed | `c89f7c1`–`62d8596` | Platform-shell and mobile transitive import-graph contracts, TypeScript, build, and the release suite cover the stable one-time platform split and mobile 3D-zero-import boundary. |
-| Phase 2 — renderer profiles | Completed | `baf05f0`–`f1f4c2f` | Renderer-profile/runtime-profile tests and release gates cover native WebGPU-to-WebGL2 resolution, forced-WebGL simplified mode, and the shared-runtime invariant. |
-| Phase 3 — real URLs and persistent host | Completed | `ed4d5a9`–`7143a30` | Router, persistent-host, cold-route, lifecycle, pose, audio, and pointer-lock tests cover canonical URLs and same-document host reuse. Browser lifecycle observation remains part of final QA, not evidence for this row. |
+| Phase 1 — platform app shell | Implementation + automated gates complete; final browser/release acceptance pending | `c89f7c1`–`62d8596` | Platform-shell and mobile transitive import-graph contracts, TypeScript, build, and the release suite cover the stable one-time platform split and mobile 3D-zero-import boundary. |
+| Phase 2 — renderer profiles | Implementation + automated gates complete; final browser/release acceptance pending | `baf05f0`–`f1f4c2f` | Renderer-profile/runtime-profile tests and release gates cover native WebGPU-to-WebGL2 resolution, forced-WebGL simplified mode, and the shared-runtime invariant. |
+| Phase 3 — real URLs and persistent host | Implementation + automated gates complete; final browser/release acceptance pending | `ed4d5a9`–`7143a30` | Router, persistent-host, cold-route, lifecycle, pose, audio, and pointer-lock tests cover canonical URLs and same-document host reuse. Browser lifecycle observation remains part of final QA, not evidence for this row. |
 | Phase 4 — `MobileStartMenu` | Pending | — | Screenshot-grounded visual implementation, its dedicated interaction/import-graph contract, narrow-viewport capture, and physical-touch QA have not been performed. |
-| Phase 5 — Boot Controller | Completed | `b4cb519`–`7b68639` | Reducer/runtime/reconciliation tests and release gates cover attempt isolation, real milestones, retry, device-loss fallback, and post-running quiescence. |
+| Phase 5 — Boot Controller | Implementation + automated gates complete; final browser/release acceptance pending | `b4cb519`–`7b68639` | Reducer/runtime/reconciliation tests and release gates cover attempt isolation, real milestones, retry, device-loss fallback, and post-running quiescence. |
 | Phase 6 — visual Desktop `StartLobby` | Pending | — | The nonvisual runtime handoff seams exist, but the screenshot-grounded 3D lobby, legacy-splash removal, matched capture, and pointer/touch/keyboard/reduced-motion acceptance are pending. |
-| Phase 7 — runtime ownership split | Completed | `245306b`–`1632167` | Runtime-boundary contracts and release gates cover one main Canvas, one Physics/scene composition, and separated Canvas/session/HUD ownership. |
-| Phase 8A — deterministic asset inventory | Completed; browser budget pending | `566cc48`–`0d8369c` | Read-only asset inventory, source/asset hashes, chunk/build checks, deployed-header sample, and deterministic budget contracts are recorded. Browser network/decode/frame-time/JS-memory/GPU-memory measurements, noise bands, and proposed full/simplified caps remain pending; no measurement is inferred from a build pass. |
+| Phase 7 — runtime ownership split | Implementation + automated gates complete; final browser/release acceptance pending | `245306b`–`1632167` | Runtime-boundary contracts and release gates cover one main Canvas, one Physics/scene composition, and separated Canvas/session/HUD ownership. |
+| Phase 8A — deterministic asset inventory | Deterministic inventory complete; browser budget pending | `566cc48`–`0d8369c` | Read-only asset inventory, source/asset hashes, chunk/build checks, deployed-header sample, and deterministic budget contracts are recorded. Browser network/decode/frame-time/JS-memory/GPU-memory measurements, noise bands, and proposed full/simplified caps remain pending; no measurement is inferred from a build pass. |
 | Phase 9 — gallery visual system | Pending | — | Same-viewport full/simplified baselines, visual acceptance table, SPACE-owned tokens/spec, implementation, comparison captures, and frame-budget regression evidence are pending. |
-| Phase 10 — lightweight route idle prefetch | Completed | `7eec2a5`–`500aecb` | Idle-prefetch allowlist, cold-route, dependency-graph, cancellation, and no-speculative-media contracts are included in automated verification. |
-| Phase 11 — selected-work media | Completed | `80da860`–`d4dd31a` | Loader/unit/contracts cover selection-only full-image request/decode, truthful progress/failure, stale cancellation, video metadata, bounded cache, and accessible status. |
+| Phase 10 — lightweight route idle prefetch | Implementation + automated gates complete; final browser/release acceptance pending | `7eec2a5`–`500aecb` | Idle-prefetch allowlist, cold-route, dependency-graph, cancellation, and no-speculative-media contracts are included in automated verification. |
+| Phase 11 — selected-work media | Implementation + automated gates complete; final browser/release acceptance pending | `80da860`–`d4dd31a` | Loader/unit/contracts cover selection-only full-image request/decode, truthful progress/failure, stale cancellation, video metadata, bounded cache, and accessible status. |
 | Phase 12 — release gates and ordered independent review | Automated subset completed; Phase 12 pending | `aba3f15`, `d6d6a81`, `edab4cb`, `a4118ad`, `b6895cc`, `4492983` | Automated release wiring and the security audit are complete. `npm run verify:release` passed in full at `edab4cb`; the three later commits received targeted release/dependency import-contract tests only, so this ledger does not claim a fresh full release run at `4492983`. Remaining gates are desktop lifecycle/network/profile QA; measured performance/memory QA; entry and gallery visual/device QA; then a fresh full-candidate run followed in order by independent requirements review and independent quality review. |
 
 ### Visual evidence blocker
@@ -39,7 +39,7 @@ Two-SHA spans in the table use an en dash and are inclusive of both named commit
 
 ### Protected-range evidence
 
-`git diff --name-only bb9200b..HEAD -- BlenderFile apps/web/public apps/web/src/generated docs/assets` returns no paths. The protected range therefore contains zero changes under `BlenderFile/**`, `apps/web/public/**`, `apps/web/src/generated/**`, and `docs/assets/**`; this status update modifies only this plan document.
+**Snapshot evidence:** `git diff --name-only bb9200b..4492983 -- BlenderFile apps/web/public apps/web/src/generated docs/assets` returns no paths. That exact implementation snapshot therefore contains zero changes under `BlenderFile/**`, `apps/web/public/**`, `apps/web/src/generated/**`, and `docs/assets/**`; later status-ledger commits are outside this pinned evidence range.
 
 ## Approved decisions and protected scope
 
