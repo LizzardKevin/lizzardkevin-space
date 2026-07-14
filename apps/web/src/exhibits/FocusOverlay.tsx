@@ -27,7 +27,10 @@ import {
   type RendererProfile,
   type RendererProfileId,
 } from "../rendering/rendererProfile";
-import { bridgeRendererInitialization } from "../rendering/rendererLifecycle";
+import {
+  bridgeRendererInitialization,
+  reportRendererInitializationErrorIfMounted,
+} from "../rendering/rendererLifecycle";
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
 import { loadExhibitContent, type ExhibitContent } from "./exhibitContent";
 import { normalizeSupportedLanguage, type SupportedLanguage } from "../i18n/resolveInitialLanguage";
@@ -392,7 +395,7 @@ class FocusModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundar
   render() {
     if (this.state.error) {
       return (
-        <div className="focus-error">
+        <div className="focus-error" role="alert">
           {this.props.message}
           <br />
           <span>{this.props.url}</span>
@@ -427,6 +430,14 @@ function FocusRendererViewer({
   const requestedProfile = resolveFocusRequestedProfile(profile);
   const [resolvedFocusProfile, setResolvedFocusProfile] = useState<RendererProfile | null>(null);
   const [rendererError, setRendererError] = useState<Error | null>(null);
+  const rendererOwnerMountedRef = useRef(true);
+
+  useEffect(() => {
+    rendererOwnerMountedRef.current = true;
+    return () => {
+      rendererOwnerMountedRef.current = false;
+    };
+  }, []);
 
   if (rendererError) {
     return (
@@ -455,8 +466,16 @@ function FocusRendererViewer({
               alpha: true,
             }),
             (error) => {
-              setRendererError(
-                error instanceof Error ? error : new Error("Focus renderer initialization failed"),
+              reportRendererInitializationErrorIfMounted(
+                () => rendererOwnerMountedRef.current,
+                (reportedError) => {
+                  setRendererError(
+                    reportedError instanceof Error
+                      ? reportedError
+                      : new Error("Focus renderer initialization failed"),
+                  );
+                },
+                error,
               );
             },
           )

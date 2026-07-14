@@ -19,7 +19,10 @@ import {
   switchRendererProfileState,
   type RendererProfile,
 } from "../rendering/rendererProfile";
-import { bridgeRendererInitialization } from "../rendering/rendererLifecycle";
+import {
+  bridgeRendererInitialization,
+  reportRendererInitializationErrorIfMounted,
+} from "../rendering/rendererLifecycle";
 import { WebGPUErrorBoundary } from "../rendering/WebGPUErrorBoundary";
 import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
 import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
@@ -154,6 +157,7 @@ export function SpaceDesktopExperience({
   const lastDailyResumeSaveAtRef = useRef(0);
   const projectorSlideCommandNonceRef = useRef(0);
   const devFocusOpenedRef = useRef(false);
+  const rendererOwnerMountedRef = useRef(true);
   const { quality, settings } = useSpaceVisualSettings();
   const [rendererRuntime, setRendererRuntime] = useState<{
     requestedProfile: "full" | "simplified";
@@ -171,6 +175,13 @@ export function SpaceDesktopExperience({
   const resolvedProfile = rendererRuntime.resolvedProfile;
 
   const { entered, fading: entryIsFading } = entry;
+
+  useEffect(() => {
+    rendererOwnerMountedRef.current = true;
+    return () => {
+      rendererOwnerMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onPointerLockFailed = (event: Event) => {
@@ -504,16 +515,22 @@ export function SpaceDesktopExperience({
                     },
                   }),
                   (error) => {
-                    setRendererRuntime((current) =>
-                      current.nonce === rendererRuntime.nonce
-                        ? {
-                            ...current,
-                            error:
-                              error instanceof Error
-                                ? error
-                                : new Error("Renderer initialization failed"),
-                          }
-                        : current,
+                    reportRendererInitializationErrorIfMounted(
+                      () => rendererOwnerMountedRef.current,
+                      (reportedError) => {
+                        setRendererRuntime((current) =>
+                          current.nonce === rendererRuntime.nonce
+                            ? {
+                                ...current,
+                                error:
+                                  reportedError instanceof Error
+                                    ? reportedError
+                                    : new Error("Renderer initialization failed"),
+                              }
+                            : current,
+                        );
+                      },
+                      error,
                     );
                   },
                 )

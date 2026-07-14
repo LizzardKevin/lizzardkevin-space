@@ -89,6 +89,40 @@ test("renderer initialization errors notify once and leave R3F's promise pending
   assert.equal(state, "pending");
 });
 
+test("each failed renderer initialization receives an independent pending promise", async () => {
+  const { createPendingRendererInitialization } = await importSourceModule(
+    "rendering/rendererLifecycle.ts",
+  );
+  const first = createPendingRendererInitialization();
+  const second = createPendingRendererInitialization();
+
+  assert.notEqual(first, second);
+  const state = await Promise.race([
+    Promise.all([first, second]).then(() => "resolved"),
+    new Promise((resolve) => setTimeout(() => resolve("pending"), 10)),
+  ]);
+  assert.equal(state, "pending");
+});
+
+test("renderer error reporting is suppressed after its owner unmounts", async () => {
+  const { reportRendererInitializationErrorIfMounted } = await importSourceModule(
+    "rendering/rendererLifecycle.ts",
+  );
+  const reports = [];
+  const error = new Error("late failure");
+
+  assert.equal(
+    reportRendererInitializationErrorIfMounted(() => false, (value) => reports.push(value), error),
+    false,
+  );
+  assert.deepEqual(reports, []);
+  assert.equal(
+    reportRendererInitializationErrorIfMounted(() => true, (value) => reports.push(value), error),
+    true,
+  );
+  assert.deepEqual(reports, [error]);
+});
+
 test("owned render pipeline cleanup disposes exactly once per cleanup call", async () => {
   const { disposeOwnedRenderPipeline } = await importSourceModule(
     "rendering/ownedRenderPipeline.ts",
