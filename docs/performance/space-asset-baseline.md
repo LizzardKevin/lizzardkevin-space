@@ -16,7 +16,10 @@ This is an evidence input, not approval of a final performance budget. It makes 
 | Local build | `npm run build`; Vite 8.0.16; local base `./` |
 | Deployed base | `https://lizzardkevin.github.io/lizzardkevin-space/` (`/lizzardkevin-space/`) |
 | Machine-readable evidence | `docs/performance/space-asset-inventory.json` |
-| Reproduce / check | `node scripts/audit-space-assets.mjs --output docs/performance/space-asset-inventory.json`; `node scripts/audit-space-assets.mjs --check docs/performance/space-asset-inventory.json` |
+| Raw deployed-header evidence | `docs/performance/github-pages-headers-2026-07-14.txt` |
+| Reproduce / check | `npm run asset:audit`; `npm run asset:check` |
+| Source-only quick gate | `npm run test:asset-source` (does not require `dist`) |
+| Full release gate | `npm run verify:release` (quick verification, then one fresh build inside `asset:check`) |
 
 The audit hashes and measures files read-only. It scans all files under `apps/web/public` because Vite copies that directory verbatim, plus recognized asset/source formats in `BlenderFile` and `docs/assets`. It also reads the current `dist/index.html`, built chunks, and GLB JSON chunks. GLB `accessorLogicalBytes` is a static logical payload count, not measured GPU residency.
 
@@ -53,6 +56,19 @@ All sizes below are binary MiB unless noted. “Shipping” means present under 
 
 The exact hashes, integer byte counts, per-work members, and GLB metadata are in the JSON report.
 
+### Static image dimensions and decoded exposure
+
+The report parses PNG, JPEG, and WebP headers without decoding or rewriting files. `estimatedRgba8Bytes` is exactly `width * height * 4`: a qualified logical RGBA8 exposure estimate, not measured GPU residency. It excludes mipmaps, GPU compression, row alignment, browser decode caches, upload copies, video frames, and renderer-owned copies.
+
+| Raster corpus | Files | Pixels | Estimated RGBA8 bytes / MiB |
+| --- | ---: | ---: | ---: |
+| All discovered raster images | 58 | 189,392,449 | 757,569,796 / 722.47 |
+| Boot/world classified | 19 | 10,293,600 | 41,174,400 / 39.27 |
+| Focus/work classified | 34 | 104,290,448 | 417,161,792 / 397.84 |
+| Source-only classified | 5 | 74,808,401 | 299,233,604 / 285.37 |
+
+The largest image is the currently shipping projector source `FL-9.jpg` at 5101x3301 (16,838,401 pixels; 67,353,604 estimated RGBA8 bytes / 64.23 MiB). The largest Focus images are 2200x1424 (12,531,200 estimated RGBA8 bytes / 11.95 MiB each). These corpus totals are not simultaneous-memory claims: browser request/decode/cache lifetimes remain pending browser capture.
+
 ### Current chunk evidence
 
 | Chunk | Raw bytes | Deterministic gzip bytes | Current role |
@@ -84,19 +100,22 @@ curl.exe -sS -L -I --connect-timeout 10 --max-time 30 -H "Accept-Encoding: gzip,
 | `/audio/space_background_looped.mp3` | 200 | `audio/mp3` | `max-age=600` | none observed | 4,879,196 | strong ETag + Last-Modified |
 | `/exhibits/manifest.json` | 200 | `application/json; charset=utf-8` | `max-age=600` | gzip | 641 | weak ETag + Last-Modified |
 
-All sampled responses returned `Vary: Accept-Encoding`, `Age: 0`, and `X-Cache: MISS` during this capture. The deployed JS filename differs from the local build, so deployed-header evidence and local chunk evidence must not be conflated. A ten-minute cache lifetime is observable for content-hashed JS and large immutable assets; a future deployment review should evaluate immutable caching, but changing hosting/cache policy is outside Phase 8A.
+All sampled responses returned `Vary: Accept-Encoding` and `Age: 0`. The first observation returned `X-Cache: MISS`; the preserved repeat capture returned `X-Cache: HIT`, so cache hit state is correctly treated as request-specific while `Cache-Control`, validators, content type, and encoding remained stable. The deployed JS filename differs from the local build, so deployed-header evidence and local chunk evidence must not be conflated. A ten-minute cache lifetime is observable for content-hashed JS and large immutable assets; a future deployment review should evaluate immutable caching, but changing hosting/cache policy is outside Phase 8A.
 
 ## Deterministic gates now enforceable
 
 | Gate | Threshold | Evidence |
 | --- | ---: | --- |
 | Inventory reproducibility | 0 byte/hash/schema drift after the verified build | `--check` and `asset-budget.test.mjs` |
+| Full-report build evidence | Required `dist/index.html` plus `dist/assets`; missing build is an error | `createBuildEvidence` and `asset:check` |
+| Report output destinations | Exactly 1 approved repository path; 0 symlink/reparse components | output-policy tests |
 | Protected asset mutation by the audit | 0 changed bytes/hashes | before/after snapshot test |
 | Public-file accounting | 0 omitted public files | every public file must appear as `shipping: true` |
 | Missing semantic sources | 0 missing `.source.glb`, Blender, workbook, projector-source inputs | source classification tests/report |
 | Mobile and cold-route 3D static imports | 0 Three/R3F/Rapier imports and 0 world/Focus GLB references | existing platform contract plus asset-budget graph test |
 | Pre-Enter Rapier/world/Focus reachability | 0 static reachability | `SpacePage` graph test |
 | Entry-to-Rapier eagerness | 0 static entry reference; exactly 1 independent Rapier build chunk | existing chunks contract |
+| Raster metadata integrity | 100% of PNG/JPEG/WebP files have positive dimensions and exact `width*height*4` logical estimates | source and full asset tests |
 | Unapproved source/asset edits in this phase | 0 files outside scripts/tests/docs | `git diff --name-only d4dd31a` plus protected hashes |
 
 No absolute download, decode, GPU-memory, JS-heap, or frame-time pass/fail cap is approved yet. The current full and simplified profiles share the same world and Focus assets, so their static download corpus is identical; simplified currently saves rendering cost, not asset bytes.
@@ -141,4 +160,4 @@ React versus Svelte is not the primary performance decision here. The dominant m
 
 ## Phase completion boundary
 
-Phase 8A is complete only when the deterministic report, tests, build evidence, header evidence, protected-asset diff, and this pending-browser protocol are all present. Full asset-performance-budget completion additionally requires browser capture for both profiles, agreed numeric caps, regression runs, and explicit authorization before any source/asset movement, deletion, recompression, re-export, or GLB/Blender change.
+Phase 8A is complete only when the deterministic report, tests, fresh-build evidence, raw header evidence, protected-asset diff, and this pending-browser protocol are all present. `npm run asset:check` is the canonical clean-checkout sequence: build and chunk contract, report comparison, then the full asset-budget tests. Full asset-performance-budget completion additionally requires browser capture for both profiles, agreed numeric caps, regression runs, and explicit authorization before any source/asset movement, deletion, recompression, re-export, or GLB/Blender change.

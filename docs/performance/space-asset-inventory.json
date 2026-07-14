@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "scope": {
     "discoveryRoots": [
       "apps/web/public",
@@ -22,6 +22,101 @@
       "files": 14,
       "bytes": 104357343
     },
+    "imageDecodedExposure": {
+      "files": 58,
+      "pixels": 189392449,
+      "estimatedRgba8Bytes": 757569796,
+      "qualification": "width*height*4 logical RGBA8 only; excludes mipmaps, GPU compression, alignment, and extra decoded/upload copies"
+    },
+    "imageDecodedExposureByPhase": {
+      "boot/world": {
+        "files": 19,
+        "pixels": 10293600,
+        "estimatedRgba8Bytes": 41174400
+      },
+      "focus/work": {
+        "files": 34,
+        "pixels": 104290448,
+        "estimatedRgba8Bytes": 417161792
+      },
+      "source-only": {
+        "files": 5,
+        "pixels": 74808401,
+        "estimatedRgba8Bytes": 299233604
+      }
+    },
+    "largestImages": [
+      {
+        "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-9.jpg",
+        "width": 5101,
+        "height": 3301,
+        "pixels": 16838401,
+        "estimatedRgba8Bytes": 67353604
+      },
+      {
+        "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-10.jpg",
+        "width": 5100,
+        "height": 3300,
+        "pixels": 16830000,
+        "estimatedRgba8Bytes": 67320000
+      },
+      {
+        "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-13.jpg",
+        "width": 5100,
+        "height": 3300,
+        "pixels": 16830000,
+        "estimatedRgba8Bytes": 67320000
+      },
+      {
+        "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-17.jpg",
+        "width": 5100,
+        "height": 3300,
+        "pixels": 16830000,
+        "estimatedRgba8Bytes": 67320000
+      },
+      {
+        "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-12.jpg",
+        "width": 3400,
+        "height": 2200,
+        "pixels": 7480000,
+        "estimatedRgba8Bytes": 29920000
+      },
+      {
+        "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-1.webp",
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      },
+      {
+        "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-10.webp",
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      },
+      {
+        "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-11.webp",
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      },
+      {
+        "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-12.webp",
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      },
+      {
+        "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-13.webp",
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
+    ],
     "byPhase": {
       "audio": {
         "files": 10,
@@ -101,6 +196,28 @@
   },
   "assets": [
     {
+      "path": "BlenderFile/gallery_main.blend",
+      "type": "3d",
+      "phase": "source-only",
+      "bytes": 28362740,
+      "sha256": "e80dc4712976ab3d3f71910e4695167c36920346c2226a860bb006c9b1ddb5d9",
+      "public": false,
+      "sourceOnly": true,
+      "shipping": false,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "BlenderFile/space_main.blend",
+      "type": "3d",
+      "phase": "source-only",
+      "bytes": 5282722,
+      "sha256": "d92aafc3f347397d654565c3f06e0d648ef1c34ed3b00362ed38aa8fefacc67b",
+      "public": false,
+      "sourceOnly": true,
+      "shipping": false,
+      "exclusionCandidate": false
+    },
+    {
       "path": "apps/web/public/_redirects",
       "type": "other",
       "phase": "shared/other",
@@ -117,6 +234,17 @@
       "phase": "audio",
       "bytes": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
+      "path": "apps/web/public/audio/README.md",
+      "type": "documentation/license",
+      "phase": "audio",
+      "bytes": 922,
+      "sha256": "c29269c0bff651f9209c569d16230a7962be709fa9e34c676eeb282d0b13b758",
       "public": true,
       "sourceOnly": false,
       "shipping": true,
@@ -194,17 +322,6 @@
       "phase": "audio",
       "bytes": 10186,
       "sha256": "454e50171148016e6918799ad24c95ffa7944ebc6eb816da91292d8bdbf8665e",
-      "public": true,
-      "sourceOnly": false,
-      "shipping": true,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "apps/web/public/audio/README.md",
-      "type": "documentation/license",
-      "phase": "audio",
-      "bytes": 922,
-      "sha256": "c29269c0bff651f9209c569d16230a7962be709fa9e34c676eeb282d0b13b758",
       "public": true,
       "sourceOnly": false,
       "shipping": true,
@@ -510,7 +627,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-10.webp",
@@ -521,7 +644,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-11.webp",
@@ -532,7 +661,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-12.webp",
@@ -543,7 +678,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-13.webp",
@@ -554,7 +695,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-14.webp",
@@ -565,7 +712,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-15.webp",
@@ -576,7 +729,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-16.webp",
@@ -587,7 +746,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-17.webp",
@@ -598,7 +763,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-18.webp",
@@ -609,7 +780,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-19.webp",
@@ -620,7 +797,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-2.webp",
@@ -631,7 +814,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-20.webp",
@@ -642,7 +831,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-21.webp",
@@ -653,7 +848,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-22.webp",
@@ -664,7 +865,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-23.webp",
@@ -675,7 +882,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-24.webp",
@@ -686,7 +899,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-25.webp",
@@ -697,7 +916,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2000,
+        "height": 1294,
+        "pixels": 2588000,
+        "estimatedRgba8Bytes": 10352000
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-26.webp",
@@ -708,7 +933,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1700,
+        "height": 1100,
+        "pixels": 1870000,
+        "estimatedRgba8Bytes": 7480000
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-3.webp",
@@ -719,7 +950,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-6.webp",
@@ -730,7 +967,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-8.webp",
@@ -741,7 +984,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/img/FL-9.webp",
@@ -752,7 +1001,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_treehabitat/space_arch_treehabitat.glb",
@@ -899,7 +1154,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2048,
+        "height": 1326,
+        "pixels": 2715648,
+        "estimatedRgba8Bytes": 10862592
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-02-page-002.webp",
@@ -910,7 +1171,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-03-page-003.webp",
@@ -921,7 +1188,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-04-page-004.webp",
@@ -932,7 +1205,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-05-page-005.webp",
@@ -943,7 +1222,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-06-page-006.webp",
@@ -954,7 +1239,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-07-page-007.webp",
@@ -965,7 +1256,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-08-page-008.webp",
@@ -976,7 +1273,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-09-page-009.webp",
@@ -987,7 +1290,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-10-page-010.webp",
@@ -998,7 +1307,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/img/uabb-board-11-page-011.webp",
@@ -1009,7 +1324,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 2200,
+        "height": 1424,
+        "pixels": 3132800,
+        "estimatedRgba8Bytes": 12531200
+      }
     },
     {
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/space_arch_uabb_exhibit.glb",
@@ -1070,55 +1391,11 @@
       "exclusionCandidate": false
     },
     {
-      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-10.webp",
-      "type": "texture/image",
+      "path": "apps/web/public/exhibits/projector-selection/README.md",
+      "type": "documentation/license",
       "phase": "boot/world",
-      "bytes": 44132,
-      "sha256": "f30464f5ed05bdce1fc8609905b0956cef11d177db16d6b9a892afd8060c0172",
-      "public": true,
-      "sourceOnly": false,
-      "shipping": true,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-12.webp",
-      "type": "texture/image",
-      "phase": "boot/world",
-      "bytes": 76194,
-      "sha256": "12e79c6d204ec932d8a9e404ce09d5add6c278e833b3328a238d786c91489f32",
-      "public": true,
-      "sourceOnly": false,
-      "shipping": true,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-13.webp",
-      "type": "texture/image",
-      "phase": "boot/world",
-      "bytes": 37106,
-      "sha256": "a27114e042c0113c08ddd80330eaed523445b5d677da730d83a0e4aabe6202e0",
-      "public": true,
-      "sourceOnly": false,
-      "shipping": true,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-17.webp",
-      "type": "texture/image",
-      "phase": "boot/world",
-      "bytes": 37396,
-      "sha256": "aa74d8d1dfcb905bcd51b80fb54a90fbc596de180a39f6079ba690666f292418",
-      "public": true,
-      "sourceOnly": false,
-      "shipping": true,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-9.webp",
-      "type": "texture/image",
-      "phase": "boot/world",
-      "bytes": 102386,
-      "sha256": "b20f0ff43648903522beec08ec2092aaf491071a6f7d095ad064ea53001ad61a",
+      "bytes": 557,
+      "sha256": "1beb80bd55d227fba6a764f70e8e36d3da145204eca4935e374960ca944be7a2",
       "public": true,
       "sourceOnly": false,
       "shipping": true,
@@ -1136,6 +1413,91 @@
       "exclusionCandidate": false
     },
     {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-10.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 44132,
+      "sha256": "f30464f5ed05bdce1fc8609905b0956cef11d177db16d6b9a892afd8060c0172",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1280,
+        "height": 828,
+        "pixels": 1059840,
+        "estimatedRgba8Bytes": 4239360
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-12.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 76194,
+      "sha256": "12e79c6d204ec932d8a9e404ce09d5add6c278e833b3328a238d786c91489f32",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1280,
+        "height": 828,
+        "pixels": 1059840,
+        "estimatedRgba8Bytes": 4239360
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-13.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 37106,
+      "sha256": "a27114e042c0113c08ddd80330eaed523445b5d677da730d83a0e4aabe6202e0",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1280,
+        "height": 828,
+        "pixels": 1059840,
+        "estimatedRgba8Bytes": 4239360
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-17.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 37396,
+      "sha256": "aa74d8d1dfcb905bcd51b80fb54a90fbc596de180a39f6079ba690666f292418",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1280,
+        "height": 828,
+        "pixels": 1059840,
+        "estimatedRgba8Bytes": 4239360
+      }
+    },
+    {
+      "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/optimized/FL-9.webp",
+      "type": "texture/image",
+      "phase": "boot/world",
+      "bytes": 102386,
+      "sha256": "b20f0ff43648903522beec08ec2092aaf491071a6f7d095ad064ea53001ad61a",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1280,
+        "height": 828,
+        "pixels": 1059840,
+        "estimatedRgba8Bytes": 4239360
+      }
+    },
+    {
       "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-10.jpg",
       "type": "texture/image",
       "phase": "source-only",
@@ -1144,7 +1506,13 @@
       "public": true,
       "sourceOnly": true,
       "shipping": true,
-      "exclusionCandidate": true
+      "exclusionCandidate": true,
+      "image": {
+        "width": 5100,
+        "height": 3300,
+        "pixels": 16830000,
+        "estimatedRgba8Bytes": 67320000
+      }
     },
     {
       "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-12.jpg",
@@ -1155,7 +1523,13 @@
       "public": true,
       "sourceOnly": true,
       "shipping": true,
-      "exclusionCandidate": true
+      "exclusionCandidate": true,
+      "image": {
+        "width": 3400,
+        "height": 2200,
+        "pixels": 7480000,
+        "estimatedRgba8Bytes": 29920000
+      }
     },
     {
       "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-13.jpg",
@@ -1166,7 +1540,13 @@
       "public": true,
       "sourceOnly": true,
       "shipping": true,
-      "exclusionCandidate": true
+      "exclusionCandidate": true,
+      "image": {
+        "width": 5100,
+        "height": 3300,
+        "pixels": 16830000,
+        "estimatedRgba8Bytes": 67320000
+      }
     },
     {
       "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-17.jpg",
@@ -1177,7 +1557,13 @@
       "public": true,
       "sourceOnly": true,
       "shipping": true,
-      "exclusionCandidate": true
+      "exclusionCandidate": true,
+      "image": {
+        "width": 5100,
+        "height": 3300,
+        "pixels": 16830000,
+        "estimatedRgba8Bytes": 67320000
+      }
     },
     {
       "path": "apps/web/public/exhibits/projector-selection/arch_treehabitat/source/FL-9.jpg",
@@ -1188,18 +1574,13 @@
       "public": true,
       "sourceOnly": true,
       "shipping": true,
-      "exclusionCandidate": true
-    },
-    {
-      "path": "apps/web/public/exhibits/projector-selection/README.md",
-      "type": "documentation/license",
-      "phase": "boot/world",
-      "bytes": 557,
-      "sha256": "1beb80bd55d227fba6a764f70e8e36d3da145204eca4935e374960ca944be7a2",
-      "public": true,
-      "sourceOnly": false,
-      "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": true,
+      "image": {
+        "width": 5101,
+        "height": 3301,
+        "pixels": 16838401,
+        "estimatedRgba8Bytes": 67353604
+      }
     },
     {
       "path": "apps/web/public/favicon.svg",
@@ -1375,7 +1756,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1267,
+        "height": 280,
+        "pixels": 354760,
+        "estimatedRgba8Bytes": 1419040
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-demo.png",
@@ -1386,7 +1773,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1267,
+        "height": 280,
+        "pixels": 354760,
+        "estimatedRgba8Bytes": 1419040
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-done-en.png",
@@ -1397,7 +1790,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1206,
+        "height": 280,
+        "pixels": 337680,
+        "estimatedRgba8Bytes": 1350720
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-done.png",
@@ -1408,7 +1807,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1206,
+        "height": 280,
+        "pixels": 337680,
+        "estimatedRgba8Bytes": 1350720
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-esc-en.png",
@@ -1419,7 +1824,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 875,
+        "height": 280,
+        "pixels": 245000,
+        "estimatedRgba8Bytes": 980000
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-esc.png",
@@ -1430,7 +1841,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 875,
+        "height": 280,
+        "pixels": 245000,
+        "estimatedRgba8Bytes": 980000
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-look-en.png",
@@ -1441,7 +1858,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1176,
+        "height": 280,
+        "pixels": 329280,
+        "estimatedRgba8Bytes": 1317120
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-look.png",
@@ -1452,7 +1875,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1176,
+        "height": 280,
+        "pixels": 329280,
+        "estimatedRgba8Bytes": 1317120
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-move-en.png",
@@ -1463,7 +1892,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1107,
+        "height": 280,
+        "pixels": 309960,
+        "estimatedRgba8Bytes": 1239840
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-move.png",
@@ -1474,7 +1909,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1107,
+        "height": 280,
+        "pixels": 309960,
+        "estimatedRgba8Bytes": 1239840
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-notice-en.png",
@@ -1485,7 +1926,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1500,
+        "height": 360,
+        "pixels": 540000,
+        "estimatedRgba8Bytes": 2160000
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-notice.png",
@@ -1496,7 +1943,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1500,
+        "height": 360,
+        "pixels": 540000,
+        "estimatedRgba8Bytes": 2160000
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-relock-en.png",
@@ -1507,7 +1960,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1359,
+        "height": 280,
+        "pixels": 380520,
+        "estimatedRgba8Bytes": 1522080
+      }
     },
     {
       "path": "apps/web/public/onboarding/space-onboarding-relock.png",
@@ -1518,29 +1977,13 @@
       "public": true,
       "sourceOnly": false,
       "shipping": true,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "BlenderFile/gallery_main.blend",
-      "type": "3d",
-      "phase": "source-only",
-      "bytes": 28362740,
-      "sha256": "e80dc4712976ab3d3f71910e4695167c36920346c2226a860bb006c9b1ddb5d9",
-      "public": false,
-      "sourceOnly": true,
-      "shipping": false,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "BlenderFile/space_main.blend",
-      "type": "3d",
-      "phase": "source-only",
-      "bytes": 5282722,
-      "sha256": "d92aafc3f347397d654565c3f06e0d648ef1c34ed3b00362ed38aa8fefacc67b",
-      "public": false,
-      "sourceOnly": true,
-      "shipping": false,
-      "exclusionCandidate": false
+      "exclusionCandidate": false,
+      "image": {
+        "width": 1359,
+        "height": 280,
+        "pixels": 380520,
+        "estimatedRgba8Bytes": 1522080
+      }
     },
     {
       "path": "docs/assets/space-exhibit-index.xlsx",
@@ -1562,14 +2005,6 @@
       "apps/web/dist/assets/index-I0UOGeAQ.js"
     ],
     "files": [
-      {
-        "path": "apps/web/dist/assets/appRoutes-9iuV0131.js",
-        "type": "javascript",
-        "phase": "shared/app-shell",
-        "bytes": 7502,
-        "gzipBytes": 3044,
-        "sha256": "3acf797d089b14e41d2efe3010753f7dbdc156b185481ee3f8c824e0b15baf51"
-      },
       {
         "path": "apps/web/dist/assets/DesktopApp-CX-rB1be.js",
         "type": "javascript",
@@ -1603,44 +2038,12 @@
         "sha256": "0788d165cde06d598408fd02a04413ae57a27bf8b29344a0e3d57fcdfe35f1cd"
       },
       {
-        "path": "apps/web/dist/assets/exhibitLabels.generated-CiZ2zMDQ.js",
-        "type": "javascript",
-        "phase": "shared/other",
-        "bytes": 285,
-        "gzipBytes": 185,
-        "sha256": "7accfddb63674961a9563c74f743248290bd2d7e9fcd6b7feb1d8638ec181f0d"
-      },
-      {
-        "path": "apps/web/dist/assets/exhibitTarget-BA0_SxHj.js",
-        "type": "javascript",
-        "phase": "shared/other",
-        "bytes": 5499,
-        "gzipBytes": 2699,
-        "sha256": "52117ec951770a2d265e59c72fe5325907f536a26d175e2b355bd9c0bd9f040e"
-      },
-      {
         "path": "apps/web/dist/assets/FocusOverlay-CKfWzmFV.js",
         "type": "javascript",
         "phase": "focus/work",
         "bytes": 31247,
         "gzipBytes": 10087,
         "sha256": "aaac203ef1e1afd282217019f252cb5f0f3e9273cc4ad6df2eecd300a1723ce8"
-      },
-      {
-        "path": "apps/web/dist/assets/index-DbEa81DE.css",
-        "type": "stylesheet",
-        "phase": "shared/app-shell",
-        "bytes": 84394,
-        "gzipBytes": 15459,
-        "sha256": "c0308779fdc571ec454feeb80d57484c2c4fc9234ca5e94ad734ad0aac571a4d"
-      },
-      {
-        "path": "apps/web/dist/assets/index-I0UOGeAQ.js",
-        "type": "javascript",
-        "phase": "shared/app-shell",
-        "bytes": 150134,
-        "gzipBytes": 46660,
-        "sha256": "dff2ddcfaf18aab739ee53a025ec492caed9fb79d71ecad74b6d9906b6de685e"
       },
       {
         "path": "apps/web/dist/assets/MobileApp-BopSXKVA.js",
@@ -1657,6 +2060,54 @@
         "bytes": 186,
         "gzipBytes": 172,
         "sha256": "46336db9943774cdc8207fceebc8918230ef51f676dbb47f8685a7bd277a1fae"
+      },
+      {
+        "path": "apps/web/dist/assets/SpaceHost-DZkUxIwl.js",
+        "type": "javascript",
+        "phase": "boot/world",
+        "bytes": 78193,
+        "gzipBytes": 24710,
+        "sha256": "c2c06cfea00f4874adf885b28284f60d4bcf7376e730b84a938fbe88a4cf6550"
+      },
+      {
+        "path": "apps/web/dist/assets/appRoutes-9iuV0131.js",
+        "type": "javascript",
+        "phase": "shared/app-shell",
+        "bytes": 7502,
+        "gzipBytes": 3044,
+        "sha256": "3acf797d089b14e41d2efe3010753f7dbdc156b185481ee3f8c824e0b15baf51"
+      },
+      {
+        "path": "apps/web/dist/assets/exhibitLabels.generated-CiZ2zMDQ.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 285,
+        "gzipBytes": 185,
+        "sha256": "7accfddb63674961a9563c74f743248290bd2d7e9fcd6b7feb1d8638ec181f0d"
+      },
+      {
+        "path": "apps/web/dist/assets/exhibitTarget-BA0_SxHj.js",
+        "type": "javascript",
+        "phase": "shared/other",
+        "bytes": 5499,
+        "gzipBytes": 2699,
+        "sha256": "52117ec951770a2d265e59c72fe5325907f536a26d175e2b355bd9c0bd9f040e"
+      },
+      {
+        "path": "apps/web/dist/assets/index-DbEa81DE.css",
+        "type": "stylesheet",
+        "phase": "shared/app-shell",
+        "bytes": 84394,
+        "gzipBytes": 15459,
+        "sha256": "c0308779fdc571ec454feeb80d57484c2c4fc9234ca5e94ad734ad0aac571a4d"
+      },
+      {
+        "path": "apps/web/dist/assets/index-I0UOGeAQ.js",
+        "type": "javascript",
+        "phase": "shared/app-shell",
+        "bytes": 150134,
+        "gzipBytes": 46660,
+        "sha256": "dff2ddcfaf18aab739ee53a025ec492caed9fb79d71ecad74b6d9906b6de685e"
       },
       {
         "path": "apps/web/dist/assets/rapier-vendor-DEvu4GBG.js",
@@ -1689,14 +2140,6 @@
         "bytes": 694,
         "gzipBytes": 422,
         "sha256": "5db5ba82eef00d1dee7e86e663098c9427d01183a88d357437daff295aec3e75"
-      },
-      {
-        "path": "apps/web/dist/assets/SpaceHost-DZkUxIwl.js",
-        "type": "javascript",
-        "phase": "boot/world",
-        "bytes": 78193,
-        "gzipBytes": 24710,
-        "sha256": "c2c06cfea00f4874adf885b28284f60d4bcf7376e730b84a938fbe88a4cf6550"
       },
       {
         "path": "apps/web/dist/assets/spaceVisualSettings-fYxI7wxN.js",

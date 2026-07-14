@@ -1,8 +1,19 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, extname, relative, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -10,6 +21,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..")
 const sourceRoot = resolve(repoRoot, "apps/web/src");
 const auditScript = resolve(repoRoot, "scripts/audit-space-assets.mjs");
 const committedReport = resolve(repoRoot, "docs/performance/space-asset-inventory.json");
+const packageJsonPath = resolve(repoRoot, "package.json");
 
 function digest(path) {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -78,7 +90,7 @@ test("asset audit is deterministic, content-addressed, and matches real files", 
   const first = await createAssetInventory({ repoRoot });
   const second = await createAssetInventory({ repoRoot });
   assert.deepEqual(second, first);
-  assert.equal(first.schemaVersion, 1);
+  assert.equal(first.schemaVersion, 2);
   assert(first.assets.length > 0);
   assert(first.build.files.some((asset) => asset.path.includes("rapier-vendor")));
   for (const asset of [...first.assets, ...first.build.files]) {
@@ -93,6 +105,151 @@ test("asset audit is deterministic, content-addressed, and matches real files", 
     assert(Number.isInteger(asset.glb.accessorLogicalBytes) && asset.glb.accessorLogicalBytes >= 0);
     assert(Number.isInteger(asset.glb.bufferBytes) && asset.glb.bufferBytes >= 0);
   }
+});
+
+test("full inventory fails actionably when build evidence is absent", async () => {
+  const { createBuildEvidence } = await import(pathToFileURL(auditScript).href);
+  const emptyRoot = mkdtempSync(resolve(tmpdir(), "space-missing-dist-"));
+  try {
+    assert.throws(
+      () => createBuildEvidence({ repoRoot: emptyRoot }),
+      /Build evidence is required.*npm run build:chunks/i,
+    );
+  } finally {
+    rmSync(emptyRoot, { recursive: true, force: true });
+  }
+});
+
+test("report output is restricted to the approved repository evidence path", async () => {
+  const { resolveApprovedReportOutput } = await import(pathToFileURL(auditScript).href);
+  assert.equal(
+    resolveApprovedReportOutput({ repoRoot, candidate: "docs/performance/space-asset-inventory.json" }),
+    committedReport,
+  );
+  const outside = resolve(tmpdir(), "space-assets-outside.json");
+  for (const candidate of [
+    "../../outside.json",
+    outside,
+    "apps/web/public/models/space_main.glb",
+    "apps/web/src/generated/space-asset-inventory.json",
+    "docs/assets/space-asset-inventory.json",
+  ]) {
+    assert.throws(() => resolveApprovedReportOutput({ repoRoot, candidate }), /approved report path/i, candidate);
+  }
+});
+
+test("report output rejects symlinked targets and parent directories", async () => {
+  const { resolveApprovedReportOutput } = await import(pathToFileURL(auditScript).href);
+  const temp = mkdtempSync(resolve(tmpdir(), "space-output-link-"));
+  const outside = resolve(temp, "outside");
+  const fakeRoot = resolve(temp, "repo");
+  const targetLinkRoot = resolve(temp, "target-link-repo");
+  mkdirSync(outside, { recursive: true });
+  mkdirSync(fakeRoot, { recursive: true });
+  mkdirSync(resolve(targetLinkRoot, "docs/performance"), { recursive: true });
+  try {
+    symlinkSync(outside, resolve(fakeRoot, "docs"), "junction");
+    assert.throws(
+      () => resolveApprovedReportOutput({ repoRoot: fakeRoot, candidate: "docs/performance/space-asset-inventory.json" }),
+      /symbolic link|reparse/i,
+    );
+    symlinkSync(outside, resolve(targetLinkRoot, "docs/performance/space-asset-inventory.json"), "junction");
+    assert.throws(
+      () => resolveApprovedReportOutput({ repoRoot: targetLinkRoot, candidate: "docs/performance/space-asset-inventory.json" }),
+      /symbolic link|reparse/i,
+    );
+  } finally {
+    rmSync(temp, { recursive: true, force: true });
+  }
+});
+
+test("CLI output rejects unsafe destinations without creating them", () => {
+  const outside = resolve(tmpdir(), `space-inventory-${process.pid}.json`);
+  rmSync(outside, { force: true });
+  for (const candidate of [outside, "apps/web/public/unsafe-inventory.json", "apps/web/src/generated/inventory.json"]) {
+    const result = spawnSync(process.execPath, [auditScript, "--output", candidate], { cwd: repoRoot, encoding: "utf8" });
+    assert.notEqual(result.status, 0, candidate);
+    assert.match(result.stderr, /approved report path/i);
+  }
+  assert.equal(existsSync(outside), false);
+});
+
+test("PNG, JPEG, and WebP headers expose qualified RGBA8 estimates", async () => {
+  const { readImageMetadataFromBuffer } = await import(pathToFileURL(auditScript).href);
+  const png = Buffer.alloc(24);
+  Buffer.from("89504e470d0a1a0a", "hex").copy(png);
+  png.writeUInt32BE(320, 16);
+  png.writeUInt32BE(180, 20);
+  const jpeg = Buffer.from("ffd8ffc00011080010002003011100021100031100ffd9", "hex");
+  const webp = Buffer.alloc(30);
+  webp.write("RIFF", 0, "ascii");
+  webp.write("WEBP", 8, "ascii");
+  webp.write("VP8X", 12, "ascii");
+  webp.writeUInt32LE(10, 16);
+  webp.writeUIntLE(299, 24, 3);
+  webp.writeUIntLE(199, 27, 3);
+  for (const [buffer, extension, width, height] of [
+    [png, ".png", 320, 180],
+    [jpeg, ".jpg", 32, 16],
+    [webp, ".webp", 300, 200],
+  ]) {
+    assert.deepEqual(readImageMetadataFromBuffer(buffer, extension), {
+      width,
+      height,
+      pixels: width * height,
+      estimatedRgba8Bytes: width * height * 4,
+    });
+  }
+});
+
+test("actual raster assets include dimensions and decoded exposure aggregates", async () => {
+  const { createAssetInventory } = await import(pathToFileURL(auditScript).href);
+  const inventory = await createAssetInventory({ repoRoot });
+  const rasterAssets = inventory.assets.filter((asset) => [".png", ".jpg", ".jpeg", ".webp"].includes(extname(asset.path).toLowerCase()));
+  assert(rasterAssets.length > 0);
+  for (const asset of rasterAssets) {
+    assert(asset.image?.width > 0 && asset.image?.height > 0, asset.path);
+    assert.equal(asset.image.pixels, asset.image.width * asset.image.height);
+    assert.equal(asset.image.estimatedRgba8Bytes, asset.image.pixels * 4);
+  }
+  assert.equal(inventory.totals.imageDecodedExposure.files, rasterAssets.length);
+  assert.equal(
+    inventory.totals.imageDecodedExposure.estimatedRgba8Bytes,
+    rasterAssets.reduce((sum, asset) => sum + asset.image.estimatedRgba8Bytes, 0),
+  );
+  assert(inventory.totals.largestImages.length > 0);
+});
+
+test("GLB parsing rejects unsupported versions and impossible chunk bounds before allocation", async () => {
+  const { readGlbMetadata } = await import(pathToFileURL(auditScript).href);
+  const temp = mkdtempSync(resolve(tmpdir(), "space-invalid-glb-"));
+  const writeGlb = (name, { version = 2, declaredBytes = 20, jsonBytes = 0 }) => {
+    const path = resolve(temp, name);
+    const buffer = Buffer.alloc(20);
+    buffer.writeUInt32LE(0x46546c67, 0);
+    buffer.writeUInt32LE(version, 4);
+    buffer.writeUInt32LE(declaredBytes, 8);
+    buffer.writeUInt32LE(jsonBytes, 12);
+    buffer.writeUInt32LE(0x4e4f534a, 16);
+    writeFileSync(path, buffer);
+    return path;
+  };
+  try {
+    assert.deepEqual(readGlbMetadata(writeGlb("v1.glb", { version: 1 })), { valid: false, error: "unsupported-version" });
+    assert.deepEqual(readGlbMetadata(writeGlb("length.glb", { declaredBytes: 200 })), { valid: false, error: "declared-length-mismatch" });
+    assert.deepEqual(readGlbMetadata(writeGlb("bounds.glb", { jsonBytes: 0xfffffff0 })), { valid: false, error: "json-chunk-out-of-bounds" });
+  } finally {
+    rmSync(temp, { recursive: true, force: true });
+  }
+});
+
+test("release scripts build before checking the report without recursive build", () => {
+  const scripts = JSON.parse(readFileSync(packageJsonPath, "utf8")).scripts;
+  assert.equal(scripts["test:asset-budget"], "node --test apps/web/tests/performance/asset-budget.test.mjs");
+  assert.match(scripts["asset:audit"], /^npm run build:chunks && node scripts\/audit-space-assets\.mjs --output /);
+  assert.match(scripts["asset:check"], /^npm run build:chunks && node scripts\/audit-space-assets\.mjs --check [^&]+ && npm run test:asset-budget$/);
+  assert.match(scripts["verify:release"], /npm run asset:check/);
+  assert.doesNotMatch(scripts["asset:check"], /verify:release|asset:check/);
 });
 
 test("semantic source assets remain inventoried and current public shipping is reported truthfully", async () => {

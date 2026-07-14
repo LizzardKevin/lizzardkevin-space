@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import {
   closeSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readFileSync,
@@ -17,6 +18,7 @@ import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
 
 const defaultRepoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const APPROVED_REPORT_PATH = "docs/performance/space-asset-inventory.json";
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_CHUNK = 0x4e4f534a;
 const ASSET_EXTENSIONS = new Set([
@@ -33,12 +35,44 @@ function portablePath(root, path) {
   return relative(root, path).replaceAll("\\", "/");
 }
 
+function compareText(left, right) {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
 function walk(directory) {
   if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = resolve(directory, entry.name);
-    return entry.isDirectory() ? walk(path) : [path];
+    const status = lstatSync(path);
+    if (status.isSymbolicLink()) throw new Error(`Symbolic link/reparse point is not allowed in asset inventory: ${path}`);
+    return status.isDirectory() ? walk(path) : [path];
   });
+}
+
+function assertNoSymlinkComponents(root, target) {
+  let current = resolve(root);
+  if (existsSync(current) && lstatSync(current).isSymbolicLink()) {
+    throw new Error(`Symbolic link/reparse point is not allowed for report output: ${current}`);
+  }
+  const parts = portablePath(current, target).split("/").filter(Boolean);
+  for (const part of parts) {
+    current = resolve(current, part);
+    if (existsSync(current) && lstatSync(current).isSymbolicLink()) {
+      throw new Error(`Symbolic link/reparse point is not allowed for report output: ${current}`);
+    }
+  }
+}
+
+export function resolveApprovedReportOutput({ repoRoot = defaultRepoRoot, candidate }) {
+  const normalizedRoot = resolve(repoRoot);
+  const approved = resolve(normalizedRoot, APPROVED_REPORT_PATH);
+  const requested = resolve(normalizedRoot, candidate ?? "");
+  const equal = process.platform === "win32"
+    ? requested.toLowerCase() === approved.toLowerCase()
+    : requested === approved;
+  if (!equal) throw new Error(`--output is restricted to the approved report path: ${APPROVED_REPORT_PATH}`);
+  assertNoSymlinkComponents(normalizedRoot, approved);
+  return approved;
 }
 
 function sha256(path) {
@@ -85,16 +119,79 @@ function inferPhase(path) {
   return "shared/other";
 }
 
+function imageDimensions(width, height) {
+  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0) return null;
+  const pixels = width * height;
+  if (!Number.isSafeInteger(pixels) || !Number.isSafeInteger(pixels * 4)) return null;
+  return { width, height, pixels, estimatedRgba8Bytes: pixels * 4 };
+}
+
+function readPngDimensions(buffer) {
+  if (buffer.length < 24 || !buffer.subarray(0, 8).equals(Buffer.from("89504e470d0a1a0a", "hex"))) return null;
+  return imageDimensions(buffer.readUInt32BE(16), buffer.readUInt32BE(20));
+}
+
+function readJpegDimensions(buffer) {
+  if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) return null;
+  const startOfFrameMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf]);
+  let offset = 2;
+  while (offset + 1 < buffer.length) {
+    while (offset < buffer.length && buffer[offset] === 0xff) offset += 1;
+    if (offset >= buffer.length) break;
+    const marker = buffer[offset];
+    offset += 1;
+    if (marker === 0xd9 || marker === 0xda) break;
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+    if (offset + 2 > buffer.length) return null;
+    const segmentLength = buffer.readUInt16BE(offset);
+    if (segmentLength < 2 || offset + segmentLength > buffer.length) return null;
+    if (startOfFrameMarkers.has(marker)) {
+      if (segmentLength < 7) return null;
+      return imageDimensions(buffer.readUInt16BE(offset + 5), buffer.readUInt16BE(offset + 3));
+    }
+    offset += segmentLength;
+  }
+  return null;
+}
+
+function readWebpDimensions(buffer) {
+  if (buffer.length < 30 || buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WEBP") return null;
+  const chunk = buffer.toString("ascii", 12, 16);
+  if (chunk === "VP8X") {
+    return imageDimensions(buffer.readUIntLE(24, 3) + 1, buffer.readUIntLE(27, 3) + 1);
+  }
+  if (chunk === "VP8 " && buffer[23] === 0x9d && buffer[24] === 0x01 && buffer[25] === 0x2a) {
+    return imageDimensions(buffer.readUInt16LE(26) & 0x3fff, buffer.readUInt16LE(28) & 0x3fff);
+  }
+  if (chunk === "VP8L" && buffer[20] === 0x2f) {
+    const bits = buffer.readUInt32LE(21);
+    return imageDimensions((bits & 0x3fff) + 1, ((bits >>> 14) & 0x3fff) + 1);
+  }
+  return null;
+}
+
+export function readImageMetadataFromBuffer(buffer, extension) {
+  const ext = extension.toLowerCase();
+  if (ext === ".png") return readPngDimensions(buffer);
+  if (ext === ".jpg" || ext === ".jpeg") return readJpegDimensions(buffer);
+  if (ext === ".webp") return readWebpDimensions(buffer);
+  return null;
+}
+
 export function readGlbMetadata(path) {
+  const fileBytes = statSync(path).size;
   const fd = openSync(path, "r");
   try {
     const header = Buffer.alloc(20);
     if (readSync(fd, header, 0, header.length, 0) !== header.length || header.readUInt32LE(0) !== GLB_MAGIC) {
       return { valid: false, error: "not-glb" };
     }
+    if (header.readUInt32LE(4) !== 2) return { valid: false, error: "unsupported-version" };
+    if (header.readUInt32LE(8) !== fileBytes) return { valid: false, error: "declared-length-mismatch" };
     const jsonLength = header.readUInt32LE(12);
     const chunkType = header.readUInt32LE(16);
     if (chunkType !== GLB_JSON_CHUNK || jsonLength <= 0) return { valid: false, error: "missing-json-chunk" };
+    if (jsonLength > fileBytes - 20) return { valid: false, error: "json-chunk-out-of-bounds" };
     const jsonBuffer = Buffer.alloc(jsonLength);
     if (readSync(fd, jsonBuffer, 0, jsonLength, 20) !== jsonLength) return { valid: false, error: "truncated-json-chunk" };
     const document = JSON.parse(jsonBuffer.toString("utf8").replace(/\u0000+$/g, "").trimEnd());
@@ -156,7 +253,13 @@ function inventoryAsset(repoRoot, path) {
     shipping: publicAsset,
     exclusionCandidate: publicAsset && sourceOnly,
   };
-  if (extname(path).toLowerCase() === ".glb") item.glb = readGlbMetadata(path);
+  const extension = extname(path).toLowerCase();
+  if (extension === ".glb") item.glb = readGlbMetadata(path);
+  if ([".png", ".jpg", ".jpeg", ".webp"].includes(extension)) {
+    const image = readImageMetadataFromBuffer(readFileSync(path), extension);
+    if (!image) throw new Error(`Unsupported or invalid ${extension} image header: ${repoPath}`);
+    item.image = image;
+  }
   return item;
 }
 
@@ -182,7 +285,29 @@ function totalsBy(items, key) {
     group.bytes += item.bytes;
     groups[label] = group;
   }
-  return Object.fromEntries(Object.entries(groups).sort(([left], [right]) => left.localeCompare(right)));
+  return Object.fromEntries(Object.entries(groups).sort(([left], [right]) => compareText(left, right)));
+}
+
+function imageExposureTotals(assets) {
+  const images = assets.filter((asset) => asset.image);
+  return {
+    files: images.length,
+    pixels: images.reduce((sum, asset) => sum + asset.image.pixels, 0),
+    estimatedRgba8Bytes: images.reduce((sum, asset) => sum + asset.image.estimatedRgba8Bytes, 0),
+    qualification: "width*height*4 logical RGBA8 only; excludes mipmaps, GPU compression, alignment, and extra decoded/upload copies",
+  };
+}
+
+function imageExposureByPhase(assets) {
+  const groups = {};
+  for (const asset of assets.filter((item) => item.image)) {
+    const group = groups[asset.phase] ?? { files: 0, pixels: 0, estimatedRgba8Bytes: 0 };
+    group.files += 1;
+    group.pixels += asset.image.pixels;
+    group.estimatedRgba8Bytes += asset.image.estimatedRgba8Bytes;
+    groups[asset.phase] = group;
+  }
+  return Object.fromEntries(Object.entries(groups).sort(([left], [right]) => compareText(left, right)));
 }
 
 function parseBuildEntrypoints(distRoot, repoRoot) {
@@ -193,10 +318,10 @@ function parseBuildEntrypoints(distRoot, repoRoot) {
     .map((match) => match[1])
     .filter((path) => path.includes("/assets/") || path.startsWith("./assets/"))
     .map((path) => portablePath(repoRoot, resolve(distRoot, path.replace(/^\.\//, ""))))
-    .sort();
+    .sort(compareText);
 }
 
-export async function createAssetInventory({ repoRoot = defaultRepoRoot } = {}) {
+export function createSourceAssetInventory({ repoRoot = defaultRepoRoot } = {}) {
   const normalizedRoot = resolve(repoRoot);
   const discoveryRoots = ["apps/web/public", "BlenderFile", "docs/assets"]
     .map((path) => resolve(normalizedRoot, path))
@@ -205,24 +330,12 @@ export async function createAssetInventory({ repoRoot = defaultRepoRoot } = {}) 
     .flatMap(walk)
     .filter((path) => portablePath(normalizedRoot, path).startsWith("apps/web/public/")
       || ASSET_EXTENSIONS.has(extname(path).toLowerCase()))
-    .sort((left, right) => portablePath(normalizedRoot, left).localeCompare(portablePath(normalizedRoot, right)))
+    .sort((left, right) => compareText(portablePath(normalizedRoot, left), portablePath(normalizedRoot, right)))
     .map((path) => inventoryAsset(normalizedRoot, path));
-
-  const distRoot = resolve(normalizedRoot, "apps/web/dist");
-  const buildPaths = existsSync(distRoot)
-    ? [resolve(distRoot, "index.html"), ...walk(resolve(distRoot, "assets"))].filter(existsSync)
-    : [];
-  const buildFiles = buildPaths
-    .sort((left, right) => portablePath(normalizedRoot, left).localeCompare(portablePath(normalizedRoot, right)))
-    .map((path) => inventoryBuildFile(normalizedRoot, path));
-
+  const imageAssets = assets.filter((asset) => asset.image);
   return {
-    schemaVersion: 1,
-    scope: {
-      discoveryRoots: discoveryRoots.map((path) => portablePath(normalizedRoot, path)),
-      publicDirectoryShipsVerbatim: true,
-      browserMeasurements: "pending_browser_capture",
-    },
+    discoveryRoots: discoveryRoots.map((path) => portablePath(normalizedRoot, path)),
+    assets,
     totals: {
       assets: { files: assets.length, bytes: assets.reduce((sum, item) => sum + item.bytes, 0) },
       publicShipping: {
@@ -233,24 +346,66 @@ export async function createAssetInventory({ repoRoot = defaultRepoRoot } = {}) 
         files: assets.filter((item) => item.sourceOnly).length,
         bytes: assets.filter((item) => item.sourceOnly).reduce((sum, item) => sum + item.bytes, 0),
       },
+      imageDecodedExposure: imageExposureTotals(assets),
+      imageDecodedExposureByPhase: imageExposureByPhase(assets),
+      largestImages: [...imageAssets]
+        .sort((left, right) => right.image.estimatedRgba8Bytes - left.image.estimatedRgba8Bytes || compareText(left.path, right.path))
+        .slice(0, 10)
+        .map((asset) => ({ path: asset.path, ...asset.image })),
       byPhase: totalsBy(assets, "phase"),
       byType: totalsBy(assets, "type"),
     },
-    assets,
-    build: {
-      available: existsSync(distRoot),
-      manifest: existsSync(resolve(distRoot, ".vite/manifest.json"))
-        ? portablePath(normalizedRoot, resolve(distRoot, ".vite/manifest.json"))
-        : null,
-      entrypoints: parseBuildEntrypoints(distRoot, normalizedRoot),
-      files: buildFiles,
-      totals: {
-        files: buildFiles.length,
-        bytes: buildFiles.reduce((sum, item) => sum + item.bytes, 0),
-        gzipBytes: buildFiles.reduce((sum, item) => sum + (item.gzipBytes ?? 0), 0),
-        byPhase: totalsBy(buildFiles, "phase"),
-      },
+  };
+}
+
+export function createBuildEvidence({ repoRoot = defaultRepoRoot, distRoot } = {}) {
+  const normalizedRoot = resolve(repoRoot);
+  const normalizedDistRoot = resolve(distRoot ?? resolve(normalizedRoot, "apps/web/dist"));
+  const indexPath = resolve(normalizedDistRoot, "index.html");
+  const assetsRoot = resolve(normalizedDistRoot, "assets");
+  if (!existsSync(indexPath) || !existsSync(assetsRoot)) {
+    throw new Error("Build evidence is required for the full SPACE asset report. Run npm run build:chunks first.");
+  }
+  const buildPaths = [indexPath, ...walk(assetsRoot)];
+  const buildFiles = buildPaths
+    .sort((left, right) => compareText(portablePath(normalizedRoot, left), portablePath(normalizedRoot, right)))
+    .map((path) => inventoryBuildFile(normalizedRoot, path));
+  const manifestPath = resolve(normalizedDistRoot, ".vite/manifest.json");
+  const manifest = existsSync(manifestPath)
+    ? {
+        path: portablePath(normalizedRoot, manifestPath),
+        entries: Object.keys(JSON.parse(readFileSync(manifestPath, "utf8"))).sort(compareText),
+      }
+    : null;
+  return {
+    available: true,
+    manifest,
+    entrypoints: parseBuildEntrypoints(normalizedDistRoot, normalizedRoot),
+    files: buildFiles,
+    totals: {
+      files: buildFiles.length,
+      bytes: buildFiles.reduce((sum, item) => sum + item.bytes, 0),
+      gzipBytes: buildFiles.reduce((sum, item) => sum + (item.gzipBytes ?? 0), 0),
+      byPhase: totalsBy(buildFiles, "phase"),
     },
+  };
+}
+
+export async function createAssetInventory({ repoRoot = defaultRepoRoot, distRoot } = {}) {
+  const normalizedRoot = resolve(repoRoot);
+  const source = createSourceAssetInventory({ repoRoot: normalizedRoot });
+  const build = createBuildEvidence({ repoRoot: normalizedRoot, distRoot });
+
+  return {
+    schemaVersion: 2,
+    scope: {
+      discoveryRoots: source.discoveryRoots,
+      publicDirectoryShipsVerbatim: true,
+      browserMeasurements: "pending_browser_capture",
+    },
+    totals: source.totals,
+    assets: source.assets,
+    build,
   };
 }
 
@@ -259,14 +414,21 @@ export function serializeInventory(inventory) {
 }
 
 async function main(args) {
-  const inventory = await createAssetInventory();
-  const serialized = serializeInventory(inventory);
   const checkIndex = args.indexOf("--check");
   const outputIndex = args.indexOf("--output");
+  if (checkIndex >= 0 && outputIndex >= 0) throw new Error("Use only one of --check or --output");
+  let approvedOutput = null;
+  if (outputIndex >= 0) {
+    const reportPath = args[outputIndex + 1];
+    if (!reportPath) throw new Error("--output requires a report path");
+    approvedOutput = resolveApprovedReportOutput({ repoRoot: defaultRepoRoot, candidate: reportPath });
+  }
+  const inventory = await createAssetInventory();
+  const serialized = serializeInventory(inventory);
   if (checkIndex >= 0) {
     const reportPath = args[checkIndex + 1];
     if (!reportPath) throw new Error("--check requires a report path");
-    const expected = readFileSync(resolve(reportPath), "utf8").replace(/\r\n/g, "\n");
+    const expected = readFileSync(resolve(defaultRepoRoot, reportPath), "utf8").replace(/\r\n/g, "\n");
     if (expected !== serialized) {
       process.stderr.write(`Asset inventory differs from ${reportPath}. Regenerate after a verified build.\n`);
       process.exitCode = 1;
@@ -276,12 +438,9 @@ async function main(args) {
     return;
   }
   if (outputIndex >= 0) {
-    const reportPath = args[outputIndex + 1];
-    if (!reportPath) throw new Error("--output requires a report path");
-    const absolutePath = resolve(reportPath);
-    mkdirSync(dirname(absolutePath), { recursive: true });
-    writeFileSync(absolutePath, serialized, "utf8");
-    process.stdout.write(`Wrote ${portablePath(defaultRepoRoot, absolutePath)}.\n`);
+    mkdirSync(dirname(approvedOutput), { recursive: true });
+    writeFileSync(approvedOutput, serialized, "utf8");
+    process.stdout.write(`Wrote ${portablePath(defaultRepoRoot, approvedOutput)}.\n`);
     return;
   }
   process.stdout.write(serialized);
