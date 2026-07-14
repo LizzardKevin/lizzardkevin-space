@@ -3161,7 +3161,7 @@ button {
 .topbar__settingsPanel {
   position: absolute;
   top: 42px;
-  left: 50%;
+  left: clamp(16px, calc(50% + 44px), calc(100% - 376px));
   z-index: 12;
   display: grid;
   box-sizing: border-box;
@@ -3176,7 +3176,7 @@ button {
   color: var(--space-paper);
   font-size: 12px;
   pointer-events: auto;
-  transform: translateX(44px);
+  transform: none;
 }
 
 .topbar__settingsRow {

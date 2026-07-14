@@ -117,6 +117,27 @@ const galleryModel = readProjectFile("apps/web/src/scenes/gallery/GalleryModel.t
 const materials = readProjectFile("apps/web/src/scenes/gallery/galleryStyleMaterials.ts");
 const player = readProjectFile("apps/web/src/scenes/Player/PlayerController.tsx");
 const css = readProjectFile("apps/web/src/styles/global.css");
+const packageJson = JSON.parse(readProjectFile("package.json"));
+
+assert.match(
+  packageJson.scripts["test:contracts"],
+  /node apps\/web\/tests\/space\/visual-system\.contract-test\.mjs/,
+  "the release-reachable contract suite must execute the visual-system contract",
+);
+assert.match(
+  packageJson.scripts["verify:quick"],
+  /npm run test:contracts/,
+  "verify:quick must retain the release path to visual-system contracts",
+);
+assert.match(
+  packageJson.scripts["test:browser-baseline"],
+  /apps\/web\/tests\/performance\/browser-baseline\.test\.mjs/,
+);
+assert.match(
+  packageJson.scripts["posttest:browser-baseline"],
+  /apps\/web\/tests\/performance\/browser-candidate-report\.test\.mjs/,
+  "the manual browser-report lifecycle must validate both baseline and candidate evidence",
+);
 
 assert.match(desktopApp, /SPACE_VISUAL_CSS_PROPERTIES/);
 assert.match(desktopApp, /className="desktop-app"/);
@@ -154,12 +175,19 @@ assert.equal(declarationValue(button, "text-shadow"), "none");
 assert.equal(declarationValue(settings, "width"), "32px");
 assert.equal(declarationValue(settings, "height"), "32px");
 assert.equal(declarationValue(settings, "border-radius"), "0");
+assert.equal(declarationValue(panel, "width"), "calc(100vw - 32px)");
 assert.equal(declarationValue(panel, "max-width"), "360px");
 assert.equal(
   declarationValue(panel, "box-sizing"),
   "border-box",
   "the 360px settings-panel limit must include padding and border",
 );
+assert.equal(
+  declarationValue(panel, "left"),
+  "clamp(16px, calc(50% + 44px), calc(100% - 376px))",
+  "the panel must preserve its right-side composition while clamping to a 16px viewport gutter",
+);
+assert.equal(declarationValue(panel, "transform"), "none");
 assert.equal(declarationValue(panel, "padding"), "12px");
 assert.equal(declarationValue(panel, "gap"), "10px");
 assert.equal(declarationValue(panel, "background"), "var(--space-hud-panel)");
