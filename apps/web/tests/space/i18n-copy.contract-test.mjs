@@ -85,6 +85,7 @@ for (const [sourceName, source, keys] of [
 }
 
 assert(desktopApp.includes('t("route.workRequiresSpace"'), "cold work route must use i18n");
+assert(desktopApp.includes('"route.enterSpace"'), "valid cold work route must use generic SPACE entry copy");
 assert(appRoutes.includes('t("route.notFound"'), "desktop not-found must use i18n");
 assert(appRoutes.includes('t("route.notFoundTerminal"'), "terminal not-found must use i18n");
 assert(desktop.includes('t("route.invalidWorkReturn"'), "invalid exhibit route must use i18n");
@@ -97,6 +98,7 @@ for (const key of [
   "rendererUnavailableBody",
   "rendererLoadFailed",
   "workRequiresSpace",
+  "enterSpace",
   "notFound",
   "notFoundTerminal",
   "invalidWorkReturn",

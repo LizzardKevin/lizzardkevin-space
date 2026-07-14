@@ -5,7 +5,6 @@ import { buildExhibitTarget, isExhibitWithinRange, type ExhibitTarget } from "..
 import { findSceneExhibitRoot } from "./exhibitPlacement.ts";
 import { useExhibitInteractionTargets } from "./exhibitInteractionRegistry";
 import { publishSpaceRaycastDebug } from "../debug/spaceMovementDebug";
-import { resumeSpaceFirstPersonOnGestureIfPending } from "../../space/requestSpacePointerLock";
 
 const EXHIBIT_INTERACTION_RAYCAST_FAR = 30;
 
@@ -155,11 +154,10 @@ export function ExhibitRaycast({
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       if (!isSpaceCanvasInput(e)) return;
-      resumeSpaceFirstPersonOnGestureIfPending();
       tryFocus();
     };
 
-    // capture + pointerdown：与 pointer lock 用户手势同帧，且早于 PointerLockControls 的 document click。
+    // capture + pointerdown：先解析展品交互；pointer lock 只由 GuardedPointerLockControls 的 click owner 请求。
     window.addEventListener("pointerdown", onPointerDown, true);
     return () => {
       window.removeEventListener("pointerdown", onPointerDown, true);

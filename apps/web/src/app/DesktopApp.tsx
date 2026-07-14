@@ -33,7 +33,7 @@ function ColdWorkRoute({ exhibitId }: { exhibitId: string }) {
   return (
     <main role="main" className="app-route-layer app-route-message">
       <p>{known ? t("route.workRequiresSpace", { id: exhibitId }) : t("route.notFound")}</p>
-      <Link to="/">{t("route.invalidWorkReturn")}</Link>
+      <Link to="/">{t(known ? "route.enterSpace" : "route.invalidWorkReturn")}</Link>
     </main>
   );
 }

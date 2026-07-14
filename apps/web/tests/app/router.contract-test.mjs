@@ -34,6 +34,7 @@ assert.match(mobile, /PersistentMobileExperienceBoundary/);
 assert(!/key=\{(?:route|decoded|view)/.test(mobile), "mobile canonical routes must not key the experience by route");
 assert.match(desktop, /<Link\s+to=["']\/["']/);
 assert.match(desktop, /known\s*\?\s*t\(["']route\.workRequiresSpace/);
+assert.match(desktop, /known\s*\?\s*["']route\.enterSpace["']\s*:\s*["']route\.invalidWorkReturn["']/);
 assert.match(globalCss, /\.app-route-layer\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?z-index:\s*70;/);
 
 assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/space\/SpaceHost["']\)\)/);

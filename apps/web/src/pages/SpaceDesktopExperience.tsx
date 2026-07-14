@@ -60,7 +60,6 @@ import {
 } from "../space/spaceDailyResume";
 import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
-import { requestPointerLockFromReadyCanvasGesture } from "../space/canvasGesturePointerLock";
 
 const FocusOverlay = lazy(() =>
   import("../exhibits/FocusOverlay").then((module) => ({
@@ -165,7 +164,6 @@ export function SpaceDesktopExperience({
   const projectorSlideCommandNonceRef = useRef(0);
   const devFocusOpenedRef = useRef(false);
   const rendererOwnerMountedRef = useRef(true);
-  const readyCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const { quality, settings } = useSpaceVisualSettings();
   const [rendererRuntime, setRendererRuntime] = useState<{
     requestedProfile: "full" | "simplified";
@@ -444,19 +442,6 @@ export function SpaceDesktopExperience({
     setCrosshairPulseNonce((n) => n + 1);
   }, [controlsEnabled]);
 
-  const handleCanvasPointerDown = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      requestPointerLockFromReadyCanvasGesture({
-        gestureTarget: event.target,
-        readyCanvas: resolvedProfile === null ? null : readyCanvasRef.current,
-        controlsEligible: controlsEnabled && entered,
-        pointerLocked: document.pointerLockElement !== null,
-        request: resumeSpaceFirstPersonWithCursorReturn,
-      });
-    },
-    [controlsEnabled, entered, resolvedProfile],
-  );
-
   const handleConsumeSuppressedClick = useCallback(() => {
     if (suppressNextExhibitClick) setSuppressNextExhibitClick(false);
   }, [suppressNextExhibitClick]);
@@ -539,7 +524,6 @@ export function SpaceDesktopExperience({
         ) : (
           <div
             className={`space-canvasWrap${entered ? "" : " space-canvasWrap--entry"}${entryIsFading ? " space-canvasWrap--entryFading" : ""}${spaceRenderPaused ? " space-canvasWrap--disabled" : ""}`}
-            onPointerDown={handleCanvasPointerDown}
           >
             <Canvas
               key={`space-canvas-${rendererRuntime.requestedProfile}-${rendererRuntime.nonce}`}
@@ -593,7 +577,6 @@ export function SpaceDesktopExperience({
               shadows={resolvedProfile ? resolvedProfile.shadows && useShadows : false}
               onCreated={({ gl }) => {
                 gl.domElement.id = "space-canvas";
-                readyCanvasRef.current = gl.domElement;
               }}
             >
               {resolvedProfile ? (

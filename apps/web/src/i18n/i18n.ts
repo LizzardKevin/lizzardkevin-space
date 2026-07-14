@@ -37,12 +37,14 @@ export const runtimeResourceAugmentation = {
 export const runtimeRouteResourceAugmentation = {
   en: {
     workRequiresSpace: "Work {{id}} is available after entering SPACE.",
+    enterSpace: "Enter SPACE",
     notFound: "404 — Page not found",
     notFoundTerminal: "$ route: 404 not found",
     invalidWorkReturn: "404 — return to SPACE",
   },
   zh: {
     workRequiresSpace: "进入 SPACE 后可查看作品 {{id}}。",
+    enterSpace: "进入 SPACE",
     notFound: "404 — 页面不存在",
     notFoundTerminal: "$ route: 404 路径不存在",
     invalidWorkReturn: "404 — 返回 SPACE",

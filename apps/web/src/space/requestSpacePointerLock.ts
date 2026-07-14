@@ -90,7 +90,7 @@ function engageSpaceFirstPersonNow(opts: { entered: boolean; overlayOpen: boolea
 
 /**
  * Focus 用 ESC 退出：同一 keydown 内 requestPointerLock 会被浏览器 ESC 默认行为立刻解锁。
- * 在 keyup 后再锁定；若仍失败则等下一次 SPACE pointerdown 补锁。
+ * 在 keyup 后再尝试锁定；后续真实 Canvas click 仍由 GuardedPointerLockControls 唯一处理。
  */
 export function resumeSpaceFirstPersonAfterEscape(opts: { entered: boolean; overlayOpen: boolean }) {
   const onKeyUp = (e: KeyboardEvent) => {
@@ -99,24 +99,7 @@ export function resumeSpaceFirstPersonAfterEscape(opts: { entered: boolean; over
     requestSpaceCursorReturn({ target: "center" });
     window.setTimeout(() => {
       engageSpaceFirstPersonNow(opts);
-      queueMicrotask(() => {
-        if (document.pointerLockElement) {
-          pendingGestureResume = false;
-          return;
-        }
-        pendingGestureResume = true;
-      });
     }, 500);
   };
   window.addEventListener("keyup", onKeyUp);
-}
-
-/** ESC 补锁：下一次 SPACE 画布点击/指针按下时同步调用。 */
-export function resumeSpaceFirstPersonOnGestureIfPending() {
-  if (!pendingGestureResume || document.pointerLockElement) {
-    pendingGestureResume = false;
-    return;
-  }
-  pendingGestureResume = false;
-  resumeSpaceFirstPerson();
 }
