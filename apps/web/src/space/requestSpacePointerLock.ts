@@ -68,6 +68,7 @@ function trackPendingPointerLock(el: HTMLElement, requestId: number) {
 
 /** 在用户点击/按键回调中同步调用，避免 rAF 导致手势失效。 */
 export function requestSpacePointerLock(requestId = reserveSpacePointerLockRequestId()) {
+  pendingEscapePointerLockRecovery?.cancel();
   const canvas = resolveSpacePointerLockTarget();
   if (canvas) {
     trackPendingPointerLock(canvas, requestId);

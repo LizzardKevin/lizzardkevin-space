@@ -227,6 +227,28 @@ test("a newer Escape recovery cancels the older pending recovery", async () => {
   );
 });
 
+test("a normal pointer-lock request cancels an older pending Escape recovery", async () => {
+  const pointerLockCalls = [];
+  await withMockedPointerLockBrowser(
+    (canvas) => pointerLockCalls.push(canvas),
+    ({ dispatchWindowEvent, listenerCount, pointerLock, runAllTimers }) => {
+      pointerLock.resumeSpaceFirstPersonAfterEscape(
+        { entered: true, overlayOpen: false },
+        451,
+      );
+
+      assert.equal(pointerLock.requestSpacePointerLock(452), 452);
+      dispatchWindowEvent("keyup", { key: "Escape" });
+      runAllTimers();
+
+      assert.equal(pointerLockCalls.length, 1);
+      assert.equal(listenerCount("keyup"), 0);
+      assert.equal(listenerCount("blur"), 0);
+      assert.equal(listenerCount("pagehide"), 0);
+    },
+  );
+});
+
 for (const lifecycleEvent of ["blur", "pagehide"]) {
   test(`${lifecycleEvent} cancels a relock already scheduled by Escape keyup`, async () => {
     const pointerLockCalls = [];
