@@ -1,8 +1,10 @@
-import fs from "node:fs";
+import * as fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import XLSX from "xlsx";
+
+XLSX.set_fs(fs);
 
 const repoRoot = process.cwd();
 const workbookPath = path.join(repoRoot, "docs/assets/space-exhibit-index.xlsx");

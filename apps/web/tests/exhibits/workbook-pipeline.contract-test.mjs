@@ -1,9 +1,11 @@
 ﻿import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import fs from "node:fs";
+import * as fs from "node:fs";
 import test from "node:test";
 import XLSX from "xlsx";
 import { projectPath } from "../helpers/projectPaths.mjs";
+
+XLSX.set_fs(fs);
 
 const WORKBOOK_PATH = projectPath("docs/assets/space-exhibit-index.xlsx");
 const GENERATOR_PATH = projectPath("scripts/generate-space-content.mjs");

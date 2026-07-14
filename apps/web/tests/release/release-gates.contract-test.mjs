@@ -32,7 +32,11 @@ test("the release gate runs every approved automated phase in order", () => {
   );
   assert.equal(
     scripts["test:release-gates"],
-    "node --test apps/web/tests/release/release-gates.contract-test.mjs",
+    "node --test apps/web/tests/release/release-gates.contract-test.mjs && npm run test:dependency-security",
+  );
+  assert.equal(
+    scripts["test:dependency-security"],
+    "node --test apps/web/tests/release/dependency-security.contract-test.mjs",
   );
   assert.match(scripts["verify:quick"], / && npm run test:release-gates$/);
 });
