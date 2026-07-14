@@ -3,44 +3,16 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import {
+  dynamicImportSpecifiers,
+  hasUnresolvedDynamicImport,
+  staticDependencySpecifiers,
+} from "../helpers/dependencySpecifiers.mjs";
 
 const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const sourceRoot = resolve(workspaceRoot, "apps/web/src");
 const sourcePath = (relativePath) => resolve(sourceRoot, relativePath);
 const readSource = (relativePath) => readFileSync(sourcePath(relativePath), "utf8").replace(/\r\n/g, "\n");
-
-function staticDependencySpecifiers(source) {
-  const matches = [];
-  const patterns = [
-    /^\s*import\s+(?!type\b)(?:["']([^"']+)["']|[\s\S]*?\sfrom\s+["']([^"']+)["'])\s*;?/gm,
-    /^\s*export\s+(?:\*(?:\s+as\s+[\w$]+)?|\{[\s\S]*?\})\s+from\s+["']([^"']+)["']\s*;?/gm,
-  ];
-  for (const pattern of patterns) {
-    for (const match of source.matchAll(pattern)) {
-      matches.push({ index: match.index, specifier: match[1] ?? match[2] });
-    }
-  }
-  return matches.sort((left, right) => left.index - right.index).map(({ specifier }) => specifier);
-}
-
-function dynamicImportSpecifiers(source) {
-  const matches = [];
-  const patterns = [
-    /\bimport\s*\(\s*"((?:\\.|[^"\\])*)"\s*(?=,|\))/g,
-    /\bimport\s*\(\s*'((?:\\.|[^'\\])*)'\s*(?=,|\))/g,
-    /\bimport\s*\(\s*`((?:\\.|[^`$\\])*)`\s*(?=,|\))/g,
-  ];
-  for (const pattern of patterns) {
-    for (const match of source.matchAll(pattern)) {
-      matches.push({ index: match.index, specifier: match[1] });
-    }
-  }
-  return matches.sort((left, right) => left.index - right.index).map(({ specifier }) => specifier);
-}
-
-function hasUnresolvedDynamicImport(source) {
-  return /\bimport\s*\(\s*`(?:\\.|[^`\\])*\$\{(?:\\.|[^`\\])*\}(?:\\.|[^`\\])*`\s*(?=,|\))/.test(source);
-}
 
 const requiredShells = ["app/DesktopApp.tsx", "app/MobileApp.tsx"];
 for (const shell of requiredShells) {
@@ -82,6 +54,27 @@ test("dependency extractor reports dynamic import specifiers separately", () => 
 
 test("dependency extractor rejects interpolated dynamic import templates", () => {
   assert.equal(hasUnresolvedDynamicImport(syntheticDependencies), true);
+});
+
+test("dependency extractor reads literal dynamic imports after an options comment", () => {
+  assert.deepEqual(
+    dynamicImportSpecifiers('const workbook = import(/* webpackChunkName: "sheet" */ "xlsx/xlsx.mjs");'),
+    ["xlsx/xlsx.mjs"],
+  );
+});
+
+test("dependency extractor ignores import examples in comments and documentation literals", () => {
+  const documentation = [
+    '// import "xlsx";',
+    'const inlineDocs = \'import "xlsx"\';',
+    "const templateDocs = `",
+    'import "xlsx";',
+    'const example = import("xlsx/xlsx.mjs");',
+    "`;",
+  ].join("\n");
+
+  assert.deepEqual(staticDependencySpecifiers(documentation), []);
+  assert.deepEqual(dynamicImportSpecifiers(documentation), []);
 });
 
 test("App loading fallback is a stable accessible white status surface", () => {

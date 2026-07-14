@@ -4,12 +4,12 @@ import { tmpdir } from "node:os";
 import { dirname, extname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { extractDependencySpecifiers } from "../helpers/dependencySpecifiers.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const sheetJsTarball = "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz";
 const sheetJsIntegrity = "sha512-oLDq3jw7AcLqKWH2AhCpVTZl8mf6X2YReP+Neh0SJUzV/BdZYjth94tG5toiMB1PPrYtxOCfaoUCkvtuH+3AJA==";
 const sourceExtensions = new Set([".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".mts", ".cts"]);
-const xlsxImport = /(?:\b(?:from|import)\s*|\bimport\s*\(\s*|\brequire\s*\(\s*)["']xlsx(?:\/[^"']*)?["']/;
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -27,6 +27,15 @@ function assertLockedSheetJs(lockedPackage) {
   assert.equal(lockedPackage.version, "0.20.3");
   assert.equal(lockedPackage.resolved, sheetJsTarball);
   assert.equal(lockedPackage.integrity, sheetJsIntegrity);
+}
+
+function sheetJsSpecifiers(source, fileName) {
+  const dependencies = extractDependencySpecifiers(source, fileName);
+  return [
+    ...dependencies.staticSpecifiers,
+    ...dependencies.dynamicSpecifiers,
+    ...dependencies.requireSpecifiers,
+  ].filter((specifier) => specifier === "xlsx" || specifier.startsWith("xlsx/"));
 }
 
 test("the lock contract rejects a different well-formed SHA-512 integrity", () => {
@@ -67,15 +76,23 @@ test("the browser scanner rejects bare and subpath SheetJS module specifiers", (
     'const core = require("xlsx/dist/xlsx.core.min.js");',
     'const XLSX = await import("xlsx");',
     'const mini = await import("xlsx/dist/xlsx.mini.min.js");',
+    'const workbook = import(/* webpackChunkName: "sheet" */ "xlsx/xlsx.mjs");',
   ];
-  for (const source of forbiddenFixtures) assert.match(source, xlsxImport, source);
+  for (const source of forbiddenFixtures) {
+    assert.notDeepEqual(sheetJsSpecifiers(source), [], source);
+  }
 
   const allowedFixtures = [
     'const label = "xlsx";',
     'import local from "./xlsx";',
     'import compatible from "xlsx-compatible";',
+    '// import "xlsx";',
+    'const docs = \'import "xlsx"\';',
+    "const templateDocs = `\nimport \"xlsx\";\n`;",
   ];
-  for (const source of allowedFixtures) assert.doesNotMatch(source, xlsxImport, source);
+  for (const source of allowedFixtures) {
+    assert.deepEqual(sheetJsSpecifiers(source), [], source);
+  }
 });
 
 test("the root development dependency uses the exact audited SheetJS tarball", () => {
@@ -101,7 +118,7 @@ test("the browser workspace has no SheetJS runtime dependency or source import",
   assert.equal(webPackage.devDependencies?.xlsx, undefined);
 
   for (const path of sourceFiles(resolve(repoRoot, "apps/web/src"))) {
-    assert.doesNotMatch(readFileSync(path, "utf8"), xlsxImport, path);
+    assert.deepEqual(sheetJsSpecifiers(readFileSync(path, "utf8"), path), [], path);
   }
 });
 
