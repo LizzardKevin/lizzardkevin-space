@@ -8,15 +8,15 @@ function readProjectFile(path) {
   return readFileSync(resolve(repoRoot, path), "utf8");
 }
 
-const desktopExperience = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
+const canvasHost = readProjectFile("apps/web/src/space/SpaceCanvasHost.tsx");
 const warningFilter = readProjectFile("apps/web/src/runtime/suppressThirdPartyDeprecationWarnings.ts");
 
 const filterImport = 'import "../runtime/suppressThirdPartyDeprecationWarnings"';
 const canvasImport = 'import { Canvas } from "@react-three/fiber"';
 
 assert(
-  desktopExperience.includes(filterImport) &&
-    desktopExperience.indexOf(filterImport) < desktopExperience.indexOf(canvasImport),
+  canvasHost.includes(filterImport) &&
+    canvasHost.indexOf(filterImport) < canvasHost.indexOf(canvasImport),
   "runtime warning filter must install in the lazy desktop SPACE chunk before R3F Canvas is imported",
 );
 

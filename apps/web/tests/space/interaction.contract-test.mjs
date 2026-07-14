@@ -43,8 +43,9 @@ assert(
 );
 assert(
   files.desktop.includes("const spaceRenderPaused = focusSurfaceOpen || routeBlocked") &&
-    files.desktop.includes('frameloop={spaceRenderPaused ? "never" : "always"}') &&
-    files.desktop.includes("spaceRenderPaused ? \" space-canvasWrap--disabled\" : \"\""),
+    files.desktop.includes("paused={spaceRenderPaused}") &&
+    files.canvasHost.includes('frameloop={paused ? "never" : "always"}') &&
+    files.canvasHost.includes("paused ? \" space-canvasWrap--disabled\" : \"\""),
   "SPACE Canvas must pause its render loop while Focus, LizzardKevin, or DevStories overlays are open",
 );
 assert(
@@ -54,7 +55,7 @@ assert(
   "SPACE exhibit hover raycast should not use the reverted proxy target path",
 );
 assert(
-  files.desktop.includes("projector-controls-hint") && files.css.includes(".projector-controls-hint"),
+  files.hud.includes("projector-controls-hint") && files.css.includes(".projector-controls-hint"),
   "projector hover must expose a small center-bottom Q/E hint outside the 3D mesh",
 );
 const projectorHintRule = cssRule(files.css, ".projector-controls-hint");

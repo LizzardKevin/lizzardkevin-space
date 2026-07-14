@@ -4,6 +4,7 @@ import { readSourceFile } from "../helpers/projectPaths.mjs";
 const entrySplash = readSourceFile("components/entry/EntrySplash.tsx");
 const topbar = readSourceFile("components/TopBar.tsx");
 const desktop = readSourceFile("pages/SpaceDesktopExperience.tsx");
+const hud = readSourceFile("space/SpaceHud.tsx");
 const player = readSourceFile("scenes/Player/PlayerController.tsx");
 const overlay = readSourceFile("overlay/OverlayLayer.tsx");
 const playback = readSourceFile("media/PlaybackBar.tsx");
@@ -30,13 +31,15 @@ for (const [sourceName, source, keys] of [
     "SpaceDesktopExperience",
     desktop,
     [
-      "space.projector.previous",
-      "space.projector.next",
       "space.exhibitLoading",
       "space.manifestMissing",
       "space.pointerLockFailed",
-      "space.loading",
     ],
+  ],
+  [
+    "SpaceHud",
+    hud,
+    ["space.projector.previous", "space.projector.next", "space.loading"],
   ],
   [
     "WebGPUUnavailable",
@@ -88,7 +91,7 @@ assert(desktopApp.includes('t("route.workRequiresSpace"'), "cold work route must
 assert(desktopApp.includes('"route.enterSpace"'), "valid cold work route must use generic SPACE entry copy");
 assert(appRoutes.includes('t("route.notFound"'), "desktop not-found must use i18n");
 assert(appRoutes.includes('t("route.notFoundTerminal"'), "terminal not-found must use i18n");
-assert(desktop.includes('t("route.invalidWorkReturn"'), "invalid exhibit route must use i18n");
+assert(hud.includes('t("route.invalidWorkReturn"'), "invalid exhibit route must use i18n");
 
 for (const key of [
   "quality",
@@ -126,6 +129,7 @@ for (const hardcoded of [
     ["EntrySplash", entrySplash],
     ["TopBar", topbar],
     ["SpaceDesktopExperience", desktop],
+    ["SpaceHud", hud],
     ["PlayerController", player],
     ["OverlayLayer", overlay],
     ["PlaybackBar", playback],

@@ -100,6 +100,7 @@ assert.equal(existsSync(projectPath("scripts/place-treehabitat-anchor-on-platfor
 assert.equal(existsSync(projectPath("scripts/inject-space-main-anchors.mjs")), false);
 
 const spaceDesktopExperience = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
+const spaceCanvasHost = readProjectFile("apps/web/src/space/SpaceCanvasHost.tsx");
 const focusOverlay = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
 const galleryModel = readProjectFile("apps/web/src/scenes/gallery/GalleryModel.tsx");
 const sceneExhibitPlacement = readProjectFile("apps/web/src/scenes/exhibits/SceneExhibitPlacement.tsx");
@@ -108,7 +109,7 @@ assert.match(spaceDesktopExperience, /loadExhibits/);
 assert.match(focusOverlay, /applyTreeHabitatSharedMaterials/);
 assert.match(focusOverlay, /exhibitId=\{exhibit\.exhibitId\}/);
 assert.match(spaceDesktopExperience, /manifestResolved/);
-assert.match(spaceDesktopExperience, /onExhibitReady={handleExhibitReady}/);
+assert.match(spaceCanvasHost, /onExhibitReady={handleExhibitReady}/);
 assert.match(sceneExhibitPlacement, /onExhibitDeferred/);
 assert.match(spaceScene, /loadExhibits/);
 assert.match(galleryModel, /loadExhibits/);

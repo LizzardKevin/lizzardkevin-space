@@ -145,6 +145,8 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
   const desktopApp = readSourceFile("app", "DesktopApp.tsx");
   const host = readSourceFile("space", "SpaceHost.tsx");
   const experience = readSourceFile("pages", "SpaceDesktopExperience.tsx");
+  const canvasHost = readSourceFile("space", "SpaceCanvasHost.tsx");
+  const hud = readSourceFile("space", "SpaceHud.tsx");
   const scene = readSourceFile("scenes", "SpaceScene.tsx");
   const gallery = readSourceFile("scenes", "gallery", "GalleryModel.tsx");
   const exhibits = readSourceFile("scenes", "exhibits", "SceneExhibitPlacement.tsx");
@@ -155,8 +157,8 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
   assert.doesNotMatch(host, /\.start\(\)/, "mounting SpaceHost must not start Boot");
   assert.match(host, /const bootPhase = boot\.state\.phase/);
   assert.match(host, /if \(bootPhase === "running"\) startFade\(\)/);
-  assert.match(experience, /milestoneReady\(attemptId, "renderer"\)/);
-  assert.match(experience, /milestoneReady\(attemptId, "physics"\)/);
+  assert.match(canvasHost, /milestoneReady\(attemptId, "renderer"\)/);
+  assert.match(canvasHost, /milestoneReady\(attemptId, "physics"\)/);
   assert.match(experience, /manifestResolved\(\s*attemptId,/);
   assert.match(gallery, /milestoneReady\(attemptId, "environment"\)|onEnvironmentReady/);
   assert.match(gallery, /milestoneReady\(attemptId, "gallery"\)|onGalleryReady/);
@@ -164,33 +166,33 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
   assert.match(exhibits, /onExhibitFailed/);
   assert.match(exhibits, /onExhibitDeferred/);
   assert.match(
-    experience,
+    canvasHost,
     /key=\{`space-canvas-\$\{attemptId\}-\$\{requestedProfile\}`\}/,
     "a new attempt must synchronously replace the prior Canvas exactly once",
   );
   assert.match(
-    experience,
+    canvasHost,
     /bootState\.phase === "failed" \? null/,
     "a failed attempt must unmount its Canvas before manual retry",
   );
-  assert.match(experience, /resolvedProfile === null && !activeRendererError/);
-  assert.match(experience, /role="status"[\s\S]*t\("space\.loading"\)/);
-  assert.match(experience, /space-renderer-loading-indicator/);
+  assert.match(experience, /resolvedProfile === null && rendererError === null/);
+  assert.match(hud, /role="status"[\s\S]*t\("space\.loading"\)/);
+  assert.match(hud, /space-renderer-loading-indicator/);
   assert.match(globalCss, /\.space-renderer-loading-indicator[\s\S]*animation:/);
   assert.match(globalCss, /prefers-reduced-motion: reduce[\s\S]*\.space-renderer-loading-indicator/);
   assert.match(
-    experience,
-    /bootState\.phase === "booting" && bootState\.items\.total > 0/,
+    experience + hud,
+    /totalItems=\{bootState\.phase === "booting" \? bootState\.items\.total : 0\}[\s\S]*totalItems > 0/,
     "real Boot item counts are shown only while Boot itself is active",
   );
   assert.match(
-    experience,
+    canvasHost,
     /replaceWatchedBootRenderer\([\s\S]*ownedRendererRef,[\s\S]*rendererLossCleanupRef,[\s\S]*renderer/,
     "intentional replacement must detach the old loss watcher before disposal",
   );
-  assert.match(experience, /runForActiveRendererGeneration/g);
+  assert.match(canvasHost, /runForActiveRendererGeneration/g);
   assert.doesNotMatch(
-    host + experience + scene + gallery + exhibits,
+    host + experience + canvasHost + hud + scene + gallery + exhibits,
     /setInterval|requestAnimationFrame\([^)]*(?:boot|progress)|fakeProgress/,
   );
 });

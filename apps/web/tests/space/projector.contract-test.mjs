@@ -6,6 +6,7 @@ const slides = readProjectFile("apps/web/src/scenes/projector/projectorSlides.ts
 const slideshowHook = readProjectFile("apps/web/src/scenes/projector/useProjectorSlideshow.ts");
 const directory = readProjectFile("apps/web/src/scenes/projector/projectorImageDirectory.ts");
 const desktop = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
+const hud = readProjectFile("apps/web/src/space/SpaceHud.tsx");
 const spaceScene = readProjectFile("apps/web/src/scenes/SpaceScene.tsx");
 const galleryModel = readProjectFile("apps/web/src/scenes/gallery/GalleryModel.tsx");
 const packageJson = readProjectFile("package.json");
@@ -80,7 +81,7 @@ assert(
   "projector slide commands must be one-shot and must not replay on projector remount",
 );
 assert(
-  desktop.includes("ProjectorControlsHint") &&
+  hud.includes("ProjectorControlsHint") &&
     desktop.includes('event.code === "KeyE"') &&
     desktop.includes('event.code === "KeyQ"') &&
     desktop.includes('exhibitTarget?.interactionKind === "projector"') &&

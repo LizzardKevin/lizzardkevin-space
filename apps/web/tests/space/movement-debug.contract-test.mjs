@@ -6,9 +6,9 @@ assert(files.footsteps.includes("const SPRINT_SPEED = 3.85;"), "sprint speed mus
 assert(files.player.includes("horizontalVelocity.current.lerp(tmp.targetVel, blend);"), "movement must keep inertial accel/decel via velocity lerp");
 assert(files.player.includes("const MOVE_DECEL = 15;"), "movement stop inertia must keep the confirmed deceleration constant");
 assert(!files.player.includes("horizontalVelocity.current.copy(tmp.targetVel)"), "movement must not snap directly to the target velocity");
-assert(files.desktop.includes("const SPACE_PHYSICS_TIME_STEP = 1 / 60;"), "SPACE physics timestep must be explicit and fixed");
+assert(files.session.includes("const SPACE_PHYSICS_TIME_STEP = 1 / 60;"), "SPACE physics timestep must be explicit and fixed");
 assert(
-  files.desktop.includes("timeStep={SPACE_PHYSICS_TIME_STEP}"),
+  files.session.includes("timeStep={SPACE_PHYSICS_TIME_STEP}"),
   "SPACE Physics must use the fixed timestep constant",
 );
 assert(files.player.includes("const PLAYER_PHYSICS_TIME_STEP = 1 / 60;"), "player movement must use the fixed physics timestep");
@@ -122,7 +122,7 @@ for (const debugKey of [
   assert(files.debugOverlay.includes(`"${debugKey}"`), `movement debug overlay must read ${debugKey}`);
 }
 assert(files.debugOverlay.includes("raycastSample"), "debug overlay must store raycast debug samples");
-assert(files.desktop.includes("<SpaceMovementDebugOverlay />"), "desktop SPACE page must mount the movement debug overlay");
+assert(files.hud.includes("<SpaceMovementDebugOverlay />"), "SPACE HUD must mount the movement debug overlay");
 assert(files.css.includes(".space-movement-debug"), "movement debug panel CSS must exist");
 assert(files.colColliders.includes("registerSpaceCollisionDebugCollider"), "COL_* trimesh colliders must register debug names");
 assert(files.colColliders.includes("TrimeshCollider"), "COL_* meshes must use their baked mesh geometry");

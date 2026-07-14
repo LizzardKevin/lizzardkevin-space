@@ -15,6 +15,8 @@ const host = src("space/SpaceHost.tsx");
 const boundary = src("space/PersistentSpaceHostBoundary.ts");
 const coordinator = src("space/SpaceRouteCoordinator.tsx");
 const experience = src("pages/SpaceDesktopExperience.tsx");
+const canvasHost = src("space/SpaceCanvasHost.tsx");
+const hud = src("space/SpaceHud.tsx");
 const pose = src("space/spaceSessionPose.ts");
 const audioDirector = src("audio/AudioDirector.ts");
 
@@ -32,12 +34,13 @@ assert.match(coordinator, /routeBlocked/);
 assert.match(coordinator, /setRoutePaused\(pauseMainAudio\)/);
 assert(!coordinator.includes("usePlayback"), "route coordinator must not subscribe to unstable playback API state");
 assert.match(audioDirector, /setRoutePaused\(paused:\s*boolean\)/);
-assert.match(experience, /frameloop=\{spaceRenderPaused\s*\?\s*["']never["']\s*:\s*["']always["']\}/);
+assert.match(experience, /paused=\{spaceRenderPaused\}/);
+assert.match(canvasHost, /frameloop=\{paused\s*\?\s*["']never["']\s*:\s*["']always["']\}/);
 assert.match(experience, /routeBlocked/);
 assert.match(experience, /onNavigateToWork/);
 assert.match(experience, /onNavigateToSpace/);
 assert.match(experience, /invalidFocusedRoute/);
-assert.match(experience, /data-work-route-not-found/);
+assert.match(hud, /data-work-route-not-found/);
 assert.match(desktop, /route\.kind\s*===\s*["']space["']\s*&&\s*entry\.showSplash/);
 
 assert.match(pose, /sessionStorage/);
