@@ -1,7 +1,7 @@
 import "../runtime/suppressThirdPartyDeprecationWarnings";
 import { Canvas } from "@react-three/fiber";
 import { Physics, useRapier } from "@react-three/rapier";
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Crosshair } from "../components/Crosshair";
 import { SpaceCursorOverlay } from "../cursor/SpaceCursorOverlay";
@@ -64,9 +64,14 @@ import type { SpaceBootController } from "../boot/useSpaceBootController";
 import { watchRendererDeviceLoss } from "../boot/rendererDeviceLoss";
 import {
   disposeOwnedBootRenderer,
-  replaceOwnedBootRenderer,
+  replaceWatchedBootRenderer,
   type DisposableBootRenderer,
 } from "../boot/ownedBootRenderer";
+import {
+  createRendererGeneration,
+  resolveRendererGeneration,
+  runForActiveRendererGeneration,
+} from "../boot/rendererGeneration";
 
 const FocusOverlay = lazy(() =>
   import("../exhibits/FocusOverlay").then((module) => ({
@@ -222,6 +227,22 @@ export function SpaceDesktopExperience({
   const rendererLossCleanupRef = useRef<(() => void) | null>(null);
   const ownedRendererRef = useRef<DisposableBootRenderer | null>(null);
   const { quality, settings } = useSpaceVisualSettings();
+  const requestedProfile = bootState.forceWebGL ? "simplified" : settings.qualityPreset;
+  const [rendererGeneration, setRendererGeneration] = useState(() =>
+    createRendererGeneration(attemptId, requestedProfile),
+  );
+  if (
+    rendererGeneration.attemptId !== attemptId ||
+    rendererGeneration.requestedProfile !== requestedProfile
+  ) {
+    setRendererGeneration(
+      resolveRendererGeneration(rendererGeneration, attemptId, requestedProfile),
+    );
+  }
+  const rendererGenerationRef = useRef(rendererGeneration);
+  useLayoutEffect(() => {
+    rendererGenerationRef.current = rendererGeneration;
+  }, [rendererGeneration]);
   const [rendererRuntime, setRendererRuntime] = useState<{
     attemptId: number;
     requestedProfile: "full" | "simplified";
@@ -233,15 +254,16 @@ export function SpaceDesktopExperience({
     attemptId,
     requestedProfile: bootState.forceWebGL ? "simplified" : settings.qualityPreset,
     initialPose: initialResumePose,
-    nonce: 0,
+    nonce: rendererGeneration.nonce,
     resolvedProfile: null,
     error: null,
   }));
-  const requestedProfile = bootState.forceWebGL ? "simplified" : settings.qualityPreset;
   const rendererScopeMatches =
     rendererRuntime.attemptId === attemptId &&
-    rendererRuntime.requestedProfile === requestedProfile;
+    rendererRuntime.requestedProfile === requestedProfile &&
+    rendererRuntime.nonce === rendererGeneration.nonce;
   const resolvedProfile = rendererScopeMatches ? rendererRuntime.resolvedProfile : null;
+  const activeRendererError = rendererScopeMatches ? rendererRuntime.error : null;
 
   const { entered, fading: entryIsFading } = entry;
 
@@ -623,40 +645,80 @@ export function SpaceDesktopExperience({
                     canvas: props.canvas as HTMLCanvasElement,
                     requestedProfile,
                     onResolved: (resolution) => {
-                      setRendererRuntime((current) => {
-                        const switched = switchRendererProfileState(
-                          current,
-                          requestedProfile,
-                          latestSpacePoseRef.current ?? initialResumePose,
-                        );
-                        return {
-                          ...switched,
-                          attemptId,
-                          requestedProfile,
-                          initialPose: latestSpacePoseRef.current ?? initialResumePose,
-                          resolvedProfile: RENDERER_PROFILES[resolution.profile],
-                          error: null,
-                        };
-                      });
-                      milestoneReady(attemptId, "renderer");
+                      runForActiveRendererGeneration(
+                        rendererGenerationRef.current,
+                        rendererGeneration,
+                        () => {
+                          setRendererRuntime((current) => {
+                            if (!runForActiveRendererGeneration(
+                              rendererGenerationRef.current,
+                              rendererGeneration,
+                              () => undefined,
+                            )) return current;
+                            const switched = switchRendererProfileState(
+                              current,
+                              requestedProfile,
+                              latestSpacePoseRef.current ?? initialResumePose,
+                            );
+                            return {
+                              ...switched,
+                              attemptId,
+                              requestedProfile,
+                              nonce: rendererGeneration.nonce,
+                              initialPose: latestSpacePoseRef.current ?? initialResumePose,
+                              resolvedProfile: RENDERER_PROFILES[resolution.profile],
+                              error: null,
+                            };
+                          });
+                          milestoneReady(attemptId, "renderer");
+                        },
+                      );
                     },
                   }).then((renderer) => {
-                    replaceOwnedBootRenderer(ownedRendererRef, renderer);
-                    rendererLossCleanupRef.current?.();
+                    if (!runForActiveRendererGeneration(
+                      rendererGenerationRef.current,
+                      rendererGeneration,
+                      () => undefined,
+                    )) {
+                      renderer.dispose();
+                      throw new Error("Renderer initialization superseded by a newer generation");
+                    }
+                    replaceWatchedBootRenderer(
+                      ownedRendererRef,
+                      rendererLossCleanupRef,
+                      renderer,
+                    );
                     rendererLossCleanupRef.current = watchRendererDeviceLoss(
                       renderer,
                       props.canvas as HTMLCanvasElement,
-                      (error) => deviceLost(attemptId, error),
+                      (error) => {
+                        runForActiveRendererGeneration(
+                          rendererGenerationRef.current,
+                          rendererGeneration,
+                          () => deviceLost(attemptId, error),
+                        );
+                      },
                     );
                     return renderer;
                   }),
                   (error) => {
+                    if (!runForActiveRendererGeneration(
+                      rendererGenerationRef.current,
+                      rendererGeneration,
+                      () => undefined,
+                    )) return;
                     reportRendererInitializationErrorIfMounted(
                       () => rendererOwnerMountedRef.current,
                       (reportedError) => {
+                        if (!runForActiveRendererGeneration(
+                          rendererGenerationRef.current,
+                          rendererGeneration,
+                          () => undefined,
+                        )) return;
                         setRendererRuntime((current) =>
                           current.attemptId === attemptId &&
-                          current.requestedProfile === requestedProfile
+                          current.requestedProfile === requestedProfile &&
+                          current.nonce === rendererGeneration.nonce
                             ? {
                                 ...current,
                                 error:
@@ -761,7 +823,7 @@ export function SpaceDesktopExperience({
                 </>
               ) : null}
             </Canvas>
-            {bootState.phase === "booting" ? (
+            {resolvedProfile === null && !activeRendererError ? (
               <div
                 role="status"
                 style={{
@@ -778,8 +840,11 @@ export function SpaceDesktopExperience({
                   pointerEvents: "none",
                 }}
               >
-                {t("space.loading")}
-                {bootState.items.total > 0 ? (
+                <span>
+                  {t("space.loading")}
+                  <span className="space-renderer-loading-indicator" aria-hidden>•••</span>
+                </span>
+                {bootState.phase === "booting" && bootState.items.total > 0 ? (
                   <span>{bootState.items.loaded + bootState.items.failed + bootState.items.deferred}/{bootState.items.total}</span>
                 ) : null}
               </div>

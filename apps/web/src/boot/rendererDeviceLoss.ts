@@ -1,4 +1,4 @@
-type RendererLossInfo = { message?: string };
+type RendererLossInfo = { message?: string; reason?: string };
 type LossAwareRenderer = {
   backend?: object;
 };
@@ -8,6 +8,16 @@ type LossAwareBackend = {
   isWebGLBackend?: boolean;
   device?: { lost?: PromiseLike<RendererLossInfo> };
 };
+
+export function isIntentionalRendererLoss(info: RendererLossInfo) {
+  if (info.reason?.toLowerCase() === "destroyed") return true;
+  const message = info.message?.toLowerCase() ?? "";
+  return (
+    message.includes("disposed") ||
+    message.includes("dispose called") ||
+    (message.includes("destroy") && message.includes("intentional"))
+  );
+}
 
 export function watchRendererDeviceLoss(
   renderer: LossAwareRenderer,
@@ -32,6 +42,7 @@ export function watchRendererDeviceLoss(
   }
   if (backend?.isWebGPUBackend) {
     void backend.device?.lost?.then((info) => {
+      if (isIntentionalRendererLoss(info)) return;
       report(new Error(info.message || "WebGPU device lost"));
     });
   }

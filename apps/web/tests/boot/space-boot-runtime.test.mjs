@@ -6,7 +6,13 @@ import { watchRendererDeviceLoss } from "../../src/boot/rendererDeviceLoss.ts";
 import {
   disposeOwnedBootRenderer,
   replaceOwnedBootRenderer,
+  replaceWatchedBootRenderer,
 } from "../../src/boot/ownedBootRenderer.ts";
+import {
+  createRendererGeneration,
+  resolveRendererGeneration,
+  runForActiveRendererGeneration,
+} from "../../src/boot/rendererGeneration.ts";
 
 class FakeCanvas extends EventTarget {}
 
@@ -24,6 +30,50 @@ test("superseded boot renderers are disposed exactly once by their owner", () =>
   assert.equal(disposeOwnedBootRenderer(ref), true);
   assert.equal(disposeOwnedBootRenderer(ref), false);
   assert.equal(secondDisposals, 1);
+});
+
+test("renderer replacement cancels the prior loss watcher before disposal", () => {
+  let watcherActive = true;
+  let falseRecoveries = 0;
+  const rendererRef = {
+    current: {
+      dispose() {
+        if (watcherActive) falseRecoveries += 1;
+      },
+    },
+  };
+  const watcherRef = {
+    current: () => { watcherActive = false; },
+  };
+  const replacement = { dispose() {} };
+
+  replaceWatchedBootRenderer(rendererRef, watcherRef, replacement);
+  assert.equal(falseRecoveries, 0);
+  assert.equal(watcherRef.current, null);
+  assert.equal(rendererRef.current, replacement);
+});
+
+test("full to simplified to full ignores the oldest generation rejection", () => {
+  let active = createRendererGeneration(7, "full");
+  const oldestFull = active;
+  active = resolveRendererGeneration(active, 7, "simplified");
+  const simplified = active;
+  active = resolveRendererGeneration(active, 7, "full");
+  const latestFull = active;
+  const reports = [];
+
+  assert.equal(oldestFull.nonce, 0);
+  assert.equal(simplified.nonce, 1);
+  assert.equal(latestFull.nonce, 2);
+  assert.equal(
+    runForActiveRendererGeneration(active, oldestFull, () => reports.push("old reject")),
+    false,
+  );
+  assert.equal(
+    runForActiveRendererGeneration(active, latestFull, () => reports.push("latest resolve")),
+    true,
+  );
+  assert.deepEqual(reports, ["latest resolve"]);
 });
 
 test("WebGL context loss is observed once and cleanup rejects stale events", () => {
@@ -61,6 +111,32 @@ test("WebGPU loss promises are ignored after an attempt cleanup", async () => {
   assert.deepEqual(losses, []);
 });
 
+test("intentional WebGPU destruction is ignored while a real loss is reported", async () => {
+  let resolveDestroyed;
+  let resolveReal;
+  const destroyedLoss = new Promise((resolve) => { resolveDestroyed = resolve; });
+  const realLoss = new Promise((resolve) => { resolveReal = resolve; });
+  const losses = [];
+
+  watchRendererDeviceLoss(
+    { backend: { isWebGPUBackend: true, device: { lost: destroyedLoss } } },
+    new FakeCanvas(),
+    (error) => losses.push(error.message),
+  );
+  resolveDestroyed({ reason: "destroyed", message: "Device was intentionally destroyed" });
+  await Promise.resolve();
+  assert.deepEqual(losses, []);
+
+  watchRendererDeviceLoss(
+    { backend: { isWebGPUBackend: true, device: { lost: realLoss } } },
+    new FakeCanvas(),
+    (error) => losses.push(error.message),
+  );
+  resolveReal({ reason: "unknown", message: "adapter reset" });
+  await Promise.resolve();
+  assert.deepEqual(losses, ["adapter reset"]);
+});
+
 test("production wiring starts only from trusted Enter and uses real attempt-scoped signals", () => {
   const desktopApp = readSourceFile("app", "DesktopApp.tsx");
   const host = readSourceFile("space", "SpaceHost.tsx");
@@ -68,6 +144,7 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
   const scene = readSourceFile("scenes", "SpaceScene.tsx");
   const gallery = readSourceFile("scenes", "gallery", "GalleryModel.tsx");
   const exhibits = readSourceFile("scenes", "exhibits", "SceneExhibitPlacement.tsx");
+  const globalCss = readSourceFile("styles", "global.css");
 
   assert.match(desktopApp, /const boot = useSpaceBootController\(\)/);
   assert.match(desktopApp, /const onTrustedEnter[\s\S]*boot\.start\(\)[\s\S]*setSpaceStarted\(true\)/);
@@ -92,11 +169,22 @@ test("production wiring starts only from trusted Enter and uses real attempt-sco
     /bootState\.phase === "failed" \? null/,
     "a failed attempt must unmount its Canvas before manual retry",
   );
+  assert.match(experience, /resolvedProfile === null && !activeRendererError/);
+  assert.match(experience, /role="status"[\s\S]*t\("space\.loading"\)/);
+  assert.match(experience, /space-renderer-loading-indicator/);
+  assert.match(globalCss, /\.space-renderer-loading-indicator[\s\S]*animation:/);
+  assert.match(globalCss, /prefers-reduced-motion: reduce[\s\S]*\.space-renderer-loading-indicator/);
   assert.match(
     experience,
-    /bootState\.phase === "booting" \? \([\s\S]*role="status"[\s\S]*items\.loaded \+ bootState\.items\.failed/,
-    "the loading surface must remain until every real boot milestone settles",
+    /bootState\.phase === "booting" && bootState\.items\.total > 0/,
+    "real Boot item counts are shown only while Boot itself is active",
   );
+  assert.match(
+    experience,
+    /replaceWatchedBootRenderer\([\s\S]*ownedRendererRef,[\s\S]*rendererLossCleanupRef,[\s\S]*renderer/,
+    "intentional replacement must detach the old loss watcher before disposal",
+  );
+  assert.match(experience, /runForActiveRendererGeneration/g);
   assert.doesNotMatch(
     host + experience + scene + gallery + exhibits,
     /setInterval|requestAnimationFrame\([^)]*(?:boot|progress)|fakeProgress/,

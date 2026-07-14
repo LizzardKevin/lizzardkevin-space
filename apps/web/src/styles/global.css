@@ -75,6 +75,29 @@ button {
   pointer-events: none;
 }
 
+.space-renderer-loading-indicator {
+  display: inline-block;
+  margin-left: 0.45em;
+  animation: spaceRendererLoadingPulse 900ms ease-in-out infinite alternate;
+}
+
+@keyframes spaceRendererLoadingPulse {
+  from {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-renderer-loading-indicator {
+    animation: none;
+  }
+}
+
 .space-cursor-layer {
   position: fixed;
   inset: 0;
