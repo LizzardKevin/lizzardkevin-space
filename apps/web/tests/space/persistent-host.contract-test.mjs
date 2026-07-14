@@ -6,20 +6,24 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const src = (path) => readFileSync(resolve(root, "apps/web/src", path), "utf8").replace(/\r\n/g, "\n");
 
-for (const path of ["space/SpaceHost.tsx", "space/SpaceRouteCoordinator.tsx", "space/spaceSessionPose.ts"]) {
+for (const path of ["space/SpaceHost.tsx", "space/PersistentSpaceHostBoundary.ts", "space/SpaceRouteCoordinator.tsx", "space/spaceSessionPose.ts"]) {
   assert(existsSync(resolve(root, "apps/web/src", path)), `${path} must exist`);
 }
 
 const desktop = src("app/DesktopApp.tsx");
 const host = src("space/SpaceHost.tsx");
+const boundary = src("space/PersistentSpaceHostBoundary.ts");
 const coordinator = src("space/SpaceRouteCoordinator.tsx");
 const experience = src("pages/SpaceDesktopExperience.tsx");
 const pose = src("space/spaceSessionPose.ts");
 const audioDirector = src("audio/AudioDirector.ts");
 
-assert.equal((desktop.match(/useState\(false\)/g) ?? []).length >= 1, true, "DesktopApp owns a false start latch");
+assert.match(desktop, /const\s+\[spaceStarted,\s*setSpaceStarted\]\s*=\s*useState\(false\)/);
 assert.match(desktop, /onTrustedEnter/);
-assert.match(desktop, /spaceStarted\s*\?\s*<SpaceHost/);
+assert.match(desktop, /<PersistentSpaceHostBoundary/);
+assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);
+assert.match(boundary, /createElement\(Fragment,\s*null,\s*routeSurface,\s*startedHost\)/);
+assert(!existsSync(resolve(root, "apps/web/src/space/persistentHostLifecycle.ts")), "fake lifecycle architecture must not exist");
 assert(!host.includes("spaceStarted"), "SpaceHost receives an already-started session");
 assert.match(host, /<SpaceDesktopExperience/);
 assert(!/key=\{(?:location|pathname)/.test(host), "host identity must not depend on location");

@@ -119,7 +119,6 @@ export function SpaceDesktopExperience({
   loadExhibits,
   onNavigateToSpace,
   onNavigateToWork,
-  onPersistentPoseSample,
   onSceneExhibitsReady,
   onCanvasReady,
   routeBlocked,
@@ -130,7 +129,6 @@ export function SpaceDesktopExperience({
   loadExhibits: boolean;
   onNavigateToSpace: (options?: { fromEscape?: boolean }) => void;
   onNavigateToWork: (exhibitId: string) => void;
-  onPersistentPoseSample: (pose: SpacePlayerPose) => void;
   onSceneExhibitsReady: () => void;
   onCanvasReady?: () => void;
   routeBlocked: boolean;
@@ -304,7 +302,6 @@ export function SpaceDesktopExperience({
   const handleSpacePoseSample = useCallback(
     (pose: SpacePlayerPose) => {
       latestSpacePoseRef.current = pose;
-      onPersistentPoseSample(pose);
       const nowMs = Date.now();
       if (nowMs - lastSessionPoseSaveAtRef.current >= SPACE_DAILY_RESUME_SAVE_INTERVAL_MS) {
         writeSpaceSessionPose(undefined, pose);
@@ -315,7 +312,7 @@ export function SpaceDesktopExperience({
       writeSpaceDailyResume(undefined, pose, new Date(nowMs));
       lastDailyResumeSaveAtRef.current = nowMs;
     },
-    [canSaveDailyResume, onPersistentPoseSample],
+    [canSaveDailyResume],
   );
 
   useEffect(() => {

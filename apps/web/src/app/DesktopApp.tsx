@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useState } from "react";
 import { flushSync } from "react-dom";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAudioDirector } from "../audio/useAudioDirector";
@@ -12,7 +12,7 @@ import {
   resumeSpaceFirstPersonWithCursorReturn,
 } from "../space/requestSpacePointerLock";
 import { useSpacePointerLockGuard } from "../space/useSpacePointerLockGuard";
-import { createPersistentHostLifecycle } from "../space/persistentHostLifecycle";
+import { PersistentSpaceHostBoundary } from "../space/PersistentSpaceHostBoundary";
 import { resolveSpaceRouteRuntimePolicy, type SpaceRouteKind } from "../space/routeRuntimePolicy";
 import { NotFound, ProfileAliasRoute, SpaceAliasRoute } from "./appRoutes";
 import { APP_ROUTE_PATHS, resolveAppRoute, workRoute } from "./routeConfig";
@@ -41,7 +41,6 @@ export default function DesktopApp() {
   const navigate = useNavigate();
   const audio = useAudioDirector();
   const entry = useEntryTransition();
-  const sessionLifecycle = useMemo(() => createPersistentHostLifecycle(), []);
   const [spaceStarted, setSpaceStarted] = useState(false);
   const [closing, setClosing] = useState(false);
   const route = resolveAppRoute(location.pathname);
@@ -60,19 +59,15 @@ export default function DesktopApp() {
 
   useSpacePointerLockGuard(routeBlocked);
 
-  useEffect(() => {
-    sessionLifecycle.observeRoute(location.pathname);
-  }, [location.pathname, sessionLifecycle]);
-
   const onTrustedEnter = useCallback(() => {
-    if (route.kind !== "space" || !sessionLifecycle.trustedEnter()) return;
+    if (spaceStarted || route.kind !== "space") return;
     entry.freezeButtonFloat();
     entry.beginLoading();
     audio.unlock();
     setSpaceStarted(true);
     resumeSpaceFirstPerson();
     void audio.setZone("architecture");
-  }, [audio, entry, route.kind, sessionLifecycle]);
+  }, [audio, entry, route.kind, spaceStarted]);
 
   const navigateToSpace = useCallback(
     (options?: { fromEscape?: boolean }) => {
@@ -104,31 +99,38 @@ export default function DesktopApp() {
         </Suspense>
       ) : null}
 
-      <Routes>
-        <Route
-          path="/"
-          element={null}
-        />
-        <Route
-          path="/works/:exhibitId"
-          element={spaceStarted || route.kind !== "work" ? null : <ColdWorkRoute exhibitId={route.exhibitId} />}
-        />
-        <Route path="/profile" element={null} />
-        <Route path="/devstories" element={null} />
-        <Route path="/space" element={<SpaceAliasRoute />} />
-        <Route path="/lizzardkevin" element={<ProfileAliasRoute />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-
-      {spaceStarted ? <SpaceHost
-        entry={entry}
-        focusedExhibitId={focusedExhibitId}
-        onNavigateToSpace={navigateToSpace}
-        onNavigateToWork={(exhibitId) => navigate(workRoute(exhibitId))}
-        pauseMainAudio={routePolicy.pauseMainAudio}
-        routeBlocked={routeBlocked}
-        sessionLifecycle={sessionLifecycle}
-      /> : null}
+      <PersistentSpaceHostBoundary
+        routeSurface={
+          <Routes>
+            <Route path="/" element={null} />
+            <Route
+              path="/works/:exhibitId"
+              element={
+                spaceStarted || route.kind !== "work" ? null : (
+                  <ColdWorkRoute exhibitId={route.exhibitId} />
+                )
+              }
+            />
+            <Route path="/profile" element={null} />
+            <Route path="/devstories" element={null} />
+            <Route path="/space" element={<SpaceAliasRoute />} />
+            <Route path="/lizzardkevin" element={<ProfileAliasRoute />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        }
+        startedHost={
+          spaceStarted ? (
+            <SpaceHost
+              entry={entry}
+              focusedExhibitId={focusedExhibitId}
+              onNavigateToSpace={navigateToSpace}
+              onNavigateToWork={(exhibitId) => navigate(workRoute(exhibitId))}
+              pauseMainAudio={routePolicy.pauseMainAudio}
+              routeBlocked={routeBlocked}
+            />
+          ) : null
+        }
+      />
 
       {route.kind === "space" && entry.showSplash ? (
         <SpacePage entry={entry} onTrustedEnter={onTrustedEnter} />

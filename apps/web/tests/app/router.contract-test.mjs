@@ -33,7 +33,7 @@ assert.match(`${desktop}\n${mobile}`, /path=["']\*["'][\s\S]*NotFound/);
 assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/space\/SpaceHost["']\)\)/);
 assert.match(desktop, /useState\(false\)/);
 assert.match(desktop, /setSpaceStarted\(true\)/);
-assert.match(desktop, /spaceStarted\s*\?\s*<SpaceHost/);
+assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);
 assert(!/pathname\s*,\s*setPathname|setPathname\s*\(/.test(desktop), "pathname must not be mirrored into app state");
 
 for (const text of [routes, desktop, mobile, chrome, topBar, focus]) {
