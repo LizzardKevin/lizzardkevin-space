@@ -250,7 +250,7 @@ test("release scripts build before checking the report without recursive build",
   const directReadOnlyBuild = "npm run content:check && npm run build -w apps/web && node apps/web/tests/build/chunks.contract-test.mjs";
   assert.match(scripts["asset:audit"], new RegExp(`^${directReadOnlyBuild.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} && node scripts/audit-space-assets\\.mjs --output `));
   assert.match(scripts["asset:check"], new RegExp(`^${directReadOnlyBuild.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} && node scripts/audit-space-assets\\.mjs --check [^&]+ && npm run test:asset-budget$`));
-  assert.match(scripts["verify:release"], /npm run asset:check/);
+  assert.match(scripts["verify:release"], /npm run verify:release:protected/);
   assert.doesNotMatch(scripts["asset:check"], /verify:release|asset:check|content:generate|exhibits:cache|build:chunks/);
   assert.equal(webScripts.build, "tsc -b && vite build");
   assert.equal(webScripts.prebuild, undefined);
