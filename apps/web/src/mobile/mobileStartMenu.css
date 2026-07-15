@@ -62,9 +62,9 @@
   display: block;
   font-size: clamp(72px, 24vw, 112px);
   font-weight: 900;
-  letter-spacing: -0.105em;
+  letter-spacing: -0.085em;
   line-height: 0.78;
-  padding-right: 0.105em;
+  padding-right: 0.085em;
 }
 
 .mobile-start-menu__enter {

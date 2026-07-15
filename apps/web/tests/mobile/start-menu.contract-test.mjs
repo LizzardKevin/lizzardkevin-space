@@ -36,9 +36,12 @@ assert.match(startMenuCss, /--mobile-start-accent:\s*#67c2be/);
 
 const stableSurfaceRule = cssRule(startMenuCss, ".mobile-start-menu");
 const stableTitleRule = cssRule(startMenuCss, ".mobile-start-menu__title");
+const stableTitleWordRule = cssRule(startMenuCss, ".mobile-start-menu__title strong");
 const stableEnterRule = cssRule(startMenuCss, ".mobile-start-menu__enter");
 const stableEnterActiveRule = cssRule(startMenuCss, ".mobile-start-menu__enter:active");
 assert.doesNotMatch(stableTitleRule, /^\s*transform\s*:/m, "title must remain on a stable non-transformed layer");
+assert.match(stableTitleWordRule, /letter-spacing:\s*-0\.085em/);
+assert.match(stableTitleWordRule, /padding-right:\s*0\.085em/);
 assert.doesNotMatch(stableEnterRule, /^\s*transform\s*:/m, "Enter must remain on a stable non-transformed layer");
 assert.doesNotMatch(stableEnterActiveRule, /^\s*transform\s*:/m, "active Enter must not create a transient compositor layer");
 assert.match(stableSurfaceRule, /radial-gradient\(/);
