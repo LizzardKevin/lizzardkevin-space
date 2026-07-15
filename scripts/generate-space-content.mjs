@@ -436,6 +436,17 @@ function buildOutputs(rows) {
   }));
   exhibitLabels.space_onboarding_demo = { en: "SPACE GUIDE", zh: "SPACE 引导" };
 
+  const startLobbyExhibitText = {
+    en: exhibitRows.flatMap((row) => [
+      { exhibitId: row.id, kind: "title", text: required(row, "title_en") },
+      { exhibitId: row.id, kind: "subtitle", text: required(row, "subtitle_en") },
+    ]),
+    zh: exhibitRows.flatMap((row) => [
+      { exhibitId: row.id, kind: "title", text: required(row, "title_zh") },
+      { exhibitId: row.id, kind: "subtitle", text: required(row, "subtitle_zh") },
+    ]),
+  };
+
   const mobileTabs = [
     { id: "projects", label: "Projects" },
     { id: "skills", label: "Skills.md" },
@@ -533,6 +544,7 @@ function buildOutputs(rows) {
     mobileTerminalCopy,
     profileByLanguage,
     splitArchiveCopy,
+    startLobbyExhibitText,
   };
 }
 
@@ -575,6 +587,9 @@ function materializeOutputs(outputs) {
   }
   files.set(path.join(generatedRoot, "exhibitLabels.generated.ts"), writeTsModule([
     `export const generatedExhibitLabels = ${literal(outputs.exhibitLabels)};`,
+  ]));
+  files.set(path.join(generatedRoot, "startLobbyExhibitText.generated.ts"), writeTsModule([
+    `export const generatedStartLobbyExhibitText = ${literal(outputs.startLobbyExhibitText)};`,
   ]));
   files.set(path.join(generatedRoot, "mobileArchive.generated.ts"), writeTsModule([
     `export const generatedMobileTabs = ${literal(outputs.mobileTabs)};`,
