@@ -77,7 +77,7 @@ Add source assertions for the approved values:
 assert.match(source, /START_LOBBY_FONT_SCALE\s*=\s*1\.25/);
 assert.match(source, /POINTER_DOT_FIELD_RADIUS_PX\s*=\s*300/);
 assert.match(source, /POINTER_DOT_MAX_PULL_PX\s*=\s*30/);
-assert.match(source, /POINTER_DOT_MAX_RADIUS_PX\s*=\s*3/);
+assert.match(source, /POINTER_DOT_MAX_RADIUS_PX\s*=\s*3\s*;/);
 ```
 
 - [ ] **Step 2: Run the contract and verify RED**

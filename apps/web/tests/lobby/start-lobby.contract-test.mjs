@@ -121,7 +121,7 @@ test("StartLobby layers a performance-bounded glyph barrage behind transparent 3
   assert.match(barrage, /START_LOBBY_FONT_SCALE\s*=\s*1\.25/);
   assert.match(barrage, /POINTER_DOT_FIELD_RADIUS_PX\s*=\s*300/);
   assert.match(barrage, /POINTER_DOT_MAX_PULL_PX\s*=\s*30/);
-  assert.match(barrage, /POINTER_DOT_MAX_RADIUS_PX\s*=\s*3\.5/);
+  assert.match(barrage, /POINTER_DOT_MAX_RADIUS_PX\s*=\s*3\s*;/);
   assert.match(barrage, /requestAnimationFrame/);
   assert.match(barrage, /cancelAnimationFrame/);
   assert.match(barrage, /document\.visibilityState/);
