@@ -9,7 +9,6 @@ import {
 } from "@react-three/fiber";
 import {
   AmbientLight,
-  BoxGeometry,
   Color,
   DirectionalLight,
   Fog,
@@ -32,7 +31,6 @@ import "./startLobby.css";
 
 extend({
   AmbientLight,
-  BoxGeometry,
   Color,
   DirectionalLight,
   Fog,
@@ -169,18 +167,6 @@ function LobbyScene({ artRef }: { artRef: RefObject<Group | null> }) {
       <fog attach="fog" args={["#69827e", 8, 18]} />
       <ambientLight intensity={1.9} />
       <directionalLight position={[-3, 5, 7]} intensity={2.4} />
-      <mesh position={[0, -3.4, -2.8]} rotation={[-0.18, 0, 0]} scale={[12, 2.4, 1]}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshToonMaterial color="#4aa7a5" />
-      </mesh>
-      <mesh position={[-5.2, 1.2, -4.2]} rotation={[0.2, 0.36, -0.14]} scale={[2.8, 5.5, 1]}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshToonMaterial color="#79cbc6" />
-      </mesh>
-      <mesh position={[5.6, 0.8, -4.8]} rotation={[-0.15, -0.3, 0.18]} scale={[3.2, 4.8, 1]}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshToonMaterial color="#358d8e" />
-      </mesh>
       <Suspense fallback={null}>
         <LobbyTypography artRef={artRef} />
       </Suspense>

@@ -28,7 +28,6 @@ test("raw R3F registers its exact Three JSX catalog and reuses a StrictMode-safe
   assert.match(source, /extend\s*\(\s*\{/);
   for (const constructor of [
     "AmbientLight",
-    "BoxGeometry",
     "Color",
     "DirectionalLight",
     "Fog",
@@ -75,11 +74,8 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
     ["#69827e", "#69827e", "#69827e"],
     "Three background, Three fog, and CSS fallback must share the approved field color",
   );
-  assert.deepEqual(
-    geometryAccentColors,
-    ["#4aa7a5", "#79cbc6", "#358d8e"],
-    "the three block geometry accents must retain their approved colors",
-  );
+  assert.deepEqual(geometryAccentColors, [], "the three background blocks must be removed");
+  assert.doesNotMatch(source, /BoxGeometry|<boxGeometry\b/);
   for (const forbidden of ["@react-three/drei", "@react-three/rapier", ".glb", ".gltf", "postprocessing", "Howl"])
     assert.equal(source.includes(forbidden), false, `StartLobby must not contain ${forbidden}`);
 });
