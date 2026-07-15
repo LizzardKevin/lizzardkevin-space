@@ -93,11 +93,13 @@ function LobbyEvenlySpacedWord({
   text,
   size,
   letterGap,
+  pairGapAdjustments,
   y,
 }: {
   text: string;
   size: number;
   letterGap: number;
+  pairGapAdjustments?: Readonly<Record<string, number>>;
   y: number;
 }) {
   const font = useLoader(FontLoader, helvetikerFontUrl);
@@ -109,16 +111,22 @@ function LobbyEvenlySpacedWord({
       const bounds = geometry.boundingBox;
       return bounds ? bounds.max.x - bounds.min.x : size;
     });
-    const totalWidth = widths.reduce((sum, width) => sum + width, 0) + letterGap * (widths.length - 1);
+    const gaps = Array.from({ length: Math.max(0, text.length - 1) }, (_, index) => {
+      const pair = `${text[index]}${text[index + 1]}`;
+      return letterGap + (pairGapAdjustments?.[pair] ?? 0);
+    });
+    const totalWidth =
+      widths.reduce((sum, width) => sum + width, 0) +
+      gaps.reduce((sum, gap) => sum + gap, 0);
     let cursor = -totalWidth / 2;
 
     return geometries.map((geometry, index) => {
       const width = widths[index] ?? size;
       const x = cursor + width / 2;
-      cursor += width + letterGap;
+      cursor += width + (gaps[index] ?? 0);
       return { geometry, x };
     });
-  }, [font, letterGap, size, text]);
+  }, [font, letterGap, pairGapAdjustments, size, text]);
 
   useEffect(
     () => () => {
@@ -143,7 +151,13 @@ function LobbyTypography({ artRef }: { artRef: RefObject<Group | null> }) {
   return (
     <group ref={artRef} rotation={[-0.025, 0.035, 0]}>
       <LobbyWord text="LIZZARDKEVIN" size={0.38} y={0.58} />
-      <LobbyEvenlySpacedWord text="SPACE" size={1.24} letterGap={0.1} y={-0.72} />
+      <LobbyEvenlySpacedWord
+        text="SPACE"
+        size={1.24}
+        letterGap={0.1}
+        pairGapAdjustments={{ PA: -0.08, AC: -0.07 }}
+        y={-0.72}
+      />
     </group>
   );
 }

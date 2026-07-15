@@ -65,10 +65,11 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
   assert.match(source, /<LobbyWord text="LIZZARDKEVIN" size=\{0\.38\} y=\{0\.58\} \/>/);
   assert.match(
     source,
-    /<LobbyEvenlySpacedWord text="SPACE" size=\{1\.24\} letterGap=\{0\.1\} y=\{-0\.72\} \/>/,
+    /<LobbyEvenlySpacedWord[\s\S]*?text="SPACE"[\s\S]*?letterGap=\{0\.1\}[\s\S]*?pairGapAdjustments=\{\{ PA: -0\.08, AC: -0\.07 \}\}[\s\S]*?\/>/,
   );
-  assert.match(source, /const totalWidth = widths\.reduce\(\(sum, width\) => sum \+ width, 0\) \+ letterGap \* \(widths\.length - 1\)/);
-  assert.match(source, /cursor \+= width \+ letterGap/);
+  assert.match(source, /pairGapAdjustments\?\.\[pair\]\s*\?\?\s*0/);
+  assert.match(source, /const gaps = Array\.from/);
+  assert.match(source, /cursor \+= width \+ \(gaps\[index\] \?\? 0\)/);
   assert.deepEqual(
     [threeBackground?.[1], threeFog?.[1], cssBackground?.[1]],
     ["#69827e", "#69827e", "#69827e"],
