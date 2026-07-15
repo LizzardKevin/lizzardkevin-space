@@ -40,11 +40,14 @@ const stableTitleWordRule = cssRule(startMenuCss, ".mobile-start-menu__title str
 const stableEnterRule = cssRule(startMenuCss, ".mobile-start-menu__enter");
 const stableEnterActiveRule = cssRule(startMenuCss, ".mobile-start-menu__enter:active");
 assert.doesNotMatch(stableTitleRule, /^\s*transform\s*:/m, "title must remain on a stable non-transformed layer");
-assert.match(stableTitleWordRule, /letter-spacing:\s*-0\.085em/);
-assert.match(stableTitleWordRule, /padding-right:\s*0\.085em/);
+assert.match(stableTitleWordRule, /font-family:\s*"Ubuntu Mono Web"/);
+assert.match(stableTitleWordRule, /font-weight:\s*700/);
+assert.match(stableTitleWordRule, /letter-spacing:\s*0\.045em/);
+assert.match(stableTitleWordRule, /padding-right:\s*0\.045em/);
 assert.doesNotMatch(stableEnterRule, /^\s*transform\s*:/m, "Enter must remain on a stable non-transformed layer");
 assert.doesNotMatch(stableEnterActiveRule, /^\s*transform\s*:/m, "active Enter must not create a transient compositor layer");
 assert.match(stableSurfaceRule, /radial-gradient\(/);
+assert.match(stableSurfaceRule, /#f7f7f2/);
 assert.match(stableSurfaceRule, /var\(--mobile-start-pointer-x\)/);
 assert.match(stableSurfaceRule, /var\(--mobile-start-pointer-y\)/);
 const reducedSurfaceRule = cssRuleInMedia(startMenuCss, "prefers-reduced-motion: reduce", ".mobile-start-menu");
