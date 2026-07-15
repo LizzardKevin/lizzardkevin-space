@@ -77,7 +77,7 @@ Add source assertions for the approved values:
 assert.match(source, /START_LOBBY_FONT_SCALE\s*=\s*1\.25/);
 assert.match(source, /POINTER_DOT_FIELD_RADIUS_PX\s*=\s*300/);
 assert.match(source, /POINTER_DOT_MAX_PULL_PX\s*=\s*30/);
-assert.match(source, /POINTER_DOT_MAX_RADIUS_PX\s*=\s*3\.5/);
+assert.match(source, /POINTER_DOT_MAX_RADIUS_PX\s*=\s*3/);
 ```
 
 - [ ] **Step 2: Run the contract and verify RED**
@@ -94,10 +94,10 @@ Define:
 const START_LOBBY_FONT_SCALE = 1.25;
 const POINTER_DOT_FIELD_RADIUS_PX = 300;
 const POINTER_DOT_MAX_PULL_PX = 30;
-const POINTER_DOT_MAX_RADIUS_PX = 3.5;
+const POINTER_DOT_MAX_RADIUS_PX = 3;
 ```
 
-Multiply both title/subtitle base sizes and random ranges by `START_LOBBY_FONT_SCALE`. Use the exported 175 px glyph radius separately from the 300 px dot radius. Calculate dot displacement with smoothstep influence and calculate radius from `0.58` to `3.5`, preserving a radial, non-spiral field.
+Multiply both title/subtitle base sizes and random ranges by `START_LOBBY_FONT_SCALE`. Use the exported 175 px glyph radius separately from the 300 px dot radius. Calculate dot displacement with smoothstep influence and calculate radius from `0.58` to `3`, preserving a radial, non-spiral field.
 
 - [ ] **Step 4: Run focused tests and full project gates**
 
@@ -114,7 +114,7 @@ Expected: all commands exit 0.
 
 - [ ] **Step 5: Perform browser QA and capture evidence**
 
-At 1440×900, verify `data-stream-count="50"`, inspect the larger type, move the pointer through the field, and capture a screenshot with the pointer offset from the title so the roughly 300 px deformation, 30 px pull, 3.5 px dots, and non-linear glyph attraction remain visible. Confirm no new console errors and that Enter still transitions.
+At 1440×900, verify `data-stream-count="50"`, inspect the larger type, move the pointer through the field, and capture a screenshot with the pointer offset from the title so the roughly 300 px deformation, 30 px pull, 3 px dots, and non-linear glyph attraction remain visible. Confirm no new console errors and that Enter still transitions.
 
 - [ ] **Step 6: Commit the atomic implementation**
 

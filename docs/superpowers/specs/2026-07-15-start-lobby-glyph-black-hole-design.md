@@ -67,7 +67,7 @@ The StartLobby WebGL renderer becomes transparent so the Canvas2D background rem
 - The full field is a low-contrast ordered dot lattice.
 - Only dots inside an approximately 300 px local pointer influence area are redrawn with inward radial displacement and size growth.
 - Dot displacement follows the same smooth radial influence, capped at 30 px toward the pointer.
-- Dot radius grows from the 0.58 px baseline to a maximum of 3.5 px near the pointer.
+- Dot radius grows from the 0.58 px baseline to a maximum of 3 px near the pointer.
 - No spiral, contour, ribbon, character-code, neon, or gradient language is introduced.
 
 ## Performance Design
@@ -136,7 +136,7 @@ The StartLobby WebGL renderer becomes transparent so the Canvas2D background rem
 ### Visual and performance QA
 
 - At 1440×900, 50 independent entries remain visible or scheduled, render 25% larger than the V3 baseline, and the central title remains dominant.
-- The dot field visibly bends across an approximately 300 px radius, reaches at most 30 px displacement, and grows to at most 3.5 px near the pointer.
+- The dot field visibly bends across an approximately 300 px radius, reaches at most 30 px displacement, and grows to at most 3 px near the pointer.
 - Pointer sweeps detach individual characters rather than whole words.
 - Rapid pointer departure leaves dispersed, rotating characters moving left without reassembly.
 - Core contact produces restrained white shards and no bright explosion.
