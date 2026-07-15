@@ -445,6 +445,9 @@ button {
   --terminal-text: #101010;
   --terminal-muted: #6d6d68;
   --terminal-soft: #8a8a82;
+  --terminal-accent: #2f7775;
+  --terminal-accent-fill: #67c2be;
+  --terminal-accent-ink: #101010;
   --terminal-inverse-bg: #101010;
   --terminal-inverse-text: #fbfbf8;
   background: var(--terminal-bg);
@@ -464,6 +467,9 @@ button {
   --terminal-text: #101010;
   --terminal-muted: #6d6d68;
   --terminal-soft: #8a8a82;
+  --terminal-accent: #2f7775;
+  --terminal-accent-fill: #67c2be;
+  --terminal-accent-ink: #101010;
   --terminal-inverse-bg: #101010;
   --terminal-inverse-text: #fbfbf8;
 }
@@ -474,6 +480,9 @@ button {
   --terminal-text: #f4f4ef;
   --terminal-muted: #a5a59c;
   --terminal-soft: #828278;
+  --terminal-accent: #67c2be;
+  --terminal-accent-fill: #67c2be;
+  --terminal-accent-ink: #101010;
   --terminal-inverse-bg: #f4f4ef;
   --terminal-inverse-text: #101010;
 }
@@ -740,8 +749,8 @@ button {
 .mobile-terminal-row--active strong,
 .mobile-terminal-row:active strong,
 .mobile-terminal-row:focus-visible strong {
-  background: var(--terminal-inverse-bg);
-  color: var(--terminal-inverse-text);
+  background: var(--terminal-accent-fill);
+  color: var(--terminal-accent-ink);
 }
 
 .mobile-terminal-row:active {
@@ -791,7 +800,7 @@ button {
 }
 
 .mobile-terminal-command {
-  color: var(--terminal-muted);
+  color: var(--terminal-accent);
   font-size: 12px;
   line-height: 1.5;
   white-space: nowrap;
@@ -846,7 +855,7 @@ button {
 
 .mobile-terminal-fold summary::before {
   grid-row: 1 / span 2;
-  color: var(--terminal-muted);
+  color: var(--terminal-accent);
   content: "+";
   font-size: 12px;
   line-height: 1.35;
@@ -891,10 +900,11 @@ button {
 
 .mobile-terminal-fold summary h2 {
   margin: 0;
+  color: var(--terminal-accent);
 }
 
 .mobile-terminal-fold--projects summary span {
-  color: var(--terminal-text);
+  color: var(--terminal-accent);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.35;
@@ -906,7 +916,7 @@ button {
 
 .mobile-skill-module__prompt {
   overflow: hidden;
-  color: var(--terminal-muted);
+  color: var(--terminal-accent);
   font-size: 11px;
   line-height: 1.45;
   text-overflow: ellipsis;
@@ -918,7 +928,7 @@ button {
   gap: 8px;
   align-items: baseline;
   margin: 0;
-  color: var(--terminal-text);
+  color: var(--terminal-accent);
   font-size: 12px;
   font-weight: 650;
 }

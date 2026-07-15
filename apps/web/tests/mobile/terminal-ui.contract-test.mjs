@@ -32,6 +32,15 @@ assert(terminalCss.includes(".mobile-resume-block p"), "Soul.md body copy must k
 assert(terminalCss.includes(".mobile-contact-lines strong"), "Contact.md body copy must keep its existing shared body rule");
 assert(terminalCss.includes(".mobile-terminal-themeReveal"), "terminal CSS must include theme reveal overlay");
 assert(terminalCss.includes(".mobile-terminal-site--light"), "terminal CSS must include an explicit light theme class for white background and black text");
+assert(terminalCss.includes("--terminal-accent: #2f7775"), "light terminal theme must expose a readable blue-green accent");
+assert(terminalCss.includes("--terminal-accent: #67c2be"), "dark terminal theme must expose the brighter blue-green accent");
+assert(terminalCss.includes("--terminal-accent-fill: #67c2be"), "selected controls must use the branded blue-green fill");
+assert(terminalCss.includes("--terminal-accent-ink: #101010"), "accent fills must keep dark readable ink");
+assert(terminalCss.includes(".mobile-terminal-row--active strong"), "active terminal navigation must keep its dedicated rule");
+assert(terminalCss.includes("background: var(--terminal-accent-fill)"), "active terminal navigation must use the theme accent");
+assert(terminalCss.includes(".mobile-terminal-command"), "terminal command must keep its dedicated rule");
+assert(terminalCss.includes("color: var(--terminal-accent)"), "terminal commands and key interactive labels must use the theme accent");
+assert(terminalCss.includes(".mobile-terminal-fold summary::before"), "fold markers must keep their dedicated rule");
 assert(terminalCss.includes("clip-path: circle"), "theme reveal must use a circular expansion");
 assert(terminalCss.includes("mix-blend-mode: difference"), "theme reveal must use a mask-like black/white inversion instead of a solid color wipe");
 assert(!terminalCss.includes(".mobile-terminal-themeReveal--light"), "theme reveal must not switch through solid light fill classes");
