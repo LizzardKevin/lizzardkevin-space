@@ -28,7 +28,6 @@ test("raw R3F registers its exact Three JSX catalog and reuses a StrictMode-safe
   assert.match(source, /extend\s*\(\s*\{/);
   for (const constructor of [
     "AmbientLight",
-    "Color",
     "DirectionalLight",
     "Fog",
     "Group",
@@ -46,7 +45,6 @@ test("raw R3F registers its exact Three JSX catalog and reuses a StrictMode-safe
 test("StartLobby uses real extruded text and the approved restrained palette", () => {
   const source = readSource("lobby/StartLobby.tsx");
   const css = readSource("lobby/startLobby.css");
-  const threeBackground = source.match(/<color\s+attach=["']background["']\s+args=\{\[["'](#[0-9a-f]{6})["']\]\}\s*\/>/i);
   const threeFog = source.match(/<fog\s+attach=["']fog["']\s+args=\{\[["'](#[0-9a-f]{6})["']/i);
   const lobbyRule = css.match(/\.start-lobby\s*\{([\s\S]*?)\}/);
   const cssBackground = lobbyRule?.[1].match(/\bbackground:\s*(#[0-9a-f]{6})\s*;/i);
@@ -70,10 +68,11 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
   assert.match(source, /const gaps = Array\.from/);
   assert.match(source, /cursor \+= width \+ \(gaps\[index\] \?\? 0\)/);
   assert.deepEqual(
-    [threeBackground?.[1], threeFog?.[1], cssBackground?.[1]],
-    ["#69827e", "#69827e", "#69827e"],
-    "Three background, Three fog, and CSS fallback must share the approved field color",
+    [threeFog?.[1], cssBackground?.[1]],
+    ["#69827e", "#69827e"],
+    "Three fog and the CSS fallback must share the approved field color",
   );
+  assert.doesNotMatch(source, /<color\s+attach=["']background/);
   assert.deepEqual(geometryAccentColors, [], "the three background blocks must be removed");
   assert.doesNotMatch(source, /BoxGeometry|<boxGeometry\b/);
   for (const forbidden of ["@react-three/drei", "@react-three/rapier", ".glb", ".gltf", "postprocessing", "Howl"])
@@ -104,6 +103,44 @@ test("StartLobby limits input work and becomes static for reduced motion", () =>
   assert.match(source, /onPointerDown=/);
   assert.doesNotMatch(source, /onClick=\{[^}]*canvas|onPointerMissed|easter|blankClick/i);
   assert.match(handoff, /MAX_START_LOBBY_TILT_DEGREES\s*=\s*6/);
+});
+
+test("StartLobby layers a performance-bounded glyph barrage behind transparent 3D type", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+  const barrage = readSource("lobby/StartLobbyBarrage.tsx");
+  const physics = readSource("lobby/startLobbyGlyphPhysics.ts");
+  const css = readSource("lobby/startLobby.css");
+
+  assert.match(source, /<StartLobbyBarrage/);
+  assert.match(source, /alpha:\s*true/);
+  assert.doesNotMatch(source, /<color\s+attach=["']background/);
+  assert.match(barrage, /generatedStartLobbyExhibitText/);
+  assert.match(barrage, /START_LOBBY_STREAM_COUNT/);
+  assert.match(barrage, /START_LOBBY_BARRAGE_MAX_DPR\s*=\s*1\.25/);
+  assert.match(barrage, /START_LOBBY_BARRAGE_FRAME_MS\s*=\s*1000\s*\/\s*30/);
+  assert.match(barrage, /requestAnimationFrame/);
+  assert.match(barrage, /cancelAnimationFrame/);
+  assert.match(barrage, /document\.visibilityState/);
+  assert.match(barrage, /prefers-reduced-motion:\s*reduce/);
+  assert.match(barrage, /new ResizeObserver/);
+  assert.match(css, /\.start-lobby__barrage[\s\S]*z-index:\s*0/);
+  assert.match(css, /\.start-lobby__canvas[\s\S]*z-index:\s*1/);
+
+  for (const forbidden of [
+    "@react-three",
+    'from "three',
+    "@react-three/rapier",
+    ".glb",
+    "mobileArchive",
+    "postprocessing",
+    "Howl",
+  ]) {
+    assert.equal(
+      (barrage + physics).includes(forbidden),
+      false,
+      `the lightweight lobby barrage must not import ${forbidden}`,
+    );
+  }
 });
 
 test("StartLobby releases the R3F context through its callback without a forced timeout", () => {

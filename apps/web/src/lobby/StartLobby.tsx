@@ -9,7 +9,6 @@ import {
 } from "@react-three/fiber";
 import {
   AmbientLight,
-  Color,
   DirectionalLight,
   Fog,
   Group,
@@ -27,11 +26,11 @@ import {
 } from "./startLobbyRootOwner";
 import { releaseStartLobbyRouteRenderer } from "./startLobbyRendererRelease";
 import { syncStartLobbyViewport } from "./startLobbyViewport";
+import { StartLobbyBarrage, type StartLobbyBarrageHandle } from "./StartLobbyBarrage";
 import "./startLobby.css";
 
 extend({
   AmbientLight,
-  Color,
   DirectionalLight,
   Fog,
   Group,
@@ -163,7 +162,6 @@ function LobbyTypography({ artRef }: { artRef: RefObject<Group | null> }) {
 function LobbyScene({ artRef }: { artRef: RefObject<Group | null> }) {
   return (
     <>
-      <color attach="background" args={["#69827e"]} />
       <fog attach="fog" args={["#69827e", 8, 18]} />
       <ambientLight intensity={1.9} />
       <directionalLight position={[-3, 5, 7]} intensity={2.4} />
@@ -177,6 +175,7 @@ function LobbyScene({ artRef }: { artRef: RefObject<Group | null> }) {
 export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: StartLobbyProps) {
   const containerRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const barrageRef = useRef<StartLobbyBarrageHandle>(null);
   const artRef = useRef<Group>(null);
   const storeRef = useRef<RootStore | null>(null);
   const rendererRef = useRef<WebGLRenderer | null>(null);
@@ -221,9 +220,10 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
             const renderer = new WebGLRenderer({
               canvas: properties.canvas as HTMLCanvasElement,
               antialias: true,
-              alpha: false,
+              alpha: true,
               powerPreference: "low-power",
             });
+            renderer.setClearAlpha(0);
             if (routeCleanupStartedRef.current) releaseStartLobbyRouteRenderer(renderer);
             else rendererRef.current = renderer;
             return renderer;
@@ -280,6 +280,7 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
   }, [disposing, onDisposed]);
 
   const applyPointerTilt = useCallback((clientX: number, clientY: number) => {
+    barrageRef.current?.setPointer(clientX, clientY);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const art = artRef.current;
     const store = storeRef.current;
@@ -290,6 +291,7 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
   }, []);
 
   const resetPointerTilt = useCallback(() => {
+    barrageRef.current?.resetPointer();
     const art = artRef.current;
     const store = storeRef.current;
     if (!art || !store || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -307,6 +309,7 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
       onPointerLeave={resetPointerTilt}
     >
       <h1 className="start-lobby__accessible-title">LizzardKevin Space</h1>
+      <StartLobbyBarrage ref={barrageRef} disposing={disposing} />
       <canvas ref={canvasRef} className="start-lobby__canvas" aria-hidden="true" />
       <button
         className="start-lobby__enter"
