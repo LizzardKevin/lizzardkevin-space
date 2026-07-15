@@ -1,4 +1,5 @@
-export const START_LOBBY_STREAM_COUNT = 36;
+export const START_LOBBY_STREAM_COUNT = 50;
+export const START_LOBBY_POINTER_RADIUS_PX = 175;
 export const START_LOBBY_GLYPH_CORE_RADIUS_PX = 9;
 export const START_LOBBY_FRAGMENT_LIFE_MS = 360;
 
@@ -58,6 +59,12 @@ export function segmentLobbyGraphemes(text: string, locale = "en") {
   return Array.from(text);
 }
 
+export function resolveLobbyAttractionSpeed(influence: number) {
+  const clamped = Math.max(0, Math.min(1, influence));
+  const smooth = clamped * clamped * (3 - 2 * clamped);
+  return 25 + 575 * smooth * smooth;
+}
+
 export function advanceLobbyGlyph(
   glyph: LobbyGlyphState,
   pointer: LobbyPointerState,
@@ -80,7 +87,7 @@ export function advanceLobbyGlyph(
 
   if (pointer.active && radiusPx > 0 && distance < radiusPx) {
     const influence = 1 - distance / radiusPx;
-    const radialSpeed = 120 + 410 * influence * influence;
+    const radialSpeed = resolveLobbyAttractionSpeed(influence);
     const blend = 1 - Math.pow(0.74, safeDelta * 30);
     const unitX = distance > 0 ? dx / distance : 0;
     const unitY = distance > 0 ? dy / distance : 0;

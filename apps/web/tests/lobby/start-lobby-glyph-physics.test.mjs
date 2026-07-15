@@ -5,10 +5,11 @@ import {
   advanceLobbyGlyph,
   createLobbyFragmentBurst,
   repeatLobbyEntries,
+  resolveLobbyAttractionSpeed,
   segmentLobbyGraphemes,
 } from "../../src/lobby/startLobbyGlyphPhysics.ts";
 
-test("repeats a small independent pool to exactly 36 streams", () => {
+test("repeats a small independent pool to exactly 50 streams", () => {
   const pool = [
     { exhibitId: "a", kind: "title", text: "TITLE" },
     { exhibitId: "a", kind: "subtitle", text: "SUBTITLE" },
@@ -17,10 +18,23 @@ test("repeats a small independent pool to exactly 36 streams", () => {
   const streams = repeatLobbyEntries(pool);
 
   assert.equal(streams.length, START_LOBBY_STREAM_COUNT);
+  assert.equal(START_LOBBY_STREAM_COUNT, 50);
   assert.deepEqual(
     streams.slice(0, 4).map((item) => item.kind),
     ["title", "subtitle", "title", "subtitle"],
   );
+});
+
+test("attraction accelerates non-linearly toward the pointer core", () => {
+  const outer = resolveLobbyAttractionSpeed(0.1);
+  const middle = resolveLobbyAttractionSpeed(0.5);
+  const inner = resolveLobbyAttractionSpeed(0.9);
+
+  assert.ok(outer >= 25);
+  assert.ok(outer < middle && middle < inner);
+  assert.ok(inner - middle > middle - outer);
+  assert.ok(resolveLobbyAttractionSpeed(0) <= 30);
+  assert.ok(resolveLobbyAttractionSpeed(1) >= 595);
 });
 
 test("an empty content pool remains empty instead of inventing lobby copy", () => {

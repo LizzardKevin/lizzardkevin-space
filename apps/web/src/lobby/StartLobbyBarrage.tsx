@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { generatedStartLobbyExhibitText } from "../generated/startLobbyExhibitText.generated.ts";
 import {
+  START_LOBBY_POINTER_RADIUS_PX,
   START_LOBBY_STREAM_COUNT,
   advanceLobbyGlyph,
   createLobbyFragmentBurst,
@@ -18,8 +19,11 @@ export const START_LOBBY_BARRAGE_FRAME_MS = 1000 / 30;
 const FIELD_COLOR = "#69827e";
 const FIELD_DOT_COLOR = "rgba(24, 43, 45, 0.18)";
 const GLYPH_COLOR = "#f3f0e7";
-const POINTER_FIELD_RADIUS_PX = 150;
-const POINTER_FIELD_EDGE_SCALE = 1.55;
+const START_LOBBY_FONT_SCALE = 1.25;
+const POINTER_DOT_FIELD_RADIUS_PX = 300;
+const POINTER_DOT_MAX_PULL_PX = 30;
+const POINTER_DOT_MAX_RADIUS_PX = 3.5;
+const FIELD_DOT_BASE_RADIUS_PX = 0.58;
 const POINTER_CORE_RADIUS_PX = 4.5;
 const STREAM_VIEWPORT_PADDING_PX = 64;
 const MAX_FRAGMENT_COUNT = 120;
@@ -131,7 +135,9 @@ function createBarrageRuntime(
 
   function createStream(entry: StartLobbyExhibitTextEntry, index: number, initial: boolean) {
     const title = entry.kind === "title";
-    const fontSize = (title ? 8.7 : 7.1) + seededUnit(index * 3.1) * (title ? 1.6 : 1.2);
+    const fontSize =
+      ((title ? 8.7 : 7.1) + seededUnit(index * 3.1) * (title ? 1.6 : 1.2)) *
+      START_LOBBY_FONT_SCALE;
     const speed = 19 + seededUnit(index * 9.4) * 18;
     const glyphs: BarrageGlyph[] = [];
     let offsetX = 0;
@@ -189,7 +195,7 @@ function createBarrageRuntime(
     for (let y = step / 2; y < height; y += step) {
       for (let x = step / 2; x < width; x += step) {
         fieldContext.beginPath();
-        fieldContext.arc(x, y, 0.58, 0, Math.PI * 2);
+        fieldContext.arc(x, y, FIELD_DOT_BASE_RADIUS_PX, 0, Math.PI * 2);
         fieldContext.fill();
       }
     }
@@ -216,33 +222,35 @@ function createBarrageRuntime(
 
   function drawPointerField() {
     if (!pointer.active) return;
-    const fieldRadius = Math.min(POINTER_FIELD_RADIUS_PX, width * 0.155);
-    const edgeRadius = fieldRadius * POINTER_FIELD_EDGE_SCALE;
+    const fieldRadius = Math.min(POINTER_DOT_FIELD_RADIUS_PX, width * 0.25);
     const step = Math.max(9, Math.round(width / 120));
     context.save();
     context.beginPath();
-    context.arc(pointer.x, pointer.y, edgeRadius, 0, Math.PI * 2);
+    context.arc(pointer.x, pointer.y, fieldRadius, 0, Math.PI * 2);
     context.clip();
     context.fillStyle = FIELD_COLOR;
-    context.fillRect(pointer.x - edgeRadius, pointer.y - edgeRadius, edgeRadius * 2, edgeRadius * 2);
+    context.fillRect(pointer.x - fieldRadius, pointer.y - fieldRadius, fieldRadius * 2, fieldRadius * 2);
     context.fillStyle = FIELD_DOT_COLOR;
-    const startX = Math.floor((pointer.x - edgeRadius) / step) * step + step / 2;
-    const startY = Math.floor((pointer.y - edgeRadius) / step) * step + step / 2;
-    for (let y = startY; y <= pointer.y + edgeRadius; y += step) {
-      for (let x = startX; x <= pointer.x + edgeRadius; x += step) {
+    const startX = Math.floor((pointer.x - fieldRadius) / step) * step + step / 2;
+    const startY = Math.floor((pointer.y - fieldRadius) / step) * step + step / 2;
+    for (let y = startY; y <= pointer.y + fieldRadius; y += step) {
+      for (let x = startX; x <= pointer.x + fieldRadius; x += step) {
         const dx = pointer.x - x;
         const dy = pointer.y - y;
         const distance = Math.hypot(dx, dy);
-        if (distance > edgeRadius) continue;
-        const influence = 1 - distance / edgeRadius;
-        const pull = influence * influence * 12;
+        if (distance > fieldRadius) continue;
+        const influence = 1 - distance / fieldRadius;
+        const smooth = influence * influence * (3 - 2 * influence);
+        const curvedInfluence = smooth * smooth;
+        const pull = curvedInfluence * POINTER_DOT_MAX_PULL_PX;
         const unitX = distance > 0 ? dx / distance : 0;
         const unitY = distance > 0 ? dy / distance : 0;
         context.beginPath();
         context.arc(
           x + unitX * pull,
           y + unitY * pull,
-          0.58 + influence * 0.92,
+          FIELD_DOT_BASE_RADIUS_PX +
+            curvedInfluence * (POINTER_DOT_MAX_RADIUS_PX - FIELD_DOT_BASE_RADIUS_PX),
           0,
           Math.PI * 2,
         );
@@ -281,7 +289,7 @@ function createBarrageRuntime(
   }
 
   function updateAndDrawStreams(nowMs: number, deltaSeconds: number) {
-    const fieldRadius = Math.min(POINTER_FIELD_RADIUS_PX, width * 0.155);
+    const fieldRadius = Math.min(START_LOBBY_POINTER_RADIUS_PX, width * 0.18);
     streams.forEach((stream, streamIndex) => {
       stream.x -= stream.speed * deltaSeconds;
       let aliveCount = 0;
