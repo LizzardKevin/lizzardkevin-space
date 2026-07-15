@@ -89,11 +89,61 @@ function LobbyWord({ text, size, y }: { text: string; size: number; y: number })
   );
 }
 
+function LobbyEvenlySpacedWord({
+  text,
+  size,
+  letterGap,
+  y,
+}: {
+  text: string;
+  size: number;
+  letterGap: number;
+  y: number;
+}) {
+  const font = useLoader(FontLoader, helvetikerFontUrl);
+  const letters = useMemo(() => {
+    const geometries = Array.from(text, (letter) =>
+      createCenteredTextGeometry(letter, font, size, 0.32),
+    );
+    const widths = geometries.map((geometry) => {
+      const bounds = geometry.boundingBox;
+      return bounds ? bounds.max.x - bounds.min.x : size;
+    });
+    const totalWidth = widths.reduce((sum, width) => sum + width, 0) + letterGap * (widths.length - 1);
+    let cursor = -totalWidth / 2;
+
+    return geometries.map((geometry, index) => {
+      const width = widths[index] ?? size;
+      const x = cursor + width / 2;
+      cursor += width + letterGap;
+      return { geometry, x };
+    });
+  }, [font, letterGap, size, text]);
+
+  useEffect(
+    () => () => {
+      letters.forEach(({ geometry }) => geometry.dispose());
+    },
+    [letters],
+  );
+
+  return (
+    <group position={[0, y, 0]}>
+      {letters.map(({ geometry, x }, index) => (
+        <mesh key={`${text}-${index}`} geometry={geometry} position={[x, 0, 0]}>
+          <meshToonMaterial attach="material-0" color="#f3f0e7" />
+          <meshToonMaterial attach="material-1" color="#182b2d" />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function LobbyTypography({ artRef }: { artRef: RefObject<Group | null> }) {
   return (
     <group ref={artRef} rotation={[-0.025, 0.035, 0]}>
       <LobbyWord text="LIZZARDKEVIN" size={0.38} y={0.58} />
-      <LobbyWord text="SPACE" size={1.24} y={-0.72} />
+      <LobbyEvenlySpacedWord text="SPACE" size={1.24} letterGap={0.1} y={-0.72} />
     </group>
   );
 }

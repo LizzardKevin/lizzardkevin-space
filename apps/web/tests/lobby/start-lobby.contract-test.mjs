@@ -63,7 +63,12 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
   assert.match(source, /LIZZARDKEVIN/);
   assert.match(source, /SPACE/);
   assert.match(source, /<LobbyWord text="LIZZARDKEVIN" size=\{0\.38\} y=\{0\.58\} \/>/);
-  assert.match(source, /<LobbyWord text="SPACE" size=\{1\.24\} y=\{-0\.72\} \/>/);
+  assert.match(
+    source,
+    /<LobbyEvenlySpacedWord text="SPACE" size=\{1\.24\} letterGap=\{0\.1\} y=\{-0\.72\} \/>/,
+  );
+  assert.match(source, /const totalWidth = widths\.reduce\(\(sum, width\) => sum \+ width, 0\) \+ letterGap \* \(widths\.length - 1\)/);
+  assert.match(source, /cursor \+= width \+ letterGap/);
   assert.deepEqual(
     [threeBackground?.[1], threeFog?.[1], cssBackground?.[1]],
     ["#69827e", "#69827e", "#69827e"],
@@ -86,6 +91,7 @@ test("StartLobby Enter is a text-only control with depth and glyph focus", () =>
   assert.equal(declarationValue(enterRule, "border"), "0");
   assert.equal(declarationValue(enterRule, "background"), "transparent");
   assert.doesNotMatch(enterRule, /\bmin-width\s*:/);
+  assert.equal(declarationValue(enterRule, "font-size"), "clamp(17px, 1.3vw, 20px)");
   assert.match(declarationValue(enterRule, "text-shadow"), /1px 1px 0.*2px 2px 0/);
   assert.match(css, /\.start-lobby__enter:focus-visible\s*\{\s*outline:\s*none;/);
   assert.match(declarationValue(focusRule, "text-shadow"), /0 0/);

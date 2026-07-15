@@ -39,7 +39,7 @@
   border-radius: 0;
   background: transparent;
   color: #f3f0e7;
-  font-size: 13px;
+  font-size: clamp(17px, 1.3vw, 20px);
   font-weight: 720;
   letter-spacing: 0.16em;
   line-height: 1;
