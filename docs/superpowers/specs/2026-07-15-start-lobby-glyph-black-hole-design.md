@@ -2,11 +2,11 @@
 
 ## Status
 
-Approved visual direction: Visual Companion V3, confirmed by the user on 2026-07-15.
+Approved visual direction: Visual Companion V3, confirmed by the user on 2026-07-15. Density, scale, field deformation, and non-linear attraction parameters revised and confirmed on the same date.
 
 ## Goal
 
-Add a dense but restrained exhibit-text field behind the existing desktop StartLobby typography. Thirty-six independently scheduled title or subtitle entries move from right to left. Every visible grapheme can detach from its word when it enters the pointer's local force field, rotate independently, preserve its disturbed position and angular state after the pointer leaves, and produce a small white grinding fragment effect only when it reaches the pointer core.
+Add a dense but restrained exhibit-text field behind the existing desktop StartLobby typography. Fifty independently scheduled title or subtitle entries move from right to left. Every visible grapheme can detach from its word when it enters the pointer's local force field, rotate independently, preserve its disturbed position and angular state after the pointer leaves, and produce a small white grinding fragment effect only when it reaches the pointer core.
 
 The existing `LIZZARDKEVIN`, `SPACE`, and text-only `ENTER` remain the dominant foreground. Mobile remains unchanged.
 
@@ -20,7 +20,7 @@ The existing `LIZZARDKEVIN`, `SPACE`, and text-only `ENTER` remain the dominant 
 - Title and subtitle are never bound into one visual unit.
 - Empty localized values are not emitted. The existing workbook validation continues to require bilingual exhibit title and subtitle values.
 - The runtime never imports or parses the `.xlsx` file and never imports mobile archive data.
-- The generated pool may repeat deterministically until 36 active streams exist. Repetition is expected and allowed.
+- The generated pool may repeat deterministically until 50 active streams exist. Repetition is expected and allowed.
 
 ## Layering and Runtime Boundary
 
@@ -39,10 +39,10 @@ The StartLobby WebGL renderer becomes transparent so the Canvas2D background rem
 
 ### Streams
 
-- Target count: 36 entries; accepted range: 30–40.
+- Target count: 50 entries; accepted range: 48–52.
 - Every stream is one workbook title or one workbook subtitle.
 - Streams begin beyond the right viewport edge and move left at a small deterministic speed variation.
-- Font size is smaller than the approved V2 text field; title is slightly stronger than subtitle, but both remain subordinate to the foreground SPACE word.
+- Title and subtitle font sizes are exactly 25% larger than the approved V3 baseline. Title remains slightly stronger than subtitle, and both remain subordinate to the foreground SPACE word.
 - Streams respawn beyond the right edge when all of their graphemes have either left the viewport or entered the black-hole core.
 
 ### Graphemes
@@ -50,7 +50,8 @@ The StartLobby WebGL renderer becomes transparent so the Canvas2D background rem
 - Text is segmented by grapheme cluster with `Intl.Segmenter` when available and a Unicode-safe fallback otherwise.
 - Each grapheme has independent position, velocity, rotation, angular velocity, and alive state.
 - Before disturbance, a grapheme follows its stream's stable leftward baseline.
-- Within the force radius, it detaches and receives only radial acceleration toward the pointer. There is no tangential or spiral force.
+- Within a 175 px desktop force radius, it detaches and receives only radial acceleration toward the pointer. There is no tangential or spiral force.
+- Attraction uses a smooth cubic influence curve: slow at the outer edge, progressively faster through the middle, and fastest near the core. The target radial speed ranges from roughly 25 px/s at the edge to roughly 600 px/s near the core.
 - Attraction adds restrained signed angular velocity.
 - After the pointer moves away, detached graphemes do not reassemble and do not restore original kerning. Their horizontal velocity eases back toward the stream's leftward velocity while vertical displacement, rotation, and a small angular inertia decay slowly.
 
@@ -64,7 +65,9 @@ The StartLobby WebGL renderer becomes transparent so the Canvas2D background rem
 ### Dot Field
 
 - The full field is a low-contrast ordered dot lattice.
-- Only dots inside the local pointer influence area are redrawn with inward radial displacement and mild size compression.
+- Only dots inside an approximately 300 px local pointer influence area are redrawn with inward radial displacement and size growth.
+- Dot displacement follows the same smooth radial influence, capped at 30 px toward the pointer.
+- Dot radius grows from the 0.58 px baseline to a maximum of 3.5 px near the pointer.
 - No spiral, contour, ribbon, character-code, neon, or gradient language is introduced.
 
 ## Performance Design
@@ -115,7 +118,8 @@ The StartLobby WebGL renderer becomes transparent so the Canvas2D background rem
 
 ### Unit behavior
 
-- Thirty-six streams are created by deterministic repetition when the unique pool is smaller.
+- Fifty streams are created by deterministic repetition when the unique pool is smaller.
+- Attraction speed is monotonic and non-linear: the near-core speed increase is greater than the outer-edge increase.
 - Grapheme segmentation keeps Unicode code points intact.
 - Force acceleration is radial and has no spiral term.
 - A disturbed grapheme does not restore its original word offset after the pointer leaves.
@@ -131,7 +135,8 @@ The StartLobby WebGL renderer becomes transparent so the Canvas2D background rem
 
 ### Visual and performance QA
 
-- At 1440×900, 36 small independent entries remain visible or scheduled and the central title remains dominant.
+- At 1440×900, 50 independent entries remain visible or scheduled, render 25% larger than the V3 baseline, and the central title remains dominant.
+- The dot field visibly bends across an approximately 300 px radius, reaches at most 30 px displacement, and grows to at most 3.5 px near the pointer.
 - Pointer sweeps detach individual characters rather than whole words.
 - Rapid pointer departure leaves dispersed, rotating characters moving left without reassembly.
 - Core contact produces restrained white shards and no bright explosion.
