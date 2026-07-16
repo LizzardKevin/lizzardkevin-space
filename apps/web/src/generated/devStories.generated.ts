@@ -217,6 +217,36 @@ export const generatedDevStoriesByLanguage = {
         "Repo Hygiene",
         "Performance"
       ]
+    },
+    {
+      "id": "devlog-09",
+      "number": "09",
+      "period": "2026.07.15",
+      "title": "Turning the performance wall into Architecture V2",
+      "summary": "DevLog 8 stopped after a project review named SPACE's serious performance wall. This pass turned that diagnosis into Architecture V2: platform shells, persistent 3D routes, renderer fallback, separate start menus, explicit budgets, and a tested delivery to main.",
+      "built": [
+        "I split the root app into desktop and mobile shells, keeping MobileStartMenu and the Terminal Site free of Three, R3F, Rapier, GLB, and desktop renderer imports.",
+        "Real `/space`, `/profile`, `/devstories`, and work routes now reuse the same Canvas, Rapier world, GLBs, and player pose after SPACE has started.",
+        "The renderer path is WebGPU-first with WebGL2 fallback, full/simplified quality profiles, and an attempt-scoped boot controller that rejects stale initialization results.",
+        "I replaced the old splash and click easter eggs with a 3D desktop StartLobby plus a separate DOM/CSS mobile menu.",
+        "The workbook now generates independent exhibit title/subtitle entries for a roughly 50-stream glyph barrage with per-character attraction, rotation, inertia, restrained fragments, and a 300px dot field.",
+        "Focus loads every image for the selected work with real progress, while visual rules, asset budgets, browser baselines, and protected release gates make performance measurable."
+      ],
+      "trouble": [
+        "Returning from Focus, Profile, or DevStories initially still needed one extra click; the fix required correlated pointer-lock attempts, stale-request cancellation, overlay lifetime control, and a stable Canvas owner.",
+        "StartLobby could go black under failed or repeated renderer initialization, so root ownership, viewport lifetime, renderer release, and handoff needed explicit boundaries.",
+        "A persistent 3D runtime cannot mean keeping every cold asset resident: lightweight routes may idle-prefetch code, but work media still loads only after selection.",
+        "The interactive lobby background needed a strict 30fps/DPR/particle budget and reduced-motion path so the artwork did not become another performance wall."
+      ],
+      "next": "Next I want to watch the production GitHub Pages result, finish iPhone Safari and Android Chrome checks, and keep comparing full/simplified frame and memory budgets. Any KTX2, Meshopt/Draco, LOD, collision, Blender, or source-asset changes will stay in a separately approved asset phase.",
+      "tags": [
+        "Architecture V2",
+        "App Shell",
+        "Persistent SPACE",
+        "WebGPU Fallback",
+        "StartLobby",
+        "Performance"
+      ]
     }
   ],
   "zh": [
@@ -434,6 +464,36 @@ export const generatedDevStoriesByLanguage = {
         "DevLog",
         "Repo Hygiene",
         "Performance"
+      ]
+    },
+    {
+      "id": "devlog-09",
+      "number": "09",
+      "period": "2026.07.15",
+      "title": "把性能墙拆成 Architecture V2",
+      "summary": "DevLog 8 停在项目审查和严重性能问题记录；这一轮把那堵性能墙拆成真正落地的 Architecture V2：平台 Shell、持久化 3D 路由、渲染回退、双端开始菜单、量化预算和经过验证的 main 交付。",
+      "built": [
+        "我把根应用拆成桌面和移动 Shell，MobileStartMenu 与 Terminal Site 不导入 Three、R3F、Rapier、GLB 或桌面 renderer。",
+        "真实的 `/space`、`/profile`、`/devstories` 和作品路由会在 SPACE 启动后复用同一 Canvas、Rapier world、GLB 和玩家位置。",
+        "渲染路径改为 WebGPU 优先、WebGL2 回退，提供完整/简化两档，并用 attempt-scoped boot controller 拒绝旧初始化结果。",
+        "我删除旧 Splash、点击进入和彩蛋，换成桌面 3D StartLobby 与独立的 DOM/CSS 移动开始菜单。",
+        "工作簿会生成解耦的展品 title/subtitle，形成约 50 条逐字符弹幕；字符可被吸引、旋转、保持惯性并以克制碎片消失，点阵场半径约 300px。",
+        "Focus 会为选中的作品加载全部图片并显示真实进度；视觉规范、资产预算、浏览器基线和 protected release gates 让性能变得可测。"
+      ],
+      "trouble": [
+        "从 Focus、Profile 或 DevStories 返回时最初仍要多点一次；最后用关联 pointer-lock attempt、取消过期请求、延长 overlay 生命周期和稳定 Canvas owner 才真正修好。",
+        "StartLobby 在 renderer 失败或重复初始化时可能纯黑，所以 root ownership、viewport 生命周期、renderer release 和 handoff 都需要明确边界。",
+        "持久化 3D runtime 不等于让所有冷资产常驻：轻量路由可以空闲预取代码，但作品媒体仍然只在选中后加载。",
+        "入口互动背景必须限制在 30fps、受控 DPR 和粒子预算内，并提供 reduced-motion，否则数字艺术本身会成为新的性能墙。"
+      ],
+      "next": "下一步先观察 GitHub Pages 的真实部署，再完成 iPhone Safari 和 Android Chrome 真机检查，并持续对比完整/简化档的帧与内存预算。KTX2、Meshopt/Draco、LOD、碰撞、Blender 或源资产改动继续留在单独授权的资产阶段。",
+      "tags": [
+        "Architecture V2",
+        "App Shell",
+        "持久化 SPACE",
+        "WebGPU 回退",
+        "StartLobby",
+        "性能预算"
       ]
     }
   ]
