@@ -32,7 +32,7 @@ Use CPU-precomputed inverted-hull ink shells, not a screen-space edge-detection 
 
 Implementation contract:
 
-1. New module `apps/web/src/scenes/gallery/galleryInkOutline.ts`. For each stylized-family mesh (`ARCH_`, `PLASTER_`, `STRUCT_*`): weld vertices (`mergeVertices`), compute smooth normals, extrude along the normal by a world-space width (default `0.025`), and merge per family into one geometry.
+1. New module `apps/web/src/scenes/gallery/galleryInkOutline.ts`. For each stylized-family mesh (`ARCH_`, `PLASTER_`, `STRUCT_*`): weld vertices (`mergeVertices`), compute smooth normals, extrude along the normal by a world-space width (default `0.035`, tuned down from 0.06 after manual review so lines hug the mesh), and merge per family into one geometry. Walkable surfaces (`STRUCT_FLOOR_`, `ARCH_FLOOR_`, `STRUCT_STAIR_`, `ARCH_STAIR_`) are exempt — their shells read as noise underfoot.
 2. One shared `MeshBasicMaterial`: color `ink` (`#17282a`), `toneMapped: false`, `side: THREE.BackSide`.
 3. Hook: inside the existing stylization traversal in `prepareGalleryScene.ts`; same exemption list as bloom (`GLASS_`, `LIGHT_`, `bulb_`, `TEMP_BLOCKER_`, `COL_`).
 4. Exhibits get per-exhibit shells at clone time in `SceneExhibitPlacement.tsx`, mounted/unmounted with the existing distance LOD. Shells are never merged across exhibits.
@@ -42,8 +42,8 @@ Implementation contract:
 ## Sharp Shadow Decision (Full Profile Only)
 
 1. `ENABLE_GALLERY_RUNTIME_SHADOWS` takes effect only when `profile.shadows` is true; the simplified profile never mounts shadow maps (V2 profile table unchanged).
-2. The key directional light at `SpaceSession.tsx` gains `castShadow` plus a helper that fits an orthographic shadow camera to the `space_main.glb` bounding box with a fixed target.
-3. 2048px shadow map; prefer `THREE.BasicShadowMap` for hard edges, fall back to `PCFShadowMap` if the WebGPU backend misbehaves; tune `normalBias` on captures.
+2. The key directional light at `SpaceSession.tsx` gains `castShadow` plus a helper that fits an orthographic shadow camera to the `space_main.glb` bounding box with a fixed target. Its position is raised from `[-8, 5, 6]` to `[-5, 10, 4]` (~57° elevation, up from ~27°) so shadows visibly land on the floor; the toon banding follows the same direction as before by design.
+3. 2048px shadow map; `PCFShadowMap` after manual review (`BasicShadowMap`'s unfiltered edges read as harsh jaggies at 1080p); tune `normalBias` on captures.
 4. Static-update policy: `renderer.shadowMap.autoUpdate = false`; set `needsUpdate = true` only on scene changes (exhibit mount/unmount, Focus open/close). Steady-state per-frame shadow cost is effectively zero.
 5. Glass, emissive, and projector surfaces never cast; the eight bulb point lights never cast shadows.
 
