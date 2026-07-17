@@ -1,5 +1,6 @@
 import "../runtime/suppressThirdPartyDeprecationWarnings";
 import { Canvas } from "@react-three/fiber";
+import { PCFShadowMap } from "three";
 import {
   useCallback,
   useEffect,
@@ -301,7 +302,7 @@ export function SpaceCanvasHost({
                 ? spawnToCameraPosition(GALLERY_SPAWN)
                 : [0, 1.6, 6],
             }}
-            shadows={resolvedProfile ? resolvedProfile.shadows && useShadows : false}
+            shadows={resolvedProfile && resolvedProfile.shadows && useShadows ? { type: PCFShadowMap } : false}
             onCreated={({ gl }) => {
               gl.domElement.id = "space-canvas";
             }}

@@ -1,14 +1,25 @@
 import * as THREE from "three";
-import { bindExhibitIds } from "./bindExhibitIds";
+import { bindExhibitIds } from "./bindExhibitIds.ts";
 import {
+  ENABLE_GALLERY_INK_OUTLINES,
   ENABLE_GALLERY_OVERRIDE_MATERIALS,
   ENABLE_GALLERY_RUNTIME_SHADOWS,
   ENABLE_GALLERY_SELECTIVE_STYLIZATION,
   ENABLE_GALLERY_TOON,
+  GALLERY_INK,
   GALLERY_SURFACE_COLOR,
-} from "./galleryConfig";
-import { createGalleryToonMaterial } from "./galleryToonMaterial";
-import { applyGallerySceneMaterialStyle, isGalleryLightMesh } from "./galleryStyleMaterials";
+} from "./galleryConfig.ts";
+import { createGalleryToonMaterial } from "./galleryToonMaterial.ts";
+import {
+  addGalleryInkOutline,
+  GALLERY_INK_OUTLINE_EXCLUDED_PREFIXES,
+  type GalleryInkShellSource,
+} from "./galleryInkOutline.ts";
+import {
+  applyGallerySceneMaterialStyle,
+  getGalleryMaterialStyleAction,
+  isGalleryLightMesh,
+} from "./galleryStyleMaterials.ts";
 
 function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
   return !!obj && (obj as THREE.Mesh).isMesh === true;
@@ -74,6 +85,7 @@ export function prepareGalleryScene(root: THREE.Object3D) {
   const seen = new Map<string, THREE.Mesh>();
   const tempBlockerMaterial = createTempBlockerFrostedMaterial();
   const worldPosition = new THREE.Vector3();
+  const inkSources: GalleryInkShellSource[] = [];
   let assignedTempBlockerMaterial = false;
 
   root.traverse((obj) => {
@@ -106,6 +118,16 @@ export function prepareGalleryScene(root: THREE.Object3D) {
       applyGallerySceneMaterialStyle(obj);
     }
 
+    if (
+      ENABLE_GALLERY_INK_OUTLINES &&
+      !isTempBlocker &&
+      getGalleryMaterialStyleAction(obj.name) === "stylize" &&
+      !GALLERY_INK_OUTLINE_EXCLUDED_PREFIXES.some((prefix) => obj.name.startsWith(prefix)) &&
+      !GALLERY_INK.exemptPatterns.some((pattern) => pattern.test(obj.name))
+    ) {
+      inkSources.push({ geometry: obj.geometry, matrixWorld: obj.matrixWorld });
+    }
+
     if (isTempBlocker) {
       if (obj.material && obj.material !== tempBlockerMaterial) disposeMaterial(obj.material);
       obj.material = tempBlockerMaterial;
@@ -113,8 +135,18 @@ export function prepareGalleryScene(root: THREE.Object3D) {
       obj.renderOrder = Math.max(obj.renderOrder, 20);
     }
 
-    obj.castShadow = ENABLE_GALLERY_RUNTIME_SHADOWS && !isTempBlocker;
-    obj.receiveShadow = ENABLE_GALLERY_RUNTIME_SHADOWS && !isTempBlocker;
+    // 玻璃与发光灯具不投影（透明排序与"光源自身"观感都会出问题），其余实体统一投影/接收。
+    obj.castShadow =
+      ENABLE_GALLERY_RUNTIME_SHADOWS &&
+      !isTempBlocker &&
+      !obj.name.startsWith("GLASS_") &&
+      !isGalleryLightMesh(obj.name);
+    // 透明玻璃/发光体也不接收阴影：透明面上印影子会像影子飘在玻璃前面。
+    obj.receiveShadow =
+      ENABLE_GALLERY_RUNTIME_SHADOWS &&
+      !isTempBlocker &&
+      !obj.name.startsWith("GLASS_") &&
+      !isGalleryLightMesh(obj.name);
 
     if (isGalleryLightMesh(obj.name)) {
       obj.getWorldPosition(worldPosition);
@@ -132,6 +164,10 @@ export function prepareGalleryScene(root: THREE.Object3D) {
       });
     }
   });
+
+  if (ENABLE_GALLERY_INK_OUTLINES) {
+    addGalleryInkOutline(root, inkSources);
+  }
 
   if (!assignedTempBlockerMaterial) tempBlockerMaterial.dispose();
 

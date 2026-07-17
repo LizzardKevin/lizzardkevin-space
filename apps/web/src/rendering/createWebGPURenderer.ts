@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
+import { ENABLE_GALLERY_RENDERER_ANTIALIAS } from "../scenes/gallery/galleryConfig";
 import {
   initializeProfiledRenderer,
   type RendererProfileId,
@@ -21,7 +22,7 @@ export async function createWebGPURenderer(props: WebGPUCanvasProps): Promise<We
     (forceWebGL) =>
       new WebGPURenderer({
         canvas: props.canvas,
-        antialias: false,
+        antialias: ENABLE_GALLERY_RENDERER_ANTIALIAS,
         alpha: props.alpha ?? false,
         forceWebGL,
       }),

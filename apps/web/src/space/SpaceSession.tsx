@@ -8,9 +8,12 @@ import { SpaceScene } from "../scenes/SpaceScene";
 import type { SpaceJumpNoticeKey } from "../scenes/Player/PlayerController";
 import { GalleryAtmosphere } from "../scenes/gallery/GalleryAtmosphere";
 import {
+  ENABLE_GALLERY_RUNTIME_SHADOWS,
   ENABLE_GALLERY_TOON,
+  GALLERY_SHADOW,
   GALLERY_TOON,
 } from "../scenes/gallery/galleryConfig";
+import { GALLERY_KEY_LIGHT_NAME } from "../scenes/gallery/galleryShadow.ts";
 import type { ProjectorSlideCommand } from "../scenes/projector/projectorSlides";
 import type { SpacePlayerPose } from "./spaceDailyResume";
 import type { SpaceQualityConfig } from "./spaceVisualSettings";
@@ -66,9 +69,16 @@ export function SpaceSession({
       {ENABLE_GALLERY_TOON ? (
         <>
           <directionalLight
+            name={GALLERY_KEY_LIGHT_NAME}
             position={GALLERY_TOON.keyLight.position}
             intensity={GALLERY_TOON.keyLight.intensity}
             color={GALLERY_TOON.keyLight.color}
+            castShadow={profile.shadows && ENABLE_GALLERY_RUNTIME_SHADOWS}
+            shadow-mapSize-width={GALLERY_SHADOW.mapSize}
+            shadow-mapSize-height={GALLERY_SHADOW.mapSize}
+            shadow-normalBias={GALLERY_SHADOW.normalBias}
+            shadow-bias={GALLERY_SHADOW.bias}
+            shadow-autoUpdate={false}
           />
           <directionalLight
             position={GALLERY_TOON.fillLight.position}

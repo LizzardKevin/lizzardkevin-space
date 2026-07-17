@@ -10,6 +10,7 @@ export const SPACE_VISUAL_TOKENS = Object.freeze({
     ceiling: "#e8e4d8",
     metal: "#667271",
     signal: "#ef8b61",
+    inkOutline: "#17282a",
   }),
   toonBands: Object.freeze({
     shadow: "#31413f",
@@ -21,7 +22,7 @@ export const SPACE_VISUAL_TOKENS = Object.freeze({
   lighting: Object.freeze({
     ambientIntensity: 0.28,
     hemisphere: Object.freeze({ sky: "#dce9e4", ground: "#3f4d4d", intensity: 0.55 }),
-    key: Object.freeze({ position: [-8, 5, 6] as const, color: "#f3f0e7", intensity: 1 }),
+    key: Object.freeze({ position: [-5, 10, 4] as const, color: "#f3f0e7", intensity: 1 }),
     fill: Object.freeze({ position: [5, 3, -7] as const, color: "#67c2be", intensity: 0.22 }),
   }),
   hud: Object.freeze({

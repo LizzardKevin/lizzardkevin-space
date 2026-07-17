@@ -10,6 +10,7 @@ const hud = readProjectFile("apps/web/src/space/SpaceHud.tsx");
 const focus = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
 const factory = readProjectFile("apps/web/src/rendering/createWebGPURenderer.ts");
 const pipeline = readProjectFile("apps/web/src/rendering/GalleryRenderPipeline.tsx");
+const pipelineLifecycle = readProjectFile("apps/web/src/rendering/galleryPipelineLifecycle.ts");
 const topbar = readProjectFile("apps/web/src/components/TopBar.tsx");
 
 assert.equal((canvasHost.match(/<Canvas\b/g) ?? []).length, 1, "production SPACE must have one main Canvas owner");
@@ -35,8 +36,16 @@ assert.match(
 assert.match(focus, /profile: RendererProfileId/);
 assert.match(focus, /resolveFocusRequestedProfile\(profile\)/);
 assert.match(focus, /dpr=\{resolveRendererDpr\(resolvedFocusProfile\)\}/);
-assert.match(factory, /antialias: false/);
-assert.match(pipeline, /disposeOwnedRenderPipeline\(pipeline\)/, "owned post pipeline must be disposed on unmount");
+assert.match(factory, /antialias: ENABLE_GALLERY_RENDERER_ANTIALIAS/);
+assert.match(
+  pipeline,
+  /disposeGalleryPipelineResources\(\{[\s\S]*pipeline,[\s\S]*scenePass,[\s\S]*bloomNode:[\s\S]*fxaaInput:/,
+  "every owned post-processing resource must be disposed on unmount",
+);
+assert.match(pipelineLifecycle, /pipeline\.dispose\(\)/);
+assert.match(pipelineLifecycle, /fxaaInput\?\.renderTarget\?\.dispose\(\)/);
+assert.match(pipelineLifecycle, /bloomNode\?\.dispose\(\)/);
+assert.match(pipelineLifecycle, /scenePass\.dispose\(\)/);
 assert.doesNotMatch(pipeline, /scene\.dispose|material\.dispose|useGLTF/, "pipeline cleanup must not dispose shared assets");
 assert.match(topbar, /setQualityPreset/);
 assert.match(topbar, /qualityPreset === "full"/);
