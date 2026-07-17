@@ -4,8 +4,10 @@ import * as THREE from "three";
 import { RenderPipeline, WebGPURenderer } from "three/webgpu";
 import { clamp, color, float, length, mix, pass, saturation, smoothstep, uv, vec2, vec3, vec4 } from "three/tsl";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
+import { fxaa } from "three/addons/tsl/display/FXAANode.js";
 import {
   ENABLE_GALLERY_COLOR_GRADE,
+  ENABLE_GALLERY_FXAA,
   ENABLE_GALLERY_VIGNETTE,
   GALLERY_COLOR_GRADE,
   GALLERY_VIGNETTE,
@@ -48,6 +50,11 @@ function buildPostFxOutput(ctx: PostFxContext, bloomConfig: BloomConfig) {
     out = out.mul(vec4(vec3(darken), 1.0)) as unknown as TslColorNode;
   }
 
+  if (ENABLE_GALLERY_FXAA) {
+    // Final composite gets anti-aliased; fxaa() internally converts to a texture pass.
+    out = fxaa(out) as unknown as TslColorNode;
+  }
+
   return out;
 }
 
@@ -65,7 +72,7 @@ export function GalleryRenderPipeline({ bloom: bloomConfig }: { bloom: BloomConf
   const bloomRadius = bloomConfig.radius;
   const bloomStrength = bloomConfig.strength;
   const bloomThreshold = bloomConfig.threshold;
-  const postFxEnabled = bloomEnabled || ENABLE_GALLERY_COLOR_GRADE || ENABLE_GALLERY_VIGNETTE;
+  const postFxEnabled = bloomEnabled || ENABLE_GALLERY_COLOR_GRADE || ENABLE_GALLERY_VIGNETTE || ENABLE_GALLERY_FXAA;
 
   useLayoutEffect(() => {
     if (!postFxEnabled) {

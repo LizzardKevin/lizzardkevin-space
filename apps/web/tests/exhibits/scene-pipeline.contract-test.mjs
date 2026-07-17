@@ -131,8 +131,8 @@ assert.match(
 );
 assert.match(
   sceneExhibitPlacement,
-  /return \(\) => disposeSceneExhibitMaterials\(placed\.object\)/,
-  "scene exhibit material cleanup should run from an unmount effect",
+  /return \(\) => \{[\s\S]*disposeExhibitInkOutline\(placed\.object\)[\s\S]*disposeSceneExhibitMaterials\(placed\.object\)/,
+  "scene exhibit material cleanup should run from an unmount effect, ink shell first so the shared ink material survives",
 );
 assert.doesNotMatch(
   sceneExhibitPlacement,

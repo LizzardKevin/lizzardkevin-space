@@ -1,4 +1,5 @@
 import { useGLTF } from "@react-three/drei";
+import { useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { ColColliders } from "../collision/colColliders";
@@ -12,13 +13,13 @@ import { TempBlockerNotices } from "./TempBlockerNotices";
 import { useGallerySpawn } from "./useGallerySpawn";
 import {
   ENABLE_GALLERY_LIGHT_HALOS,
-  ENABLE_GALLERY_RUNTIME_SHADOWS,
   GALLERY_BULB,
   GALLERY_GLB_URL,
   GALLERY_LIGHT_HALO,
   GLTF_DRACO_DECODER_PATH,
   USE_OUTSIDE_GALLERY_SPAWN,
 } from "./galleryConfig";
+import { fitDirectionalShadowCamera, GALLERY_KEY_LIGHT_NAME } from "./galleryShadow.ts";
 import { prepareGalleryScene } from "./prepareGalleryScene";
 import {
   resolveGallerySafetyCenter,
@@ -52,7 +53,7 @@ function GalleryBulbLights({
           distance={quality.lighting.bulbDistance}
           decay={2}
           color={GALLERY_BULB.color}
-          castShadow={ENABLE_GALLERY_RUNTIME_SHADOWS}
+          castShadow={false}
           shadow-mapSize-width={512}
           shadow-mapSize-height={512}
         />
@@ -159,6 +160,14 @@ export function GalleryModel({
   useEffect(() => {
     applyGalleryLightEmissiveIntensity(gltf.scene, quality.lighting.lightEmissiveIntensity);
   }, [gltf.scene, quality.lighting.lightEmissiveIntensity]);
+
+  const scene = useThree((state) => state.scene);
+  useEffect(() => {
+    if (!profile.shadows) return;
+    const keyLight = scene.getObjectByName(GALLERY_KEY_LIGHT_NAME) as THREE.DirectionalLight | undefined;
+    if (!keyLight) return;
+    fitDirectionalShadowCamera(keyLight, new THREE.Box3().setFromObject(gltf.scene));
+  }, [gltf.scene, profile.shadows, scene]);
 
   return (
     <group>

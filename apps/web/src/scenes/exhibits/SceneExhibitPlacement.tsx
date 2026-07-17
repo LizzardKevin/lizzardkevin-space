@@ -4,7 +4,9 @@ import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNo
 import * as THREE from "three";
 import type { ExhibitManifestItem, ExhibitSceneConfig } from "../../exhibits/manifest.ts";
 import { publishSpaceExhibitPlacementDebug } from "../debug/spaceMovementDebug";
-import { GLTF_DRACO_DECODER_PATH } from "../gallery/galleryConfig";
+import { GLTF_DRACO_DECODER_PATH, ENABLE_GALLERY_INK_OUTLINES } from "../gallery/galleryConfig";
+import { addExhibitInkOutline, disposeExhibitInkOutline } from "../gallery/galleryInkOutline.ts";
+import { refreshStaticShadowMap } from "../gallery/galleryShadow.ts";
 import { applyTreeHabitatSharedMaterials } from "./exhibitMaterialOverrides.ts";
 import { useRegisterExhibitInteractionTarget } from "./exhibitInteractionRegistry";
 import {
@@ -133,9 +135,14 @@ function SceneExhibitModel({
     }
 
     object.updateMatrixWorld(true);
+    if (ENABLE_GALLERY_INK_OUTLINES) {
+      addExhibitInkOutline(object);
+    }
     return { object, floorName };
   }, [exhibit.exhibitId, gltf.scene, root, sceneConfig]);
   useRegisterExhibitInteractionTarget(placed.object);
+
+  const gl = useThree((state) => state.gl);
 
   useEffect(() => {
     publishSpaceExhibitPlacementDebug({
@@ -146,12 +153,20 @@ function SceneExhibitModel({
       mounted: true,
       floorName: placed.floorName,
     });
+    // 展品 LOD 挂载/卸载会改变投影体集合：按需重渲一次静态阴影贴图。
+    refreshStaticShadowMap(gl);
     onReady(exhibit.exhibitId);
-  }, [exhibit.exhibitId, onReady, placed.floorName]);
+  }, [exhibit.exhibitId, onReady, placed.floorName, gl]);
 
   useEffect(() => {
-    return () => disposeSceneExhibitMaterials(placed.object);
-  }, [placed.object]);
+    return () => {
+      // Dispose the ink shell first so the shared ink material is never
+      // collected by disposeSceneExhibitMaterials below.
+      disposeExhibitInkOutline(placed.object);
+      disposeSceneExhibitMaterials(placed.object);
+      refreshStaticShadowMap(gl);
+    };
+  }, [placed.object, gl]);
 
   return <primitive object={placed.object} />;
 }

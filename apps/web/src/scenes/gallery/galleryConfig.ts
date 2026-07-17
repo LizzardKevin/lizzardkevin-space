@@ -79,15 +79,56 @@ export const GALLERY_TOON = {
 
 /**
  * Real-time shadow maps from SpacePage lights (NOT baked into the GLB).
- * Set false for flat gallery look after removing Blender sun lights.
+ * Full profile only: sharp BasicShadowMap from the key light, re-rendered on
+ * demand (static scene) instead of every frame. Simplified profile never
+ * mounts shadow maps (profile.shadows stays false).
  */
-export const ENABLE_GALLERY_RUNTIME_SHADOWS = false;
+export const ENABLE_GALLERY_RUNTIME_SHADOWS = true;
+
+/** Sharp key-light shadow preset for the full profile. */
+export const GALLERY_SHADOW = {
+  mapSize: 4096,
+  /**
+   * Offsets wall surfaces out of their own shadow depth — kills shadow acne.
+   * Keep small: the offset follows each surface normal, so perpendicular walls
+   * at a corner shift their shadows in different directions and large values
+   * show as shadow seams/offsets at corners (seen at 0.2).
+   */
+  normalBias: 0.06,
+  /** Constant push along the light direction; normal-independent, so no corner seams. */
+  bias: -0.0002,
+  /** Orthographic shadow camera padding around the gallery bounds, in meters. */
+  margin: 2,
+};
+
+/**
+ * Merged inverted-hull ink outlines for stylized architecture families and
+ * per-exhibit clones (Messenger-style bold outer contours). Backend-agnostic:
+ * plain geometry + one shared MeshBasicMaterial, no post pass required.
+ */
+export const ENABLE_GALLERY_INK_OUTLINES = true;
+
+export const GALLERY_INK = {
+  /** World-space shell extrusion distance in meters; hugs the mesh, bold enough to read. */
+  width: 0.035,
+  color: SPACE_VISUAL_TOKENS.colors.inkOutline,
+  /**
+   * Flush-mounted meshes whose hulls poke through the adjacent surface
+   * (inverted-hull failure at near-coplanar joints): the sloped skylight
+   * plaster band ARCH_WALL_PLASTER_WHITE_013..022 sits flush against the
+   * skylight frame, so its hull leaks onto the flat ceiling.
+   */
+  exemptPatterns: [/^ARCH_WALL_PLASTER_WHITE_0(?:1[3-9]|2[0-2])/],
+};
 
 /** Require WebGPURenderer for the 3D gallery (no WebGL post-processing fallback). */
 export const ENABLE_GALLERY_WEBGPU = true;
 
 /** 2K/30fps budget: WebGPU native antialias is the lightest AA path for the main walking canvas. */
 export const ENABLE_GALLERY_RENDERER_ANTIALIAS = true;
+
+/** Full-profile FXAA at the end of the TSL pipeline (flat toon color makes jaggies obvious). */
+export const ENABLE_GALLERY_FXAA = true;
 
 /** Single-node color grade inside the existing WebGPU render pipeline. */
 export const ENABLE_GALLERY_COLOR_GRADE = false;
@@ -136,6 +177,15 @@ export const GALLERY_ALUMINUM_MATERIAL = {
   envMapIntensity: 0.72,
 };
 
+/**
+ * Exported glass is too faint to read against shadows (clear 0.32 / frosted 0.42).
+ * Raise opacity at runtime so panes stay visible without touching the GLB.
+ */
+export const GALLERY_GLASS = {
+  opacity: 0.55,
+  frostedOpacity: 0.62,
+};
+
 /** Optional additive light sprites; disabled by default to protect 2K/60. */
 export const ENABLE_GALLERY_LIGHT_HALOS = false;
 
@@ -148,8 +198,8 @@ export const GALLERY_LIGHT_HALO = {
 
 /** Exhibit raycast label + hover highlight tuning. */
 export const EXHIBIT_TARGET = {
-  emissiveColor: "#ffffff",
-  emissiveIntensity: 0.06,
+  emissiveColor: SPACE_VISUAL_TOKENS.colors.signal,
+  emissiveIntensity: 0.35,
   /** Max camera-to-exhibit distance (m) for hover label, highlight, and crosshair feedback. */
   maxDistance: 5,
   /** Canvas UI label shown below the center cursor while hovering an exhibit. */

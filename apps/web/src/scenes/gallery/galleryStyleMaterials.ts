@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GALLERY_ALUMINUM_MATERIAL, GALLERY_LIGHT_EMISSIVE, GALLERY_TOON } from "./galleryConfig.ts";
+import { GALLERY_ALUMINUM_MATERIAL, GALLERY_GLASS, GALLERY_LIGHT_EMISSIVE, GALLERY_TOON } from "./galleryConfig.ts";
 import { getGalleryToonGradientMap } from "./galleryToonMaterial.ts";
 
 type GalleryMaterialStyleAction = "preserve" | "stylize";
@@ -166,12 +166,31 @@ function applyGalleryLightMaterial(mesh: THREE.Mesh) {
   return true;
 }
 
+function applyGalleryGlassMaterial(material: THREE.Material) {
+  if (typeof material.opacity !== "number") return false;
+  if (material.opacity >= 1) return false;
+  const target = /frosted/i.test(material.name) ? GALLERY_GLASS.frostedOpacity : GALLERY_GLASS.opacity;
+  material.opacity = target;
+  material.transparent = target < 1;
+  material.needsUpdate = true;
+  return true;
+}
+
 export function applyGalleryPreservedMaterialStyle(mesh: THREE.Mesh) {
   if (mesh.name.startsWith("METAL_ALUMINUM_")) {
     if (Array.isArray(mesh.material)) {
       return mesh.material.some((material) => applyGalleryAluminumMaterial(material));
     }
     return applyGalleryAluminumMaterial(mesh.material);
+  }
+
+  if (mesh.name.startsWith("GLASS_")) {
+    if (Array.isArray(mesh.material)) {
+      let changed = false;
+      for (const material of mesh.material) changed = applyGalleryGlassMaterial(material) || changed;
+      return changed;
+    }
+    return applyGalleryGlassMaterial(mesh.material);
   }
 
   return false;

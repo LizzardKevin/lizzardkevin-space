@@ -25,6 +25,7 @@ assert.deepEqual(SPACE_VISUAL_TOKENS.colors, {
   ceiling: "#e8e4d8",
   metal: "#667271",
   signal: "#ef8b61",
+  inkOutline: "#17282a",
 });
 assert.deepEqual(SPACE_VISUAL_TOKENS.toonBands, {
   shadow: "#31413f",
@@ -40,7 +41,7 @@ assert.deepEqual(SPACE_VISUAL_TOKENS.fog, {
 assert.deepEqual(SPACE_VISUAL_TOKENS.lighting, {
   ambientIntensity: 0.28,
   hemisphere: { sky: "#dce9e4", ground: "#3f4d4d", intensity: 0.55 },
-  key: { position: [-8, 5, 6], color: "#f3f0e7", intensity: 1 },
+  key: { position: [-5, 10, 4], color: "#f3f0e7", intensity: 1 },
   fill: { position: [5, 3, -7], color: "#67c2be", intensity: 0.22 },
 });
 assert.deepEqual(SPACE_VISUAL_TOKENS.hud, {

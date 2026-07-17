@@ -1,5 +1,6 @@
 import "../runtime/suppressThirdPartyDeprecationWarnings";
 import { Canvas } from "@react-three/fiber";
+import { PCFShadowMap } from "three";
 import {
   useCallback,
   useEffect,
@@ -301,9 +302,14 @@ export function SpaceCanvasHost({
                 ? spawnToCameraPosition(GALLERY_SPAWN)
                 : [0, 1.6, 6],
             }}
-            shadows={resolvedProfile ? resolvedProfile.shadows && useShadows : false}
+            shadows={resolvedProfile && resolvedProfile.shadows && useShadows ? { type: PCFShadowMap } : false}
             onCreated={({ gl }) => {
               gl.domElement.id = "space-canvas";
+              // 静态场景阴影策略：首帧渲染一次阴影贴图，之后仅在场景变化时按需重渲。
+              if (gl.shadowMap) {
+                gl.shadowMap.autoUpdate = false;
+                gl.shadowMap.needsUpdate = true;
+              }
             }}
           >
             {resolvedProfile ? (

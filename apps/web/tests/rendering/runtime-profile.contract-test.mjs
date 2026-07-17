@@ -35,7 +35,7 @@ assert.match(
 assert.match(focus, /profile: RendererProfileId/);
 assert.match(focus, /resolveFocusRequestedProfile\(profile\)/);
 assert.match(focus, /dpr=\{resolveRendererDpr\(resolvedFocusProfile\)\}/);
-assert.match(factory, /antialias: false/);
+assert.match(factory, /antialias: ENABLE_GALLERY_RENDERER_ANTIALIAS/);
 assert.match(pipeline, /disposeOwnedRenderPipeline\(pipeline\)/, "owned post pipeline must be disposed on unmount");
 assert.doesNotMatch(pipeline, /scene\.dispose|material\.dispose|useGLTF/, "pipeline cleanup must not dispose shared assets");
 assert.match(topbar, /setQualityPreset/);
