@@ -1,6 +1,6 @@
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Component, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import type { ExhibitManifestItem, ExhibitSceneConfig } from "../../exhibits/manifest.ts";
 import { publishSpaceExhibitPlacementDebug } from "../debug/spaceMovementDebug";
@@ -8,6 +8,7 @@ import { GLTF_DRACO_DECODER_PATH, ENABLE_GALLERY_INK_OUTLINES } from "../gallery
 import { addExhibitInkOutline, disposeExhibitInkOutline } from "../gallery/galleryInkOutline.ts";
 import { refreshStaticShadowMap } from "../gallery/galleryShadow.ts";
 import { applyTreeHabitatSharedMaterials } from "./exhibitMaterialOverrides.ts";
+import { configureSceneExhibitShadows } from "./sceneExhibitShadows.ts";
 import { useRegisterExhibitInteractionTarget } from "./exhibitInteractionRegistry";
 import {
   bindSceneExhibitId,
@@ -110,6 +111,7 @@ function SceneExhibitModel({
     const object = gltf.scene.clone(true);
     cloneObjectMaterials(object);
     applyTreeHabitatSharedMaterials(object, exhibit.exhibitId);
+    configureSceneExhibitShadows(object);
     bindSceneExhibitId(object, exhibit.exhibitId);
     applySceneScale(object, sceneConfig.scale);
     applyWorldRotation(object, sceneConfig.placement.yawOffsetDeg);
@@ -135,14 +137,11 @@ function SceneExhibitModel({
     }
 
     object.updateMatrixWorld(true);
-    if (ENABLE_GALLERY_INK_OUTLINES) {
-      addExhibitInkOutline(object);
-    }
     return { object, floorName };
   }, [exhibit.exhibitId, gltf.scene, root, sceneConfig]);
   useRegisterExhibitInteractionTarget(placed.object);
 
-  const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
 
   useEffect(() => {
     publishSpaceExhibitPlacementDebug({
@@ -153,20 +152,25 @@ function SceneExhibitModel({
       mounted: true,
       floorName: placed.floorName,
     });
-    // 展品 LOD 挂载/卸载会改变投影体集合：按需重渲一次静态阴影贴图。
-    refreshStaticShadowMap(gl);
     onReady(exhibit.exhibitId);
-  }, [exhibit.exhibitId, onReady, placed.floorName, gl]);
+  }, [exhibit.exhibitId, onReady, placed.floorName]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    // Setup must be replayable: React StrictMode rehearses effect cleanup/setup
+    // without rerunning useMemo, so render-time shell creation would disappear.
+    if (ENABLE_GALLERY_INK_OUTLINES) {
+      addExhibitInkOutline(placed.object, gltf.scene);
+    }
+    // 展品 LOD 挂载/卸载会改变投影体集合：按需重渲一次静态阴影贴图。
+    refreshStaticShadowMap(scene);
     return () => {
       // Dispose the ink shell first so the shared ink material is never
       // collected by disposeSceneExhibitMaterials below.
       disposeExhibitInkOutline(placed.object);
       disposeSceneExhibitMaterials(placed.object);
-      refreshStaticShadowMap(gl);
+      refreshStaticShadowMap(scene);
     };
-  }, [placed.object, gl]);
+  }, [gltf.scene, placed.object, scene]);
 
   return <primitive object={placed.object} />;
 }

@@ -305,11 +305,6 @@ export function SpaceCanvasHost({
             shadows={resolvedProfile && resolvedProfile.shadows && useShadows ? { type: PCFShadowMap } : false}
             onCreated={({ gl }) => {
               gl.domElement.id = "space-canvas";
-              // 静态场景阴影策略：首帧渲染一次阴影贴图，之后仅在场景变化时按需重渲。
-              if (gl.shadowMap) {
-                gl.shadowMap.autoUpdate = false;
-                gl.shadowMap.needsUpdate = true;
-              }
             }}
           >
             {resolvedProfile ? (

@@ -20,6 +20,7 @@ export type GalleryInkShellSource = {
 };
 
 let sharedInkMaterial: THREE.MeshBasicMaterial | null = null;
+const exhibitInkTemplateCache = new WeakMap<THREE.Object3D, THREE.BufferGeometry | null>();
 
 /** One shared ink material for every shell: flat ink, tone-map independent, back faces only. */
 export function getGalleryInkOutlineMaterial(): THREE.MeshBasicMaterial {
@@ -117,12 +118,17 @@ export function addGalleryInkOutline(root: THREE.Object3D, sources: GalleryInkSh
  * follows the exhibit transform and unmounts with the distance LOD. Never merged
  * across exhibits. Requires root.updateMatrixWorld(true) beforehand.
  */
-export function addExhibitInkOutline(root: THREE.Object3D): THREE.Mesh | null {
-  disposeExhibitInkOutline(root);
+export function getExhibitInkOutlineTemplate(
+  source: THREE.Object3D,
+  preparedRoot: THREE.Object3D,
+): THREE.BufferGeometry | null {
+  if (exhibitInkTemplateCache.has(source)) {
+    return exhibitInkTemplateCache.get(source) ?? null;
+  }
 
-  const inverseRoot = root.matrixWorld.clone().invert();
+  const inverseRoot = preparedRoot.matrixWorld.clone().invert();
   const sources: GalleryInkShellSource[] = [];
-  root.traverse((object) => {
+  preparedRoot.traverse((object) => {
     const mesh = object as THREE.Mesh;
     if (!mesh.isMesh || !mesh.visible) return;
     sources.push({
@@ -131,8 +137,22 @@ export function addExhibitInkOutline(root: THREE.Object3D): THREE.Mesh | null {
     });
   });
 
-  const geometry = createInkShellGeometry(sources, GALLERY_INK.width);
-  if (!geometry) return null;
+  // The template is never rendered, so it owns CPU attributes only. WeakMap
+  // lifetime follows useGLTF's source scene; mounted clones keep normal dispose.
+  const template = createInkShellGeometry(sources, GALLERY_INK.width);
+  exhibitInkTemplateCache.set(source, template);
+  return template;
+}
+
+export function addExhibitInkOutline(
+  root: THREE.Object3D,
+  source: THREE.Object3D = root,
+): THREE.Mesh | null {
+  disposeExhibitInkOutline(root);
+
+  const template = getExhibitInkOutlineTemplate(source, root);
+  if (!template) return null;
+  const geometry = template.clone();
 
   const shell = new THREE.Mesh(geometry, getGalleryInkOutlineMaterial());
   shell.name = `${root.name || "exhibit"}${EXHIBIT_INK_OUTLINE_SUFFIX}`;

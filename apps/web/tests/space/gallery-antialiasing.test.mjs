@@ -27,6 +27,21 @@ test("full profile pipeline appends FXAA and counts it as post work", () => {
   assert.match(pipeline, /ENABLE_GALLERY_FXAA/, "FXAA has its own config switch");
   assert.match(
     pipeline,
+    /renderOutput\(out, ctx\.toneMapping, ctx\.outputColorSpace\)[\s\S]*fxaa\(out\)/,
+    "FXAA receives display-referred sRGB after tone mapping/output conversion",
+  );
+  assert.match(
+    pipeline,
+    /pipeline\.outputColorTransform = !ENABLE_GALLERY_FXAA/,
+    "the pipeline must not apply output conversion twice after FXAA",
+  );
+  assert.match(
+    pipeline,
+    /pass\(scene, camera, \{ samples: ENABLE_GALLERY_FXAA \? 0 : undefined \}\)/,
+    "full-profile FXAA must not also multisample the expensive scene pass",
+  );
+  assert.match(
+    pipeline,
     /postFxEnabled\s*=\s*bloomEnabled \|\| ENABLE_GALLERY_COLOR_GRADE \|\| ENABLE_GALLERY_VIGNETTE \|\| ENABLE_GALLERY_FXAA/,
     "FXAA keeps the pipeline mounted even when bloom is off",
   );

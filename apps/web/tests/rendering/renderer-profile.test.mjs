@@ -132,6 +132,26 @@ test("owned render pipeline cleanup disposes exactly once per cleanup call", asy
   assert.equal(disposals, 1);
 });
 
+test("gallery pipeline cleanup releases pipeline, FXAA RTT, bloom, and scene pass", async () => {
+  const { disposeGalleryPipelineResources } = await importSourceModule(
+    "rendering/galleryPipelineLifecycle.ts",
+  );
+  const calls = [];
+  const disposable = (name) => ({ dispose: () => calls.push(name) });
+
+  disposeGalleryPipelineResources({
+    pipeline: disposable("pipeline"),
+    scenePass: disposable("scene-pass"),
+    bloomNode: disposable("bloom"),
+    fxaaInput: {
+      renderTarget: disposable("fxaa-target"),
+      _quadMesh: { material: disposable("fxaa-material") },
+    },
+  });
+
+  assert.deepEqual(calls, ["pipeline", "fxaa-material", "fxaa-target", "bloom", "scene-pass"]);
+});
+
 test("simplified forces WebGL while full accepts WebGPU automatic fallback", async () => {
   const { initializeProfiledRenderer } = await importSourceModule("rendering/rendererProfile.ts");
   const forced = [];

@@ -78,6 +78,7 @@ export function SpaceSession({
             shadow-mapSize-height={GALLERY_SHADOW.mapSize}
             shadow-normalBias={GALLERY_SHADOW.normalBias}
             shadow-bias={GALLERY_SHADOW.bias}
+            shadow-autoUpdate={false}
           />
           <directionalLight
             position={GALLERY_TOON.fillLight.position}

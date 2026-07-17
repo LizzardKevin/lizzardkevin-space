@@ -64,6 +64,50 @@ test("fits the key light shadow camera tightly to the gallery bounds in light sp
     camera.far - camera.near < radius * 4,
     "light-space depth range must beat the old bounding-sphere span",
   );
+  assert.equal(light.shadow.autoUpdate, false, "the fitted key-light shadow stays static");
+  assert.equal(light.shadow.needsUpdate, true, "camera fitting requests one fresh shadow render");
+});
+
+test("static shadow refresh marks the named key light instead of renderer-global state", async () => {
+  const { GALLERY_KEY_LIGHT_NAME, refreshStaticShadowMap } = await importSourceModule(
+    "scenes/gallery/galleryShadow.ts",
+  );
+  const scene = new THREE.Scene();
+  const light = new THREE.DirectionalLight("#ffffff", 1);
+  light.name = GALLERY_KEY_LIGHT_NAME;
+  light.shadow.autoUpdate = false;
+  light.shadow.needsUpdate = false;
+  scene.add(light);
+
+  refreshStaticShadowMap(scene);
+
+  assert.equal(light.shadow.needsUpdate, true);
+});
+
+test("opaque exhibit meshes cast and receive while glass and emissive meshes stay excluded", async () => {
+  const { configureSceneExhibitShadows } = await importSourceModule(
+    "scenes/exhibits/sceneExhibitShadows.ts",
+  );
+  const root = new THREE.Group();
+  const opaque = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial());
+  const glass = new THREE.Mesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshPhysicalMaterial({ transparent: true, opacity: 0.5, transmission: 0.4 }),
+  );
+  const emissive = new THREE.Mesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshStandardMaterial({ emissive: "#ffffff", emissiveIntensity: 2 }),
+  );
+  root.add(opaque, glass, emissive);
+
+  configureSceneExhibitShadows(root);
+
+  assert.equal(opaque.castShadow, true);
+  assert.equal(opaque.receiveShadow, true);
+  assert.equal(glass.castShadow, false);
+  assert.equal(glass.receiveShadow, false);
+  assert.equal(emissive.castShadow, false);
+  assert.equal(emissive.receiveShadow, false);
 });
 
 test("shadow config uses the approved sharp preset", async () => {
@@ -97,9 +141,15 @@ test("key light casts shadows only for the full profile with a fitted camera", (
 
 test("canvas requests filtered shadow edges and a static update policy", () => {
   const host = readSourceFile("space/SpaceCanvasHost.tsx");
+  const session = readSourceFile("space/SpaceSession.tsx");
 
   assert.match(host, /PCFShadowMap/, "full canvas asks for filtered (non-jaggy) shadow edges");
-  assert.match(host, /shadowMap\.autoUpdate = false/, "shadow maps render on demand, not per frame");
+  assert.match(session, /shadow-autoUpdate=\{false\}/, "the key light shadow renders on demand");
+  assert.doesNotMatch(
+    host,
+    /shadowMap\.(?:autoUpdate|needsUpdate)/,
+    "WebGPURenderer has no renderer-global static shadow update flags",
+  );
 });
 
 test("exhibit mount and unmount refresh the static shadow map", () => {

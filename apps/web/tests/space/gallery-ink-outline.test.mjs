@@ -205,8 +205,29 @@ test("exhibit shell attach is idempotent and disposable", async () => {
   root.add(mesh);
   root.updateMatrixWorld(true);
 
-  addExhibitInkOutline(root);
-  addExhibitInkOutline(root);
+  const material = addExhibitInkOutline(root).material;
+  let materialDisposals = 0;
+  const originalMaterialDispose = material.dispose.bind(material);
+  material.dispose = () => {
+    materialDisposals += 1;
+    originalMaterialDispose();
+  };
+  const firstShell = root.userData[EXHIBIT_INK_OUTLINE_SUFFIX];
+  let firstGeometryDisposals = 0;
+  const firstGeometryDispose = firstShell.geometry.dispose.bind(firstShell.geometry);
+  firstShell.geometry.dispose = () => {
+    firstGeometryDisposals += 1;
+    firstGeometryDispose();
+  };
+
+  const secondShell = addExhibitInkOutline(root);
+  assert.equal(firstGeometryDisposals, 1, "re-attach disposes the replaced shell geometry once");
+  let secondGeometryDisposals = 0;
+  const secondGeometryDispose = secondShell.geometry.dispose.bind(secondShell.geometry);
+  secondShell.geometry.dispose = () => {
+    secondGeometryDisposals += 1;
+    secondGeometryDispose();
+  };
 
   let count = 0;
   root.traverse((object) => {
@@ -215,10 +236,41 @@ test("exhibit shell attach is idempotent and disposable", async () => {
   assert.equal(count, 1, "re-attaching replaces the previous shell");
 
   disposeExhibitInkOutline(root);
+  assert.equal(secondGeometryDisposals, 1, "explicit cleanup disposes the active shell geometry once");
+  assert.equal(materialDisposals, 0, "per-exhibit cleanup never disposes the shared ink material");
+  material.dispose = originalMaterialDispose;
   count = 0;
   root.traverse((object) => {
     if (object.name.endsWith(EXHIBIT_INK_OUTLINE_SUFFIX)) count += 1;
   });
   assert.equal(count, 0, "dispose removes the shell from the exhibit");
   assert.equal(root.userData[EXHIBIT_INK_OUTLINE_SUFFIX], undefined);
+});
+
+test("exhibit shell caches a CPU template but mounts independently disposable clones", async () => {
+  const { addExhibitInkOutline, disposeExhibitInkOutline } = await importSourceModule(
+    "scenes/gallery/galleryInkOutline.ts",
+  );
+  const source = new THREE.Group();
+  const firstRoot = new THREE.Group();
+  firstRoot.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial()));
+  firstRoot.updateMatrixWorld(true);
+
+  const firstShell = addExhibitInkOutline(firstRoot, source);
+  assert.ok(firstShell);
+  const firstGeometry = firstShell.geometry;
+  disposeExhibitInkOutline(firstRoot);
+
+  // An empty prepared root still receives the cached source template. Each
+  // mount gets its own clone so ordinary cleanup remains safe and symmetric.
+  const secondRoot = new THREE.Group();
+  secondRoot.updateMatrixWorld(true);
+  const secondShell = addExhibitInkOutline(secondRoot, source);
+  assert.ok(secondShell);
+  assert.notEqual(secondShell.geometry, firstGeometry);
+
+  let secondDisposeCount = 0;
+  secondShell.geometry.addEventListener("dispose", () => { secondDisposeCount += 1; });
+  disposeExhibitInkOutline(secondRoot);
+  assert.equal(secondDisposeCount, 1);
 });

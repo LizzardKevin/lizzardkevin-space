@@ -62,15 +62,21 @@ export function fitDirectionalShadowCamera(
   camera.near = Math.max(0.1, -maxZ - margin);
   camera.far = -minZ + margin;
   camera.updateProjectionMatrix();
+
+  // WebGPURenderer owns static updates per LightShadow (not on
+  // renderer.shadowMap). Render the fitted camera once, then stay frozen until
+  // a scene change explicitly marks this light again.
+  light.shadow.autoUpdate = false;
+  light.shadow.needsUpdate = true;
 }
 
 /**
  * Static-scene shadow policy: the map re-renders only when something asks for it.
  * Call after exhibit LOD mounts/unmounts so their silhouettes join the pass once.
  */
-export function refreshStaticShadowMap(renderer: {
-  shadowMap?: { autoUpdate: boolean; needsUpdate: boolean };
-}): void {
-  const shadowMap = renderer.shadowMap;
-  if (shadowMap && !shadowMap.autoUpdate) shadowMap.needsUpdate = true;
+export function refreshStaticShadowMap(root: THREE.Object3D): void {
+  const light = root.getObjectByName(GALLERY_KEY_LIGHT_NAME) as THREE.DirectionalLight | undefined;
+  if (light?.isDirectionalLight && !light.shadow.autoUpdate) {
+    light.shadow.needsUpdate = true;
+  }
 }
