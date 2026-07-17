@@ -165,3 +165,15 @@ Phase 9 is complete only when:
 6. Phase 8’s network/frame/heap protocol is rerun. Any regression outside its recorded noise band blocks completion.
 7. Protected asset hashes and bytes remain unchanged.
 8. Native WebGPU/full and physical-touch checks are reported as passed or explicitly left as user release checks; they are never silently converted into automated passes.
+
+## V3 addendum (2026-07-17): ink outlines, sharp shadows, and AA
+
+This addendum supersedes two V2 rules and is governed by `docs/superpowers/specs/2026-07-17-space-ink-outline-shadows-design.md`.
+
+1. **The outline ban is withdrawn.** The earlier rule "Phase 9 must not add a screen-space outline pass or duplicate geometry solely for outlines" (Material and depth hierarchy, item 5) no longer applies. The approved outline mechanism is a CPU-precomputed inverted-hull ink shell: welded vertices extruded along smooth normals, merged per family into a handful of draw calls, rendered with one shared `MeshBasicMaterial` (`ink`, `toneMapped: false`, `BackSide`). It covers the stylized architecture families and per-exhibit clones, follows the bloom exemption list (`GLASS_`, `LIGHT_`, `bulb_`, `TEMP_BLOCKER_`, `COL_`), and mounts in **both** profiles. A screen-space edge-detection pass remains rejected: the approved look is the outer contour only.
+2. **Sharp dynamic shadows are now part of the full profile.** Key-light `castShadow` with a bounding-box-fitted orthographic shadow camera, 2048px map, `BasicShadowMap` preferred (`PCFShadowMap` fallback), and a static-update policy (`shadowMap.autoUpdate = false`, updated only on scene changes). The simplified profile keeps dynamic shadows off; the profile contract table is amended accordingly: simplified = outlines on, shadows off, bloom off; full = all three on.
+3. **Antialiasing becomes a stated requirement.** Full appends FXAA to the TSL pipeline; simplified enables renderer MSAA at DPR 1 (with an FXAA-only pipeline as the measured fallback). The dead `ENABLE_GALLERY_RENDERER_ANTIALIAS` switch must become real or be removed.
+4. **Accent saturation stays token-bound.** Exhibit hover moves to `signal`; no V2 token values change; no large surface receives a saturated wash.
+5. **Acceptance resolution changes to 1920x1080 (1080p), DPR 1**, for every automated and native screenshot protocol in this document. The 1440x900 baselines remain historical evidence only; new before/after pairs are captured at 1080p.
+
+All other V2 contracts—color roles, toon bands, fog and lighting values, HUD language, motion rules, performance gates, and release gates—remain in force unchanged.
