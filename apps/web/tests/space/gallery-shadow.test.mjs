@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as THREE from "three";
-import { importSourceModule, readSourceFile } from "../helpers/projectPaths.mjs";
+import { importSourceModule, readProjectFile, readSourceFile } from "../helpers/projectPaths.mjs";
 
 test("fits the key light shadow camera tightly to the gallery bounds in light space", async () => {
   const { fitDirectionalShadowCamera } = await importSourceModule("scenes/gallery/galleryShadow.ts");
@@ -124,6 +124,18 @@ test("shadow config uses the approved sharp preset", async () => {
     "a small constant bias pushes along the light direction without normal-dependent seams",
   );
   assert.ok(config.GALLERY_SHADOW.margin >= 1);
+});
+
+test("shadow design authorities match the approved 4096 runtime preset", () => {
+  const implementationSpec = readProjectFile(
+    "docs/superpowers/specs/2026-07-17-space-ink-outline-shadows-design.md",
+  );
+  const visualSystem = readProjectFile("docs/design/space-visual-system-v2.md");
+
+  assert.match(implementationSpec, /4096px shadow map/);
+  assert.match(visualSystem, /4096px map/);
+  assert.doesNotMatch(implementationSpec, /2048px shadow map/);
+  assert.doesNotMatch(visualSystem, /2048px map/);
 });
 
 test("key light casts shadows only for the full profile with a fitted camera", () => {

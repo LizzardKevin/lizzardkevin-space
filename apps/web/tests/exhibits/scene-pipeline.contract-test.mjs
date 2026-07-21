@@ -131,8 +131,8 @@ assert.match(
 );
 assert.match(
   sceneExhibitPlacement,
-  /useLayoutEffect\(\(\) => \{[\s\S]*addExhibitInkOutline\(placed\.object, gltf\.scene\)[\s\S]*return \(\) => \{/,
-  "scene exhibit ink setup must replay after StrictMode rehearsal cleanup",
+  /if \(ENABLE_GALLERY_INK_OUTLINES && ENABLE_EXHIBIT_INK_OUTLINES\) \{\s*addExhibitInkOutline\(placed\.object, gltf\.scene\);\s*\}/,
+  "SPACE exhibit ink shells must stay behind their explicit disabled product gate",
 );
 assert.match(
   sceneExhibitPlacement,

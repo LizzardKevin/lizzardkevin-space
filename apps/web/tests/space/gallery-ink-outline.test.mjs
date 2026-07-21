@@ -141,6 +141,7 @@ test("ink outline config and token use the approved ink role", async () => {
   const { SPACE_VISUAL_TOKENS } = await importSourceModule("space/spaceVisualTokens.ts");
 
   assert.equal(config.ENABLE_GALLERY_INK_OUTLINES, true);
+  assert.equal(config.ENABLE_EXHIBIT_INK_OUTLINES, false);
   assert.equal(config.GALLERY_INK.width, 0.035);
   assert.equal(config.GALLERY_INK.color, INK);
   assert.equal(SPACE_VISUAL_TOKENS.colors.inkOutline, INK);

@@ -4,7 +4,11 @@ import { Component, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useSt
 import * as THREE from "three";
 import type { ExhibitManifestItem, ExhibitSceneConfig } from "../../exhibits/manifest.ts";
 import { publishSpaceExhibitPlacementDebug } from "../debug/spaceMovementDebug";
-import { GLTF_DRACO_DECODER_PATH, ENABLE_GALLERY_INK_OUTLINES } from "../gallery/galleryConfig";
+import {
+  ENABLE_EXHIBIT_INK_OUTLINES,
+  ENABLE_GALLERY_INK_OUTLINES,
+  GLTF_DRACO_DECODER_PATH,
+} from "../gallery/galleryConfig";
 import { addExhibitInkOutline, disposeExhibitInkOutline } from "../gallery/galleryInkOutline.ts";
 import { refreshStaticShadowMap } from "../gallery/galleryShadow.ts";
 import { applyTreeHabitatSharedMaterials } from "./exhibitMaterialOverrides.ts";
@@ -158,7 +162,7 @@ function SceneExhibitModel({
   useLayoutEffect(() => {
     // Setup must be replayable: React StrictMode rehearses effect cleanup/setup
     // without rerunning useMemo, so render-time shell creation would disappear.
-    if (ENABLE_GALLERY_INK_OUTLINES) {
+    if (ENABLE_GALLERY_INK_OUTLINES && ENABLE_EXHIBIT_INK_OUTLINES) {
       addExhibitInkOutline(placed.object, gltf.scene);
     }
     // 展品 LOD 挂载/卸载会改变投影体集合：按需重渲一次静态阴影贴图。
