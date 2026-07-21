@@ -33,6 +33,8 @@ import {
 } from "../rendering/rendererLifecycle";
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
 import { loadExhibitContent, type ExhibitContent } from "./exhibitContent";
+import { useDotGridPointer } from "../components/dotGridPointer.ts";
+import { DotGridCanvas } from "../components/DotGridCanvas.tsx";
 import { normalizeSupportedLanguage, type SupportedLanguage } from "../i18n/resolveInitialLanguage";
 import {
   FOCUS_FRAME,
@@ -526,6 +528,7 @@ export function FocusOverlay({
   const focusLanguage = normalizeSupportedLanguage(i18n.resolvedLanguage ?? i18n.language);
   const focusCopy = t("focus.copy", { returnObjects: true }) as FocusPanelCopy;
   const playback = usePlayback();
+  const registerDotGridElement = useDotGridPointer();
   const [blurOn, setBlurOn] = useState(false);
   const [dimOn, setDimOn] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
@@ -1079,7 +1082,9 @@ export function FocusOverlay({
       className={`focus-overlay${dimOn ? " focus-overlay--dim" : ""}${blurOn ? " focus-overlay--blur" : ""}`}
       data-cursor-tone="light"
       onClickCapture={handleFocusOverlayClick}
+      ref={registerDotGridElement}
     >
+      <DotGridCanvas color="rgba(23, 40, 42, 0.1)" />
       {imageExpanded ? (
         <button
           type="button"

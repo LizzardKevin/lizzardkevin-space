@@ -34,6 +34,8 @@ import {
 } from "./wheelPaging";
 import { normalizeSupportedLanguage } from "../../i18n/resolveInitialLanguage";
 import type { SupportedLanguage } from "../../i18n/resolveInitialLanguage";
+import { useDotGridPointer } from "../dotGridPointer.ts";
+import { DotGridCanvas } from "../DotGridCanvas.tsx";
 
 type FrostedSplitTabsProps = {
   initialTab: SplitArchiveTab;
@@ -263,6 +265,7 @@ function ArchivePanel({
   onStagePointerUp: (event: PointerEvent<HTMLElement>) => void;
   onStageWheel: (event: WheelEvent<HTMLElement>) => void;
 }) {
+  const registerDotGridElement = useDotGridPointer();
   const stageMotionClass =
     motion.mode === "transition" && motion.direction
       ? ` frosted-split__stage--transition frosted-split__stage--transition-${motion.direction}`
@@ -282,7 +285,9 @@ function ArchivePanel({
       className={`frosted-split__panel frosted-split__panel--${panel.tab}${active ? " frosted-split__panel--active" : " frosted-split__panel--strip"}`}
       data-cursor-tone={panel.tab === "lizzardkevin" ? "light" : "dark"}
       aria-label={panel.title}
+      ref={registerDotGridElement}
     >
+      <DotGridCanvas color={panel.tab === "devStories" ? "rgba(243, 240, 231, 0.1)" : "rgba(23, 40, 42, 0.1)"} />
       <button
         type="button"
         className="frosted-split__stripButton"

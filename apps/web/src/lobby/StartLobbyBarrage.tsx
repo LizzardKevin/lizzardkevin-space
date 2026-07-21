@@ -28,9 +28,7 @@ const POINTER_CORE_RADIUS_PX = 4.5;
 const STREAM_VIEWPORT_PADDING_PX = 64;
 const MAX_FRAGMENT_COUNT = 120;
 
-type StartLobbyBarrageProps = {
-  disposing: boolean;
-};
+type StartLobbyBarrageProps = object;
 
 export type StartLobbyBarrageHandle = {
   setPointer(clientX: number, clientY: number): void;
@@ -480,7 +478,7 @@ function createBarrageRuntime(
 }
 
 export const StartLobbyBarrage = forwardRef<StartLobbyBarrageHandle, StartLobbyBarrageProps>(
-  function StartLobbyBarrage({ disposing }, forwardedRef) {
+  function StartLobbyBarrage(_props: StartLobbyBarrageProps, forwardedRef) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const runtimeRef = useRef<BarrageRuntime | null>(null);
     const { i18n } = useTranslation();
@@ -501,7 +499,7 @@ export const StartLobbyBarrage = forwardRef<StartLobbyBarrageHandle, StartLobbyB
 
     useEffect(() => {
       const canvas = canvasRef.current;
-      if (!canvas || disposing) return;
+      if (!canvas) return;
       const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       const languageEntries = generatedStartLobbyExhibitText[language] as readonly StartLobbyExhibitTextEntry[];
       const runtime = createBarrageRuntime(canvas, languageEntries, reducedMotionQuery);
@@ -510,7 +508,7 @@ export const StartLobbyBarrage = forwardRef<StartLobbyBarrageHandle, StartLobbyB
         if (runtimeRef.current === runtime) runtimeRef.current = null;
         runtime?.destroy();
       };
-    }, [disposing, language]);
+    }, [language]);
 
     return (
       <canvas

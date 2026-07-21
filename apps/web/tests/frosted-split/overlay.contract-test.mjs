@@ -69,7 +69,7 @@ assert(
 );
 assert(
   frostedDetailPanelCss.includes("grid-template-rows") && frostedDetailPanelCss.includes("0fr") &&
-    frostedDetailPanelCss.includes("max-height 420ms"),
+    frostedDetailPanelCss.includes("max-height 240ms"),
   "detail panel must animate closed height with CSS grid rows",
 );
 assert(

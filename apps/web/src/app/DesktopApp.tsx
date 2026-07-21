@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import type { OverlayTab } from "../overlay/OverlayState";
 import {
   SPACE_POINTER_LOCK_FAILED_EVENT,
+  requestSpacePointerLock,
   reserveSpacePointerLockRequestId,
   resumeSpaceFirstPersonAfterEscape,
   resumeSpaceFirstPersonWithCursorReturn,
@@ -92,6 +93,7 @@ export default function DesktopApp() {
     INITIAL_START_LOBBY_HANDOFF_STATE,
   );
   const [spaceStarted, setSpaceStarted] = useState(false);
+  const [minWhiteElapsed, setMinWhiteElapsed] = useState(false);
   const [closingOverlay, setClosingOverlay] = useState<ClosingOverlay | null>(null);
   const [returningToSpace, setReturningToSpace] = useState(false);
   const returnAttemptRef = useRef(createSpaceReturnPointerLockAttemptCoordinator());
@@ -153,11 +155,16 @@ export default function DesktopApp() {
   useEffect(() => {
     if (!spaceStarted) return;
     if (boot.state.phase === "running") {
-      dispatchHandoff({ type: "boot-running" });
+      if (
+        minWhiteElapsed ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        dispatchHandoff({ type: "boot-running" });
+      }
     } else if (boot.state.phase === "failed") {
       dispatchHandoff({ type: "boot-failed" });
     }
-  }, [boot.state.phase, spaceStarted]);
+  }, [boot.state.phase, spaceStarted, minWhiteElapsed]);
 
   useEffect(() => {
     if (handoff.phase !== "revealing") return;
@@ -165,6 +172,13 @@ export default function DesktopApp() {
       dispatchHandoff({ type: "reveal-finished" });
     }
   }, [handoff.phase]);
+
+  useEffect(() => {
+    if (handoff.phase !== "entered" || effectiveRouteBlocked) return;
+    // 点击 Enter 的 transient activation 仍有效时直接锁定，免去第二次点击；
+    // 失败走既有 pointerLockFailed → 点击 Canvas 回落流程。
+    requestSpacePointerLock();
+  }, [handoff.phase, effectiveRouteBlocked]);
 
   const onTrustedEnter = useCallback(() => {
     if (spaceStarted || route.kind !== "space" || handoff.phase !== "lobby") return;
@@ -293,8 +307,7 @@ export default function DesktopApp() {
         </Suspense>
       ) : null}
 
-      {handoff.phase === "disposing" ||
-      handoff.phase === "booting" ||
+      {handoff.phase === "booting" ||
       handoff.phase === "failed" ||
       handoff.phase === "revealing" ? (
         <div
@@ -302,12 +315,13 @@ export default function DesktopApp() {
           role={handoff.phase === "failed" ? "alert" : "status"}
           aria-live="polite"
           data-handoff-phase={handoff.phase}
-          onTransitionEnd={(event) => {
-            if (
-              event.target === event.currentTarget &&
-              event.propertyName === "opacity" &&
-              handoff.phase === "revealing"
-            ) {
+          onAnimationEnd={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (event.animationName === "startLobbyMinWhite") {
+              setMinWhiteElapsed(true);
+              return;
+            }
+            if (event.animationName === "startLobbyExposureOut" && handoff.phase === "revealing") {
               dispatchHandoff({ type: "reveal-finished" });
             }
           }}

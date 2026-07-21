@@ -116,8 +116,8 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.match(
     css,
-    /\.focus-image-frame\s*{[^}]*border-radius:\s*14px;[^}]*box-shadow:\s*0 18px 34px rgba\(12,\s*14,\s*14,\s*0\.07\),\s*0 6px 14px rgba\(12,\s*14,\s*14,\s*0\.04\);[^}]*filter:\s*none;[^}]*overflow:\s*visible;/s,
-    "Focus image frames should render the actual image as a rounded floating card with a compact underside shadow",
+    /\.focus-image-frame\s*{[^}]*border:\s*1px solid var\(--focus-line-strong\);[^}]*border-radius:\s*2px;[^}]*box-shadow:\s*12px 12px 0 rgba\(23,\s*40,\s*42,\s*0\.1\);[^}]*filter:\s*none;[^}]*overflow:\s*visible;/s,
+    "Focus image frames should render the actual image as a squared industrial plate with a hairline border and a hard offset block shadow",
   );
   assert.match(
     css,
@@ -149,8 +149,8 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.match(
     cssRule(css, ".focus-image-frame"),
-    /transform 360ms cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\)/,
-    "Focus image hover enter and leave transforms should take twice as long with nonlinear easing",
+    /transform 240ms cubic-bezier\(0\.2,\s*0\.8,\s*0\.2,\s*1\)/,
+    "Focus image hover enter and leave transforms should use the shared 240ms industrial easing vocabulary",
   );
   assert.doesNotMatch(
     cssRule(css, ".focus-image-frame"),
@@ -198,8 +198,8 @@ test("Focus media uses dark cursor, image drag affordance, and page dots", () =>
   );
   assert.match(
     css,
-    /\.focus-image-frame--expanded\s*{[^}]*--focus-image-scale:\s*1;[^}]*position:\s*fixed;[^}]*width:\s*var\(--focus-image-expanded-width\);[^}]*height:\s*var\(--focus-image-expanded-height\);[^}]*animation:\s*focusImageExpand 360ms cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\)/s,
-    "Expanded Focus image should use viewport-scale measured dimensions with a centered nonlinear animation",
+    /\.focus-image-frame--expanded\s*{[^}]*--focus-image-scale:\s*1;[^}]*position:\s*fixed;[^}]*width:\s*var\(--focus-image-expanded-width\);[^}]*height:\s*var\(--focus-image-expanded-height\);[^}]*animation:\s*focusImageExpand 240ms cubic-bezier\(0\.2,\s*0\.8,\s*0\.2,\s*1\)/s,
+    "Expanded Focus image should use viewport-scale measured dimensions with the shared 240ms industrial easing",
   );
   assert.doesNotMatch(
     cssRule(css, ".focus-image-frame--expanded"),

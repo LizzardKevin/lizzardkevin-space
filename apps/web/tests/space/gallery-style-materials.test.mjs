@@ -189,12 +189,18 @@ test("preserved exhibit materials keep their authored color and properties", asy
   assert.equal(material.roughness, 0.23);
 });
 
-test("gallery does not render screen-edge overlay bars", () => {
+test("gallery renders only the sanctioned camera vignette at screen edges", () => {
   const css = readProjectFile("apps/web/src/styles/global.css");
   const celLayer = readOptionalProjectFile("apps/web/src/scenes/gallery/GalleryCelDepthLayer.tsx");
   const desktop = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
 
-  assert.doesNotMatch(css, /\.space-canvasWrap::after\s*{[\s\S]*radial-gradient/);
+  const vignetteRule = css.match(/\.space-canvasWrap::after\s*\{(?<body>[^}]*)\}/s)?.groups?.body ?? "";
+  assert.ok(vignetteRule, "space canvas should expose the sanctioned camera vignette layer");
+  assert.match(vignetteRule, /pointer-events:\s*none/, "camera vignette must never swallow pointer input");
+  assert.match(vignetteRule, /radial-gradient\(ellipse 132% 132% at 50% 46%, transparent 58%, rgba\(23, 40, 42, 0\.18\) 100%\)/, "camera vignette shade must stay at the bounded edge alpha");
+  assert.match(vignetteRule, /rgba\(255, 72, 72, 0\.05\)/, "camera vignette keeps the faint red chromatic edge");
+  assert.match(vignetteRule, /rgba\(64, 210, 210, 0\.05\)/, "camera vignette keeps the faint cyan chromatic edge");
+  assert.doesNotMatch(vignetteRule, /box-shadow/, "camera vignette must not reintroduce solid overlay bars");
   assert.equal(celLayer, "");
   assert.doesNotMatch(desktop, /GalleryCelDepthLayer|celDepthLayer/);
 });

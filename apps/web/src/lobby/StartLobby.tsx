@@ -185,6 +185,7 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
   const releaseStartedRef = useRef(false);
   const disposedRef = useRef(false);
   const initPromiseRef = useRef<Promise<void> | null>(null);
+  const fadeReleaseRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -263,7 +264,6 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
 
   useEffect(() => {
     if (!disposing || releaseStartedRef.current) return;
-    releaseStartedRef.current = true;
     const finishDisposal = () => {
       if (disposedRef.current) return;
       disposedRef.current = true;
@@ -272,11 +272,23 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
       onDisposed();
     };
 
-    void (initPromiseRef.current ?? Promise.resolve()).then(() => {
-      const rootOwner = rootOwnerRef.current;
-      if (!rootOwner) finishDisposal();
-      else rootOwner.dispose(finishDisposal);
-    });
+    const startRelease = () => {
+      if (releaseStartedRef.current) return;
+      releaseStartedRef.current = true;
+      void (initPromiseRef.current ?? Promise.resolve()).then(() => {
+        const rootOwner = rootOwnerRef.current;
+        if (!rootOwner) finishDisposal();
+        else rootOwner.dispose(finishDisposal);
+      });
+    };
+
+    // 非弱化动效时先等 fade-to-white 动画播完再释放 R3F（main 的 onAnimationEnd 触发）；
+    // 动画缺失（reduced-motion 等）时立即释放，避免卡在 disposing。
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      startRelease();
+      return;
+    }
+    fadeReleaseRef.current = startRelease;
   }, [disposing, onDisposed]);
 
   const applyPointerTilt = useCallback((clientX: number, clientY: number) => {
@@ -307,9 +319,13 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
       onPointerMove={(event) => applyPointerTilt(event.clientX, event.clientY)}
       onPointerDown={(event) => applyPointerTilt(event.clientX, event.clientY)}
       onPointerLeave={resetPointerTilt}
+      onAnimationEnd={(event) => {
+        if (event.animationName !== "startLobbyFadeToWhite") return;
+        fadeReleaseRef.current?.();
+      }}
     >
       <h1 className="start-lobby__accessible-title">LizzardKevin Space</h1>
-      <StartLobbyBarrage ref={barrageRef} disposing={disposing} />
+      <StartLobbyBarrage ref={barrageRef} />
       <canvas ref={canvasRef} className="start-lobby__canvas" aria-hidden="true" />
       <button
         className="start-lobby__enter"
