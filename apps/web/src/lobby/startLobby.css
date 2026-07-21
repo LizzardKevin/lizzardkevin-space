@@ -9,6 +9,11 @@
   touch-action: none;
 }
 
+.start-lobby,
+.start-lobby * {
+  cursor: none !important;
+}
+
 .start-lobby__barrage,
 .start-lobby__canvas {
   position: absolute;

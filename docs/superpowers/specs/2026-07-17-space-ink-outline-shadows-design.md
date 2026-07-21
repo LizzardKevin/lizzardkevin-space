@@ -35,15 +35,15 @@ Implementation contract:
 1. New module `apps/web/src/scenes/gallery/galleryInkOutline.ts`. For each stylized-family mesh (`ARCH_`, `PLASTER_`, `STRUCT_*`): weld vertices (`mergeVertices`), compute smooth normals, extrude along the normal by a world-space width (default `0.035`, tuned down from 0.06 after manual review so lines hug the mesh), and merge per family into one geometry. Walkable surfaces (`STRUCT_FLOOR_`, `ARCH_FLOOR_`, `STRUCT_STAIR_`, `ARCH_STAIR_`) are exempt — their shells read as noise underfoot.
 2. One shared `MeshBasicMaterial`: color `ink` (`#17282a`), `toneMapped: false`, `side: THREE.BackSide`.
 3. Hook: inside the existing stylization traversal in `prepareGalleryScene.ts`; same exemption list as bloom (`GLASS_`, `LIGHT_`, `bulb_`, `TEMP_BLOCKER_`, `COL_`).
-4. Exhibits get per-exhibit shells at clone time in `SceneExhibitPlacement.tsx`, mounted/unmounted with the existing distance LOD. Shells are never merged across exhibits.
-5. Config: `ENABLE_GALLERY_INK_OUTLINES` (default true) and `GALLERY_INK = { width, color, perFamily }` in `galleryConfig.ts`; new `inkOutline` token in `spaceVisualTokens.ts`.
+4. SPACE exhibit clones stay outline-free. Their authored silhouettes, materials, and shadows provide separation; `SceneExhibitPlacement.tsx` must not mount ink shells while the exhibit outline gate is disabled.
+5. Config: `ENABLE_GALLERY_INK_OUTLINES` (default true), `ENABLE_EXHIBIT_INK_OUTLINES` (default false), and `GALLERY_INK = { width, color, perFamily }` in `galleryConfig.ts`; new `inkOutline` token in `spaceVisualTokens.ts`.
 6. Escape hatch: a mesh whose shell shows artifacts joins an explicit exemption list instead of weakening the whole system.
 
 ## Sharp Shadow Decision (Full Profile Only)
 
 1. `ENABLE_GALLERY_RUNTIME_SHADOWS` takes effect only when `profile.shadows` is true; the simplified profile never mounts shadow maps (V2 profile table unchanged).
 2. The key directional light at `SpaceSession.tsx` gains `castShadow` plus a helper that fits an orthographic shadow camera to the `space_main.glb` bounding box with a fixed target. Its position is raised from `[-8, 5, 6]` to `[-5, 10, 4]` (~57° elevation, up from ~27°) so shadows visibly land on the floor; the toon banding follows the same direction as before by design.
-3. 2048px shadow map; `PCFShadowMap` after manual review (`BasicShadowMap`'s unfiltered edges read as harsh jaggies at 1080p); tune `normalBias` on captures.
+3. 4096px shadow map; `PCFShadowMap` after manual review (`BasicShadowMap`'s unfiltered edges read as harsh jaggies at 1080p). The 4096 preset is retained to preserve exhibit and architecture edge definition; tune `normalBias` on captures.
 4. Static-update policy: `renderer.shadowMap.autoUpdate = false`; set `needsUpdate = true` only on scene changes (exhibit mount/unmount, Focus open/close). Steady-state per-frame shadow cost is effectively zero.
 5. Glass, emissive, and projector surfaces never cast; the eight bulb point lights never cast shadows.
 

@@ -93,6 +93,20 @@ test("StartLobby Enter is a text-only control with depth and glyph focus", () =>
   assert.match(declarationValue(focusRule, "text-shadow"), /0 0/);
 });
 
+test("StartLobby hides the native cursor while the barrage owns the visible pointer dot", () => {
+  const css = readSource("lobby/startLobby.css");
+  const barrage = readSource("lobby/StartLobbyBarrage.tsx");
+
+  assert.match(
+    css,
+    /\.start-lobby\s*,\s*\.start-lobby\s+\*\s*\{[\s\S]*?cursor:\s*none\s*!important\s*;/,
+    "the native cursor must stay hidden over every StartLobby control",
+  );
+  assert.match(barrage, /function drawPointerCore\(/);
+  assert.match(barrage, /context\.arc\(pointer\.x, pointer\.y, POINTER_CORE_RADIUS_PX/);
+  assert.match(barrage, /context\.fill\(\)/);
+});
+
 test("StartLobby limits input work and becomes static for reduced motion", () => {
   const source = readSource("lobby/StartLobby.tsx");
   const handoff = readSource("lobby/startLobbyHandoff.ts");

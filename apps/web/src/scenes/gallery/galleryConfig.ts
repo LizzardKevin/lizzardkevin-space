@@ -79,7 +79,7 @@ export const GALLERY_TOON = {
 
 /**
  * Real-time shadow maps from SpacePage lights (NOT baked into the GLB).
- * Full profile only: sharp BasicShadowMap from the key light, re-rendered on
+ * Full profile only: sharp PCFShadowMap from the key light, re-rendered on
  * demand (static scene) instead of every frame. Simplified profile never
  * mounts shadow maps (profile.shadows stays false).
  */
@@ -102,11 +102,14 @@ export const GALLERY_SHADOW = {
 };
 
 /**
- * Merged inverted-hull ink outlines for stylized architecture families and
- * per-exhibit clones (Messenger-style bold outer contours). Backend-agnostic:
- * plain geometry + one shared MeshBasicMaterial, no post pass required.
+ * Merged inverted-hull ink outlines for stylized architecture families
+ * (Messenger-style bold outer contours). Backend-agnostic: plain geometry +
+ * one shared MeshBasicMaterial, no post pass required.
  */
 export const ENABLE_GALLERY_INK_OUTLINES = true;
+
+/** SPACE exhibit clones keep their authored silhouettes without ink shells. */
+export const ENABLE_EXHIBIT_INK_OUTLINES = false;
 
 export const GALLERY_INK = {
   /** World-space shell extrusion distance in meters; hugs the mesh, bold enough to read. */
