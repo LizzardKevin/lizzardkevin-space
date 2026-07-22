@@ -3,8 +3,9 @@ import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { ScrollPageShell } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
-import { usePinSections } from "../../scroll/usePinSections";
+import { useScrubSections } from "../../scroll/useScrubSections";
 import { Reveal } from "../../scroll/Reveal";
+import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
 
 /**
@@ -25,8 +26,8 @@ export default function ProfileScrollPage() {
     [sections],
   );
 
-  usePinSections(
-    [{ selector: ".ark-psection", end: "+=70%" }],
+  useScrubSections(
+    [{ selector: ".ark-psection", drift: 56 }],
     [sections],
   );
 
@@ -39,14 +40,15 @@ export default function ProfileScrollPage() {
       footerMeta={[identity.location, identity.status]}
       switchTarget={{
         href: "/devstories",
-        code: "ARCHIVE / 02",
+        code: "02",
         label: copy.switchToDevStories,
         side: "right",
+        accent: "orange",
       }}
     >
       <section className="ark-hero" id="profile-hero">
         <p className="ark-hero__eyebrow">{copy.profile.eyebrow}</p>
-        <h1 className="ark-hero__title">{identity.displayName}</h1>
+        <MosaicTitle text={identity.displayName} className="ark-hero__title" as="h1" />
         <p className="ark-hero__subtitle">{identity.bio}</p>
         <div className="ark-profile-roles">
           <TagRow tags={identity.roles} />

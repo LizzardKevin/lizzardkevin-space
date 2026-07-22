@@ -72,29 +72,15 @@
 }
 
 /* 网点底图：space 同款散点 grain + 晕影压边（低透明度，不抢结构） */
-.ark-page::before {
-  content: "";
+/* 背景点阵 canvas（DotGridAttractCanvas 绘制：指针吸引 + 滚动跟随），压在内容之下。
+   canvas 是替换元素，inset 拉伸对其无效，必须显式宽高 100%。 */
+.ark-dotgrid-canvas {
   position: absolute;
   inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(rgba(213, 214, 216, 0.07) 1.2px, transparent 1.9px) 0 0 / 20px 20px;
-  -webkit-mask-image: radial-gradient(ellipse 130% 130% at 50% 40%, black 55%, transparent 85%);
-  mask-image: radial-gradient(ellipse 130% 130% at 50% 40%, black 55%, transparent 85%);
-}
-
-/* 指针光晕层：跟随 --dot-grid-x/y（dotGridPointer 写入），压在内容之下 */
-.ark-page::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 1;
   pointer-events: none;
-  background:
-    radial-gradient(rgba(213, 214, 216, 0.2) 1.2px, transparent 1.9px) 0 0 / 20px 20px,
-    radial-gradient(340px circle at var(--dot-grid-x, -400px) var(--dot-grid-y, -400px), color-mix(in srgb, var(--ark-accent) 17%, transparent), transparent 72%);
-  -webkit-mask-image: radial-gradient(340px circle at var(--dot-grid-x, -400px) var(--dot-grid-y, -400px), black 18%, transparent 78%);
-  mask-image: radial-gradient(340px circle at var(--dot-grid-x, -400px) var(--dot-grid-y, -400px), black 18%, transparent 78%);
 }
 
 /* ---------- 顶栏 ---------- */
@@ -503,20 +489,30 @@
 
 .ark-psection {
   display: grid;
-  grid-template-columns: minmax(200px, 26vw) minmax(0, 1fr);
-  gap: clamp(20px, 4vw, 64px);
+  grid-template-columns: minmax(150px, 14vw) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 48px);
   max-width: clamp(1320px, 76vw, 1700px);
   margin-inline: auto;
   padding: 9vh var(--ark-gutter) 0;
 }
 
 .ark-psection__rail {
-  position: sticky;
-  top: calc(var(--ark-topbar-h) + 24px);
+  position: relative;
   align-self: start;
   display: flex;
   flex-direction: column;
   gap: var(--ark-gap-2);
+  padding-left: 22px;
+}
+
+/* 左侧数字垂直串联点划线（节间连续成线） */
+.ark-psection__rail::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  bottom: -10vh;
+  border-left: 1px dashed var(--ark-line-strong);
 }
 
 .ark-psection__railNumber {
@@ -670,8 +666,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--ark-gap-2);
-  position: sticky;
-  top: calc(var(--ark-topbar-h) + 24px);
+  position: relative;
+  padding-left: 22px;
+}
+
+/* 左侧数字垂直串联点划线 */
+.ark-dentry__index::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  bottom: -10vh;
+  border-left: 1px dashed var(--ark-line-strong);
 }
 
 .ark-dentry__number {
@@ -785,16 +791,13 @@
 
 /* ---------- /works/:id ---------- */
 
-/* 专题吸附区间：sticky 在自定义滚动容器内原生工作，
-   避免 GSAP pin 对 margin-auto 元素的测量时序问题 */
+/* 舞台/画廊容器：scrub 视差由 JS 驱动，容器保持普通文档流 */
 .ark-wstage-zone {
-  height: 190vh;
   position: relative;
 }
 
 .ark-wstage {
-  position: sticky;
-  top: 12vh;
+  position: relative;
   max-width: clamp(1320px, 76vw, 1700px);
   margin: 6vh auto 0;
   height: 74vh;
@@ -803,13 +806,7 @@
 }
 
 .ark-wgallery-zone {
-  height: 150vh;
   position: relative;
-}
-
-.ark-wgallery-zone .ark-wgallery {
-  position: sticky;
-  top: 10vh;
 }
 
 .ark-wstage__canvas {
@@ -921,7 +918,7 @@
 }
 
 .ark-wstory {
-  max-width: 72ch;
+  max-width: none;
 }
 
 .ark-wstory > * + * { margin-top: 1.4em; }
@@ -1044,12 +1041,14 @@
 
 /* ---------- 交互层挂载点（JS/GSAP 驱动，CSS 仅提供初始形态） ---------- */
 
-/* 左缘竖向切换条（profile→devstories 时在右缘） */
+/* 左缘竖向切换条（profile→devstories 时在右缘）；
+   hover：微放大 + 对方页面强调色 halo（--ark-switch-accent 由壳层注入） */
 .ark-switchstrip {
   position: absolute;
   left: 0;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) scale(1);
+  transform-origin: left center;
   z-index: 20;
   writing-mode: vertical-rl;
   font-family: var(--ark-mono);
@@ -1062,24 +1061,22 @@
   border-left: 4px solid var(--ark-accent);
   padding: 24px 16px;
   cursor: pointer;
-  transition: padding 180ms ease, color 160ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease, color 160ms ease, border-color 200ms ease;
 }
 
 .ark-switchstrip:hover {
   color: var(--ark-bright);
-  padding-right: 24px;
+  transform: translateY(-50%) scale(1.07);
+  border-color: var(--ark-switch-accent, var(--ark-accent));
+  box-shadow: 0 0 28px 4px color-mix(in srgb, var(--ark-switch-accent, var(--ark-accent)) 42%, transparent);
 }
 
 .ark-switchstrip--right {
   left: auto;
   right: 0;
+  transform-origin: right center;
   border-left: 1px solid var(--ark-line);
   border-right: 4px solid var(--ark-accent);
-}
-
-.ark-switchstrip--right:hover {
-  padding-right: 16px;
-  padding-left: 24px;
 }
 
 .ark-switchstrip__code { color: var(--ark-accent); }

@@ -4,9 +4,11 @@ import { prefersReducedMotion } from "./useLenisScroll";
 /**
  * 舟味色块横扫转场（profile ↔ devstories 互切）。
  * 两段式：startWipe() 播扫入（双色块错位横扫覆盖视口）→ 调用方 navigate →
- * 新页面壳层 mount 时 playWipeOutIfPending() 播扫出。
- * 方向与切换的空间逻辑一致：向右切换（01→02）面板从右扫入、向左掀开；
- * 向左切换（02→01）反之。跨页状态用模块级标记（SPA 内 module 单例随路由存活）。
+ * 新页面壳层 mount 时 playWipeOutIfPending() 播扫出，同时新内容从同侧
+ * 短距滑入（接力感，避免硬切）。
+ * 方向与切换的空间逻辑一致：向右切换（profile→devstories）面板从右扫入、
+ * 向左掀开，新内容从右入；向左切换反之。
+ * 跨页状态用模块级标记（SPA 内 module 单例随路由存活）。
  */
 
 export type WipeDirection = "left" | "right";
@@ -36,13 +38,13 @@ export function startWipe(container: HTMLElement, direction: WipeDirection): Pro
       .fromTo(
         panels,
         { xPercent: from },
-        { xPercent: 0, duration: 0.42, ease: "power3.inOut", stagger: 0.06 },
+        { xPercent: 0, duration: 0.26, ease: "power3.inOut", stagger: 0.045 },
       );
   });
 }
 
-/** 新页面壳层挂载后调用；若处于转场中则播扫出并清除标记。 */
-export function playWipeOutIfPending(container: HTMLElement) {
+/** 新页面壳层挂载后调用；若处于转场中则播扫出 + 内容接力滑入。 */
+export function playWipeOutIfPending(container: HTMLElement, content?: HTMLElement | null) {
   if (wipeOutPending === null) return;
   const direction = wipeOutPending;
   wipeOutPending = null;
@@ -53,15 +55,22 @@ export function playWipeOutIfPending(container: HTMLElement) {
   }
   const exitTo = direction === "right" ? -101 : 101;
   const resetTo = direction === "right" ? 101 : -101;
-  gsap
-    .timeline()
-    .to(panels, {
-      xPercent: exitTo,
-      duration: 0.38,
-      ease: "power3.inOut",
-      stagger: 0.06,
-      delay: 0.05,
-    })
-    .set(container, { autoAlpha: 0 })
-    .set(panels, { xPercent: resetTo });
+  const contentFromX = direction === "right" ? 56 : -56;
+
+  const timeline = gsap.timeline();
+  timeline.to(panels, {
+    xPercent: exitTo,
+    duration: 0.24,
+    ease: "power3.inOut",
+    stagger: 0.045,
+  });
+  if (content) {
+    timeline.fromTo(
+      content,
+      { x: contentFromX, autoAlpha: 0.4 },
+      { x: 0, autoAlpha: 1, duration: 0.34, ease: "power3.out", clearProps: "x,opacity,visibility" },
+      0.08,
+    );
+  }
+  timeline.set(container, { autoAlpha: 0 }).set(panels, { xPercent: resetTo });
 }

@@ -3,8 +3,9 @@ import { getDevStories } from "../../content/devStories";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { ScrollPageShell } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
-import { usePinSections } from "../../scroll/usePinSections";
+import { useScrubSections } from "../../scroll/useScrubSections";
 import { Reveal } from "../../scroll/Reveal";
+import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { Stat, TagRow } from "../../scroll/primitives";
 
 /**
@@ -26,8 +27,8 @@ export default function DevStoriesScrollPage() {
   const firstPeriod = stories[0]?.period ?? "";
   const lastPeriod = stories[stories.length - 1]?.period ?? "";
 
-  usePinSections(
-    [{ selector: ".ark-dentry", end: "+=60%", minHeightRatio: 0.55 }],
+  useScrubSections(
+    [{ selector: ".ark-dentry", drift: 48, minHeightRatio: 0.45 }],
     [stories],
   );
 
@@ -40,14 +41,15 @@ export default function DevStoriesScrollPage() {
       footerMeta={[`${stories.length} ENTRIES`, `${firstPeriod} — ${lastPeriod}`]}
       switchTarget={{
         href: "/profile",
-        code: "ARCHIVE / 01",
+        code: "01",
         label: copy.switchToProfile,
         side: "left",
+        accent: "teal",
       }}
     >
       <section className="ark-hero" id="devstories-hero">
         <p className="ark-hero__eyebrow">{copy.devStories.eyebrow}</p>
-        <h1 className="ark-hero__title">Dev Stories</h1>
+        <MosaicTitle text="Dev Stories" className="ark-hero__title" as="h1" />
         <div className="ark-hero__meta">
           <div className="ark-stat-row">
             <Stat value={stories.length} label={copy.devStories.entriesLabel} />

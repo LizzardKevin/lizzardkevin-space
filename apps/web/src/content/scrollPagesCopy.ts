@@ -64,7 +64,7 @@ const zh: ScrollPagesCopy = {
   switchToDevStories: "开发日志 DEV STORIES",
   switchAriaPrefix: "切换到",
   profile: {
-    pageCode: "ARCHIVE / 01",
+    pageCode: "PROFILE / 个人档案",
     eyebrow: "个人档案 PERSONAL ARCHIVE",
     linksTitle: "链接 LINKS",
     rolesLabel: "身份",
@@ -74,7 +74,7 @@ const zh: ScrollPagesCopy = {
     spaceUseLabel: "SPACE 中的形态 IN SPACE",
   },
   devStories: {
-    pageCode: "ARCHIVE / 02",
+    pageCode: "DEV STORIES / 开发日志",
     eyebrow: "开发日志 DEV STORIES",
     entriesLabel: "篇目",
     spanLabel: "时间跨度",
@@ -83,7 +83,7 @@ const zh: ScrollPagesCopy = {
     nextLabel: "下一步 NEXT",
   },
   work: {
-    pageCode: "ARCHIVE / 03",
+    pageCode: "EXHIBIT / 03",
     eyebrow: "作品详情 EXHIBIT",
     overviewLabel: "概览 OVERVIEW",
     storyLabel: "故事 STORY",
@@ -114,7 +114,7 @@ const en: ScrollPagesCopy = {
   switchToDevStories: "DEV STORIES",
   switchAriaPrefix: "Switch to",
   profile: {
-    pageCode: "ARCHIVE / 01",
+    pageCode: "PROFILE",
     eyebrow: "PERSONAL ARCHIVE",
     linksTitle: "LINKS",
     rolesLabel: "ROLES",
@@ -124,7 +124,7 @@ const en: ScrollPagesCopy = {
     spaceUseLabel: "IN SPACE",
   },
   devStories: {
-    pageCode: "ARCHIVE / 02",
+    pageCode: "DEV STORIES",
     eyebrow: "DEV STORIES",
     entriesLabel: "ENTRIES",
     spanLabel: "SPAN",
@@ -133,7 +133,7 @@ const en: ScrollPagesCopy = {
     nextLabel: "NEXT",
   },
   work: {
-    pageCode: "ARCHIVE / 03",
+    pageCode: "EXHIBIT / 03",
     eyebrow: "EXHIBIT",
     overviewLabel: "OVERVIEW",
     storyLabel: "STORY",

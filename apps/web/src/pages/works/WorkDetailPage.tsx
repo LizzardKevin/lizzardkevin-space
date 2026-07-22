@@ -9,10 +9,13 @@ import { workRoute } from "../../app/routeConfig";
 import { NotFound } from "../../app/appRoutes";
 import { ScrollPageShell, type ScrollPageAnchor } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
+import { useScrubSections } from "../../scroll/useScrubSections";
 import { prefersReducedMotion } from "../../scroll/useLenisScroll";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
+import { ImageLightbox } from "../../scroll/ImageLightbox";
 import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
+import "../../styles/scroll-lightbox.css";
 import { useWorkDetail } from "./useWorkDetail";
 import { useDragScroll } from "./useDragScroll";
 import { WorkModelViewer } from "./WorkModelViewer";
@@ -133,6 +136,7 @@ export default function WorkDetailPage() {
   const state = useWorkDetail(exhibitId, language);
   const galleryRef = useDragScroll<HTMLDivElement>();
   const heroTitleRef = useRef<HTMLDivElement | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
 
   const anchors: ScrollPageAnchor[] = useMemo(() => {
     if (state.status !== "ready") return [];
@@ -145,6 +149,14 @@ export default function WorkDetailPage() {
   }, [state]);
 
   const ready = state.status === "ready";
+  useScrubSections(
+    [
+      { selector: ".ark-wstage", drift: 72, minHeightRatio: 0.4 },
+      { selector: ".ark-wgallery", drift: 48, minHeightRatio: 0.4 },
+      { selector: ".ark-section", drift: 40, minHeightRatio: 0.3 },
+    ],
+    [ready, state],
+  );
   useHeroTitleShrink(heroTitleRef, "work-hero", [ready, state]);
 
   if (!exhibitId || state.status === "not-found") return <NotFound />;
@@ -259,7 +271,16 @@ export default function WorkDetailPage() {
             <div className="ark-wgallery__track" ref={galleryRef}>
               {galleryImages.map((url, i) => (
                 <figure className="ark-wgallery__item" key={url}>
-                  <img src={url} alt={`${title} — ${i + 1}`} loading="lazy" draggable={false} />
+                  <img
+                    src={url}
+                    alt={`${title} — ${i + 1}`}
+                    loading="lazy"
+                    draggable={false}
+                    onClick={() =>
+                      setSelectedImage({ src: url, alt: `${title} — ${i + 1}` })
+                    }
+                    style={{ cursor: "zoom-in" }}
+                  />
                 </figure>
               ))}
             </div>
@@ -268,9 +289,24 @@ export default function WorkDetailPage() {
       ) : galleryImages.length === 1 ? (
         <section className="ark-wgallery" id="work-gallery">
           <div className="ark-wgallery__single">
-            <img src={galleryImages[0]} alt={title} loading="lazy" draggable={false} />
+            <img
+              src={galleryImages[0]}
+              alt={title}
+              loading="lazy"
+              draggable={false}
+              onClick={() => setSelectedImage({ src: galleryImages[0], alt: title })}
+              style={{ cursor: "zoom-in" }}
+            />
           </div>
         </section>
+      ) : null}
+
+      {selectedImage ? (
+        <ImageLightbox
+          src={selectedImage.src}
+          alt={selectedImage.alt}
+          onClose={() => setSelectedImage(null)}
+        />
       ) : null}
 
       {content?.storyHtml ? (

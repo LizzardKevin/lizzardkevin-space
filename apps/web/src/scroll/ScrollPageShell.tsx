@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +16,7 @@ import { useLenisScroll } from "./useLenisScroll";
 import { usePageLanguage } from "./usePageLanguage";
 import { useEscapeToSpace } from "./useEscapeToSpace";
 import { startWipe, playWipeOutIfPending } from "./pageWipe";
-import { DotGridBackdrop } from "./DotGridBackdrop";
+import { DotGridAttractCanvas } from "./DotGridAttractCanvas";
 import { HazardRule } from "./primitives";
 
 export type ScrollPageAnchor = { id: string; label: string };
@@ -26,6 +27,14 @@ export type ScrollPageSwitchTarget = {
   label: string;
   /** 切换条所在缘侧与横扫方向：profile→devstories 为 right（01→02 向右），反之为 left */
   side: "left" | "right";
+  /** 对方页面强调色（halo 用）：teal 或 orange */
+  accent: "teal" | "orange";
+};
+
+/** 与对方页面 --ark-accent 对应的色值（切换条 hover halo）。 */
+const SWITCH_ACCENT_COLORS: Record<"teal" | "orange", string> = {
+  teal: "#67c2be",
+  orange: "#ef8b61",
 };
 
 function writeStoredLanguage(language: SupportedLanguage) {
@@ -110,7 +119,6 @@ export function ScrollPageShell({
   const language = usePageLanguage();
   const copy = useMemo(() => getScrollPagesCopy(language), [language]);
 
-  const [pageEl, setPageEl] = useState<HTMLDivElement | null>(null);
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [content, setContent] = useState<HTMLDivElement | null>(null);
   const lenisRef = useLenisScroll(scroller, content);
@@ -121,9 +129,10 @@ export function ScrollPageShell({
 
   useEscapeToSpace();
 
-  // 转场扫出：本页若是 wipe 导航的目标页，挂载后播放扫出。
+  // 转场扫出：本页若是 wipe 导航的目标页，挂载后播放扫出 + 内容接力。
   useEffect(() => {
-    if (wipeRef.current) playWipeOutIfPending(wipeRef.current);
+    if (wipeRef.current) playWipeOutIfPending(wipeRef.current, content);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅挂载时执行一次
   }, []);
 
   const handleSwitch = useCallback(() => {
@@ -198,8 +207,8 @@ export function ScrollPageShell({
 
   return (
     <ScrollPageContext.Provider value={contextValue}>
-      <div className="ark-page" data-accent={accent} ref={setPageEl}>
-        <DotGridBackdrop target={pageEl} />
+      <div className="ark-page" data-accent={accent}>
+        <DotGridAttractCanvas className="ark-dotgrid-canvas" />
         <header className="ark-top">
           <div className="ark-top__brand">
             <span className="ark-top__brandMain">{copy.brandMain}</span>
@@ -263,6 +272,7 @@ export function ScrollPageShell({
           <button
             type="button"
             className={`ark-switchstrip${switchTarget.side === "right" ? " ark-switchstrip--right" : ""}`}
+            style={{ "--ark-switch-accent": SWITCH_ACCENT_COLORS[switchTarget.accent] } as CSSProperties}
             aria-label={`${copy.switchAriaPrefix} ${switchTarget.label}`}
             onClick={handleSwitch}
           >
