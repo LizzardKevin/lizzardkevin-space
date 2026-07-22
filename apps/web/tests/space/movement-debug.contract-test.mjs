@@ -22,7 +22,7 @@ assert(
 );
 assert(
   files.spaceScene.includes(
-    '<GuardedPointerLockControls enabled={pointerControlsEnabled} selector="#space-canvas" />',
+    '<GuardedPointerLockControls enabled={pointerControlsEnabled} />',
   ),
   "SPACE must keep guarded pointer lock controls mounted and gate their input explicitly",
 );

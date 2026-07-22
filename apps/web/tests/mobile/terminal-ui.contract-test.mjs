@@ -5,7 +5,11 @@ assert(terminalCss.includes("--terminal-collapse"), "terminal CSS must expose sc
 assert(terminalCss.includes("--terminal-content-scroll-y"), "terminal CSS must expose document scroll-follow offset");
 assert(terminalCss.includes("--terminal-nav-scroll-y"), "terminal CSS must expose main tab scroll-follow offset");
 assert(terminalCss.includes("transform: translate3d(0, var(--terminal-nav-scroll-y), 0)"), "main tabs must move with the user's scroll during header collapse");
-assert(terminalCss.includes("transform: translate3d(0, var(--terminal-content-scroll-y), 0)"), "terminal documents must move one-to-one with the user's scroll during header collapse");
+assert(terminalCss.includes("transform: translate3d(var(--terminal-doc-swipe-x, 0px), var(--terminal-content-scroll-y), 0)"), "terminal documents must move one-to-one with the user's scroll during header collapse and follow the horizontal tab swipe");
+assert(
+  terminalCss.match(/\.mobile-terminal-shell\s*\{[\s\S]*?touch-action:\s*pan-y;/),
+  "the terminal shell must reserve horizontal touch gestures for tab swipes while preserving vertical scroll",
+);
 assert(terminalCss.includes(".mobile-terminal-loadLayer"), "terminal CSS must include a separate inner text-load animation layer");
 assert(terminalCss.includes("color-mix(in srgb, var(--terminal-text)"), "collapsed Space color must interpolate toward the muted small-label color");
 assert(terminalCss.includes("var(--terminal-muted) calc(var(--terminal-collapse) * 100%)"), "collapsed Space final color must match the small-label muted color");
@@ -98,10 +102,26 @@ for (const forbiddenCss of [
   "box-shadow",
   "linear-gradient",
   "radial-gradient",
-  "border:",
-  "outline:",
 ]) {
   assert(!terminalCss.includes(forbiddenCss), `terminal CSS must not include ${forbiddenCss}`);
 }
+
+assert(terminalCss.includes("--terminal-line:"), "terminal themes must expose a shared hairline token");
+assert(
+  terminalCss.includes("border-top: 1px solid var(--terminal-line)"),
+  "terminal rows, folds, and lines must use 1px industrial hairline separators",
+);
+assert(
+  terminalCss.includes("outline: 2px solid var(--terminal-accent)"),
+  "terminal interactive rows must expose a 2px accent focus outline",
+);
+assert(
+  terminalCss.includes(".mobile-terminal-row::after") && terminalCss.includes("scaleX(1)"),
+  "terminal rows must fill with an ink wash while pressed",
+);
+assert(
+  terminalCss.includes("@keyframes mobile-terminal-item-in"),
+  "open folds must stagger their list items with a shared item-in animation",
+);
 
 console.log("mobile terminal UI contract tests passed");

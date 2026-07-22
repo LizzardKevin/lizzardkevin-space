@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode, type UIEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode, type UIEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeSupportedLanguage, readInitialLanguage } from "../i18n/resolveInitialLanguage";
 import {
@@ -13,6 +13,13 @@ import {
   type MobileTerminalLanguage,
   type MobileTerminalTheme,
 } from "../mobile/mobileArchiveData";
+import {
+  beginMobileTabSwipe,
+  createMobileTabSwipeState,
+  resetMobileTabSwipe,
+  resolveMobileTabSwipeMove,
+  resolveMobileTabSwipeRelease,
+} from "../mobile/mobileTabSwipe.ts";
 import { publicAssetUrl } from "../platform/publicAssets.ts";
 import type { MobileRouteView } from "../mobile/mobileRouteView";
 
@@ -27,6 +34,11 @@ const THEME_REVEAL_DURATION_MS = 620;
 const PROJECT_SNAP_DURATION_MS = 360;
 const SHELL_COLLAPSE_OFFSET_PX = 84;
 const NAV_COLLAPSE_OFFSET_PX = 34;
+const DOC_SWIPE_EXIT_RATIO = 0.42;
+const DOC_SWIPE_EXIT_MS = 180;
+const DOC_SWIPE_ENTER_PX = 56;
+const DOC_SWIPE_ENTER_MS = 240;
+const DOC_SWIPE_REBOUND_MS = 240;
 const DEFAULT_TERMINAL_THEME: MobileTerminalTheme = "light";
 const LANGUAGE_STORAGE_KEY = "mobileTerminalLanguage";
 const THEME_STORAGE_KEY = "mobileTerminalThemeV2";
@@ -177,6 +189,9 @@ export function MobileExperience({
   const terminalShellRef = useRef<HTMLElement | null>(null);
   const terminalCollapseRef = useRef(0);
   const terminalSnapFrameRef = useRef<number | null>(null);
+  const tabSwipeRef = useRef(createMobileTabSwipeState());
+  const docSwipeFrameRef = useRef<number | null>(null);
+  const suppressSwipeClickRef = useRef(false);
   const [bootLanguage] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
   const [localActiveTab, setActiveTab] = useState<MobileTabId | null>(null);
   const [foldState, setFoldState] = useState<TerminalFoldState>({});
@@ -243,6 +258,9 @@ export function MobileExperience({
       }
       if (terminalSnapFrameRef.current !== null) {
         window.cancelAnimationFrame(terminalSnapFrameRef.current);
+      }
+      if (docSwipeFrameRef.current !== null) {
+        window.cancelAnimationFrame(docSwipeFrameRef.current);
       }
     };
   }, []);
@@ -330,6 +348,120 @@ export function MobileExperience({
   const snapTerminalCollapseToNearest = () => {
     const targetProgress = terminalCollapseRef.current >= 0.5 ? 1 : 0;
     window.requestAnimationFrame(() => animateTerminalCollapseTo(targetProgress));
+  };
+
+  const setDocSwipeOffset = (value: number) => {
+    terminalRootRef.current?.style.setProperty("--terminal-doc-swipe-x", `${Math.round(value)}px`);
+  };
+
+  const animateDocSwipeTo = (from: number, to: number, durationMs: number, onDone?: () => void) => {
+    if (docSwipeFrameRef.current !== null) {
+      window.cancelAnimationFrame(docSwipeFrameRef.current);
+    }
+    if (!terminalRootRef.current || from === to) {
+      setDocSwipeOffset(to);
+      docSwipeFrameRef.current = null;
+      onDone?.();
+      return;
+    }
+    const startTime = window.performance.now();
+    const tick = (now: number) => {
+      const raw = Math.min(1, (now - startTime) / durationMs);
+      const eased = 1 - (1 - raw) ** 3;
+      setDocSwipeOffset(from + (to - from) * eased);
+      if (raw < 1) {
+        docSwipeFrameRef.current = window.requestAnimationFrame(tick);
+        return;
+      }
+      docSwipeFrameRef.current = null;
+      onDone?.();
+    };
+    docSwipeFrameRef.current = window.requestAnimationFrame(tick);
+  };
+
+  const swipeTabIndex = activeTab ? TAB_ORDER.indexOf(activeTab) : -1;
+  const tabSwipeEnabled = routeView.kind !== "not-found" && selectedProject === null && swipeTabIndex >= 0;
+
+  const handleShellPointerDown = (event: PointerEvent<HTMLElement>) => {
+    suppressSwipeClickRef.current = false;
+    if (!tabSwipeEnabled || !event.isPrimary) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    beginMobileTabSwipe(tabSwipeRef.current, { pointerId: event.pointerId, x: event.clientX, y: event.clientY });
+  };
+
+  const handleShellPointerMove = (event: PointerEvent<HTMLElement>) => {
+    const state = tabSwipeRef.current;
+    if (!state.active || state.pointerId !== event.pointerId) return;
+    const outcome = resolveMobileTabSwipeMove(state, {
+      x: event.clientX,
+      y: event.clientY,
+      currentIndex: swipeTabIndex,
+      total: TAB_ORDER.length,
+    });
+    if (outcome.kind === "idle" || outcome.kind === "ignore") return;
+    if (outcome.kind === "engage") {
+      suppressSwipeClickRef.current = true;
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        // Pointer capture is best-effort; the swipe still resolves without it.
+      }
+    }
+    event.preventDefault();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    setDocSwipeOffset(outcome.offsetX);
+  };
+
+  const handleShellPointerRelease = (event: PointerEvent<HTMLElement>) => {
+    const state = tabSwipeRef.current;
+    if (!state.active || state.pointerId !== event.pointerId) return;
+    const outcome = resolveMobileTabSwipeRelease(state, { currentIndex: swipeTabIndex, total: TAB_ORDER.length });
+    if (outcome.kind === "idle") return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (outcome.kind === "rebound") {
+      if (reducedMotion) {
+        setDocSwipeOffset(0);
+        return;
+      }
+      animateDocSwipeTo(outcome.offsetX, 0, DOC_SWIPE_REBOUND_MS);
+      return;
+    }
+
+    const nextTab = TAB_ORDER[outcome.nextIndex];
+    if (!nextTab) return;
+    if (reducedMotion) {
+      setDocSwipeOffset(0);
+      selectTab(nextTab);
+      return;
+    }
+    const shellWidth = terminalShellRef.current?.clientWidth ?? window.innerWidth;
+    const exitTarget = (outcome.direction === "next" ? -1 : 1) * shellWidth * DOC_SWIPE_EXIT_RATIO;
+    const enterStart = (outcome.direction === "next" ? 1 : -1) * DOC_SWIPE_ENTER_PX;
+    animateDocSwipeTo(outcome.offsetX, exitTarget, DOC_SWIPE_EXIT_MS, () => {
+      selectTab(nextTab);
+      setDocSwipeOffset(enterStart);
+      animateDocSwipeTo(enterStart, 0, DOC_SWIPE_ENTER_MS);
+    });
+  };
+
+  const handleShellPointerCancel = (event: PointerEvent<HTMLElement>) => {
+    const state = tabSwipeRef.current;
+    if (!state.active || state.pointerId !== event.pointerId) return;
+    const offsetX = state.offsetX;
+    resetMobileTabSwipe(state);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDocSwipeOffset(0);
+      return;
+    }
+    animateDocSwipeTo(offsetX, 0, DOC_SWIPE_REBOUND_MS);
+  };
+
+  const handleShellClickCapture = (event: MouseEvent<HTMLElement>) => {
+    if (!suppressSwipeClickRef.current) return;
+    suppressSwipeClickRef.current = false;
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   const handleFoldExpandedChange = (foldId: string, expanded: boolean) => {
@@ -453,6 +585,11 @@ export function MobileExperience({
             className={`mobile-terminal-shell${activeTab === "contact" ? " mobile-terminal-shell--contact" : ""}`}
             aria-label={copy.aria.museum}
             onScroll={handleDocumentScroll}
+            onPointerDown={handleShellPointerDown}
+            onPointerMove={handleShellPointerMove}
+            onPointerUp={handleShellPointerRelease}
+            onPointerCancel={handleShellPointerCancel}
+            onClickCapture={handleShellClickCapture}
           >
             {routeView.kind === "not-found" ? (
               <section className="mobile-terminal-document" data-route-not-found="true">

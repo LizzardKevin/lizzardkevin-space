@@ -76,7 +76,7 @@ function SpaceSceneContent({
 
   return (
     <ExhibitInteractionRegistryProvider>
-      <GuardedPointerLockControls enabled={pointerControlsEnabled} selector="#space-canvas" />
+      <GuardedPointerLockControls enabled={pointerControlsEnabled} />
 
       {ENABLE_GALLERY_GLB ? <SafetyGround y={safetyGroundY} centerX={safetyCenterX} centerZ={safetyCenterZ} /> : null}
       {ENABLE_GALLERY_GLB ? (

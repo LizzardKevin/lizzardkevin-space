@@ -303,9 +303,6 @@ export function SpaceCanvasHost({
                 : [0, 1.6, 6],
             }}
             shadows={resolvedProfile && resolvedProfile.shadows && useShadows ? { type: PCFShadowMap } : false}
-            onCreated={({ gl }) => {
-              gl.domElement.id = "space-canvas";
-            }}
           >
             {resolvedProfile ? (
               <SpaceSession

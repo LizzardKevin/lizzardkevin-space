@@ -1,19 +1,22 @@
 type PointerLockDocument = Pick<Document, "getElementById">;
 
+export const SPACE_POINTER_LOCK_TARGET_ID = "space-pointer-lock-target";
+
 export function resolveSpacePointerLockTarget(
-  canvas: HTMLElement | null = null,
+  fallback: HTMLElement | null = null,
   documentRoot: PointerLockDocument = document,
 ) {
-  return canvas ?? documentRoot.getElementById("space-canvas");
+  return documentRoot.getElementById(SPACE_POINTER_LOCK_TARGET_ID) ?? fallback;
 }
 
 export function isSpacePointerLockActive(
-  expectedCanvas: Pick<Element, "id"> | null,
+  expectedTarget: Pick<Element, "id"> | null,
   activeElement: Pick<Element, "id"> | null = document.pointerLockElement,
 ) {
-  if (!expectedCanvas || !activeElement) return false;
+  if (!expectedTarget || !activeElement) return false;
   return (
-    activeElement === expectedCanvas ||
-    (activeElement.id === "space-canvas" && expectedCanvas.id === "space-canvas")
+    activeElement === expectedTarget ||
+    (activeElement.id === SPACE_POINTER_LOCK_TARGET_ID &&
+      expectedTarget.id === SPACE_POINTER_LOCK_TARGET_ID)
   );
 }

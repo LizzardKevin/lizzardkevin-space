@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import type { OverlayTab } from "../overlay/OverlayState";
 import {
   SPACE_POINTER_LOCK_FAILED_EVENT,
+  requestSpacePointerLock,
   reserveSpacePointerLockRequestId,
   resumeSpaceFirstPersonAfterEscape,
   resumeSpaceFirstPersonWithCursorReturn,
@@ -92,6 +93,7 @@ export default function DesktopApp() {
     INITIAL_START_LOBBY_HANDOFF_STATE,
   );
   const [spaceStarted, setSpaceStarted] = useState(false);
+  const [minWhiteElapsed, setMinWhiteElapsed] = useState(false);
   const [closingOverlay, setClosingOverlay] = useState<ClosingOverlay | null>(null);
   const [returningToSpace, setReturningToSpace] = useState(false);
   const returnAttemptRef = useRef(createSpaceReturnPointerLockAttemptCoordinator());
@@ -125,13 +127,17 @@ export default function DesktopApp() {
   }, [boot.state.attemptId, boot.state.phase]);
 
   const entered = handoff.phase === "entered";
+  const enteringSpace =
+    handoff.phase === "disposing" ||
+    handoff.phase === "booting" ||
+    handoff.phase === "revealing";
 
   if (route.kind === "space" && closingOverlay === null && returningToSpace) {
     setReturningToSpace(false);
   }
 
   useSpacePointerLockGuard(
-    shouldGuardSpacePointerLock(entered, effectiveRouteBlocked, returningToSpace),
+    shouldGuardSpacePointerLock(entered, effectiveRouteBlocked, returningToSpace, enteringSpace),
   );
 
   useEffect(() => {
@@ -153,11 +159,13 @@ export default function DesktopApp() {
   useEffect(() => {
     if (!spaceStarted) return;
     if (boot.state.phase === "running") {
-      dispatchHandoff({ type: "boot-running" });
+      if (minWhiteElapsed) {
+        dispatchHandoff({ type: "boot-running" });
+      }
     } else if (boot.state.phase === "failed") {
       dispatchHandoff({ type: "boot-failed" });
     }
-  }, [boot.state.phase, spaceStarted]);
+  }, [boot.state.phase, spaceStarted, minWhiteElapsed]);
 
   useEffect(() => {
     if (handoff.phase !== "revealing") return;
@@ -169,7 +177,8 @@ export default function DesktopApp() {
   const onTrustedEnter = useCallback(() => {
     if (spaceStarted || route.kind !== "space" || handoff.phase !== "lobby") return;
     audio.unlock();
-    dispatchHandoff({ type: "trusted-enter" });
+    flushSync(() => dispatchHandoff({ type: "trusted-enter" }));
+    requestSpacePointerLock();
   }, [audio, handoff.phase, route.kind, spaceStarted]);
 
   const onLobbyDisposed = useCallback(() => {
@@ -234,6 +243,7 @@ export default function DesktopApp() {
 
   return (
     <div
+      id="space-pointer-lock-target"
       className="desktop-app"
       style={{
         ...SPACE_VISUAL_CSS_PROPERTIES,
@@ -293,8 +303,7 @@ export default function DesktopApp() {
         </Suspense>
       ) : null}
 
-      {handoff.phase === "disposing" ||
-      handoff.phase === "booting" ||
+      {handoff.phase === "booting" ||
       handoff.phase === "failed" ||
       handoff.phase === "revealing" ? (
         <div
@@ -302,12 +311,13 @@ export default function DesktopApp() {
           role={handoff.phase === "failed" ? "alert" : "status"}
           aria-live="polite"
           data-handoff-phase={handoff.phase}
-          onTransitionEnd={(event) => {
-            if (
-              event.target === event.currentTarget &&
-              event.propertyName === "opacity" &&
-              handoff.phase === "revealing"
-            ) {
+          onAnimationEnd={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (event.animationName === "startLobbyMinWhite") {
+              setMinWhiteElapsed(true);
+              return;
+            }
+            if (event.animationName === "startLobbyExposureOut" && handoff.phase === "revealing") {
               dispatchHandoff({ type: "reveal-finished" });
             }
           }}

@@ -29,6 +29,41 @@
 
 .start-lobby__canvas {
   z-index: 1;
+  transform-origin: 50% 46%;
+}
+
+.start-lobby[data-disposing="true"] .start-lobby__canvas {
+  transform: scale(2.75);
+  filter: brightness(1.65) saturate(0.85);
+  transition:
+    transform 1050ms cubic-bezier(0.76, 0, 0.84, 0),
+    filter 1050ms cubic-bezier(0.76, 0, 0.84, 0);
+}
+
+.start-lobby::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: #fbfbf8;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.start-lobby[data-disposing="true"]::after {
+  animation: startLobbyFadeToWhite 1050ms cubic-bezier(0.76, 0, 0.84, 0) both;
+}
+
+@keyframes startLobbyFadeToWhite {
+  0% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .start-lobby__accessible-title {
@@ -110,19 +145,35 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: #10191a;
-  color: #f3f0e7;
+  background: #fbfbf8;
+  color: #17282a;
   opacity: 1;
   text-align: center;
-  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: startLobbyMinWhite 2000ms linear both;
 }
 
 .start-lobby-handoff__cover--revealing {
   opacity: 0;
   pointer-events: none;
+  animation: startLobbyExposureOut 1200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.start-lobby-handoff__status,
+.start-lobby-handoff__status {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  display: grid;
+  gap: 3px;
+  justify-items: end;
+  font-family: "Ubuntu Mono Web", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-align: right;
+  color: rgba(47, 119, 117, 0.68);
+  animation: startLobbyStatusIn 420ms cubic-bezier(0.22, 1, 0.36, 1) 400ms both;
+}
+
 .start-lobby-handoff__failure {
   display: grid;
   max-width: 480px;
@@ -144,13 +195,52 @@
 }
 
 .start-lobby-handoff__failure button:focus-visible {
-  outline: 3px solid #f3f0e7;
+  outline: 3px solid #17282a;
   outline-offset: 4px;
+}
+
+@keyframes startLobbyMinWhite {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes startLobbyStatusIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes startLobbyExposureOut {
+  0% {
+    opacity: 1;
+  }
+  21% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .start-lobby__enter,
+  .start-lobby__canvas,
   .start-lobby-handoff__cover {
     transition: none;
+  }
+
+  .start-lobby[data-disposing="true"]::after,
+  .start-lobby-handoff__cover--revealing,
+  .start-lobby-handoff__status {
+    animation: none;
   }
 }
