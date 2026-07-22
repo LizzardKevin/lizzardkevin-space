@@ -220,6 +220,18 @@
   flex-direction: column;
 }
 
+/* 左侧数字一整条贯穿点划线（profile/devstories；位置与 rail 对齐） */
+.ark-page[data-accent="teal"] .ark-scroll__content::after,
+.ark-page[data-accent="orange"] .ark-scroll__content::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc((100% - clamp(1320px, 76vw, 1700px)) / 2 + var(--ark-gutter) + 3px);
+  border-left: 1px dashed var(--ark-line-strong);
+  pointer-events: none;
+}
+
 /* 页眉斜挂 eyebrow 旗标（左侧竖排细条） */
 .ark-eyebrow-flag {
   position: absolute;
@@ -241,6 +253,7 @@
 
 .ark-hero {
   position: relative;
+  width: 100%;
   max-width: clamp(1320px, 76vw, 1700px);
   margin-inline: auto;
   min-height: 86vh;
@@ -467,6 +480,7 @@
 
 /* 通用内容分节节奏 */
 .ark-section {
+  width: 100%;
   max-width: clamp(1320px, 76vw, 1700px);
   margin-inline: auto;
   padding: 11vh var(--ark-gutter) 0;
@@ -491,6 +505,7 @@
   display: grid;
   grid-template-columns: minmax(150px, 14vw) minmax(0, 1fr);
   gap: clamp(20px, 3vw, 48px);
+  width: 100%;
   max-width: clamp(1320px, 76vw, 1700px);
   margin-inline: auto;
   padding: 9vh var(--ark-gutter) 0;
@@ -503,16 +518,6 @@
   flex-direction: column;
   gap: var(--ark-gap-2);
   padding-left: 22px;
-}
-
-/* 左侧数字垂直串联点划线（节间连续成线） */
-.ark-psection__rail::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 6px;
-  bottom: -10vh;
-  border-left: 1px dashed var(--ark-line-strong);
 }
 
 .ark-psection__railNumber {
@@ -544,6 +549,11 @@
   line-height: 1.8;
   color: var(--ark-bright);
   max-width: 58ch;
+}
+
+/* works 页各模块文字与容器同宽（模块左右边缘严格对齐） */
+.ark-page[data-accent="yellow"] .ark-psection__summary {
+  max-width: none;
 }
 
 .ark-psection__blockLabel {
@@ -602,6 +612,7 @@
 }
 
 .ark-links {
+  width: 100%;
   max-width: clamp(1320px, 76vw, 1700px);
   margin-inline: auto;
   padding: 10vh var(--ark-gutter) 0;
@@ -650,6 +661,7 @@
 /* ---------- /devstories ---------- */
 
 .ark-dentry {
+  width: 100%;
   max-width: clamp(1320px, 76vw, 1700px);
   margin-inline: auto;
   padding: 9vh var(--ark-gutter) 0;
@@ -668,16 +680,6 @@
   gap: var(--ark-gap-2);
   position: relative;
   padding-left: 22px;
-}
-
-/* 左侧数字垂直串联点划线 */
-.ark-dentry__index::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 6px;
-  bottom: -10vh;
-  border-left: 1px dashed var(--ark-line-strong);
 }
 
 .ark-dentry__number {
@@ -791,15 +793,22 @@
 
 /* ---------- /works/:id ---------- */
 
-/* 舞台/画廊容器：scrub 视差由 JS 驱动，容器保持普通文档流 */
+/* 所有 works 顶层模块共享同一版心与 gutter 内距，可见左右边缘严格对齐。
+   舞台 zone 同时是吸附区间：sticky 在自定义滚动容器内原生工作。 */
 .ark-wstage-zone {
   position: relative;
+  width: 100%;
+  width: 100%;
+  max-width: clamp(1320px, 76vw, 1700px);
+  margin: 6vh auto 0;
+  padding-inline: var(--ark-gutter);
+  height: 190vh;
 }
 
 .ark-wstage {
-  position: relative;
-  max-width: clamp(1320px, 76vw, 1700px);
-  margin: 6vh auto 0;
+  position: sticky;
+  top: 12vh;
+  width: 100%;
   height: 74vh;
   min-height: 420px;
   overflow: hidden;
@@ -807,6 +816,10 @@
 
 .ark-wgallery-zone {
   position: relative;
+  width: 100%;
+  max-width: clamp(1320px, 76vw, 1700px);
+  margin-inline: auto;
+  padding-inline: var(--ark-gutter);
 }
 
 .ark-wstage__canvas {
@@ -852,8 +865,6 @@
 }
 
 .ark-wgallery {
-  max-width: clamp(1320px, 76vw, 1700px);
-  margin-inline: auto;
   margin: 6vh auto 0;
 }
 
@@ -877,19 +888,18 @@
   display: flex;
   gap: var(--ark-gap-2);
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: none;
   scrollbar-width: none;
   cursor: grab;
   padding-bottom: var(--ark-gap-1);
 }
 
 .ark-wgallery__track::-webkit-scrollbar { display: none; }
-.ark-wgallery__track[data-dragging="true"] { cursor: grabbing; scroll-snap-type: none; }
+.ark-wgallery__track[data-dragging="true"] { cursor: grabbing; }
 
 .ark-wgallery__item {
   flex: 0 0 auto;
   width: min(68vw, 880px);
-  scroll-snap-align: start;
   border: 1px solid var(--ark-line);
   background: var(--ark-bg-deep);
 }
@@ -959,11 +969,15 @@
 .ark-wnav {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  width: 100%;
   max-width: clamp(1320px, 76vw, 1700px);
   margin-inline: auto;
-  border-top: 1px solid var(--ark-line);
-  border-left: 1px solid var(--ark-line);
   margin: 10vh auto 0;
+  padding-inline: var(--ark-gutter);
+}
+
+.ark-wnav__link {
+  border-top: 1px solid var(--ark-line);
 }
 
 .ark-wnav__link {
@@ -1009,6 +1023,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ark-gap-3);
+  width: 100%;
   max-width: clamp(1320px, 76vw, 1700px);
   margin-inline: auto;
   padding: 5vh var(--ark-gutter) 6vh;
@@ -1105,7 +1120,7 @@
 /* 顶栏下方迷你标题：显隐由 JS 切 [data-visible] */
 .ark-minititle {
   position: absolute;
-  top: calc(var(--ark-topbar-h) + 10px);
+  top: calc(var(--ark-topbar-h) + 12px);
   left: calc(var(--ark-gutter) * 0.5);
   z-index: 15;
   font-family: var(--ark-mono);
@@ -1113,9 +1128,6 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ark-dim);
-  border: 1px solid var(--ark-line);
-  background: rgba(20, 20, 22, 0.78);
-  padding: 8px 12px;
   opacity: 0;
   transform: translateY(-8px);
   transition: opacity 220ms ease, transform 220ms ease;

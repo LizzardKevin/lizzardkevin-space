@@ -43,7 +43,9 @@ export function startWipe(container: HTMLElement, direction: WipeDirection): Pro
   });
 }
 
-/** 新页面壳层挂载后调用；若处于转场中则播扫出 + 内容接力滑入。 */
+/** 新页面壳层挂载后调用；若处于转场中则播扫出 + 内容接力滑入。
+ *  关键：先把面板钉回全覆盖位（新页面板初始在屏外，直接扫出会闪露），
+ *  并延后两帧让目标页首帧渲染完成——先盖全，再放。 */
 export function playWipeOutIfPending(container: HTMLElement, content?: HTMLElement | null) {
   if (wipeOutPending === null) return;
   const direction = wipeOutPending;
@@ -58,18 +60,23 @@ export function playWipeOutIfPending(container: HTMLElement, content?: HTMLEleme
   const contentFromX = direction === "right" ? 56 : -56;
 
   const timeline = gsap.timeline();
+  // 面板钉回全覆盖位（视觉无缝衔接上一页的扫入终态）
+  timeline.set(container, { autoAlpha: 1 });
+  timeline.set(panels, { xPercent: 0 });
+  // 等目标页首帧渲染（约 2 帧）再释放扫出
   timeline.to(panels, {
     xPercent: exitTo,
     duration: 0.24,
     ease: "power3.inOut",
     stagger: 0.045,
+    delay: 0.09,
   });
   if (content) {
     timeline.fromTo(
       content,
       { x: contentFromX, autoAlpha: 0.4 },
       { x: 0, autoAlpha: 1, duration: 0.34, ease: "power3.out", clearProps: "x,opacity,visibility" },
-      0.08,
+      0.17,
     );
   }
   timeline.set(container, { autoAlpha: 0 }).set(panels, { xPercent: resetTo });

@@ -151,7 +151,6 @@ export default function WorkDetailPage() {
   const ready = state.status === "ready";
   useScrubSections(
     [
-      { selector: ".ark-wstage", drift: 72, minHeightRatio: 0.4 },
       { selector: ".ark-wgallery", drift: 48, minHeightRatio: 0.4 },
       { selector: ".ark-section", drift: 40, minHeightRatio: 0.3 },
     ],

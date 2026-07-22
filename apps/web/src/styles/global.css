@@ -2018,9 +2018,6 @@ button {
   display: flex;
   gap: 0;
   padding: 0 4px;
-  border: 1px solid var(--space-hud-border);
-  border-radius: 0;
-  background: var(--space-hud-surface);
   pointer-events: auto;
 }
 
@@ -2057,17 +2054,18 @@ button {
 
 .topbar__button:hover,
 .topbar__button:focus-visible {
-  background: var(--space-hud-selected);
-  color: var(--space-paper);
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 2px;
 }
 
 .topbar__settingsButton {
   width: 32px;
   height: 32px;
   margin-left: 10px;
-  border: 1px solid var(--space-hud-border);
+  border: 0;
   border-radius: 0;
-  background: var(--space-hud-surface);
+  background: transparent;
   color: var(--space-paper);
   cursor: pointer;
   filter: none;
@@ -2081,8 +2079,7 @@ button {
 .topbar__settingsButton:hover,
 .topbar__settingsButton:focus-visible,
 .topbar__settingsButton[aria-expanded="true"] {
-  background: var(--space-hud-selected);
-  color: var(--space-paper);
+  color: #67c2be;
 }
 
 .topbar__settingsButton:focus-visible {
