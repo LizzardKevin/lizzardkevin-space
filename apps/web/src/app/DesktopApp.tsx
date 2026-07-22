@@ -41,8 +41,7 @@ const SpacePage = lazy(() => import("../pages/SpacePage"));
 const DesktopTopBar = lazy(() =>
   import("../desktop/DesktopTopBar").then((module) => ({ default: module.DesktopTopBar })),
 );
-const ProfileScrollPage = lazy(() => import("../pages/profile/ProfileScrollPage"));
-const DevStoriesScrollPage = lazy(() => import("../pages/devstories/DevStoriesScrollPage"));
+const ArchiveHub = lazy(() => import("../pages/archive/ArchiveHub"));
 const WorkDetailPage = lazy(() => import("../pages/works/WorkDetailPage"));
 
 function DesktopRouteLoading() {
@@ -213,7 +212,7 @@ export default function DesktopApp() {
               path="/profile"
               element={
                 <Suspense fallback={<DesktopRouteLoading />}>
-                  <ProfileScrollPage />
+                  <ArchiveHub tab="profile" />
                 </Suspense>
               }
             />
@@ -221,7 +220,7 @@ export default function DesktopApp() {
               path="/devstories"
               element={
                 <Suspense fallback={<DesktopRouteLoading />}>
-                  <DevStoriesScrollPage />
+                  <ArchiveHub tab="devstories" />
                 </Suspense>
               }
             />

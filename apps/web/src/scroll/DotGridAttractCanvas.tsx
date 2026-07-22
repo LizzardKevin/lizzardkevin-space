@@ -1,4 +1,5 @@
 import { useEffect, useRef, type JSX } from "react";
+import { readDotGridArrow, subscribeDotGridArrow } from "./dotGridArrowBus";
 
 const GRID_SPACING = 20;
 const TILE_SPAN = GRID_SPACING * 2;
@@ -138,22 +139,12 @@ export function DotGridAttractCanvas({
     let targetY = -400;
     let pointerX = -400;
     let pointerY = -400;
+    // 点阵箭头强度（非线性趋近目标值）
+    let arrowStrength = 0;
+    // 滚动跟随的纵向偏移（每帧 draw 前刷新）
+    let offsetY = 0;
 
-    const draw = () => {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, cssWidth, cssHeight);
-      if (!tile || cssWidth <= 0 || cssHeight <= 0) return;
-
-      const offsetY = ((scrollTop % GRID_SPACING) + GRID_SPACING) % GRID_SPACING;
-
-      // 1. 平铺基础网格
-      for (let y = offsetY - TILE_SPAN; y < cssHeight; y += TILE_SPAN) {
-        for (let x = 0; x < cssWidth; x += TILE_SPAN) {
-          ctx.drawImage(tile, x, y, TILE_SPAN, TILE_SPAN);
-        }
-      }
-
-      // 2. 影响区：先抠掉，再逐个重绘（带位移 + 颜色插值）
+    const drawInfluence = () => {
       if (!pointerSeen) return;
       if (
         pointerX < -ERASE_RADIUS ||
@@ -224,6 +215,87 @@ export function DotGridAttractCanvas({
       }
     };
 
+    /** 切换条 hover 的点阵箭头：三角形区域内点放大 + 强调色 + 边缘羽化。 */
+    const ARROW_W = 120;
+    const ARROW_H = 170;
+
+    const drawArrow = () => {
+      if (arrowStrength <= 0.01) return;
+      const { direction } = readDotGridArrow();
+      const dirSign = direction === "right" ? 1 : -1;
+      const cx = direction === "right" ? cssWidth - 72 : 72;
+      const cy = cssHeight / 2;
+      const x0 = cx - ARROW_W / 2;
+      const x1 = cx + ARROW_W / 2;
+      const y0 = cy - ARROW_H / 2;
+      const y1 = cy + ARROW_H / 2;
+
+      // 先按三角形轮廓擦除该区域（吸引层与平铺层的点一并让位）
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.beginPath();
+      if (dirSign > 0) {
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, cy);
+        ctx.lineTo(x0, y1);
+      } else {
+        ctx.moveTo(x1, y0);
+        ctx.lineTo(x0, cy);
+        ctx.lineTo(x1, y1);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // 重绘包围盒内网格点：斜边内按边缘距离羽化放大、混入强调色
+      const iMin = Math.max(0, Math.floor(x0 / GRID_SPACING));
+      const iMax = Math.min(Math.floor(cssWidth / GRID_SPACING), Math.ceil(x1 / GRID_SPACING));
+      const jMin = Math.max(0, Math.floor((y0 - offsetY) / GRID_SPACING));
+      const jMax = Math.ceil((y1 + offsetY) / GRID_SPACING);
+      for (let i = iMin; i <= iMax; i += 1) {
+        const px = i * GRID_SPACING;
+        for (let j = jMin; j <= jMax; j += 1) {
+          const py = j * GRID_SPACING + offsetY;
+          const u = dirSign > 0 ? (px - x0) / ARROW_W : (x1 - px) / ARROW_W;
+          if (u < 0 || u > 1) continue;
+          const halfH = (ARROW_H / 2) * u + 1e-4;
+          const dy = Math.abs(py - cy);
+          if (dy > halfH) continue;
+          const edge = 1 - dy / halfH;
+          const k = arrowStrength * (0.25 + 0.75 * edge);
+          const radius = DOT_RADIUS + 2.6 * k;
+          const colorK = Math.min(1, k * 1.25);
+          const r = Math.round(BASE_R + (accent.r - BASE_R) * colorK);
+          const g = Math.round(BASE_G + (accent.g - BASE_G) * colorK);
+          const b = Math.round(BASE_B + (accent.b - BASE_B) * colorK);
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.12 + 0.78 * k})`;
+          ctx.beginPath();
+          ctx.arc(px, py, radius, 0, TAU);
+          ctx.fill();
+        }
+      }
+    };
+
+    const draw = () => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      if (!tile || cssWidth <= 0 || cssHeight <= 0) return;
+
+      offsetY = ((scrollTop % GRID_SPACING) + GRID_SPACING) % GRID_SPACING;
+
+      // 1. 平铺基础网格（滚动跟随）
+      for (let y = offsetY - TILE_SPAN; y < cssHeight; y += TILE_SPAN) {
+        for (let x = 0; x < cssWidth; x += TILE_SPAN) {
+          ctx.drawImage(tile, x, y, TILE_SPAN, TILE_SPAN);
+        }
+      }
+
+      // 2. 指针吸引层
+      drawInfluence();
+      // 3. 切换条 hover 的点阵箭头（若有强度）
+      drawArrow();
+    };
+
     resize();
     draw();
 
@@ -239,13 +311,20 @@ export function DotGridAttractCanvas({
       Math.abs(targetX - pointerX) < 0.4 && Math.abs(targetY - pointerY) < 0.4;
 
     const step = () => {
+      const { targetStrength } = readDotGridArrow();
       pointerX += (targetX - pointerX) * LERP_FACTOR;
       pointerY += (targetY - pointerY) * LERP_FACTOR;
+      arrowStrength += (targetStrength - arrowStrength) * 0.14;
       if ((window.devicePixelRatio || 1) !== dpr) resize();
       draw();
-      if (isSettled() && performance.now() - lastActivity > IDLE_STOP_MS) {
+      if (
+        isSettled() &&
+        Math.abs(targetStrength - arrowStrength) < 0.02 &&
+        performance.now() - lastActivity > IDLE_STOP_MS
+      ) {
         pointerX = targetX;
         pointerY = targetY;
+        arrowStrength = targetStrength;
         draw();
         frame = null;
         return;
@@ -277,11 +356,14 @@ export function DotGridAttractCanvas({
     });
     resizeObserver.observe(canvas);
 
+    const unsubscribeArrow = subscribeDotGridArrow(wake);
+
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     scrollEl?.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       resizeObserver.disconnect();
+      unsubscribeArrow();
       window.removeEventListener("pointermove", handlePointerMove);
       scrollEl?.removeEventListener("scroll", handleScroll);
       if (frame !== null) window.cancelAnimationFrame(frame);

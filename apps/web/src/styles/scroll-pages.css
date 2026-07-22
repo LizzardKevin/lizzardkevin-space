@@ -83,6 +83,38 @@
   pointer-events: none;
 }
 
+/* 圆点光标（reduced-motion 下组件不启用，系统光标保留） */
+.ark-cursor-none,
+.ark-cursor-none * {
+  cursor: none !important;
+}
+
+.ark-cursor-dot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 101;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ark-accent) 45%, transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease, width 180ms ease, height 180ms ease,
+    background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.ark-cursor-dot[data-visible="true"] { opacity: 1; }
+
+.ark-cursor-dot[data-hover="true"] {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1.5px solid var(--ark-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--ark-accent) 55%, transparent);
+}
+
 /* ---------- 顶栏 ---------- */
 
 .ark-top {
@@ -220,35 +252,6 @@
   flex-direction: column;
 }
 
-/* 左侧数字一整条贯穿点划线（profile/devstories；位置与 rail 对齐） */
-.ark-page[data-accent="teal"] .ark-scroll__content::after,
-.ark-page[data-accent="orange"] .ark-scroll__content::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc((100% - clamp(1320px, 76vw, 1700px)) / 2 + var(--ark-gutter) + 3px);
-  border-left: 1px dashed var(--ark-line-strong);
-  pointer-events: none;
-}
-
-/* 页眉斜挂 eyebrow 旗标（左侧竖排细条） */
-.ark-eyebrow-flag {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 5;
-  writing-mode: vertical-rl;
-  font-family: var(--ark-mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ark-faint);
-  padding: var(--ark-gap-3) var(--ark-gap-1);
-  border-right: 1px solid var(--ark-line);
-  background: rgba(20, 20, 22, 0.5);
-}
-
 /* ---------- 共享 Hero ---------- */
 
 .ark-hero {
@@ -352,6 +355,13 @@
     transparent 10px 20px
   );
   opacity: 0.85;
+  animation: ark-hazard-march 1.6s linear infinite;
+}
+
+/* 底部警戒斜纹持续横向平移（画面常驻微动态） */
+@keyframes ark-hazard-march {
+  from { background-position: 0 0; }
+  to { background-position: 28.28px 0; }
 }
 
 .ark-section-head {
@@ -513,11 +523,21 @@
 
 .ark-psection__rail {
   position: relative;
-  align-self: start;
   display: flex;
   flex-direction: column;
   gap: var(--ark-gap-2);
   padding-left: 22px;
+}
+
+/* 数字 sticky 堆叠：滚动时顶上阻拦，下一节数字接近后自然挤走 */
+.ark-psection__railInner {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ark-gap-2);
+  align-self: flex-start;
+  width: 100%;
 }
 
 .ark-psection__railNumber {
@@ -527,6 +547,14 @@
   line-height: 1;
   color: transparent;
   -webkit-text-stroke: 1px var(--ark-line-strong);
+}
+
+.ark-psection__railTitle {
+  font-family: var(--ark-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ark-accent);
 }
 
 .ark-psection__railBar {
@@ -680,6 +708,19 @@
   gap: var(--ark-gap-2);
   position: relative;
   padding-left: 22px;
+  /* 覆盖 head 容器的 align-items: start：列与行同高，sticky 才有滑动空间 */
+  align-self: stretch;
+}
+
+/* 数字 sticky 堆叠：滚动时顶上阻拦，下一篇数字接近后自然挤走 */
+.ark-dentry__indexInner {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ark-gap-2);
+  align-self: flex-start;
+  width: 100%;
 }
 
 .ark-dentry__number {
@@ -1096,27 +1137,6 @@
 
 .ark-switchstrip__code { color: var(--ark-accent); }
 
-/* 换页擦除幕布：panel 初始全部移出屏外，transform 由 JS/GSAP 驱动 */
-.ark-wipe {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  pointer-events: none;
-  display: flex;
-}
-
-.ark-wipe__panel {
-  flex: 1;
-  transform: translateX(-101%);
-  background: var(--ark-bg-deep);
-  will-change: transform;
-}
-
-.ark-wipe__panel--accent {
-  background: var(--ark-accent);
-  flex: 0 0 12px;
-}
-
 /* 顶栏下方迷你标题：显隐由 JS 切 [data-visible] */
 .ark-minititle {
   position: absolute;
@@ -1156,12 +1176,13 @@
   .ark-wspec { grid-template-columns: 1fr; }
   .ark-wnav { grid-template-columns: 1fr; }
   .ark-hero__scrollHint { display: none; }
-  .ark-eyebrow-flag { display: none; }
+
 }
 
 /* ---------- 动效降级 ---------- */
 
 @media (prefers-reduced-motion: reduce) {
+  .ark-hazard { animation: none; }
   .ark-hero__scrollHint::after { animation: none; }
   .ark-top__anchors button,
   .ark-top__back,

@@ -165,7 +165,6 @@ export default function WorkDetailPage() {
       <ScrollPageShell
         accent="yellow"
         pageCode={copy.work.pageCode}
-        eyebrow={copy.work.eyebrow}
         anchors={[]}
       >
         <section className="ark-hero">
@@ -201,7 +200,6 @@ export default function WorkDetailPage() {
     <ScrollPageShell
       accent="yellow"
       pageCode={copy.work.pageCode}
-      eyebrow={copy.work.eyebrow}
       anchors={anchors}
       footerMeta={[exhibitId, `${index + 1} / ${works.length}`]}
       miniTitle={title}

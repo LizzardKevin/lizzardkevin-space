@@ -95,8 +95,7 @@ function resolveModule(importer, specifier) {
 const allowlistSource = readFileSync(entry, "utf8");
 assert.equal(hasUnresolvedDynamicImport(allowlistSource), false);
 assert.deepEqual(dynamicSpecifiers(allowlistSource), [
-  "../pages/profile/ProfileScrollPage",
-  "../pages/devstories/DevStoriesScrollPage",
+  "../pages/archive/ArchiveHub",
 ]);
 assert.doesNotMatch(allowlistSource, /setTimeout|setInterval/);
 
@@ -178,8 +177,7 @@ assert.deepEqual(dynamicSpecifiers(desktop), [
   "../space/SpaceHost",
   "../pages/SpacePage",
   "../desktop/DesktopTopBar",
-  "../pages/profile/ProfileScrollPage",
-  "../pages/devstories/DevStoriesScrollPage",
+  "../pages/archive/ArchiveHub",
   "../pages/works/WorkDetailPage",
 ]);
 assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);

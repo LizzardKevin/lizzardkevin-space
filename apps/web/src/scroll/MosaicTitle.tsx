@@ -58,6 +58,8 @@ export function MosaicTitle({
           {Array.from({ length: COLUMNS * ROWS }, (_, index) => {
             const column = index % COLUMNS;
             const row = Math.floor(index / COLUMNS);
+            // 少量色块用页面强调色（~15%，按固定散点序列混入）
+            const isAccent = (index * 7 + 3) % 13 < 2;
             return (
               <span
                 key={index}
@@ -68,7 +70,9 @@ export function MosaicTitle({
                   top: `${row * 25}%`,
                   width: "12.5%",
                   height: "25%",
-                  background: "var(--ark-bg, #1b1b1e)",
+                  background: isAccent
+                    ? "var(--ark-accent, #e8d44d)"
+                    : "var(--ark-bg, #1b1b1e)",
                   // 0.5px 透明描边 + padding-box 裁剪：块间留出 1px 间隙透出底色
                   backgroundClip: "padding-box",
                   border: "0.5px solid transparent",

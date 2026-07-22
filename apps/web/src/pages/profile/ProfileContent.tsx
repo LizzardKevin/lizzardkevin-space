@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
-import { ScrollPageShell } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { useScrubSections } from "../../scroll/useScrubSections";
 import { Reveal } from "../../scroll/Reveal";
@@ -9,43 +8,22 @@ import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
 
 /**
- * /profile 个人信息页：垂直滚动流。
+ * 个人档案内容（ArchiveHub 的 profile 面板）。
  * 数据全部来自 generatedProfileByLanguage（xlsx 内容管线生成）。
  */
-export default function ProfileScrollPage() {
+export function ProfileContent() {
   const language = usePageLanguage();
   const copy = getScrollPagesCopy(language);
   const profile = useMemo(() => getLizzardKevinProfile(language), [language]);
   const { identity, links, sections } = profile;
 
-  const anchors = useMemo(
-    () => [
-      ...sections.map((section) => ({ id: section.id, label: section.number })),
-      { id: "profile-links", label: "LNK" },
-    ],
-    [sections],
-  );
-
   useScrubSections(
-    [{ selector: ".ark-psection", drift: 56 }],
+    [{ selector: ".ark-psection__body", drift: 56 }],
     [sections],
   );
 
   return (
-    <ScrollPageShell
-      accent="teal"
-      pageCode={copy.profile.pageCode}
-      eyebrow={copy.profile.eyebrow}
-      anchors={anchors}
-      footerMeta={[identity.location, identity.status]}
-      switchTarget={{
-        href: "/devstories",
-        code: "02",
-        label: copy.switchToDevStories,
-        side: "right",
-        accent: "orange",
-      }}
-    >
+    <>
       <section className="ark-hero" id="profile-hero">
         <p className="ark-hero__eyebrow">{copy.profile.eyebrow}</p>
         <MosaicTitle text={identity.displayName} className="ark-hero__title" as="h1" />
@@ -66,8 +44,11 @@ export default function ProfileScrollPage() {
       {sections.map((section) => (
         <section className="ark-psection" id={section.id} key={section.id}>
           <div className="ark-psection__rail">
-            <span className="ark-psection__railNumber">{section.number}</span>
-            <span className="ark-psection__railBar" aria-hidden="true" />
+            <div className="ark-psection__railInner">
+              <span className="ark-psection__railNumber">{section.number}</span>
+              <span className="ark-psection__railTitle">{section.title}</span>
+              <span className="ark-psection__railBar" aria-hidden="true" />
+            </div>
           </div>
           <div className="ark-psection__body">
             <Reveal>
@@ -150,6 +131,6 @@ export default function ProfileScrollPage() {
           </div>
         </section>
       ) : null}
-    </ScrollPageShell>
+    </>
   );
 }

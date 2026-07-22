@@ -40,12 +40,12 @@ assert.match(desktop, /path=["']\*["'][\s\S]*NotFound/);
 assert.match(mobile, /PersistentMobileExperienceBoundary/);
 assert(!/key=\{(?:route|decoded|view)/.test(mobile), "mobile canonical routes must not key the experience by route");
 
-// 独立滚动页路由：三个页面 lazy 加载，/works/:exhibitId 不再有 spaceStarted 门禁。
-assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/profile\/ProfileScrollPage["']\)\)/);
-assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/devstories\/DevStoriesScrollPage["']\)\)/);
+// 独立滚动页路由：ArchiveHub 同时承载 /profile 与 /devstories（同一实例，
+// tab prop 切换）；/works/:exhibitId 不再有 spaceStarted 门禁。
+assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/archive\/ArchiveHub["']\)\)/);
 assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/works\/WorkDetailPage["']\)\)/);
-assert.match(desktop, /path=["']\/profile["'][\s\S]*?<ProfileScrollPage\s*\/>/);
-assert.match(desktop, /path=["']\/devstories["'][\s\S]*?<DevStoriesScrollPage\s*\/>/);
+assert.match(desktop, /path=["']\/profile["'][\s\S]*?<ArchiveHub\s+tab=["']profile["']\s*\/>/);
+assert.match(desktop, /path=["']\/devstories["'][\s\S]*?<ArchiveHub\s+tab=["']devstories["']\s*\/>/);
 assert.match(desktop, /path=["']\/works\/:exhibitId["'][\s\S]*?<WorkDetailPage\s*\/>/);
 // 滚动页壳层提供返回 SPACE 的导航。
 assert.match(shell, /navigate\(["']\/["']\)/);

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { registerScrollBusLenis } from "./scrollBus";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,6 +34,7 @@ export function useLenisScroll(
       touchMultiplier: 1.4,
     });
     lenisRef.current = lenis;
+    registerScrollBusLenis(lenis);
     lenis.on("scroll", ScrollTrigger.update);
 
     const raf = (time: number) => {
@@ -44,6 +46,7 @@ export function useLenisScroll(
     return () => {
       gsap.ticker.remove(raf);
       lenis.destroy();
+      registerScrollBusLenis(null);
       lenisRef.current = null;
     };
   }, [wrapper, content]);

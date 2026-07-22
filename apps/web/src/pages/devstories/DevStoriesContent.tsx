@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { getDevStories } from "../../content/devStories";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
-import { ScrollPageShell } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { useScrubSections } from "../../scroll/useScrubSections";
 import { Reveal } from "../../scroll/Reveal";
@@ -9,44 +8,27 @@ import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { Stat, TagRow } from "../../scroll/primitives";
 
 /**
- * /devstories 开发日志页：垂直时间线流。
- * 每篇日志一个「案例行」大区块（编号 + period → 大标题 → summary →
- * BUILT / TROUBLE / NEXT 三组标签化面板 → tags），数据全部来自
- * generatedDevStoriesByLanguage（xlsx 内容管线生成）。
+ * 开发日志内容（ArchiveHub 的 devstories 面板）。
+ * 数据全部来自 generatedDevStoriesByLanguage（xlsx 内容管线生成）。
  */
-export default function DevStoriesScrollPage() {
+export function DevStoriesContent() {
   const language = usePageLanguage();
   const copy = getScrollPagesCopy(language);
   const stories = useMemo(() => getDevStories(language), [language]);
-
-  const anchors = useMemo(
-    () => stories.map((story) => ({ id: story.id, label: story.number })),
-    [stories],
-  );
 
   const firstPeriod = stories[0]?.period ?? "";
   const lastPeriod = stories[stories.length - 1]?.period ?? "";
 
   useScrubSections(
-    [{ selector: ".ark-dentry", drift: 48, minHeightRatio: 0.45 }],
+    [
+      { selector: ".ark-dentry__main", drift: 48, minHeightRatio: 0.3 },
+      { selector: ".ark-dentry__grid", drift: 40, minHeightRatio: 0.3 },
+    ],
     [stories],
   );
 
   return (
-    <ScrollPageShell
-      accent="orange"
-      pageCode={copy.devStories.pageCode}
-      eyebrow={copy.devStories.eyebrow}
-      anchors={anchors}
-      footerMeta={[`${stories.length} ENTRIES`, `${firstPeriod} — ${lastPeriod}`]}
-      switchTarget={{
-        href: "/profile",
-        code: "01",
-        label: copy.switchToProfile,
-        side: "left",
-        accent: "teal",
-      }}
-    >
+    <>
       <section className="ark-hero" id="devstories-hero">
         <p className="ark-hero__eyebrow">{copy.devStories.eyebrow}</p>
         <MosaicTitle text="Dev Stories" className="ark-hero__title" as="h1" />
@@ -69,10 +51,12 @@ export default function DevStoriesScrollPage() {
         <section className="ark-dentry" id={story.id} key={story.id}>
           <div className="ark-dentry__head">
             <div className="ark-dentry__index">
-              <span className="ark-dentry__number">{story.number}</span>
-              <span className="ark-dentry__period">{story.period}</span>
+              <div className="ark-dentry__indexInner">
+                <span className="ark-dentry__number">{story.number}</span>
+                <span className="ark-dentry__period">{story.period}</span>
+              </div>
             </div>
-            <div>
+            <div className="ark-dentry__main">
               <Reveal>
                 <h2 className="ark-dentry__title">{story.title}</h2>
               </Reveal>
@@ -123,6 +107,6 @@ export default function DevStoriesScrollPage() {
           </Reveal>
         </section>
       ))}
-    </ScrollPageShell>
+    </>
   );
 }
