@@ -127,13 +127,17 @@ export default function DesktopApp() {
   }, [boot.state.attemptId, boot.state.phase]);
 
   const entered = handoff.phase === "entered";
+  const enteringSpace =
+    handoff.phase === "disposing" ||
+    handoff.phase === "booting" ||
+    handoff.phase === "revealing";
 
   if (route.kind === "space" && closingOverlay === null && returningToSpace) {
     setReturningToSpace(false);
   }
 
   useSpacePointerLockGuard(
-    shouldGuardSpacePointerLock(entered, effectiveRouteBlocked, returningToSpace),
+    shouldGuardSpacePointerLock(entered, effectiveRouteBlocked, returningToSpace, enteringSpace),
   );
 
   useEffect(() => {
@@ -155,10 +159,7 @@ export default function DesktopApp() {
   useEffect(() => {
     if (!spaceStarted) return;
     if (boot.state.phase === "running") {
-      if (
-        minWhiteElapsed ||
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ) {
+      if (minWhiteElapsed) {
         dispatchHandoff({ type: "boot-running" });
       }
     } else if (boot.state.phase === "failed") {
@@ -173,17 +174,11 @@ export default function DesktopApp() {
     }
   }, [handoff.phase]);
 
-  useEffect(() => {
-    if (handoff.phase !== "entered" || effectiveRouteBlocked) return;
-    // 点击 Enter 的 transient activation 仍有效时直接锁定，免去第二次点击；
-    // 失败走既有 pointerLockFailed → 点击 Canvas 回落流程。
-    requestSpacePointerLock();
-  }, [handoff.phase, effectiveRouteBlocked]);
-
   const onTrustedEnter = useCallback(() => {
     if (spaceStarted || route.kind !== "space" || handoff.phase !== "lobby") return;
     audio.unlock();
-    dispatchHandoff({ type: "trusted-enter" });
+    flushSync(() => dispatchHandoff({ type: "trusted-enter" }));
+    requestSpacePointerLock();
   }, [audio, handoff.phase, route.kind, spaceStarted]);
 
   const onLobbyDisposed = useCallback(() => {
@@ -248,6 +243,7 @@ export default function DesktopApp() {
 
   return (
     <div
+      id="space-pointer-lock-target"
       className="desktop-app"
       style={{
         ...SPACE_VISUAL_CSS_PROPERTIES,

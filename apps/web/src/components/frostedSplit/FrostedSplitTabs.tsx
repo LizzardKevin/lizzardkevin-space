@@ -35,7 +35,6 @@ import {
 import { normalizeSupportedLanguage } from "../../i18n/resolveInitialLanguage";
 import type { SupportedLanguage } from "../../i18n/resolveInitialLanguage";
 import { useDotGridPointer } from "../dotGridPointer.ts";
-import { DotGridCanvas } from "../DotGridCanvas.tsx";
 
 type FrostedSplitTabsProps = {
   initialTab: SplitArchiveTab;
@@ -287,7 +286,6 @@ function ArchivePanel({
       aria-label={panel.title}
       ref={registerDotGridElement}
     >
-      <DotGridCanvas color={panel.tab === "devStories" ? "rgba(243, 240, 231, 0.1)" : "rgba(23, 40, 42, 0.1)"} />
       <button
         type="button"
         className="frosted-split__stripButton"

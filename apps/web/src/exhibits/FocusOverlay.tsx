@@ -34,7 +34,6 @@ import {
 import { runExhibitButtonAction } from "./runExhibitButtonAction";
 import { loadExhibitContent, type ExhibitContent } from "./exhibitContent";
 import { useDotGridPointer } from "../components/dotGridPointer.ts";
-import { DotGridCanvas } from "../components/DotGridCanvas.tsx";
 import { normalizeSupportedLanguage, type SupportedLanguage } from "../i18n/resolveInitialLanguage";
 import {
   FOCUS_FRAME,
@@ -1084,7 +1083,6 @@ export function FocusOverlay({
       onClickCapture={handleFocusOverlayClick}
       ref={registerDotGridElement}
     >
-      <DotGridCanvas color="rgba(23, 40, 42, 0.1)" />
       {imageExpanded ? (
         <button
           type="button"

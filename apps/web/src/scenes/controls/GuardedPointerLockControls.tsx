@@ -17,13 +17,11 @@ const HALF_PI = Math.PI / 2;
 
 export function GuardedPointerLockControls({
   enabled = true,
-  selector,
   pointerSpeed = 1,
   minPolarAngle = 0,
   maxPolarAngle = Math.PI,
 }: {
   enabled?: boolean;
-  selector?: string;
   pointerSpeed?: number;
   minPolarAngle?: number;
   maxPolarAngle?: number;
@@ -33,9 +31,10 @@ export function GuardedPointerLockControls({
   const get = useThree((state) => state.get);
   const setEvents = useThree((state) => state.setEvents);
   const invalidate = useThree((state) => state.invalidate);
+  const canvasElement = gl.domElement;
 
   const euler = useMemo(() => new THREE.Euler(0, 0, 0, "YXZ"), []);
-  const lockElement = resolveSpacePointerLockTarget(gl.domElement) ?? gl.domElement;
+  const lockElement = resolveSpacePointerLockTarget(canvasElement) ?? canvasElement;
   const warmupMovesRef = useRef(POINTER_LOCK_WARMUP_MOVES);
   const enabledRef = useRef(enabled);
 
@@ -97,26 +96,25 @@ export function GuardedPointerLockControls({
       if (!enabledRef.current) return;
       requestPointerLockWithRawFallback(lockElement);
     };
-    const elements = selector ? Array.from(document.querySelectorAll(selector)) : [lockElement];
 
     document.addEventListener("pointerlockchange", onPointerLockChange);
     document.addEventListener("mousemove", onMouseMove);
-    elements.forEach((element) => element.addEventListener("click", lock));
+    canvasElement.addEventListener("click", lock);
 
     return () => {
       document.removeEventListener("pointerlockchange", onPointerLockChange);
       document.removeEventListener("mousemove", onMouseMove);
-      elements.forEach((element) => element.removeEventListener("click", lock));
+      canvasElement.removeEventListener("click", lock);
     };
   }, [
     camera,
+    canvasElement,
     euler,
     invalidate,
     lockElement,
     maxPolarAngle,
     minPolarAngle,
     pointerSpeed,
-    selector,
   ]);
 
   return null;

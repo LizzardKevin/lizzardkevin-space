@@ -224,6 +224,18 @@ test("desktop handoff keeps failure and retry controls above the opaque cover", 
   assert.match(css, /start-lobby-handoff__failure/);
 });
 
+test("desktop handoff keeps the two-second white hold under reduced motion", () => {
+  const source = readSource("app/DesktopApp.tsx");
+  const css = readSource("lobby/startLobby.css");
+  const bootRunningEffect = source.match(
+    /useEffect\(\(\) => \{\s*if \(!spaceStarted\) return;[\s\S]*?\}, \[boot\.state\.phase, spaceStarted, minWhiteElapsed\]\);/,
+  )?.[0] ?? "";
+
+  assert.match(bootRunningEffect, /if \(minWhiteElapsed\)/);
+  assert.doesNotMatch(bootRunningEffect, /prefers-reduced-motion/);
+  assert.match(css, /animation:\s*startLobbyMinWhite 2000ms/);
+});
+
 test("the main runtime no longer depends on the legacy entry transition", () => {
   const host = readSource("space/SpaceHost.tsx");
   const experience = readSource("pages/SpaceDesktopExperience.tsx");

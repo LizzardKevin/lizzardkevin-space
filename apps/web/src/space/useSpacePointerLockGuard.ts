@@ -5,8 +5,9 @@ export function shouldGuardSpacePointerLock(
   entered: boolean,
   routeBlocked: boolean,
   returningToSpace: boolean,
+  enteringSpace = false,
 ) {
-  return !entered || (routeBlocked && !returningToSpace);
+  return (!entered && !enteringSpace) || (routeBlocked && !returningToSpace);
 }
 
 /** Overlay / Focus UI 模式下禁止 pointer lock，避免鼠标被藏起却无法操作。 */

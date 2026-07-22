@@ -11,11 +11,15 @@ import {
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const source = (path) => readFileSync(resolve(root, "apps/web/src", path), "utf8");
 
-test("trusted Enter never requests pointer lock before the lazy Canvas mounts", () => {
+test("trusted Enter synchronously arms the stable host before requesting pointer lock", () => {
   const desktop = source("app/DesktopApp.tsx");
   const enterBody = desktop.match(/const onTrustedEnter = useCallback\(\(\) => \{([\s\S]*?)\n  \},/)?.[1] ?? "";
   const disposedBody = desktop.match(/const onLobbyDisposed = useCallback\(\(\) => \{([\s\S]*?)\n  \},/)?.[1] ?? "";
-  assert.doesNotMatch(enterBody, /resumeSpaceFirstPerson|requestSpacePointerLock|requestPointerLock/);
+  const armIndex = enterBody.indexOf('dispatchHandoff({ type: "trusted-enter" })');
+  const requestIndex = enterBody.indexOf("requestSpacePointerLock()");
+  assert.match(enterBody, /flushSync\(\(\) => dispatchHandoff\(\{ type: ["']trusted-enter["'] \}\)\)/);
+  assert.ok(armIndex >= 0 && armIndex < requestIndex);
+  assert.match(desktop, /id=["']space-pointer-lock-target["']/);
   assert.doesNotMatch(enterBody, /setSpaceStarted\(true\)|boot\.start\(\)/);
   assert.match(disposedBody, /setSpaceStarted\(true\)/);
   assert.match(disposedBody, /boot\.start\(\)/);
@@ -35,7 +39,7 @@ test("the production Canvas click chain has exactly one pointer-lock owner", () 
   assert.doesNotMatch(pointerLockApi, /export function resumeSpaceFirstPersonOnGestureIfPending/);
   assert.match(
     scene,
-    /<GuardedPointerLockControls enabled=\{pointerControlsEnabled\} selector=["']#space-canvas["'] \/>/,
+    /<GuardedPointerLockControls enabled=\{pointerControlsEnabled\} \/>/,
   );
   assert.doesNotMatch(scene, /pointerControlsEnabled\s*\?\s*<GuardedPointerLockControls/);
   assert.match(controls, /const enabledRef = useRef\(enabled\)/);
@@ -53,26 +57,27 @@ test("the production Canvas click chain has exactly one pointer-lock owner", () 
     controls,
     /const lock = \(\) => \{\s*if \(!enabledRef\.current\) return;\s*requestPointerLockWithRawFallback\(lockElement\);\s*\}/,
   );
-  assert.match(controls, /resolveSpacePointerLockTarget\(gl\.domElement\)/);
+  assert.match(controls, /resolveSpacePointerLockTarget\(canvasElement\)/);
   assert.match(pointerLockApi, /resolveSpacePointerLockTarget\(\)/);
-  assert.match(targetResolver, /getElementById\(["']space-canvas["']\)/);
-  assert.match(controls, /element\.addEventListener\(["']click["'], lock\)/);
+  assert.match(targetResolver, /getElementById\(SPACE_POINTER_LOCK_TARGET_ID\)/);
+  assert.match(controls, /canvasElement\.addEventListener\(["']click["'], lock\)/);
   assert.equal((controls.match(/addEventListener\(["']click["'], lock\)/g) ?? []).length, 1);
 });
 
 test("route-return and click controls resolve the identical Canvas target", () => {
+  const host = { id: "space-pointer-lock-target" };
   const canvas = {};
-  const documentRoot = { getElementById: () => canvas };
-  assert.equal(resolveSpacePointerLockTarget(canvas, documentRoot), canvas);
-  assert.equal(resolveSpacePointerLockTarget(null, documentRoot), canvas);
+  const documentRoot = { getElementById: () => host };
+  assert.equal(resolveSpacePointerLockTarget(canvas, documentRoot), host);
+  assert.equal(resolveSpacePointerLockTarget(null, documentRoot), host);
 });
 
 test("camera input accepts the active SPACE canvas across browser element wrappers", () => {
-  const expectedCanvas = { id: "space-canvas" };
-  assert.equal(isSpacePointerLockActive(expectedCanvas, expectedCanvas), true);
-  assert.equal(isSpacePointerLockActive(expectedCanvas, { id: "space-canvas" }), true);
-  assert.equal(isSpacePointerLockActive(expectedCanvas, { id: "other-canvas" }), false);
-  assert.equal(isSpacePointerLockActive(expectedCanvas, null), false);
+  const expectedTarget = { id: "space-pointer-lock-target" };
+  assert.equal(isSpacePointerLockActive(expectedTarget, expectedTarget), true);
+  assert.equal(isSpacePointerLockActive(expectedTarget, { id: "space-pointer-lock-target" }), true);
+  assert.equal(isSpacePointerLockActive(expectedTarget, { id: "other-target" }), false);
+  assert.equal(isSpacePointerLockActive(expectedTarget, null), false);
 });
 
 test("pointer-lock requests return an id and report every failure against that id", () => {
@@ -100,19 +105,24 @@ test("the return handoff only bypasses the blocked-route guard after SPACE was e
     `"use strict"; ${executablePolicySource}; return shouldGuardSpacePointerLock;`,
   )();
   assert.equal(
-    shouldGuard(true, true, false),
+    shouldGuard(true, true, false, false),
     true,
     "ordinary blocked routes must reject pointer lock",
   );
   assert.equal(
-    shouldGuard(true, true, true),
+    shouldGuard(true, true, true, false),
     false,
     "an armed return may request pointer lock before the SPACE route commits",
   );
   assert.equal(
-    shouldGuard(false, false, true),
+    shouldGuard(false, false, true, false),
     true,
     "the handoff must never bypass the pre-entry guard",
+  );
+  assert.equal(
+    shouldGuard(false, false, false, true),
+    false,
+    "the guard must allow the already-armed initial entry gesture while renderers hand off",
   );
 });
 
