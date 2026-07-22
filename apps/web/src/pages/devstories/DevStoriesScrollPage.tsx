@@ -3,6 +3,7 @@ import { getDevStories } from "../../content/devStories";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { ScrollPageShell } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
+import { usePinSections } from "../../scroll/usePinSections";
 import { Reveal } from "../../scroll/Reveal";
 import { Stat, TagRow } from "../../scroll/primitives";
 
@@ -25,6 +26,11 @@ export default function DevStoriesScrollPage() {
   const firstPeriod = stories[0]?.period ?? "";
   const lastPeriod = stories[stories.length - 1]?.period ?? "";
 
+  usePinSections(
+    [{ selector: ".ark-dentry", end: "+=30%", minHeightRatio: 0.55 }],
+    [stories],
+  );
+
   return (
     <ScrollPageShell
       accent="orange"
@@ -32,6 +38,11 @@ export default function DevStoriesScrollPage() {
       eyebrow={copy.devStories.eyebrow}
       anchors={anchors}
       footerMeta={[`${stories.length} ENTRIES`, `${firstPeriod} — ${lastPeriod}`]}
+      switchTarget={{
+        href: "/profile",
+        code: "ARCHIVE / 01",
+        label: copy.switchToProfile,
+      }}
     >
       <section className="ark-hero" id="devstories-hero">
         <p className="ark-hero__eyebrow">{copy.devStories.eyebrow}</p>

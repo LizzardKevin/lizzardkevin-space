@@ -15,6 +15,9 @@ export type ScrollPagesCopy = {
   scrollHint: string;
   indexLabel: string;
   footerNote: string;
+  switchToProfile: string;
+  switchToDevStories: string;
+  switchAriaPrefix: string;
   profile: {
     pageCode: string;
     eyebrow: string;
@@ -57,6 +60,9 @@ const zh: ScrollPagesCopy = {
   scrollHint: "SCROLL",
   indexLabel: "索引",
   footerNote: "个人档案 · 持续更新",
+  switchToProfile: "个人档案 PROFILE",
+  switchToDevStories: "开发日志 DEV STORIES",
+  switchAriaPrefix: "切换到",
   profile: {
     pageCode: "ARCHIVE / 01",
     eyebrow: "个人档案 PERSONAL ARCHIVE",
@@ -104,6 +110,9 @@ const en: ScrollPagesCopy = {
   scrollHint: "SCROLL",
   indexLabel: "INDEX",
   footerNote: "Personal archive · always in progress",
+  switchToProfile: "PROFILE",
+  switchToDevStories: "DEV STORIES",
+  switchAriaPrefix: "Switch to",
   profile: {
     pageCode: "ARCHIVE / 01",
     eyebrow: "PERSONAL ARCHIVE",

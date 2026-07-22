@@ -13,9 +13,14 @@ import type { SupportedLanguage } from "../i18n/resolveInitialLanguage";
 import { ScrollPageContext } from "./scrollPageContext";
 import { useLenisScroll } from "./useLenisScroll";
 import { usePageLanguage } from "./usePageLanguage";
+import { useEscapeToSpace } from "./useEscapeToSpace";
+import { startWipe, playWipeOutIfPending } from "./pageWipe";
+import { DotGridBackdrop } from "./DotGridBackdrop";
 import { HazardRule } from "./primitives";
 
 export type ScrollPageAnchor = { id: string; label: string };
+
+export type ScrollPageSwitchTarget = { href: string; code: string; label: string };
 
 function writeStoredLanguage(language: SupportedLanguage) {
   try {
@@ -78,6 +83,9 @@ export function ScrollPageShell({
   eyebrow,
   anchors,
   footerMeta,
+  switchTarget,
+  miniTitle,
+  miniTitleAfterId,
   children,
 }: {
   accent: ScrollPageAccent;
@@ -85,17 +93,42 @@ export function ScrollPageShell({
   eyebrow: string;
   anchors: ScrollPageAnchor[];
   footerMeta?: string[];
+  /** profile ↔ devstories 互切目标；不传则不渲染切换条 */
+  switchTarget?: ScrollPageSwitchTarget;
+  /** 滚过 miniTitleAfterId 后左上常驻的迷你标题（works 展品名） */
+  miniTitle?: string;
+  miniTitleAfterId?: string;
   children: ReactNode;
 }) {
   const navigate = useNavigate();
   const language = usePageLanguage();
   const copy = useMemo(() => getScrollPagesCopy(language), [language]);
 
+  const [pageEl, setPageEl] = useState<HTMLDivElement | null>(null);
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [content, setContent] = useState<HTMLDivElement | null>(null);
   const lenisRef = useLenisScroll(scroller, content);
   const [activeAnchor, setActiveAnchor] = useState<string | null>(null);
   const activeAnchorRef = useRef<string | null>(null);
+  const wipeRef = useRef<HTMLDivElement | null>(null);
+  const [miniTitleVisible, setMiniTitleVisible] = useState(false);
+
+  useEscapeToSpace();
+
+  // 转场扫出：本页若是 wipe 导航的目标页，挂载后播放扫出。
+  useEffect(() => {
+    if (wipeRef.current) playWipeOutIfPending(wipeRef.current);
+  }, []);
+
+  const handleSwitch = useCallback(() => {
+    if (!switchTarget) return;
+    const wipeEl = wipeRef.current;
+    if (!wipeEl) {
+      navigate(switchTarget.href);
+      return;
+    }
+    void startWipe(wipeEl).then(() => navigate(switchTarget.href));
+  }, [navigate, switchTarget]);
 
   const scrollToTarget = useCallback(
     (target: string | HTMLElement) => {
@@ -140,9 +173,27 @@ export function ScrollPageShell({
     [scroller, scrollToTarget],
   );
 
+  // 迷你标题：滚过指定 section 后左上常驻。
+  useEffect(() => {
+    if (!scroller || !miniTitleAfterId) return undefined;
+    const anchorSection = document.getElementById(miniTitleAfterId);
+    if (!anchorSection) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          setMiniTitleVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+        }
+      },
+      { root: scroller, threshold: 0 },
+    );
+    observer.observe(anchorSection);
+    return () => observer.disconnect();
+  }, [scroller, miniTitleAfterId]);
+
   return (
     <ScrollPageContext.Provider value={contextValue}>
-      <div className="ark-page" data-accent={accent}>
+      <div className="ark-page" data-accent={accent} ref={setPageEl}>
+        <DotGridBackdrop target={pageEl} />
         <header className="ark-top">
           <div className="ark-top__brand">
             <span className="ark-top__brandMain">{copy.brandMain}</span>
@@ -200,6 +251,29 @@ export function ScrollPageShell({
               </div>
             </footer>
           </div>
+        </div>
+
+        {switchTarget ? (
+          <button
+            type="button"
+            className="ark-switchstrip"
+            aria-label={`${copy.switchAriaPrefix} ${switchTarget.label}`}
+            onClick={handleSwitch}
+          >
+            <span className="ark-switchstrip__code">{switchTarget.code}</span>
+            <span>{switchTarget.label}</span>
+          </button>
+        ) : null}
+
+        {miniTitle ? (
+          <div className="ark-minititle" data-visible={miniTitleVisible || undefined}>
+            <span className="ark-minititle__name">{miniTitle}</span>
+          </div>
+        ) : null}
+
+        <div className="ark-wipe" ref={wipeRef} aria-hidden="true">
+          <div className="ark-wipe__panel ark-wipe__panel--accent" />
+          <div className="ark-wipe__panel" />
         </div>
       </div>
     </ScrollPageContext.Provider>

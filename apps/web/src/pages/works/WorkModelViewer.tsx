@@ -215,6 +215,7 @@ export function WorkModelViewer({
             enableDamping
             dampingFactor={0.12}
             enablePan={false}
+            enableZoom={false}
             autoRotate={spinning}
             autoRotateSpeed={STAGE_FRAME.autoRotateSpeed}
             onStart={() => setSpinning(false)}

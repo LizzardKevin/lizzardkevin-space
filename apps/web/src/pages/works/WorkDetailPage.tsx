@@ -1,5 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { generatedExhibitLabels } from "../../generated/exhibitLabels.generated";
 import { formatExhibitIdFallback, type ExhibitContent } from "../../exhibits/exhibitContent";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
@@ -7,11 +9,17 @@ import { workRoute } from "../../app/routeConfig";
 import { NotFound } from "../../app/appRoutes";
 import { ScrollPageShell, type ScrollPageAnchor } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
+import { useScrollPage } from "../../scroll/scrollPageContext";
+import { usePinSections } from "../../scroll/usePinSections";
+import { prefersReducedMotion } from "../../scroll/useLenisScroll";
 import { Reveal } from "../../scroll/Reveal";
+import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
 import { useWorkDetail } from "./useWorkDetail";
 import { useDragScroll } from "./useDragScroll";
 import { WorkModelViewer } from "./WorkModelViewer";
+
+gsap.registerPlugin(ScrollTrigger);
 
 /**
  * /works/:exhibitId 作品详情页：通用数据驱动、条件分节。
@@ -20,6 +28,37 @@ import { WorkModelViewer } from "./WorkModelViewer";
  */
 
 type WorkCopy = ReturnType<typeof getScrollPagesCopy>["work"];
+
+/** hero 标题下滚时缩小淡出（与壳层 mini-title 接力吸附左上）。 */
+function useHeroTitleShrink(
+  titleRef: React.RefObject<HTMLDivElement | null>,
+  heroId: string,
+  deps: readonly unknown[],
+) {
+  const { scroller } = useScrollPage();
+
+  useLayoutEffect(() => {
+    const el = titleRef.current;
+    if (!scroller || !el || prefersReducedMotion()) return undefined;
+    const ctx = gsap.context(() => {
+      gsap.to(el, {
+        scale: 0.32,
+        autoAlpha: 0,
+        transformOrigin: "left bottom",
+        ease: "none",
+        scrollTrigger: {
+          trigger: `#${heroId}`,
+          scroller,
+          start: "bottom 82%",
+          end: "bottom 18%",
+          scrub: true,
+        },
+      });
+    }, scroller);
+    return () => ctx.revert();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps 由调用方声明
+  }, [scroller, heroId, ...deps]);
+}
 
 function resolveWorkTitle(
   exhibitId: string,
@@ -96,6 +135,7 @@ export default function WorkDetailPage() {
   const copy = getScrollPagesCopy(language);
   const state = useWorkDetail(exhibitId, language);
   const galleryRef = useDragScroll<HTMLDivElement>();
+  const heroTitleRef = useRef<HTMLDivElement | null>(null);
 
   const anchors: ScrollPageAnchor[] = useMemo(() => {
     if (state.status !== "ready") return [];
@@ -106,6 +146,16 @@ export default function WorkDetailPage() {
     if (state.content?.storyHtml) list.push({ id: "work-story", label: "STY" });
     return list;
   }, [state]);
+
+  const ready = state.status === "ready";
+  usePinSections(
+    [
+      { selector: ".ark-wstage", end: "+=50%", minHeightRatio: 0.5 },
+      { selector: ".ark-wgallery", end: "+=35%", minHeightRatio: 0.5 },
+    ],
+    [ready, state],
+  );
+  useHeroTitleShrink(heroTitleRef, "work-hero", [ready, state]);
 
   if (!exhibitId || state.status === "not-found") return <NotFound />;
 
@@ -153,12 +203,16 @@ export default function WorkDetailPage() {
       eyebrow={copy.work.eyebrow}
       anchors={anchors}
       footerMeta={[exhibitId, `${index + 1} / ${works.length}`]}
+      miniTitle={title}
+      miniTitleAfterId="work-hero"
     >
       <section className="ark-hero" id="work-hero">
         <p className="ark-hero__eyebrow">
           {copy.work.eyebrow} / {exhibitId.replace(/_/g, " ").toUpperCase()}
         </p>
-        <h1 className="ark-hero__title">{title}</h1>
+        <div ref={heroTitleRef}>
+          <MosaicTitle text={title} className="ark-hero__title" as="h1" />
+        </div>
         {subtitle ? <p className="ark-hero__subtitle">{subtitle}</p> : null}
         <DataStrip
           className="ark-hero__meta"

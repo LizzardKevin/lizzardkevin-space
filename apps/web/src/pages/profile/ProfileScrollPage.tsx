@@ -3,6 +3,7 @@ import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { ScrollPageShell } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
+import { usePinSections } from "../../scroll/usePinSections";
 import { Reveal } from "../../scroll/Reveal";
 import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
 
@@ -24,6 +25,11 @@ export default function ProfileScrollPage() {
     [sections],
   );
 
+  usePinSections(
+    [{ selector: ".ark-psection", end: "+=35%" }],
+    [sections],
+  );
+
   return (
     <ScrollPageShell
       accent="teal"
@@ -31,6 +37,11 @@ export default function ProfileScrollPage() {
       eyebrow={copy.profile.eyebrow}
       anchors={anchors}
       footerMeta={[identity.location, identity.status]}
+      switchTarget={{
+        href: "/devstories",
+        code: "ARCHIVE / 02",
+        label: copy.switchToDevStories,
+      }}
     >
       <section className="ark-hero" id="profile-hero">
         <p className="ark-hero__eyebrow">{copy.profile.eyebrow}</p>
