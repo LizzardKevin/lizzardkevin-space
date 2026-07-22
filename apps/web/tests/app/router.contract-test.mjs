@@ -16,7 +16,8 @@ const desktop = source("app/DesktopApp.tsx");
 const mobile = source("app/MobileApp.tsx");
 const chrome = source("desktop/DesktopTopBar.tsx");
 const topBar = source("components/TopBar.tsx");
-const focus = source("exhibits/FocusOverlay.tsx");
+const workPage = source("pages/works/WorkDetailPage.tsx");
+const shell = source("scroll/ScrollPageShell.tsx");
 const globalCss = source("styles/global.css");
 
 assert.match(main, /<BrowserRouter\s+basename=\{normalizeRouterBasename\(import\.meta\.env\.BASE_URL\)\}>/);
@@ -38,10 +39,18 @@ assert.doesNotMatch(mobile, /if \(route\.kind === ["'](?:space|profile)-alias["'
 assert.match(desktop, /path=["']\*["'][\s\S]*NotFound/);
 assert.match(mobile, /PersistentMobileExperienceBoundary/);
 assert(!/key=\{(?:route|decoded|view)/.test(mobile), "mobile canonical routes must not key the experience by route");
-assert.match(desktop, /<Link\s+to=["']\/["']/);
-assert.match(desktop, /workRouteSurface\s*===\s*["']not-found["']\s*\?\s*<NotFound\s*\/>/);
-assert.match(desktop, /known\s*\?\s*t\(["']route\.workRequiresSpace/);
-assert.match(desktop, /known\s*\?\s*["']route\.enterSpace["']\s*:\s*["']route\.invalidWorkReturn["']/);
+
+// 独立滚动页路由：三个页面 lazy 加载，/works/:exhibitId 不再有 spaceStarted 门禁。
+assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/profile\/ProfileScrollPage["']\)\)/);
+assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/devstories\/DevStoriesScrollPage["']\)\)/);
+assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/works\/WorkDetailPage["']\)\)/);
+assert.match(desktop, /path=["']\/profile["'][\s\S]*?<ProfileScrollPage\s*\/>/);
+assert.match(desktop, /path=["']\/devstories["'][\s\S]*?<DevStoriesScrollPage\s*\/>/);
+assert.match(desktop, /path=["']\/works\/:exhibitId["'][\s\S]*?<WorkDetailPage\s*\/>/);
+// 滚动页壳层提供返回 SPACE 的导航。
+assert.match(shell, /navigate\(["']\/["']\)/);
+// 作品页渲染 NotFound 兜底未知 exhibit id。
+assert.match(workPage, /<NotFound\s*\/>/);
 assert.match(globalCss, /\.app-route-layer\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?z-index:\s*70;/);
 
 assert.match(desktop, /lazy\(\(\)\s*=>\s*import\(["']\.\.\/space\/SpaceHost["']\)\)/);
@@ -50,15 +59,15 @@ assert.match(desktop, /setSpaceStarted\(true\)/);
 assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);
 assert(!/pathname\s*,\s*setPathname|setPathname\s*\(/.test(desktop), "pathname must not be mirrored into app state");
 
-for (const text of [routes, desktop, mobile, chrome, topBar, focus]) {
+for (const text of [routes, desktop, mobile, chrome, topBar, workPage, shell]) {
   assert(!text.includes("pushState"), "application routing must not call pushState");
   assert(!text.includes("replaceState"), "application routing must not call replaceState");
   assert(!text.includes("popstate"), "application routing must not listen to popstate");
 }
 assert.match(chrome, /\b(?:Link|NavLink|useNavigate)\b/);
-assert.match(chrome, /spaceWordSourceRect/);
-assert.match(desktop, /location\.state/);
-assert.match(focus, /\buseParams\b|exhibitId/);
+assert.doesNotMatch(chrome, /spaceWordSourceRect/, "topbar no longer captures space word rects");
+assert.doesNotMatch(desktop, /location\.state/, "desktop routes no longer read location state");
+assert.match(workPage, /\buseParams\b|exhibitId/);
 
 const files = [];
 const pending = [sourceRoot];

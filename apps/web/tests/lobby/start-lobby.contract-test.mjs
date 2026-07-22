@@ -191,12 +191,12 @@ test("route cleanup drops the old context immediately while handoff keeps the ca
   assert.match(owner, /onReleased/);
 });
 
-test("Focus viewer surfaces are resolved behind the entered gate", () => {
+test("exhibit focus navigates to the standalone work page", () => {
   const source = readSource("pages/SpaceDesktopExperience.tsx");
 
-  assert.match(source, /resolveSpaceFocusSurfaceState\s*\(\s*\{/);
-  assert.match(source, /entered,/);
-  assert.match(source, /focusedRoutePending:/);
+  // 空间内点击展品 → onNavigateToWork 路由跳转；作品详情由独立滚动页承载。
+  assert.match(source, /onNavigateToWork\s*\(\s*found\.exhibitId\s*\)/);
+  assert.doesNotMatch(source, /FocusOverlay|resolveSpaceFocusSurfaceState|focusedExhibitId/);
 });
 
 test("desktop starts boot and the persistent host only after lobby disposal", () => {

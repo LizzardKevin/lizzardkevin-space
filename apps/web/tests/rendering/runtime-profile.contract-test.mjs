@@ -7,7 +7,7 @@ const canvasHost = readProjectFile("apps/web/src/space/SpaceCanvasHost.tsx");
 const canvasStatus = readProjectFile("apps/web/src/space/spaceCanvasStatus.ts");
 const session = readProjectFile("apps/web/src/space/SpaceSession.tsx");
 const hud = readProjectFile("apps/web/src/space/SpaceHud.tsx");
-const focus = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
+const workViewer = readProjectFile("apps/web/src/pages/works/WorkModelViewer.tsx");
 const factory = readProjectFile("apps/web/src/rendering/createWebGPURenderer.ts");
 const pipeline = readProjectFile("apps/web/src/rendering/GalleryRenderPipeline.tsx");
 const pipelineLifecycle = readProjectFile("apps/web/src/rendering/galleryPipelineLifecycle.ts");
@@ -16,7 +16,7 @@ const topbar = readProjectFile("apps/web/src/components/TopBar.tsx");
 assert.equal((canvasHost.match(/<Canvas\b/g) ?? []).length, 1, "production SPACE must have one main Canvas owner");
 assert.equal((session.match(/<Physics\b/g) ?? []).length, 1, "production SPACE must have one Physics owner");
 assert.equal((session.match(/<SpaceScene\b/g) ?? []).length, 1, "production SPACE must have one SpaceScene owner");
-assert.doesNotMatch(desktop + canvasHost + session + focus, /FullSpaceRuntime|SimplifiedSpaceRuntime/);
+assert.doesNotMatch(desktop + canvasHost + session + workViewer, /FullSpaceRuntime|SimplifiedSpaceRuntime/);
 assert.doesNotMatch(canvasHost, /isWebGPUSupported|navigator\.gpu/);
 assert.match(canvasHost, /dpr=\{resolveRendererDpr\(resolvedProfile\)\}/);
 assert.match(canvasHost, /switchRendererProfileState\(/);
@@ -33,9 +33,6 @@ assert.match(
   /disposeRendererIfCanvasDetached\(renderer, props\.canvas\)/,
   "a renderer that resolves after its Canvas unmounts must be disposed before returning to R3F",
 );
-assert.match(focus, /profile: RendererProfileId/);
-assert.match(focus, /resolveFocusRequestedProfile\(profile\)/);
-assert.match(focus, /dpr=\{resolveRendererDpr\(resolvedFocusProfile\)\}/);
 assert.match(factory, /antialias: ENABLE_GALLERY_RENDERER_ANTIALIAS/);
 assert.match(
   pipeline,
@@ -52,9 +49,7 @@ assert.match(topbar, /qualityPreset === "full"/);
 assert.match(topbar, /qualityPreset === "simplified"/);
 assert.doesNotMatch(topbar, /toggleAntialias|type="checkbox"/);
 assert.match(canvasHost, /bridgeRendererInitialization\(/);
-assert.match(focus, /bridgeRendererInitialization\(/);
 assert.match(canvasHost, /reportRendererInitializationErrorIfMounted\(/);
-assert.match(focus, /reportRendererInitializationErrorIfMounted\(/);
 assert.doesNotMatch(
   readProjectFile("apps/web/src/rendering/rendererLifecycle.ts"),
   /const PENDING_RENDERER_INITIALIZATION/,
@@ -65,12 +60,10 @@ assert.match(canvasHost, /<SpaceCanvasSurfaceSlot status=\{status\} renderSurfac
 assert.doesNotMatch(canvasHost, /onProfileResolved|onRendererError/);
 assert.doesNotMatch(desktop, /setResolvedProfile|setRendererError/);
 assert.match(hud, /rendererFailed \? <WebGPUUnavailable/);
-assert.match(focus, /rendererError[\s\S]*className="focus-error" role="alert"/);
-assert.doesNotMatch(focus, /if \(focusRenderer\.requestedProfile !== profile\)[\s\S]*setFocusRenderer/);
 assert.match(hud, /role="status"[\s\S]*t\("space\.loading"\)/);
-assert.match(focus, /resolvedFocusProfile \? null : <FocusLoading/);
-assert.match(focus, /className="focus-error" role="alert"/);
-assert.match(focus, /<FocusModelErrorBoundary\s+key=\{`\$\{exhibit\.exhibitId\}-\$\{profile\}`\}/);
-assert.match(focus, /className="focus-error" role="alert"[\s\S]*this\.props\.message/);
+// 作品页内嵌 viewer 走轻量 WebGL Canvas（独立页 URL 直达，不依赖 WebGPU 能力门槛）。
+assert.match(workViewer, /<Canvas\b/);
+assert.match(workViewer, /GLTF_DRACO_DECODER_PATH/);
+assert.doesNotMatch(workViewer, /createWebGPURenderer|RENDERER_PROFILES/);
 
 console.log("renderer runtime profile contract tests passed");

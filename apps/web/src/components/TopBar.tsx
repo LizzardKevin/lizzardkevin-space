@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { OverlayTab } from "../overlay/OverlayState";
 import { useSpaceVisualSettings } from "../space/spaceVisualSettings";
 
 type SupportedLanguage = "zh" | "en";
+
+export type TopBarTab = "lizzardkevin" | "devStories";
 
 function normalizeLanguage(language: string | undefined): SupportedLanguage {
   return language?.toLowerCase().startsWith("zh") ? "zh" : "en";
@@ -37,7 +38,7 @@ export function TopBar({
   onOpenTab,
   onCloseTab,
 }: {
-  onOpenTab: (tab: Exclude<OverlayTab, null>) => void;
+  onOpenTab: (tab: TopBarTab) => void;
   onCloseTab: () => void;
 }) {
   const { i18n, t } = useTranslation();

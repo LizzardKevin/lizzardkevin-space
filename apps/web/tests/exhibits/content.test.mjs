@@ -144,16 +144,6 @@ test("loadExhibitContent rejects missing or non-string required fields", async (
   }
 });
 
-test("resolveFocusDisplayTitle prefers loaded content title before formatted exhibit label", async () => {
-  const { resolveFocusDisplayTitle } = await importSourceModule("exhibits/focusDisplayTitle.ts");
-
-  assert.equal(
-    resolveFocusDisplayTitle({ title: "Content Title" }, "arch_treehabitat"),
-    "Content Title",
-  );
-  assert.equal(resolveFocusDisplayTitle(null, "arch_treehabitat"), "Tree Habitat");
-});
-
 test("Tree Habitat uses its reader-facing exhibit title", async () => {
   const { formatExhibitLabel } = await importSourceModule("exhibits/exhibitTarget.ts");
 

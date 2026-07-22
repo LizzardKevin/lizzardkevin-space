@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
 import { loadManifest } from "../exhibits/manifest";
@@ -8,7 +8,7 @@ import type { ProjectorSlideCommand, ProjectorSlideDirection } from "../scenes/p
 import { SPACE_ONBOARDING_DEMO_EXHIBIT_ID } from "../scenes/onboarding/spaceOnboardingConfig";
 import { SpaceOnboardingFocusDemo } from "../scenes/onboarding/SpaceOnboardingFocusDemo";
 import { useTranslation } from "react-i18next";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { SpaceCanvasHost } from "../space/SpaceCanvasHost";
 import { SpaceHud } from "../space/SpaceHud";
 
@@ -28,20 +28,7 @@ import {
 } from "../space/spaceDailyResume";
 import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
-import {
-  createInitialSpaceFocusSessionState,
-  reduceSpaceFocusSession,
-  resolveSpaceFocusSurfaceState,
-  type SpaceFocusSessionEvent,
-  type SpaceFocusSessionState,
-} from "../space/spaceFocusSurfaceState";
 import type { SpaceBootController } from "../boot/useSpaceBootController";
-
-const FocusOverlay = lazy(() =>
-  import("../exhibits/FocusOverlay").then((module) => ({
-    default: module.FocusOverlay,
-  })),
-);
 
 const JUMP_HINT_VISIBLE_MS = 5000;
 const SPACE_DAILY_RESUME_SAVE_INTERVAL_MS = 1000;
@@ -59,13 +46,6 @@ type SpaceToastState = {
   values?: Record<string, string>;
 };
 
-function reduceExhibitFocusSession(
-  state: SpaceFocusSessionState<ExhibitManifestItem>,
-  event: SpaceFocusSessionEvent<ExhibitManifestItem>,
-) {
-  return reduceSpaceFocusSession(state, event);
-}
-
 function readInitialDailyResumePose(params: URLSearchParams) {
   if (params.get(SPACE_DAILY_RESUME_RESET_PARAM) === "1") {
     clearSpaceDailyResume();
@@ -82,20 +62,16 @@ function readDevFocusExhibitId(params: URLSearchParams) {
 export function SpaceDesktopExperience({
   boot,
   entered,
-  focusedExhibitId,
   overlay,
   loadExhibits,
-  onNavigateToSpace,
   onNavigateToWork,
   onCanvasReady,
   routeBlocked,
 }: {
   boot: SpaceBootController;
   entered: boolean;
-  focusedExhibitId: string | null;
   overlay: { isOverlayOpen: boolean };
   loadExhibits: boolean;
-  onNavigateToSpace: (options?: { fromEscape?: boolean }) => void;
   onNavigateToWork: (exhibitId: string) => void;
   onCanvasReady?: () => void;
   routeBlocked: boolean;
@@ -114,12 +90,6 @@ export function SpaceDesktopExperience({
     exhibits: ExhibitManifestItem[];
   } | null>(null);
   const manifest = manifestResult?.attemptId === attemptId ? manifestResult.exhibits : null;
-  /** 退出动效期间保留当前 session；快速重入会创建新 session，避免复用已关闭的 Focus。 */
-  const [focusSessionState, dispatchFocusSession] = useReducer(
-    reduceExhibitFocusSession,
-    undefined,
-    createInitialSpaceFocusSessionState<ExhibitManifestItem>,
-  );
   const [toast, setToast] = useState<SpaceToastState | null>(null);
   const [crosshairPulseNonce, setCrosshairPulseNonce] = useState(0);
   const [suppressNextExhibitClick, setSuppressNextExhibitClick] = useState(false);
@@ -131,7 +101,6 @@ export function SpaceDesktopExperience({
   const [pointerLockUnavailable, setPointerLockUnavailable] = useState(false);
   const [onboardingFocusOpen, setOnboardingFocusOpen] = useState(false);
   const [onboardingFocusClosing, setOnboardingFocusClosing] = useState(false);
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [dailyResumePose] = useState<SpacePlayerPose | null>(() =>
     readInitialDailyResumePose(searchParams),
@@ -200,7 +169,7 @@ export function SpaceDesktopExperience({
   }, [attemptId, failBoot, manifestResolved]);
 
   useEffect(() => {
-    if (!devFocusExhibitId || manifest === null || focusedExhibitId || devFocusOpenedRef.current) return;
+    if (!devFocusExhibitId || manifest === null || devFocusOpenedRef.current) return;
     const found = manifest.find((item) => item.exhibitId === devFocusExhibitId);
     if (!found) return;
     devFocusOpenedRef.current = true;
@@ -208,51 +177,10 @@ export function SpaceDesktopExperience({
       onNavigateToWork(found.exhibitId);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [devFocusExhibitId, focusedExhibitId, manifest, onNavigateToWork]);
+  }, [devFocusExhibitId, manifest, onNavigateToWork]);
 
-  const focused = entered && focusedExhibitId
-    ? manifest?.find((item) => item.exhibitId === focusedExhibitId) ?? null
-    : null;
-
-  useEffect(() => {
-    dispatchFocusSession({ type: "route-sync", entered, focused });
-  }, [entered, focused, location]);
-
-  const handleBeginDismissFocus = useCallback(
-    (sessionId: number, opts?: { fromEscape?: boolean }) => {
-      flushSync(() => {
-        if (!opts?.fromEscape) {
-          setSuppressNextExhibitClick(true);
-        }
-        dispatchFocusSession({ type: "begin-dismiss", sessionId });
-      });
-      onNavigateToSpace(opts);
-    },
-    [onNavigateToSpace],
-  );
-
-  const handleFinishDismissFocus = useCallback((sessionId: number) => {
-    dispatchFocusSession({ type: "finish-dismiss", sessionId });
-  }, []);
-
-  const focusSession = focusSessionState.current;
-  const activeFocusExhibit = focusSession?.phase === "active" ? focusSession.exhibit : null;
-  const focusClosing = focusSession?.phase === "closing" ? focusSession.exhibit : null;
-
-  const {
-    focusOverlayExhibit,
-    invalidFocusedRoute,
-    onboardingFocusVisible,
-    focusSurfaceOpen,
-  } = resolveSpaceFocusSurfaceState({
-    entered,
-    focused: activeFocusExhibit,
-    focusClosing,
-    focusedRoutePending:
-      focusedExhibitId !== null && manifest !== null && focused === null && focusSession === null,
-    onboardingFocusOpen,
-    onboardingFocusClosing,
-  });
+  const onboardingFocusVisible = onboardingFocusOpen || onboardingFocusClosing;
+  const focusSurfaceOpen = onboardingFocusVisible;
   const spaceRenderPaused = focusSurfaceOpen || routeBlocked;
   const dailyResumeSavingEnabled = shouldSaveSpaceDailyResume({
     onboardingCompleted,
@@ -440,21 +368,8 @@ export function SpaceDesktopExperience({
           onPoseSample: handleSpacePoseSample,
           onOnboardingCompleted: () => setOnboardingCompleted(true),
         }}
-        renderSurfaces={({ profile, error, loading }) => (
+        renderSurfaces={({ error, loading }) => (
           <>
-            {focusOverlayExhibit && focusSession && profile ? (
-              <Suspense fallback={null}>
-                <FocusOverlay
-                  key={`${focusOverlayExhibit.exhibitId}:${focusSession.sessionId}`}
-                  exhibit={focusOverlayExhibit}
-                  profile={profile.id}
-                  onBeginDismiss={(opts) =>
-                    handleBeginDismissFocus(focusSession.sessionId, opts)
-                  }
-                  onClose={() => handleFinishDismissFocus(focusSession.sessionId)}
-                />
-              </Suspense>
-            ) : null}
             {onboardingFocusVisible ? (
               <SpaceOnboardingFocusDemo
                 onBeginDismiss={handleBeginDismissOnboardingFocus}
@@ -474,8 +389,6 @@ export function SpaceDesktopExperience({
               toastMessage={toastMessage}
               toastDurationMs={toast?.key === "space.pointerLockFailed" ? 5200 : 2200}
               onToastDone={() => setToast(null)}
-              invalidFocusedRoute={invalidFocusedRoute}
-              onNavigateToSpace={() => onNavigateToSpace()}
               rendererFailed={error !== null}
               rendererLoading={loading}
               loadedItems={

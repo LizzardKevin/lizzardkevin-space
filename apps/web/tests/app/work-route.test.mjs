@@ -6,17 +6,16 @@ import { isKnownExhibitId, knownExhibitIds } from "../../src/content/lightweight
 import { matchRoutes } from "react-router-dom";
 import {
   resolveAppRoute,
-  resolveDesktopWorkRouteSurface,
   workRoute,
 } from "../../src/app/routeConfig.ts";
 
-test("cold work validation uses the lightweight exhibit index", () => {
+test("work route validation uses the lightweight exhibit index", () => {
   assert.equal(isKnownExhibitId("arch_treehabitat"), true);
   assert.equal(isKnownExhibitId("arch_uabb_exhibit"), true);
   assert.equal(isKnownExhibitId("missing-work"), false);
 });
 
-test("the cold route index derives from generated labels without importing 3D runtime", () => {
+test("the work route index derives from generated labels without importing 3D runtime", () => {
   const generatedIds = Object.keys(generatedExhibitLabels).filter((id) => id !== "space_onboarding_demo");
   assert.deepEqual(knownExhibitIds, generatedIds);
   const source = readFileSync(new URL("../../src/content/lightweightExhibitIndex.ts", import.meta.url), "utf8");
@@ -53,12 +52,16 @@ test("malformed work route encoding becomes not-found without throwing", () => {
   }
   assert.deepEqual(route, { kind: "not-found" });
   assert.equal(matches?.at(-1)?.route.id, "work");
-  assert.equal(resolveDesktopWorkRouteSurface(route, false), "not-found");
-  assert.equal(resolveDesktopWorkRouteSurface(route, true), "not-found");
 });
 
-test("valid work route surface switches from cold message to the warm persistent host", () => {
-  const route = resolveAppRoute("/works/arch_treehabitat");
-  assert.equal(resolveDesktopWorkRouteSurface(route, false), "cold-work");
-  assert.equal(resolveDesktopWorkRouteSurface(route, true), "host");
+test("work detail page is a standalone route with no space-started gate", () => {
+  const desktop = readFileSync(new URL("../../src/app/DesktopApp.tsx", import.meta.url), "utf8");
+  // /works/:exhibitId 直接渲染 WorkDetailPage，不存在 ColdWorkRoute / spaceStarted 门禁。
+  assert.match(desktop, /path=["']\/works\/:exhibitId["'][\s\S]*?<WorkDetailPage\s*\/>/);
+  assert.equal(desktop.includes("ColdWorkRoute"), false);
+  assert.equal(desktop.includes("resolveDesktopWorkRouteSurface"), false);
+  // 详情页自身做 known-id 校验并降级 NotFound。
+  const detailHook = readFileSync(new URL("../../src/pages/works/useWorkDetail.ts", import.meta.url), "utf8");
+  assert.match(detailHook, /isKnownExhibitId/);
+  assert.match(detailHook, /status:\s*["']not-found["']/);
 });

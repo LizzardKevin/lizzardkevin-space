@@ -19,8 +19,6 @@ type SpaceHudProps = {
   toastMessage: string | null;
   toastDurationMs: number;
   onToastDone: () => void;
-  invalidFocusedRoute: boolean;
-  onNavigateToSpace: () => void;
   rendererFailed: boolean;
   rendererLoading: boolean;
   loadedItems: number;
@@ -71,8 +69,6 @@ export function SpaceHud({
   toastMessage,
   toastDurationMs,
   onToastDone,
-  invalidFocusedRoute,
-  onNavigateToSpace,
   rendererFailed,
   rendererLoading,
   loadedItems,
@@ -98,22 +94,6 @@ export function SpaceHud({
         <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} />
       ) : null}
       <PlaybackBar elevated={focusOpen} />
-      {invalidFocusedRoute ? (
-        <main
-          className="focus-overlay"
-          data-work-route-not-found="true"
-          role="main"
-          style={{ display: "grid", placeItems: "center" }}
-        >
-          <button
-            type="button"
-            className="focus-return-button focus-return-button--visible"
-            onClick={onNavigateToSpace}
-          >
-            {t("route.invalidWorkReturn")}
-          </button>
-        </main>
-      ) : null}
       {rendererFailed ? <WebGPUUnavailable /> : null}
       {rendererLoading ? (
         <div

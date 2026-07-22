@@ -16,7 +16,6 @@ const boundary = src("space/PersistentSpaceHostBoundary.ts");
 const coordinator = src("space/SpaceRouteCoordinator.tsx");
 const experience = src("pages/SpaceDesktopExperience.tsx");
 const canvasHost = src("space/SpaceCanvasHost.tsx");
-const hud = src("space/SpaceHud.tsx");
 const pose = src("space/spaceSessionPose.ts");
 const audioDirector = src("audio/AudioDirector.ts");
 
@@ -38,9 +37,7 @@ assert.match(experience, /paused=\{spaceRenderPaused\}/);
 assert.match(canvasHost, /frameloop=\{paused\s*\?\s*["']never["']\s*:\s*["']always["']\}/);
 assert.match(experience, /routeBlocked/);
 assert.match(experience, /onNavigateToWork/);
-assert.match(experience, /onNavigateToSpace/);
-assert.match(experience, /invalidFocusedRoute/);
-assert.match(hud, /data-work-route-not-found/);
+assert.doesNotMatch(experience, /onNavigateToSpace|invalidFocusedRoute|FocusOverlay/);
 assert.match(desktop, /route\.kind\s*===\s*["']space["'][\s\S]*handoff\.phase\s*===\s*["']lobby["']/);
 assert.match(desktop, /const\s+onLobbyDisposed[\s\S]*boot\.start\(\)[\s\S]*setSpaceStarted\(true\)/);
 
