@@ -20,7 +20,13 @@ import { HazardRule } from "./primitives";
 
 export type ScrollPageAnchor = { id: string; label: string };
 
-export type ScrollPageSwitchTarget = { href: string; code: string; label: string };
+export type ScrollPageSwitchTarget = {
+  href: string;
+  code: string;
+  label: string;
+  /** 切换条所在缘侧与横扫方向：profile→devstories 为 right（01→02 向右），反之为 left */
+  side: "left" | "right";
+};
 
 function writeStoredLanguage(language: SupportedLanguage) {
   try {
@@ -127,7 +133,7 @@ export function ScrollPageShell({
       navigate(switchTarget.href);
       return;
     }
-    void startWipe(wipeEl).then(() => navigate(switchTarget.href));
+    void startWipe(wipeEl, switchTarget.side).then(() => navigate(switchTarget.href));
   }, [navigate, switchTarget]);
 
   const scrollToTarget = useCallback(
@@ -256,7 +262,7 @@ export function ScrollPageShell({
         {switchTarget ? (
           <button
             type="button"
-            className="ark-switchstrip"
+            className={`ark-switchstrip${switchTarget.side === "right" ? " ark-switchstrip--right" : ""}`}
             aria-label={`${copy.switchAriaPrefix} ${switchTarget.label}`}
             onClick={handleSwitch}
           >

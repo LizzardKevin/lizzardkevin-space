@@ -27,7 +27,7 @@ export default function DevStoriesScrollPage() {
   const lastPeriod = stories[stories.length - 1]?.period ?? "";
 
   usePinSections(
-    [{ selector: ".ark-dentry", end: "+=30%", minHeightRatio: 0.55 }],
+    [{ selector: ".ark-dentry", end: "+=60%", minHeightRatio: 0.55 }],
     [stories],
   );
 
@@ -42,6 +42,7 @@ export default function DevStoriesScrollPage() {
         href: "/profile",
         code: "ARCHIVE / 01",
         label: copy.switchToProfile,
+        side: "left",
       }}
     >
       <section className="ark-hero" id="devstories-hero">

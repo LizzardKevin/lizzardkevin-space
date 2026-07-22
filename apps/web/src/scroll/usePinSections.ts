@@ -1,15 +1,14 @@
 import { useLayoutEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useScrollPage } from "./scrollPageContext";
 import { prefersReducedMotion } from "./useLenisScroll";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export type PinSectionRule = {
-  /** 命中需要 pin 的节（在 root 内 querySelectorAll） */
+  /** 命中需要 pin 的节（在滚动容器内 querySelectorAll） */
   selector: string;
-  /** pin 停留的滚动距离（视口高度比例或像素字符串，如 "+=40%"） */
+  /** pin 停留的滚动距离（视口高度比例或像素字符串，如 "+=60%"） */
   end?: string;
   /** 短于视口此比例的节跳过 pin（默认 0.6） */
   minHeightRatio?: number;
@@ -19,12 +18,15 @@ export type PinSectionRule = {
  * 专题吸附：命中节在进入视口顶部时 pin 一段滚动距离，
  * 期间滚动条照常前进、画面短暂停留（用户需求：非线性滚动）。
  * pinSpacing 占位保持文档流，scrollspy/锚点不受影响。
- * reduced-motion 或无 scroller 时全部跳过（自然流）。
+ * reduced-motion 时全部跳过（自然流）。
+ *
+ * scroller 直接 DOM 查询：页面顶层组件位于 ScrollPageContext.Provider
+ * 之外（壳层是其子组件），且页面 layout effect 在子组件之后执行，
+ * 此时 .ark-scroll 必然已在 DOM 中。
  */
 export function usePinSections(rules: PinSectionRule[], deps: readonly unknown[] = []) {
-  const { scroller } = useScrollPage();
-
   useLayoutEffect(() => {
+    const scroller = document.querySelector<HTMLElement>(".ark-scroll");
     if (!scroller || prefersReducedMotion() || rules.length === 0) return undefined;
 
     const triggers: ScrollTrigger[] = [];
@@ -54,5 +56,5 @@ export function usePinSections(rules: PinSectionRule[], deps: readonly unknown[]
       created.revert();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deps 由调用方声明（数据就绪后再建 pin）
-  }, [scroller, ...deps]);
+  }, deps);
 }

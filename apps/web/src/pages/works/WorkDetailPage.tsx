@@ -9,8 +9,6 @@ import { workRoute } from "../../app/routeConfig";
 import { NotFound } from "../../app/appRoutes";
 import { ScrollPageShell, type ScrollPageAnchor } from "../../scroll/ScrollPageShell";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
-import { useScrollPage } from "../../scroll/scrollPageContext";
-import { usePinSections } from "../../scroll/usePinSections";
 import { prefersReducedMotion } from "../../scroll/useLenisScroll";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
@@ -35,10 +33,9 @@ function useHeroTitleShrink(
   heroId: string,
   deps: readonly unknown[],
 ) {
-  const { scroller } = useScrollPage();
-
   useLayoutEffect(() => {
     const el = titleRef.current;
+    const scroller = document.querySelector<HTMLElement>(".ark-scroll");
     if (!scroller || !el || prefersReducedMotion()) return undefined;
     const ctx = gsap.context(() => {
       gsap.to(el, {
@@ -57,7 +54,7 @@ function useHeroTitleShrink(
     }, scroller);
     return () => ctx.revert();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deps 由调用方声明
-  }, [scroller, heroId, ...deps]);
+  }, [heroId, ...deps]);
 }
 
 function resolveWorkTitle(
@@ -148,13 +145,6 @@ export default function WorkDetailPage() {
   }, [state]);
 
   const ready = state.status === "ready";
-  usePinSections(
-    [
-      { selector: ".ark-wstage", end: "+=50%", minHeightRatio: 0.5 },
-      { selector: ".ark-wgallery", end: "+=35%", minHeightRatio: 0.5 },
-    ],
-    [ready, state],
-  );
   useHeroTitleShrink(heroTitleRef, "work-hero", [ready, state]);
 
   if (!exhibitId || state.status === "not-found") return <NotFound />;
@@ -229,14 +219,16 @@ export default function WorkDetailPage() {
       </section>
 
       {hasModel || videoUrl || images.length > 0 ? (
-        <WorkStage
-          exhibitId={exhibitId}
-          type={exhibit.type}
-          focusGlbUrl={exhibit.focusGlbUrl}
-          videoUrl={videoUrl}
-          posterUrl={images[0]}
-          copy={copy.work}
-        />
+        <div className="ark-wstage-zone">
+          <WorkStage
+            exhibitId={exhibitId}
+            type={exhibit.type}
+            focusGlbUrl={exhibit.focusGlbUrl}
+            videoUrl={videoUrl}
+            posterUrl={images[0]}
+            copy={copy.work}
+          />
+        </div>
       ) : null}
 
       {content?.overview ? (
@@ -258,19 +250,21 @@ export default function WorkDetailPage() {
       ) : null}
 
       {galleryImages.length >= 2 ? (
-        <section className="ark-wgallery" id="work-gallery">
-          <div className="ark-wgallery__head">
-            <SectionHeader number="02" title={copy.work.galleryLabel} />
-            <span className="ark-wgallery__hint">{copy.work.dragHint} ↔</span>
-          </div>
-          <div className="ark-wgallery__track" ref={galleryRef}>
-            {galleryImages.map((url, i) => (
-              <figure className="ark-wgallery__item" key={url}>
-                <img src={url} alt={`${title} — ${i + 1}`} loading="lazy" draggable={false} />
-              </figure>
-            ))}
-          </div>
-        </section>
+        <div className="ark-wgallery-zone">
+          <section className="ark-wgallery" id="work-gallery">
+            <div className="ark-wgallery__head">
+              <SectionHeader number="02" title={copy.work.galleryLabel} />
+              <span className="ark-wgallery__hint">{copy.work.dragHint} ↔</span>
+            </div>
+            <div className="ark-wgallery__track" ref={galleryRef}>
+              {galleryImages.map((url, i) => (
+                <figure className="ark-wgallery__item" key={url}>
+                  <img src={url} alt={`${title} — ${i + 1}`} loading="lazy" draggable={false} />
+                </figure>
+              ))}
+            </div>
+          </section>
+        </div>
       ) : galleryImages.length === 1 ? (
         <section className="ark-wgallery" id="work-gallery">
           <div className="ark-wgallery__single">

@@ -26,7 +26,7 @@ export default function ProfileScrollPage() {
   );
 
   usePinSections(
-    [{ selector: ".ark-psection", end: "+=35%" }],
+    [{ selector: ".ark-psection", end: "+=70%" }],
     [sections],
   );
 
@@ -41,6 +41,7 @@ export default function ProfileScrollPage() {
         href: "/devstories",
         code: "ARCHIVE / 02",
         label: copy.switchToDevStories,
+        side: "right",
       }}
     >
       <section className="ark-hero" id="profile-hero">
