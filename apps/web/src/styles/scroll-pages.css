@@ -677,26 +677,26 @@
   max-width: var(--ark-content-frame);
   margin-inline: auto;
   padding: 9vh var(--ark-gutter) 0;
-}
-
-.ark-dentry__head {
   display: grid;
   grid-template-columns: minmax(140px, 16vw) minmax(0, 1fr);
-  gap: clamp(20px, 4vw, 64px);
+  column-gap: clamp(20px, 4vw, 64px);
   align-items: start;
 }
 
 .ark-dentry__index {
+  grid-column: 1;
+  grid-row: 1 / -1;
   display: flex;
   flex-direction: column;
   gap: var(--ark-gap-2);
   position: relative;
   padding-left: 22px;
-  /* 覆盖 head 容器的 align-items: start：列与行同高，sticky 才有滑动空间 */
+  /* 拉高到整篇（含玻璃 tab），sticky 数字可降到玻璃下沿 */
   align-self: stretch;
+  min-height: 100%;
 }
 
-/* 数字 sticky 堆叠：滚动时顶上阻拦，下一篇数字接近后自然挤走 */
+/* 数字 sticky：在整篇高度内下滑，直到被下一篇挤走或抵达本篇底 */
 .ark-dentry__indexInner {
   position: sticky;
   top: 24px;
@@ -705,6 +705,18 @@
   gap: var(--ark-gap-2);
   align-self: flex-start;
   width: 100%;
+}
+
+.ark-dentry__main {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.ark-dentry__gridReveal {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
 }
 
 .ark-dentry__number {
@@ -756,8 +768,6 @@
 
 .ark-dentry__grid {
   margin-top: 4vh;
-  /* 与左侧编号轨对齐：让出 index 列 + gap，不阻挡 sticky 数字的移动路径 */
-  margin-left: calc(min(140px, 16vw) + clamp(20px, 4vw, 64px));
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--ark-gap-2);
@@ -1389,9 +1399,23 @@
 @media (max-width: 900px) {
   .ark-top__anchors { display: none; }
   .ark-psection,
-  .ark-dentry__head { grid-template-columns: 1fr; }
-  .ark-psection__rail,
-  .ark-dentry__index { position: static; }
+  .ark-dentry {
+    grid-template-columns: 1fr;
+  }
+  .ark-dentry__index {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+    align-self: start;
+  }
+  .ark-dentry__main,
+  .ark-dentry__gridReveal {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .ark-dentry__indexInner {
+    position: static;
+  }
   .ark-dentry__grid { grid-template-columns: 1fr; margin-left: 0; }
   .ark-wspec { grid-template-columns: 1fr; }
   .ark-wnav { grid-template-columns: 1fr; }

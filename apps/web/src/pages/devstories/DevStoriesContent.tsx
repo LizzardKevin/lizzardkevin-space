@@ -47,28 +47,27 @@ export function DevStoriesContent() {
 
       {stories.map((story) => (
         <section className="ark-dentry" id={story.id} key={story.id}>
-          <div className="ark-dentry__head">
-            <div className="ark-dentry__index">
-              <div className="ark-dentry__indexInner">
-                <span className="ark-dentry__number">{story.number}</span>
-                <span className="ark-dentry__period">{story.period}</span>
-                <span className="ark-dentry__railBar" aria-hidden="true" />
-              </div>
-            </div>
-            <div className="ark-dentry__main">
-              <Reveal>
-                <h2 className="ark-dentry__title">{story.title}</h2>
-              </Reveal>
-              <Reveal>
-                <p className="ark-dentry__summary">{story.summary}</p>
-              </Reveal>
-              <div className="ark-dentry__tags">
-                <TagRow tags={story.tags} />
-              </div>
+          <div className="ark-dentry__index">
+            <div className="ark-dentry__indexInner">
+              <span className="ark-dentry__number">{story.number}</span>
+              <span className="ark-dentry__period">{story.period}</span>
+              <span className="ark-dentry__railBar" aria-hidden="true" />
             </div>
           </div>
 
-          <Reveal>
+          <div className="ark-dentry__main">
+            <Reveal>
+              <h2 className="ark-dentry__title">{story.title}</h2>
+            </Reveal>
+            <Reveal>
+              <p className="ark-dentry__summary">{story.summary}</p>
+            </Reveal>
+            <div className="ark-dentry__tags">
+              <TagRow tags={story.tags} />
+            </div>
+          </div>
+
+          <Reveal className="ark-dentry__gridReveal">
             <div className="ark-dentry__grid">
               {story.built.length > 0 ? (
                 <ArkGlassTile className="ark-dentry__panel" variant="panel">
