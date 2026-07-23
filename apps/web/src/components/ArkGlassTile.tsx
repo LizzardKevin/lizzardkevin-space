@@ -11,9 +11,9 @@ type ArkGlassTileProps = {
 };
 
 const VARIANT_TINT: Record<ArkGlassTileVariant, string> = {
-  panel: "rgba(255, 255, 255, 0.06)",
-  link: "rgba(255, 255, 255, 0.05)",
-  nav: "rgba(255, 255, 255, 0.05)",
+  panel: "rgba(255, 255, 255, 0.015)",
+  link: "rgba(255, 255, 255, 0.012)",
+  nav: "rgba(255, 255, 255, 0.012)",
 };
 
 const VARIANT_BORDER: Record<ArkGlassTileVariant, string> = {
@@ -36,12 +36,13 @@ export function ArkGlassTile({
   return (
     <LiquidGlass
       className={["ark-glass-tile", className].filter(Boolean).join(" ")}
-      blur={8}
+      blur={1}
       tint={VARIANT_TINT[variant]}
       borderColor={VARIANT_BORDER[variant]}
       borderWidth={1}
       borderRadius={0}
       enableShadow={false}
+      enableGlassEffect={false}
       shadowBlur={0}
       shadowSpread={0}
       shadowOffsetX={0}
@@ -56,9 +57,9 @@ export function ArkGlassTile({
       parallaxMovement={0}
       turbulenceFrequency={0.008}
       turbulenceOctaves={1}
-      blurStdDeviation={2}
-      displacementScale={40}
-      surfaceScale={2}
+      blurStdDeviation={1}
+      displacementScale={0}
+      surfaceScale={1}
     >
       {children}
     </LiquidGlass>

@@ -810,21 +810,11 @@
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #141416;
-  background: var(--ark-accent);
+  color: var(--ark-accent);
+  background: transparent;
+  border: 1px solid var(--ark-accent);
   padding: var(--ark-gap-1);
   margin-bottom: var(--ark-gap-2);
-}
-
-.ark-dentry__panel--trouble .ark-dentry__panelLabel {
-  background: var(--ark-panel-2);
-  color: var(--ark-dim);
-}
-
-.ark-dentry__panel--next .ark-dentry__panelLabel {
-  background: transparent;
-  color: var(--ark-accent);
-  border: 1px solid var(--ark-accent);
 }
 
 .ark-dentry__panel p,

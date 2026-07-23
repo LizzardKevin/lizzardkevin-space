@@ -36,7 +36,9 @@ describe("ArkGlassTile contract", () => {
     assert.match(src, /enableShadow=\{false\}/);
     assert.match(src, /prefersReducedMotion/);
     assert.match(src, /enableBorderAnimation=\{!reduceMotion\}/);
-    assert.match(src, /blur=\{8\}/);
+    assert.match(src, /blur=\{1\}/);
+    assert.match(src, /enableGlassEffect=\{false\}/);
+    assert.match(src, /displacementScale=\{0\}/);
   });
 
   it("scroll-pages CSS keeps shine idle-off and hover-on inside the tile", () => {
