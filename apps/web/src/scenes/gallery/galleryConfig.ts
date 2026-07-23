@@ -201,7 +201,7 @@ export const GALLERY_LIGHT_HALO = {
 
 /** Exhibit raycast label + hover highlight tuning. */
 export const EXHIBIT_TARGET = {
-  emissiveColor: SPACE_VISUAL_TOKENS.colors.signal,
+  emissiveColor: SPACE_VISUAL_TOKENS.colors.paper,
   emissiveIntensity: 0.35,
   /** Max camera-to-exhibit distance (m) for hover label, highlight, and crosshair feedback. */
   maxDistance: 5,

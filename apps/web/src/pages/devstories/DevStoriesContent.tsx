@@ -5,7 +5,7 @@ import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { useScrubSections } from "../../scroll/useScrubSections";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
-import { Stat, TagRow } from "../../scroll/primitives";
+import { DataStrip, TagRow } from "../../scroll/primitives";
 
 /**
  * 开发日志内容（ArchiveHub 的 devstories 面板）。
@@ -32,18 +32,13 @@ export function DevStoriesContent() {
       <section className="ark-hero" id="devstories-hero">
         <p className="ark-hero__eyebrow">{copy.devStories.eyebrow}</p>
         <MosaicTitle text="Dev Stories" className="ark-hero__title" as="h1" />
-        <div className="ark-hero__meta">
-          <div className="ark-stat-row">
-            <Stat value={stories.length} label={copy.devStories.entriesLabel} />
-            <div className="ark-stat">
-              <span className="ark-stat__value ark-stat__value--text">
-                {firstPeriod}
-                <br />— {lastPeriod}
-              </span>
-              <span className="ark-stat__label">{copy.devStories.spanLabel}</span>
-            </div>
-          </div>
-        </div>
+        <DataStrip
+          className="ark-hero__meta"
+          items={[
+            { label: copy.devStories.entriesLabel, value: String(stories.length) },
+            { label: copy.devStories.spanLabel, value: `${firstPeriod} — ${lastPeriod}` },
+          ]}
+        />
         <span className="ark-hero__scrollHint">{copy.scrollHint}</span>
       </section>
 

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getDevStories } from "../../content/devStories";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
@@ -9,7 +10,26 @@ import { scrollBusJumpTo } from "../../scroll/scrollBus";
 import { ProfileContent } from "../profile/ProfileContent";
 import { DevStoriesContent } from "../devstories/DevStoriesContent";
 
+gsap.registerPlugin(ScrollTrigger);
+
 export type ArchiveHubTab = "profile" | "devstories";
+
+/** 非活动面板：absolute + opacity 0（保持布局与合成状态，切换零重排）。 */
+const PANEL_HIDDEN_STYLE = {
+  position: "absolute",
+  inset: 0,
+  opacity: 0,
+  pointerEvents: "none",
+  visibility: "hidden",
+} as const;
+
+/** 切换动画中的离场面板：脱离文档流（滚动高度只由进场面板撑开，
+ *  避免双面板叠加导致的滚动跳变/卡顿），对齐容器顶部原位滑出。 */
+const PANEL_LEAVING_STYLE = {
+  position: "absolute",
+  inset: 0,
+  zIndex: 1,
+} as const;
 
 /**
  * 个人档案 ↔ 开发日志的统一容器（本质一个页面，URL 跟随 tab 变化）。
@@ -88,15 +108,14 @@ export default function ArchiveHub({ tab }: { tab: ArchiveHubTab }) {
           onComplete: () => {
             gsap.set(fromEl, { visibility: "hidden", x: 0, autoAlpha: 1 });
             setTransition(null);
+            // 面板落定后刷新 scrub 触发器（布局已稳定）
+            requestAnimationFrame(() => ScrollTrigger.refresh());
           },
         },
       );
     });
     return () => ctx.revert();
   }, [tab]);
-
-  const isProfileVisible = transition ? true : tab === "profile";
-  const isDevStoriesVisible = transition ? true : tab === "devstories";
 
   const shellConfig = useMemo(() => {
     if (tab === "profile") {
@@ -139,9 +158,11 @@ export default function ArchiveHub({ tab }: { tab: ArchiveHubTab }) {
           ref={profilePanelRef}
           className="ark-hub__panel"
           style={
-            isProfileVisible && (tab === "profile" || transition?.from === "profile")
-              ? undefined
-              : { visibility: "hidden", position: "absolute", inset: 0 }
+            transition?.from === "profile"
+              ? PANEL_LEAVING_STYLE
+              : tab === "profile"
+                ? undefined
+                : PANEL_HIDDEN_STYLE
           }
           aria-hidden={tab !== "profile" && !transition}
         >
@@ -151,9 +172,11 @@ export default function ArchiveHub({ tab }: { tab: ArchiveHubTab }) {
           ref={devStoriesPanelRef}
           className="ark-hub__panel"
           style={
-            isDevStoriesVisible && (tab === "devstories" || transition?.from === "devstories")
-              ? undefined
-              : { visibility: "hidden", position: "absolute", inset: 0 }
+            transition?.from === "devstories"
+              ? PANEL_LEAVING_STYLE
+              : tab === "devstories"
+                ? undefined
+                : PANEL_HIDDEN_STYLE
           }
           aria-hidden={tab !== "devstories" && !transition}
         >

@@ -265,9 +265,12 @@ export function DotGridAttractCanvas({
         const path = buckets[index];
         if (!path) continue;
         const k = index / (COLOR_BUCKETS - 1);
-        const r = Math.round(BASE_R + (accent.r - BASE_R) * k);
-        const g = Math.round(BASE_G + (accent.g - BASE_G) * k);
-        const b = Math.round(BASE_B + (accent.b - BASE_B) * k);
+        // 变色不做混色插值：达到强度即直接变为页面强调色，否则保持基础灰；
+        // 变色程度由 alpha 表达（越近越亮）。
+        const tinted = k >= 0.45;
+        const r = tinted ? accent.r : BASE_R;
+        const g = tinted ? accent.g : BASE_G;
+        const b = tinted ? accent.b : BASE_B;
         const alpha = BASE_ALPHA + (MAX_ALPHA - BASE_ALPHA) * k;
         ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
         ctx.fill(path);

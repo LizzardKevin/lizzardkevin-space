@@ -129,6 +129,8 @@ export function ScrollPageShell({
 
   const handleSwitch = useCallback(() => {
     if (!switchTarget) return;
+    // 点击后点阵三角立即进入消失动画（不等 hover 离开）
+    setDotGridArrow(null);
     navigate(switchTarget.href);
   }, [navigate, switchTarget]);
 
