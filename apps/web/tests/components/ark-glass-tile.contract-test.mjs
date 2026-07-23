@@ -34,22 +34,22 @@ describe("ArkGlassTile contract", () => {
     assert.match(src, /parallaxMovement=\{0\}/);
     assert.match(src, /borderRadius=\{0\}/);
     assert.match(src, /enableShadow=\{false\}/);
-    assert.match(src, /prefersReducedMotion/);
-    assert.match(src, /enableBorderAnimation=\{!reduceMotion\}/);
+    assert.match(src, /enableBorderAnimation=\{false\}/);
     assert.match(src, /blur=\{1\}/);
     assert.match(src, /enableGlassEffect=\{false\}/);
     assert.match(src, /displacementScale=\{0\}/);
+    assert.match(src, /ark-glass-tile__fx/);
+    assert.match(src, /--ark-glass-mx/);
   });
 
-  it("scroll-pages CSS keeps shine idle-off and hover-on inside the tile", () => {
+  it("scroll-pages CSS uses hover edge inset + clipped accent glow (not library shine)", () => {
     const css = read(join(root, "src/styles/scroll-pages.css"));
-    assert.match(css, /\.ark-glass-tile \.liquidGlass-shine\[data-enable-border-animation="true"\]/);
-    assert.match(css, /opacity:\s*0\s*!important/);
-    assert.match(
-      css,
-      /\.ark-glass-tile > \.liquidGlass-wrapper:hover \.liquidGlass-shine\[data-enable-border-animation="true"\]/,
-    );
-    assert.match(css, /\.ark-glass-tile > \.liquidGlass-wrapper[\s\S]*?box-shadow:\s*none\s*!important/);
+    assert.match(css, /\.ark-glass-tile__fx/);
+    assert.match(css, /\.ark-glass-tile:hover \.ark-glass-tile__fx/);
+    assert.match(css, /box-shadow:\s*[\s\S]*?inset 0 1px 0/);
+    assert.match(css, /--ark-accent/);
+    assert.match(css, /overflow:\s*hidden/);
+    assert.match(css, /\.ark-glass-tile \.liquidGlass-shine[\s\S]*?opacity:\s*0\s*!important/);
   });
 
   it("is the only apps/web/src consumer of @khvicha/react-liquid-glass", () => {

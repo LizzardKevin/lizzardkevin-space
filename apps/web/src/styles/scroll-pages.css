@@ -774,10 +774,20 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
+  --ark-glass-mx: 50%;
+  --ark-glass-my: 50%;
 }
 
-/* className 落在库外层 .wrapper；真正玻璃面是内部 .liquidGlass-wrapper */
-.ark-glass-tile > .liquidGlass-wrapper {
+.ark-glass-tile > .ark-glass-tile__surface {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ark-glass-tile .liquidGlass-wrapper {
   flex: 1 1 auto;
   width: 100%;
   min-height: 100%;
@@ -785,22 +795,50 @@
   overflow: hidden;
 }
 
-/*
- * 库默认在 enableBorderAnimation 时 shine 恒为 opacity:1，且 :not(:hover) 也是 1。
- * 舟味：空闲无光，指针进入后才显示贴边高光（inset，不会打到玻璃外）。
- */
-.ark-glass-tile .liquidGlass-shine[data-enable-border-animation="true"] {
+/* 关掉库自带径向遮罩边光（居中会灭、逻辑差） */
+.ark-glass-tile .liquidGlass-shine {
   opacity: 0 !important;
+  visibility: hidden !important;
 }
 
-.ark-glass-tile > .liquidGlass-wrapper:hover .liquidGlass-shine[data-enable-border-animation="true"] {
-  opacity: 1 !important;
+/*
+ * 自研悬停层：整圈 inset 边高光常亮 + 框内强调色光晕跟指针。
+ * 父级 overflow:hidden，光晕不溢出玻璃外。
+ */
+.ark-glass-tile__fx {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.22),
+    inset 1px 0 0 rgba(255, 255, 255, 0.32),
+    inset -1px 0 0 rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: radial-gradient(
+    160px 120px at var(--ark-glass-mx) var(--ark-glass-my),
+    color-mix(in srgb, var(--ark-accent) 32%, transparent) 0%,
+    color-mix(in srgb, var(--ark-accent) 10%, transparent) 42%,
+    transparent 72%
+  );
+}
+
+.ark-glass-tile:hover .ark-glass-tile__fx {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ark-glass-tile .liquidGlass-shine {
-    opacity: 0 !important;
-    transition: none !important;
+  .ark-glass-tile__fx {
+    transition: none;
+    /* 无跟随：固定中心一抹弱强调色，边高光仍在 */
+    background: radial-gradient(
+      140px 100px at 50% 40%,
+      color-mix(in srgb, var(--ark-accent) 18%, transparent),
+      transparent 70%
+    );
   }
 }
 
