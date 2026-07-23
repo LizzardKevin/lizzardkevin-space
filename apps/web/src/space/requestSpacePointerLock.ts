@@ -118,14 +118,13 @@ function engageSpaceFirstPersonNow(
   opts: { entered: boolean; overlayOpen: boolean },
   requestId: number,
 ) {
-  if (opts.overlayOpen) return;
-  if (opts.entered) resumeSpaceFirstPerson(requestId);
-  else engageSpaceFirstPerson({ entered: opts.entered, overlayOpen: opts.overlayOpen }, requestId);
+  if (opts.overlayOpen || !opts.entered) return;
+  resumeSpaceFirstPerson(requestId);
 }
 
 /**
- * Focus 用 ESC 退出：同一 keydown 内 requestPointerLock 会被浏览器 ESC 默认行为立刻解锁。
- * 在 keyup 后再尝试锁定；后续真实 Canvas click 仍由 GuardedPointerLockControls 唯一处理。
+ * Focus / 三页 ESC 回 SPACE：同一 keydown 内 requestPointerLock 会被浏览器 ESC 立刻解锁。
+ * 在 keyup 当帧请求锁定（不再等 cursor 回中动画），避免用户左键先点到展品又进作品页。
  */
 export function resumeSpaceFirstPersonAfterEscape(
   opts: { entered: boolean; overlayOpen: boolean },
@@ -135,34 +134,37 @@ export function resumeSpaceFirstPersonAfterEscape(
 
   let cancelled = false;
   let expiryTimerId: number | null = null;
-  let relockTimerId: number | null = null;
 
   function cleanup() {
     if (cancelled) return;
     cancelled = true;
     window.removeEventListener("keyup", onKeyUp);
+    document.removeEventListener("pointerlockchange", onPointerLockChange);
     window.removeEventListener("blur", cleanup);
     window.removeEventListener("pagehide", cleanup);
     if (expiryTimerId !== null) window.clearTimeout(expiryTimerId);
-    if (relockTimerId !== null) window.clearTimeout(relockTimerId);
     if (pendingEscapePointerLockRecovery === recovery) {
       pendingEscapePointerLockRecovery = null;
     }
   }
 
+  function onPointerLockChange() {
+    if (document.pointerLockElement) cleanup();
+  }
+
+  function engageAfterEscapeKeyUp() {
+    window.removeEventListener("keyup", onKeyUp);
+    requestSpaceCursorReturn({ target: "center" });
+    engageSpaceFirstPersonNow(opts, requestId);
+    // 保持 pending 直到真正 lock 成功，继续挡住展品点击
+    document.addEventListener("pointerlockchange", onPointerLockChange);
+    if (expiryTimerId !== null) window.clearTimeout(expiryTimerId);
+    expiryTimerId = window.setTimeout(cleanup, 400);
+  }
+
   function onKeyUp(e: KeyboardEvent) {
     if (e.key !== "Escape") return;
-    window.removeEventListener("keyup", onKeyUp);
-    if (expiryTimerId !== null) {
-      window.clearTimeout(expiryTimerId);
-      expiryTimerId = null;
-    }
-    requestSpaceCursorReturn({ target: "center" });
-    relockTimerId = window.setTimeout(() => {
-      relockTimerId = null;
-      cleanup();
-      engageSpaceFirstPersonNow(opts, requestId);
-    }, 500);
+    engageAfterEscapeKeyUp();
   }
 
   const recovery = { cancel: cleanup };
@@ -172,4 +174,9 @@ export function resumeSpaceFirstPersonAfterEscape(
   window.addEventListener("pagehide", cleanup);
   expiryTimerId = window.setTimeout(cleanup, ESCAPE_POINTER_LOCK_RECOVERY_EXPIRY_MS);
   return requestId;
+}
+
+/** ESC 回 SPACE 后、指针锁尚未恢复前：用于挡住展品点击误进作品页。 */
+export function isPendingEscapePointerLockRecovery() {
+  return pendingEscapePointerLockRecovery !== null;
 }

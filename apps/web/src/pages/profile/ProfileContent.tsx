@@ -1,8 +1,10 @@
 import { useMemo } from "react";
+import { ArkGlassTile } from "../../components/ArkGlassTile";
 import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { useScrubSections } from "../../scroll/useScrubSections";
+import { useSectionReadProgress } from "../../scroll/useSectionReadProgress";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
@@ -21,6 +23,7 @@ export function ProfileContent() {
     [{ selector: ".ark-psection__body", drift: 56 }],
     [sections],
   );
+  useSectionReadProgress(".ark-psection", ".ark-psection__railBar", [sections]);
 
   return (
     <>
@@ -120,11 +123,15 @@ export function ProfileContent() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {inner}
+                  <ArkGlassTile className="ark-links__glass" variant="link">
+                    {inner}
+                  </ArkGlassTile>
                 </a>
               ) : (
                 <div key={`${link.label}-${link.value}`} className="ark-links__item">
-                  {inner}
+                  <ArkGlassTile className="ark-links__glass" variant="link">
+                    {inner}
+                  </ArkGlassTile>
                 </div>
               );
             })}

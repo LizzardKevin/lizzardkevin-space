@@ -1,8 +1,10 @@
 import { useMemo } from "react";
+import { ArkGlassTile } from "../../components/ArkGlassTile";
 import { getDevStories } from "../../content/devStories";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { useScrubSections } from "../../scroll/useScrubSections";
+import { useSectionReadProgress } from "../../scroll/useSectionReadProgress";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { DataStrip, TagRow } from "../../scroll/primitives";
@@ -26,6 +28,7 @@ export function DevStoriesContent() {
     ],
     [stories],
   );
+  useSectionReadProgress(".ark-dentry", ".ark-dentry__railBar", [stories]);
 
   return (
     <>
@@ -44,13 +47,15 @@ export function DevStoriesContent() {
 
       {stories.map((story) => (
         <section className="ark-dentry" id={story.id} key={story.id}>
-          <div className="ark-dentry__head">
-            <div className="ark-dentry__index">
-              <div className="ark-dentry__indexInner">
-                <span className="ark-dentry__number">{story.number}</span>
-                <span className="ark-dentry__period">{story.period}</span>
-              </div>
+          <div className="ark-dentry__index">
+            <div className="ark-dentry__indexInner">
+              <span className="ark-dentry__number">{story.number}</span>
+              <span className="ark-dentry__period">{story.period}</span>
+              <span className="ark-dentry__railBar" aria-hidden="true" />
             </div>
+          </div>
+
+          <div className="ark-dentry__body">
             <div className="ark-dentry__main">
               <Reveal>
                 <h2 className="ark-dentry__title">{story.title}</h2>
@@ -62,44 +67,50 @@ export function DevStoriesContent() {
                 <TagRow tags={story.tags} />
               </div>
             </div>
-          </div>
 
-          <Reveal>
-            <div className="ark-dentry__grid">
-              {story.built.length > 0 ? (
-                <div className="ark-dentry__panel">
-                  <span className="ark-dentry__panelLabel">
-                    {copy.devStories.builtLabel}
-                  </span>
-                  <ul>
-                    {story.built.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              {story.trouble.length > 0 ? (
-                <div className="ark-dentry__panel ark-dentry__panel--trouble">
-                  <span className="ark-dentry__panelLabel">
-                    {copy.devStories.troubleLabel}
-                  </span>
-                  <ul>
-                    {story.trouble.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              {story.next ? (
-                <div className="ark-dentry__panel ark-dentry__panel--next">
-                  <span className="ark-dentry__panelLabel">
-                    {copy.devStories.nextLabel}
-                  </span>
-                  <p>{story.next}</p>
-                </div>
-              ) : null}
-            </div>
-          </Reveal>
+            <Reveal>
+              <div className="ark-dentry__grid">
+                {story.built.length > 0 ? (
+                  <ArkGlassTile className="ark-dentry__panel" variant="panel">
+                    <span className="ark-dentry__panelLabel">
+                      {copy.devStories.builtLabel}
+                    </span>
+                    <ul>
+                      {story.built.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </ArkGlassTile>
+                ) : null}
+                {story.trouble.length > 0 ? (
+                  <ArkGlassTile
+                    className="ark-dentry__panel ark-dentry__panel--trouble"
+                    variant="panel"
+                  >
+                    <span className="ark-dentry__panelLabel">
+                      {copy.devStories.troubleLabel}
+                    </span>
+                    <ul>
+                      {story.trouble.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </ArkGlassTile>
+                ) : null}
+                {story.next ? (
+                  <ArkGlassTile
+                    className="ark-dentry__panel ark-dentry__panel--next"
+                    variant="panel"
+                  >
+                    <span className="ark-dentry__panelLabel">
+                      {copy.devStories.nextLabel}
+                    </span>
+                    <p>{story.next}</p>
+                  </ArkGlassTile>
+                ) : null}
+              </div>
+            </Reveal>
+          </div>
         </section>
       ))}
     </>

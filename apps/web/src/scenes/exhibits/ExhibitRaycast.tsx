@@ -2,6 +2,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { buildExhibitTarget, isExhibitWithinRange, type ExhibitTarget } from "../../exhibits/exhibitTarget";
+import { isPendingEscapePointerLockRecovery } from "../../space/requestSpacePointerLock";
 import { findSceneExhibitRoot } from "./exhibitPlacement.ts";
 import { useExhibitInteractionTargets } from "./exhibitInteractionRegistry";
 import { publishSpaceRaycastDebug } from "../debug/spaceMovementDebug";
@@ -172,11 +173,13 @@ export function ExhibitRaycast({
 
     const tryFocus = () => {
       if (!enabled) return;
+      // ESC 回 SPACE 后指针锁恢复前：吞掉左键，避免误进作品详情
+      if (isPendingEscapePointerLockRecovery()) return;
       const id = lastFocused.current;
       if (suppressNextClickRef.current) {
         suppressNextClickRef.current = false;
         onConsumeSuppressedClickRef.current();
-        if (!id) return;
+        return;
       }
       if (id) onFocusExhibitRef.current(id);
       else onEmptyClickRef.current();

@@ -34,3 +34,6 @@ dist-ssr
 # Local temp / scratch
 /.tmp_py/
 /work/
+
+# Brainstorm visual companion sessions
+.superpowers/

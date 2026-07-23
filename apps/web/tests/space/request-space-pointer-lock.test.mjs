@@ -60,7 +60,15 @@ async function withMockedPointerLockBrowser(requestPointerLockWithRawFallback, r
 
   const globals = {
     CustomEvent: MockCustomEvent,
-    document: { pointerLockElement: null },
+    document: {
+      pointerLockElement: null,
+      addEventListener: (type, listener) => {
+        const typeListeners = listeners.get(`document:${type}`) ?? new Set();
+        typeListeners.add(listener);
+        listeners.set(`document:${type}`, typeListeners);
+      },
+      removeEventListener: (type, listener) => listeners.get(`document:${type}`)?.delete(listener),
+    },
     queueMicrotask: (callback) => microtasks.push(callback),
     window: {
       addEventListener: (type, listener) => {
@@ -250,7 +258,7 @@ test("a normal pointer-lock request cancels an older pending Escape recovery", a
 });
 
 for (const lifecycleEvent of ["blur", "pagehide"]) {
-  test(`${lifecycleEvent} cancels a relock already scheduled by Escape keyup`, async () => {
+  test(`${lifecycleEvent} cancels pending Escape recovery before keyup`, async () => {
     const pointerLockCalls = [];
     await withMockedPointerLockBrowser(
       (canvas) => pointerLockCalls.push(canvas),
@@ -259,8 +267,8 @@ for (const lifecycleEvent of ["blur", "pagehide"]) {
           { entered: true, overlayOpen: false },
           501,
         );
-        dispatchWindowEvent("keyup", { key: "Escape" });
         dispatchWindowEvent(lifecycleEvent);
+        dispatchWindowEvent("keyup", { key: "Escape" });
         runAllTimers();
         assert.equal(pointerLockCalls.length, 0);
         assert.equal(listenerCount("keyup"), 0);
@@ -309,7 +317,8 @@ test("ordinary Escape keyup issues one correlated pointer-lock request", async (
       );
       dispatchWindowEvent("keyup", { key: "Escape" });
       assert.deepEqual(cursorReturns, [{ target: "center" }]);
-      assert.equal(pointerLockCalls.length, 0);
+      // keyup 当帧请求锁定（不再延迟 500ms）
+      assert.equal(pointerLockCalls.length, 1);
       runAllTimers();
 
       assert.equal(pointerLockCalls.length, 1);
