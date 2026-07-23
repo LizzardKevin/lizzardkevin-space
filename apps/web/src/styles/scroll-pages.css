@@ -1218,6 +1218,7 @@
 .ark-wnav {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 3vw, 40px);
   width: 100%;
   max-width: var(--ark-content-frame);
   margin: 10vh auto 0;
@@ -1228,9 +1229,7 @@
   display: flex;
   flex-direction: column;
   padding: 0;
-  border-top: 1px solid var(--ark-line);
-  border-right: 1px solid var(--ark-line);
-  border-bottom: 1px solid var(--ark-line);
+  border: none;
   text-decoration: none;
   color: inherit;
   background: transparent;
@@ -1245,6 +1244,11 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* 作品详情强调色（黄）边框，覆盖玻璃默认灰边 */
+.ark-wnav__glass .liquidGlass-wrapper {
+  --lg-border: color-mix(in srgb, var(--ark-accent) 58%, transparent);
 }
 
 .ark-wnav__glass .ark-glass-tile__pad {
