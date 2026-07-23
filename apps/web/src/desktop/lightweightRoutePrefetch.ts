@@ -17,8 +17,5 @@ function resolveIdleApi() {
 
 export const lightweightDesktopRoutePrefetch = createIdleRoutePrefetchController({
   idleApi: resolveIdleApi(),
-  importers: [
-    () => import("./ProfileOverlayRoute"),
-    () => import("./DevStoriesOverlayRoute"),
-  ],
+  importers: [() => import("../pages/archive/ArchiveHub")],
 });

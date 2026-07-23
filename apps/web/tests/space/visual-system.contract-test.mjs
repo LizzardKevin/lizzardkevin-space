@@ -164,9 +164,11 @@ const selected = cssRule(css, '.topbar__settingsSegment button[aria-pressed="tru
 
 assert.equal(declarationValue(topbar, "top"), "8px");
 assert.equal(declarationValue(topbar, "height"), "36px");
-assert.equal(declarationValue(cluster, "background"), "var(--space-hud-surface)");
-assert.equal(declarationValue(cluster, "border"), "1px solid var(--space-hud-border)");
-assert.equal(declarationValue(cluster, "border-radius"), "0");
+assert.doesNotMatch(
+  cluster,
+  /background|border/,
+  "topbar cluster must stay frameless (plain text buttons)",
+);
 assert.equal(declarationValue(button, "min-height"), "32px");
 assert.equal(declarationValue(button, "color"), "var(--space-paper)");
 assert.equal(declarationValue(button, "font-size"), "13px");

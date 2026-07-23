@@ -20,6 +20,10 @@ test("trusted Enter synchronously arms the stable host before requesting pointer
   assert.match(enterBody, /flushSync\(\(\) => dispatchHandoff\(\{ type: ["']trusted-enter["'] \}\)\)/);
   assert.ok(armIndex >= 0 && armIndex < requestIndex);
   assert.match(desktop, /id=["']space-pointer-lock-target["']/);
+  assert.match(
+    desktop,
+    /shouldGuardSpacePointerLock\(entered,\s*routeBlocked,\s*returningToSpace,\s*enteringSpace\)/,
+  );
   assert.doesNotMatch(enterBody, /setSpaceStarted\(true\)|boot\.start\(\)/);
   assert.match(disposedBody, /setSpaceStarted\(true\)/);
   assert.match(disposedBody, /boot\.start\(\)/);
@@ -133,16 +137,25 @@ test("the blocked-route guard synchronously removes its listener during a return
   assert.doesNotMatch(guard, /\buseEffect\(/);
 });
 
-test("Focus close delegates route and pointer-lock resume to DesktopApp exactly once", () => {
+test("scroll page return delegates to the DesktopApp pointer-lock resume chain exactly once", () => {
   const desktop = source("app/DesktopApp.tsx");
-  const experience = source("pages/SpaceDesktopExperience.tsx");
+  const shell = source("scroll/ScrollPageShell.tsx");
+  const escapeHook = source("scroll/useEscapeToSpace.ts");
   const pointerLockApi = source("space/requestSpacePointerLock.ts");
-  const focusCloseBody = experience.match(/const handleBeginDismissFocus = useCallback\([\s\S]*?\n  \);/)?.[0] ?? "";
   const navigateBody = desktop.match(/const navigateToSpace = useCallback\([\s\S]*?\n  \);/)?.[0] ?? "";
   const escapeBody = pointerLockApi.match(/export function resumeSpaceFirstPersonAfterEscape[\s\S]*?\n\}/)?.[0] ?? "";
 
-  assert.match(focusCloseBody, /onNavigateToSpace\(opts\)/);
-  assert.doesNotMatch(focusCloseBody, /resumeSpaceFirstPerson|engageSpaceFirstPerson/);
+  // 作品/档案页必须在点击或 Escape 手势链内调用 DesktopApp coordinator。
+  assert.match(desktop, /<WorkDetailPage\s+onNavigateToSpace=\{navigateToSpace\}\s*\/>/);
+  assert.equal(
+    (desktop.match(/<ArchiveHub\s+tab=["'](?:profile|devstories)["']\s+onNavigateToSpace=\{navigateToSpace\}\s*\/>/g) ?? []).length,
+    2,
+  );
+  assert.match(shell, /onClick=\{\(\) => onNavigateToSpace\(\)\}/);
+  assert.match(shell, /useEscapeToSpace\(onNavigateToSpace\)/);
+  assert.match(escapeHook, /onNavigateToSpace\(\{\s*fromEscape:\s*true\s*\}\)/);
+  assert.doesNotMatch(shell, /navigate\(["']\/["']\)/);
+  assert.doesNotMatch(shell, /resumeSpaceFirstPerson|requestSpacePointerLock/);
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonAfterEscape/g) ?? []).length, 1);
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonWithCursorReturn/g) ?? []).length, 1);
   assert.equal((escapeBody.match(/addEventListener\(["']keyup["']/g) ?? []).length, 1);
@@ -166,33 +179,15 @@ test("Focus arms the return handoff before making exactly one pointer-lock reque
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonAfterEscape\(/g) ?? []).length, 1);
 });
 
-test("Profile and DevStories commit the SPACE route before requesting lock and retain only the close animation", () => {
+test("Profile and DevStories are standalone pages with no overlay close machinery", () => {
   const desktop = source("app/DesktopApp.tsx");
-  const beginCloseBody = desktop.match(/const beginOverlayClose = useCallback\([\s\S]*?\n  \);/)?.[0] ?? "";
-  const onClosedBodies = [...desktop.matchAll(/onClosed=\{\(\) => \{([\s\S]*?)\n              \}\}/g)].map(
-    (match) => match[1],
-  );
-  const armIndex = beginCloseBody.indexOf("setReturningToSpace(true)");
-  const navigateIndex = beginCloseBody.indexOf("navigate(APP_ROUTE_PATHS.space)");
-  const normalRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonWithCursorReturn(pointerLockRequestId)");
-  const escapeRequestIndex = beginCloseBody.indexOf("resumeSpaceFirstPersonAfterEscape(");
+  const topbar = source("desktop/DesktopTopBar.tsx");
 
-  assert.ok(armIndex >= 0 && armIndex < normalRequestIndex);
-  assert.ok(armIndex < escapeRequestIndex);
-  assert.ok(navigateIndex >= 0 && navigateIndex < normalRequestIndex);
-  assert.ok(navigateIndex < escapeRequestIndex);
-  assert.match(beginCloseBody, /if \(!returnAttempt\.started\) return;/);
-  assert.match(beginCloseBody, /setClosingOverlay\(\{/);
-  assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonWithCursorReturn\(pointerLockRequestId\)/g) ?? []).length, 1);
-  assert.equal((beginCloseBody.match(/resumeSpaceFirstPersonAfterEscape\(/g) ?? []).length, 1);
-  assert.equal(onClosedBodies.length, 2);
-  for (const body of onClosedBodies) {
-    assert.match(body, /setClosingOverlay\(null\)/);
-    assert.doesNotMatch(body, /navigate\(|navigateToSpace|resumeSpaceFirstPerson|requestSpacePointerLock/);
-  }
-  assert.match(desktop, /const effectiveRouteBlocked = routeBlocked \|\| closingOverlay !== null/);
-  assert.match(desktop, /routeBlocked=\{effectiveRouteBlocked\}/);
-  assert.match(desktop, /pauseMainAudio=\{routePolicy\.pauseMainAudio \|\| closingOverlay !== null\}/);
+  // 顶栏直接路由到独立滚动页，不再经过 overlay 开关与关闭动画状态机。
+  assert.match(topbar, /navigate\(tab === ["']devStories["'] \? ["']\/devstories["'] : ["']\/profile["']\)/);
+  assert.doesNotMatch(desktop, /beginOverlayClose|closingOverlay|ClosingOverlay|presentedOverlayTab/);
+  assert.match(desktop, /routeBlocked=\{routeBlocked\}/);
+  assert.match(desktop, /pauseMainAudio=\{routePolicy\.pauseMainAudio\}/);
 });
 
 test("the return handoff clears on SPACE commit and pointer-lock failure or cancellation", () => {
@@ -207,7 +202,7 @@ test("the return handoff clears on SPACE commit and pointer-lock failure or canc
   );
   assert.match(
     desktop,
-    /if \(route\.kind === ["']space["'] && closingOverlay === null && returningToSpace\) \{\s*setReturningToSpace\(false\);/,
+    /if \(route\.kind === ["']space["'] && returningToSpace\) \{\s*setReturningToSpace\(false\);/,
   );
-  assert.match(desktop, /if \(route\.kind === ["']space["'] && closingOverlay === null\) \{\s*returnAttemptRef\.current\.complete\(\);/);
+  assert.match(desktop, /if \(route\.kind === ["']space["']\) \{\s*returnAttemptRef\.current\.complete\(\);/);
 });

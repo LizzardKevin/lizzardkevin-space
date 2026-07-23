@@ -6,16 +6,12 @@ import { SpaceRouteCoordinator } from "./SpaceRouteCoordinator";
 export default function SpaceHost({
   boot,
   entered,
-  focusedExhibitId,
-  onNavigateToSpace,
   onNavigateToWork,
   pauseMainAudio,
   routeBlocked,
 }: {
   boot: SpaceBootController;
   entered: boolean;
-  focusedExhibitId: string | null;
-  onNavigateToSpace: (options?: { fromEscape?: boolean }) => void;
   onNavigateToWork: (exhibitId: string) => void;
   pauseMainAudio: boolean;
   routeBlocked: boolean;
@@ -27,9 +23,7 @@ export default function SpaceHost({
         <SpaceDesktopExperience
           boot={boot}
           entered={entered}
-          focusedExhibitId={focusedExhibitId}
           loadExhibits
-          onNavigateToSpace={onNavigateToSpace}
           onNavigateToWork={onNavigateToWork}
           overlay={{ isOverlayOpen: routeBlocked }}
           routeBlocked={routeBlocked}

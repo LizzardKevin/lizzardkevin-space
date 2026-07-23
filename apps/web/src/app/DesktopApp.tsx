@@ -9,10 +9,8 @@ import {
   useState,
 } from "react";
 import { flushSync } from "react-dom";
-import { Link, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useAudioDirector } from "../audio/useAudioDirector";
-import { useTranslation } from "react-i18next";
-import type { OverlayTab } from "../overlay/OverlayState";
 import {
   SPACE_POINTER_LOCK_FAILED_EVENT,
   requestSpacePointerLock,
@@ -28,13 +26,7 @@ import {
 import { PersistentSpaceHostBoundary } from "../space/PersistentSpaceHostBoundary";
 import { resolveSpaceRouteRuntimePolicy, type SpaceRouteKind } from "../space/routeRuntimePolicy";
 import { NotFound, ProfileAliasRoute, SpaceAliasRoute } from "./appRoutes";
-import {
-  APP_ROUTE_PATHS,
-  resolveAppRoute,
-  resolveDesktopWorkRouteSurface,
-  workRoute,
-} from "./routeConfig";
-import { isKnownExhibitId } from "../content/lightweightExhibitIndex";
+import { APP_ROUTE_PATHS, resolveAppRoute, workRoute } from "./routeConfig";
 import { useSpaceBootController } from "../boot/useSpaceBootController";
 import { lightweightDesktopRoutePrefetch } from "../desktop/lightweightRoutePrefetch";
 import {
@@ -49,28 +41,10 @@ const SpacePage = lazy(() => import("../pages/SpacePage"));
 const DesktopTopBar = lazy(() =>
   import("../desktop/DesktopTopBar").then((module) => ({ default: module.DesktopTopBar })),
 );
-const ProfileOverlayRoute = lazy(() => import("../desktop/ProfileOverlayRoute"));
-const DevStoriesOverlayRoute = lazy(() => import("../desktop/DevStoriesOverlayRoute"));
-
-type SpaceWordRect = { height: number; width: number; x: number; y: number };
-type ClosingOverlay = {
-  tab: Exclude<OverlayTab, null>;
-  spaceWordSourceRect: SpaceWordRect | null;
-};
-
-function ColdWorkRoute({ exhibitId }: { exhibitId: string }) {
-  const { t } = useTranslation();
-  const known = isKnownExhibitId(exhibitId);
-  return (
-    <main role="main" className="app-route-layer app-route-message">
-      <p>{known ? t("route.workRequiresSpace", { id: exhibitId }) : t("route.notFound")}</p>
-      <Link to="/">{t(known ? "route.enterSpace" : "route.invalidWorkReturn")}</Link>
-    </main>
-  );
-}
+const ArchiveHub = lazy(() => import("../pages/archive/ArchiveHub"));
+const WorkDetailPage = lazy(() => import("../pages/works/WorkDetailPage"));
 
 function DesktopRouteLoading() {
-  const { t } = useTranslation();
   return (
     <div
       className="app-route-layer app-route-message desktop-route-loading"
@@ -78,7 +52,6 @@ function DesktopRouteLoading() {
       aria-live="polite"
     >
       <span className="desktop-route-loading__indicator" aria-hidden="true" />
-      <p>{t("space.loading")}</p>
     </div>
   );
 }
@@ -94,7 +67,6 @@ export default function DesktopApp() {
   );
   const [spaceStarted, setSpaceStarted] = useState(false);
   const [minWhiteElapsed, setMinWhiteElapsed] = useState(false);
-  const [closingOverlay, setClosingOverlay] = useState<ClosingOverlay | null>(null);
   const [returningToSpace, setReturningToSpace] = useState(false);
   const returnAttemptRef = useRef(createSpaceReturnPointerLockAttemptCoordinator());
   const route = resolveAppRoute(location.pathname);
@@ -106,17 +78,6 @@ export default function DesktopApp() {
         : route.kind;
   const routePolicy = resolveSpaceRouteRuntimePolicy(policyRoute);
   const routeBlocked = routePolicy.routeBlocked;
-  const overlayTab: OverlayTab =
-    route.kind === "profile" ? "lizzardkevin" : route.kind === "devstories" ? "devStories" : null;
-  const focusedExhibitId = route.kind === "work" ? route.exhibitId : null;
-  const workRouteSurface = resolveDesktopWorkRouteSurface(route, spaceStarted);
-  const routeNavigationState = location.state as { spaceWordSourceRect?: SpaceWordRect | null } | null;
-  const presentedOverlayTab = overlayTab ?? closingOverlay?.tab ?? null;
-  const presentedSpaceWordSourceRect =
-    overlayTab !== null
-      ? routeNavigationState?.spaceWordSourceRect ?? null
-      : closingOverlay?.spaceWordSourceRect ?? null;
-  const effectiveRouteBlocked = routeBlocked || closingOverlay !== null;
 
   useEffect(() => {
     lightweightDesktopRoutePrefetch.update({
@@ -132,12 +93,12 @@ export default function DesktopApp() {
     handoff.phase === "booting" ||
     handoff.phase === "revealing";
 
-  if (route.kind === "space" && closingOverlay === null && returningToSpace) {
+  if (route.kind === "space" && returningToSpace) {
     setReturningToSpace(false);
   }
 
   useSpacePointerLockGuard(
-    shouldGuardSpacePointerLock(entered, effectiveRouteBlocked, returningToSpace, enteringSpace),
+    shouldGuardSpacePointerLock(entered, routeBlocked, returningToSpace, enteringSpace),
   );
 
   useEffect(() => {
@@ -151,10 +112,10 @@ export default function DesktopApp() {
   }, []);
 
   useLayoutEffect(() => {
-    if (route.kind === "space" && closingOverlay === null) {
+    if (route.kind === "space") {
       returnAttemptRef.current.complete();
     }
-  }, [closingOverlay, route.kind]);
+  }, [route.kind]);
 
   useEffect(() => {
     if (!spaceStarted) return;
@@ -215,32 +176,6 @@ export default function DesktopApp() {
     [entered, navigate, route.kind],
   );
 
-  const beginOverlayClose = useCallback(
-    (options?: { fromEscape?: boolean }) => {
-      if (overlayTab === null) return;
-      const returnAttempt = returnAttemptRef.current.begin(reserveSpacePointerLockRequestId);
-      if (!returnAttempt.started) return;
-      const pointerLockRequestId = returnAttempt.requestId;
-      flushSync(() => {
-        setClosingOverlay({
-          tab: overlayTab,
-          spaceWordSourceRect: routeNavigationState?.spaceWordSourceRect ?? null,
-        });
-        setReturningToSpace(true);
-        navigate(APP_ROUTE_PATHS.space);
-      });
-      if (options?.fromEscape) {
-        resumeSpaceFirstPersonAfterEscape(
-          { entered, overlayOpen: false },
-          pointerLockRequestId,
-        );
-      } else if (entered) {
-        resumeSpaceFirstPersonWithCursorReturn(pointerLockRequestId);
-      }
-    },
-    [entered, navigate, overlayTab, routeNavigationState?.spaceWordSourceRect],
-  );
-
   return (
     <div
       id="space-pointer-lock-target"
@@ -252,7 +187,7 @@ export default function DesktopApp() {
         overflow: "hidden",
       }}
     >
-      {spaceStarted && entered && route.kind === "space" && closingOverlay === null ? (
+      {spaceStarted && entered && route.kind === "space" ? (
         <Suspense fallback={null}>
           <DesktopTopBar onNavigateToSpace={() => navigateToSpace()} />
         </Suspense>
@@ -265,13 +200,27 @@ export default function DesktopApp() {
             <Route
               path="/works/:exhibitId"
               element={
-                workRouteSurface === "not-found" ? <NotFound /> : workRouteSurface === "cold-work" && route.kind === "work" ? (
-                  <ColdWorkRoute exhibitId={route.exhibitId} />
-                ) : null
+                <Suspense fallback={<DesktopRouteLoading />}>
+                  <WorkDetailPage onNavigateToSpace={navigateToSpace} />
+                </Suspense>
               }
             />
-            <Route path="/profile" element={null} />
-            <Route path="/devstories" element={null} />
+            <Route
+              path="/profile"
+              element={
+                <Suspense fallback={<DesktopRouteLoading />}>
+                  <ArchiveHub tab="profile" onNavigateToSpace={navigateToSpace} />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/devstories"
+              element={
+                <Suspense fallback={<DesktopRouteLoading />}>
+                  <ArchiveHub tab="devstories" onNavigateToSpace={navigateToSpace} />
+                </Suspense>
+              }
+            />
             <Route path="/space" element={<SpaceAliasRoute />} />
             <Route path="/lizzardkevin" element={<ProfileAliasRoute />} />
             <Route path="*" element={<NotFound />} />
@@ -282,11 +231,9 @@ export default function DesktopApp() {
             <SpaceHost
               boot={boot}
               entered={entered}
-              focusedExhibitId={focusedExhibitId}
-              onNavigateToSpace={navigateToSpace}
               onNavigateToWork={(exhibitId) => navigate(workRoute(exhibitId))}
-              pauseMainAudio={routePolicy.pauseMainAudio || closingOverlay !== null}
-              routeBlocked={effectiveRouteBlocked}
+              pauseMainAudio={routePolicy.pauseMainAudio}
+              routeBlocked={routeBlocked}
             />
           ) : null
         }
@@ -339,34 +286,6 @@ export default function DesktopApp() {
             </div>
           ) : null}
         </div>
-      ) : null}
-
-      {presentedOverlayTab !== null ? (
-        <Suspense fallback={<DesktopRouteLoading />}>
-          {presentedOverlayTab === "lizzardkevin" ? (
-            <ProfileOverlayRoute
-              closing={closingOverlay !== null}
-              spaceWordSourceRect={presentedSpaceWordSourceRect}
-              onRequestClose={beginOverlayClose}
-              onClosed={() => {
-                setClosingOverlay(null);
-                setReturningToSpace(false);
-                returnAttemptRef.current.complete();
-              }}
-            />
-          ) : (
-            <DevStoriesOverlayRoute
-              closing={closingOverlay !== null}
-              spaceWordSourceRect={presentedSpaceWordSourceRect}
-              onRequestClose={beginOverlayClose}
-              onClosed={() => {
-                setClosingOverlay(null);
-                setReturningToSpace(false);
-                returnAttemptRef.current.complete();
-              }}
-            />
-          )}
-        </Suspense>
       ) : null}
     </div>
   );

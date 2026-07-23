@@ -7,6 +7,20 @@ import { useExhibitInteractionTargets } from "./exhibitInteractionRegistry";
 import { publishSpaceRaycastDebug } from "../debug/spaceMovementDebug";
 
 const EXHIBIT_INTERACTION_RAYCAST_FAR = 30;
+/** 遮挡判定的距离容差（米）：遮挡物须比展品命中更近这么多才算阻挡。 */
+const OCCLUSION_EPSILON = 0.05;
+
+/** 收集场景中的 COL_ 碰撞网格（不可见但可被 Raycaster 命中），作为交互遮挡物。 */
+function collectCollisionMeshes(scene: THREE.Scene, cache: THREE.Mesh[] | null): THREE.Mesh[] {
+  if (cache && cache.length > 0) return cache;
+  const meshes: THREE.Mesh[] = [];
+  scene.traverse((obj) => {
+    if ((obj as THREE.Mesh).isMesh && obj.name.startsWith("COL_")) {
+      meshes.push(obj as THREE.Mesh);
+    }
+  });
+  return meshes;
+}
 
 export function ExhibitRaycast({
   onTargetChange,
@@ -23,10 +37,11 @@ export function ExhibitRaycast({
   onConsumeSuppressedClick: () => void;
   enabled: boolean;
 }) {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
   const interactionTargets = useExhibitInteractionTargets();
   const lastActiveKey = useRef<string | null>(null);
   const lastFocused = useRef<string | null>(null);
+  const collisionMeshesRef = useRef<THREE.Mesh[]>([]);
   const onTargetChangeRef = useRef(onTargetChange);
   const onFocusExhibitRef = useRef(onFocusExhibit);
   const onEmptyClickRef = useRef(onEmptyClick);
@@ -76,9 +91,25 @@ export function ExhibitRaycast({
     raycaster.setFromCamera(center, camera);
 
     const hits = raycaster.intersectObjects(interactionTargets, true);
-    const frontHit = hits[0]?.object as THREE.Object3D | undefined;
+    let frontHit = hits[0]?.object as THREE.Object3D | undefined;
+
+    // 遮挡判定：射线必须先命中场景碰撞网格（COL_）才算被阻挡——
+    // 隔墙/隔物时即使准星对着展品（含投影仪）也不触发提示与交互。
+    if (frontHit) {
+      if (collisionMeshesRef.current.length === 0) {
+        collisionMeshesRef.current = collectCollisionMeshes(scene, collisionMeshesRef.current);
+      }
+      if (collisionMeshesRef.current.length > 0) {
+        const blockers = raycaster.intersectObjects(collisionMeshesRef.current, false);
+        const blocker = blockers[0];
+        if (blocker && blocker.distance < hits[0].distance - OCCLUSION_EPSILON) {
+          frontHit = undefined;
+        }
+      }
+    }
+
     if (import.meta.env.DEV) {
-      const debugHit = hits[0]?.object;
+      const debugHit = frontHit;
       const hitMeshName = debugHit ? debugHit.name || debugHit.parent?.name || debugHit.uuid : null;
       if (hitMeshName !== lastDebugHitMeshName.current) {
         lastDebugHitMeshName.current = hitMeshName;

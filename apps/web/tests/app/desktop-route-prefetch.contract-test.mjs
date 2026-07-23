@@ -95,8 +95,7 @@ function resolveModule(importer, specifier) {
 const allowlistSource = readFileSync(entry, "utf8");
 assert.equal(hasUnresolvedDynamicImport(allowlistSource), false);
 assert.deepEqual(dynamicSpecifiers(allowlistSource), [
-  "./ProfileOverlayRoute",
-  "./DevStoriesOverlayRoute",
+  "../pages/archive/ArchiveHub",
 ]);
 assert.doesNotMatch(allowlistSource, /setTimeout|setInterval/);
 
@@ -178,14 +177,14 @@ assert.deepEqual(dynamicSpecifiers(desktop), [
   "../space/SpaceHost",
   "../pages/SpacePage",
   "../desktop/DesktopTopBar",
-  "../desktop/ProfileOverlayRoute",
-  "../desktop/DevStoriesOverlayRoute",
+  "../pages/archive/ArchiveHub",
+  "../pages/works/WorkDetailPage",
 ]);
 assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);
-assert.match(desktop, /workRouteSurface\s*===\s*["']cold-work["'][\s\S]*?<ColdWorkRoute/);
-assert.match(desktop, /presentedOverlayTab\s*===\s*["']lizzardkevin["'][\s\S]*?<ProfileOverlayRoute[\s\S]*?<DevStoriesOverlayRoute/);
+assert.match(desktop, /path=["']\/works\/:exhibitId["'][\s\S]*?<Suspense\s+fallback=\{<DesktopRouteLoading\s*\/>\}>\s*<WorkDetailPage/);
+assert.match(desktop, /spaceStarted\s*&&\s*entered\s*&&\s*route\.kind\s*===\s*["']space["'][\s\S]*?<DesktopTopBar/);
 assert.match(desktop, /function\s+DesktopRouteLoading[\s\S]*?role=["']status["'][\s\S]*?aria-live=["']polite["']/);
-assert.match(desktop, /presentedOverlayTab\s*!==\s*null[\s\S]*?<Suspense\s+fallback=\{<DesktopRouteLoading\s*\/>\}/);
+assert.match(desktop, /fallback=\{<DesktopRouteLoading\s*\/>\}/);
 assert.match(globalCss, /\.desktop-route-loading__indicator\s*\{[\s\S]*?animation:/);
 assert.match(globalCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.desktop-route-loading__indicator\s*\{[\s\S]*?animation:\s*none/);
 console.log("desktop lightweight route prefetch contract tests passed");

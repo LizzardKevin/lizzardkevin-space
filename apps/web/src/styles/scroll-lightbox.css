@@ -1,0 +1,89 @@
+/*
+ * 作品详情页横向画廊边缘渐隐 + 图片灯箱（ImageLightbox）样式。
+ * - .ark-wgallery__track：左右各 72px mask 渐隐，避免图片被容器硬切。
+ * - .ark-lightbox：全屏灯箱，data-open 驱动 opacity + scale 过渡；
+ *   prefers-reduced-motion 下去掉过渡直接显隐。
+ */
+
+/* ---------- 画廊两侧边缘渐隐 ---------- */
+
+.ark-wgallery__track {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 72px,
+    black calc(100% - 72px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 72px,
+    black calc(100% - 72px),
+    transparent
+  );
+}
+
+/* ---------- 图片灯箱 ---------- */
+
+.ark-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 12, 14, 0.92);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  outline: none;
+}
+
+.ark-lightbox[data-open="true"] {
+  opacity: 1;
+}
+
+.ark-lightbox__stage {
+  position: relative;
+  margin: 0;
+  transform: scale(0.98);
+  transition: transform 180ms ease;
+}
+
+.ark-lightbox[data-open="true"] .ark-lightbox__stage {
+  transform: scale(1);
+}
+
+.ark-lightbox__img {
+  display: block;
+  max-width: 92vw;
+  max-height: 88vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border: 1px solid rgba(213, 214, 216, 0.32);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 左下角等宽字编号标签，挂在图框下沿外侧 */
+.ark-lightbox__label {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  transform: translateY(100%);
+  padding-top: 8px;
+  font-family: var(--ark-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ark-dim, #a8a9ad);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ark-lightbox,
+  .ark-lightbox__stage {
+    transition: none;
+  }
+}

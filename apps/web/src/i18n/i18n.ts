@@ -15,12 +15,6 @@ export const runtimeResourceAugmentation = {
       rendererUnavailableBody: "Unable to initialize a WebGPU or WebGL2 renderer.",
       retry: "Retry",
     },
-    focus: {
-      rendererLoadFailed: "Focus renderer failed to load",
-      mediaLoadProgress: "Images decoded {{loaded}}/{{total}}",
-      mediaLoadFailed: "{{failed}} image(s) failed to load.",
-      videoMetadataFailed: "Video metadata failed to load.",
-    },
   },
   zh: {
     settings: {
@@ -33,29 +27,17 @@ export const runtimeResourceAugmentation = {
       rendererUnavailableBody: "无法初始化 WebGPU 或 WebGL2 渲染器。",
       retry: "重试",
     },
-    focus: {
-      rendererLoadFailed: "Focus 渲染器加载失败",
-      mediaLoadProgress: "图片解码 {{loaded}}/{{total}}",
-      mediaLoadFailed: "{{failed}} 张图片加载失败。",
-      videoMetadataFailed: "视频信息加载失败。",
-    },
   },
 } as const;
 
 export const runtimeRouteResourceAugmentation = {
   en: {
-    workRequiresSpace: "Work {{id}} is available after entering SPACE.",
-    enterSpace: "Enter SPACE",
     notFound: "404 — Page not found",
     notFoundTerminal: "$ route: 404 not found",
-    invalidWorkReturn: "404 — return to SPACE",
   },
   zh: {
-    workRequiresSpace: "进入 SPACE 后可查看作品 {{id}}。",
-    enterSpace: "进入 SPACE",
     notFound: "404 — 页面不存在",
     notFoundTerminal: "$ route: 404 路径不存在",
-    invalidWorkReturn: "404 — 返回 SPACE",
   },
 } as const;
 
@@ -71,10 +53,6 @@ export const resources = {
         ...generatedResources.en.translation.space,
         ...runtimeResourceAugmentation.en.space,
       },
-      focus: {
-        ...generatedResources.en.translation.focus,
-        ...runtimeResourceAugmentation.en.focus,
-      },
       route: runtimeRouteResourceAugmentation.en,
     },
   },
@@ -88,10 +66,6 @@ export const resources = {
       space: {
         ...generatedResources.zh.translation.space,
         ...runtimeResourceAugmentation.zh.space,
-      },
-      focus: {
-        ...generatedResources.zh.translation.focus,
-        ...runtimeResourceAugmentation.zh.focus,
       },
       route: runtimeRouteResourceAugmentation.zh,
     },

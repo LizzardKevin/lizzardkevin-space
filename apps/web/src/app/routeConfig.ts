@@ -16,8 +16,6 @@ export type AppRoute =
   | { kind: "profile-alias" }
   | { kind: "not-found" };
 
-export type DesktopWorkRouteSurface = "cold-work" | "host" | "not-found" | "none";
-
 export function normalizeRouterBasename(baseUrl: string) {
   if (!baseUrl || baseUrl === "/") return "/";
   const withLeadingSlash = baseUrl.startsWith("/") ? baseUrl : `/${baseUrl}`;
@@ -37,15 +35,6 @@ export function resolveAppRoute(pathname: string): AppRoute {
   if (pathname === "/space") return { kind: "space-alias" };
   if (pathname === "/lizzardkevin") return { kind: "profile-alias" };
   return { kind: "not-found" };
-}
-
-export function resolveDesktopWorkRouteSurface(
-  route: AppRoute,
-  spaceStarted: boolean,
-): DesktopWorkRouteSurface {
-  if (route.kind === "not-found") return "not-found";
-  if (route.kind !== "work") return "none";
-  return spaceStarted ? "host" : "cold-work";
 }
 
 export function workRoute(exhibitId: string) {

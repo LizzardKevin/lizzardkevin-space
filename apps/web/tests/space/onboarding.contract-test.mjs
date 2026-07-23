@@ -32,7 +32,7 @@ const focusDemo = readProjectFile(expectedFiles.focusDemo);
 const exhibitTarget = readProjectFile("apps/web/src/exhibits/exhibitTarget.ts");
 const targetLabel = readProjectFile("apps/web/src/exhibits/ExhibitTargetLabel.tsx");
 const desktop = files.desktop;
-const focusOverlay = readProjectFile("apps/web/src/exhibits/FocusOverlay.tsx");
+const workDetailPage = readProjectFile("apps/web/src/pages/works/WorkDetailPage.tsx");
 const i18n = readProjectFile("apps/web/src/generated/i18nResources.generated.ts").replace(
   /"([A-Za-z_$][\w$]*)":/g,
   "$1:",
@@ -269,8 +269,8 @@ assert(focusDemo.includes("useFocusDoubleClickHandler"), "demo focus should supp
 assert(focusDemo.includes("focus-return-button"), "demo focus should reuse the return-to-space button language");
 assert(focusDemo.includes("space-onboarding-focus__exitHint"), "demo focus should teach double-click exit locally");
 assert(!focusDemo.includes("space-onboarding-sign__image"), "demo focus should keep the original DOM typography");
-assert(!focusOverlay.includes("space-onboarding-focus__exitHint"), "real exhibit focus must not show onboarding exit hint");
-assert(!focusOverlay.includes("双击空白也可以退出"), "real exhibit focus must not gain the onboarding double-click copy");
+assert(!workDetailPage.includes("space-onboarding-focus__exitHint"), "real exhibit work page must not show onboarding exit hint");
+assert(!workDetailPage.includes("双击空白也可以退出"), "real exhibit work page must not gain the onboarding double-click copy");
 
 assert(i18n.includes("onboarding"), "i18n should contain onboarding copy");
 assert(

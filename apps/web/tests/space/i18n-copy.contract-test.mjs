@@ -5,14 +5,11 @@ const topbar = readSourceFile("components/TopBar.tsx");
 const desktop = readSourceFile("pages/SpaceDesktopExperience.tsx");
 const hud = readSourceFile("space/SpaceHud.tsx");
 const player = readSourceFile("scenes/Player/PlayerController.tsx");
-const overlay = readSourceFile("overlay/OverlayLayer.tsx");
 const playback = readSourceFile("media/PlaybackBar.tsx");
 const webgpuUnavailable = readSourceFile("rendering/WebGPUUnavailable.tsx");
-const focus = readSourceFile("exhibits/FocusOverlay.tsx");
 const i18nRuntime = readSourceFile("i18n/i18n.ts");
 const appErrorBoundary = readSourceFile("components/AppErrorBoundary.tsx");
 const debugOverlay = readSourceFile("scenes/debug/SpaceMovementDebugOverlay.tsx");
-const desktopApp = readSourceFile("app/DesktopApp.tsx");
 const appRoutes = readSourceFile("app/appRoutes.tsx");
 
 for (const [sourceName, source, keys] of [
@@ -40,16 +37,10 @@ for (const [sourceName, source, keys] of [
     webgpuUnavailable,
     ["space.rendererUnavailableTitle", "space.rendererUnavailableBody"],
   ],
-  ["FocusOverlay", focus, ["focus.rendererLoadFailed"]],
   [
     "PlayerController",
     player,
     ["space.jumpQuiet", "space.jumpUnlocked"],
-  ],
-  [
-    "OverlayLayer",
-    overlay,
-    ["overlay.returnPrefix", "overlay.returnLabel"],
   ],
   [
     "PlaybackBar",
@@ -81,11 +72,8 @@ for (const [sourceName, source, keys] of [
   }
 }
 
-assert(desktopApp.includes('t("route.workRequiresSpace"'), "cold work route must use i18n");
-assert(desktopApp.includes('"route.enterSpace"'), "valid cold work route must use generic SPACE entry copy");
 assert(appRoutes.includes('t("route.notFound"'), "desktop not-found must use i18n");
 assert(appRoutes.includes('t("route.notFoundTerminal"'), "terminal not-found must use i18n");
-assert(hud.includes('t("route.invalidWorkReturn"'), "invalid exhibit route must use i18n");
 
 for (const key of [
   "quality",
@@ -93,12 +81,8 @@ for (const key of [
   "qualitySimplified",
   "rendererUnavailableTitle",
   "rendererUnavailableBody",
-  "rendererLoadFailed",
-  "workRequiresSpace",
-  "enterSpace",
   "notFound",
   "notFoundTerminal",
-  "invalidWorkReturn",
 ]) {
   assert(i18nRuntime.includes(`${key}:`), `runtime i18n augmentation must define ${key}`);
 }
@@ -124,7 +108,6 @@ for (const hardcoded of [
     ["SpaceDesktopExperience", desktop],
     ["SpaceHud", hud],
     ["PlayerController", player],
-    ["OverlayLayer", overlay],
     ["PlaybackBar", playback],
     ["WebGPUUnavailable", webgpuUnavailable],
     ["AppErrorBoundary", appErrorBoundary],

@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
 import test from "node:test";
@@ -35,7 +35,8 @@ test("SPACE workbook content pipeline is generated and synchronized", () => {
 
   const devStories = fs.readFileSync(DEV_STORIES_PATH, "utf8");
   const profile = fs.readFileSync(PROFILE_PATH, "utf8");
-  assert.match(devStories, /Pointer Lock prompt cannot be hidden; the best fix/);
+  // 文案经历多轮润色（见 grok/devstories-humanizer），断言锚定稳定片段而非完整句子。
+  assert.match(devStories, /Pointer Lock prompt cannot be hidden/);
   assert.match(profile, /Public images can connect outward; private images/);
 });
 

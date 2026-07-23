@@ -9,6 +9,7 @@ import App from "./App";
 import { normalizeRouterBasename } from "./app/routeConfig";
 import "./i18n/i18n";
 import "./styles/global.css";
+import "./styles/scroll-pages.css";
 
 const platform: ClientPlatform = detectClientPlatform();
 
