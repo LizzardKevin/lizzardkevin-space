@@ -771,7 +771,37 @@
   min-width: 0;
   width: 100%;
   height: 100%;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* className 落在库外层 .wrapper；真正玻璃面是内部 .liquidGlass-wrapper */
+.ark-glass-tile > .liquidGlass-wrapper {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100%;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+/*
+ * 库默认在 enableBorderAnimation 时 shine 恒为 opacity:1，且 :not(:hover) 也是 1。
+ * 舟味：空闲无光，指针进入后才显示贴边高光（inset，不会打到玻璃外）。
+ */
+.ark-glass-tile .liquidGlass-shine[data-enable-border-animation="true"] {
+  opacity: 0 !important;
+}
+
+.ark-glass-tile > .liquidGlass-wrapper:hover .liquidGlass-shine[data-enable-border-animation="true"] {
+  opacity: 1 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ark-glass-tile .liquidGlass-shine {
+    opacity: 0 !important;
+    transition: none !important;
+  }
 }
 
 .ark-dentry__panelLabel {

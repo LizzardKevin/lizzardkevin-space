@@ -23,7 +23,7 @@ const VARIANT_BORDER: Record<ArkGlassTileVariant, string> = {
 };
 
 /**
- * 舟味克制工业玻璃贴：边光跟随指针；禁止点击波纹与 parallax 位移。
+ * 舟味克制工业玻璃贴：仅指针进入时显示贴边高光；禁止外圈光晕、点击波纹与 parallax。
  * 调用方只传 className / variant / children，不透出库强度参数。
  */
 export function ArkGlassTile({
@@ -41,11 +41,16 @@ export function ArkGlassTile({
       borderColor={VARIANT_BORDER[variant]}
       borderWidth={1}
       borderRadius={0}
+      enableShadow={false}
       shadowBlur={0}
       shadowSpread={0}
       shadowOffsetX={0}
       shadowOffsetY={0}
       shadowColor="transparent"
+      shadowHighlightColor="transparent"
+      shadowInnerWidth={120}
+      shadowInnerHeight={120}
+      shadowInnerWeight={0.85}
       enableBorderAnimation={!reduceMotion}
       enableClickAnimation={false}
       parallaxMovement={0}

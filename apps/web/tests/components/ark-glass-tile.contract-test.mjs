@@ -33,9 +33,21 @@ describe("ArkGlassTile contract", () => {
     assert.match(src, /enableClickAnimation=\{false\}/);
     assert.match(src, /parallaxMovement=\{0\}/);
     assert.match(src, /borderRadius=\{0\}/);
+    assert.match(src, /enableShadow=\{false\}/);
     assert.match(src, /prefersReducedMotion/);
     assert.match(src, /enableBorderAnimation=\{!reduceMotion\}/);
     assert.match(src, /blur=\{8\}/);
+  });
+
+  it("scroll-pages CSS keeps shine idle-off and hover-on inside the tile", () => {
+    const css = read(join(root, "src/styles/scroll-pages.css"));
+    assert.match(css, /\.ark-glass-tile \.liquidGlass-shine\[data-enable-border-animation="true"\]/);
+    assert.match(css, /opacity:\s*0\s*!important/);
+    assert.match(
+      css,
+      /\.ark-glass-tile > \.liquidGlass-wrapper:hover \.liquidGlass-shine\[data-enable-border-animation="true"\]/,
+    );
+    assert.match(css, /\.ark-glass-tile > \.liquidGlass-wrapper[\s\S]*?box-shadow:\s*none\s*!important/);
   });
 
   it("is the only apps/web/src consumer of @khvicha/react-liquid-glass", () => {
