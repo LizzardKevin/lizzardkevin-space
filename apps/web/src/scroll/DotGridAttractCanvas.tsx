@@ -132,11 +132,12 @@ export function DotGridAttractCanvas({
       return Math.abs(py - cy) <= halfH;
     };
 
-    /** 自主动画层：全量点阵随流场缓慢漂移，~10% 的点各自相位呼吸点亮。
+    /** 自主动画层：点永不消失——基础亮度恒定，所有点随流场漂移并轻微
+     *  呼吸缩放；约 12% 的活跃点额外做大幅半径波动、椭圆形状变化与
+     *  弱强调色混入（幅度全部弱于指针吸引效果）。
      *  指针影响区与箭头区让位给对应层绘制。 */
     const drawFlow = (time: number) => {
       const flowT = time * 0.00045;
-      const breatheT = time * 0.0011;
       const iMax = Math.ceil(cssWidth / GRID_SPACING);
       const jMax = Math.ceil(cssHeight / GRID_SPACING);
       const buckets: (Path2D | undefined)[] = [];
@@ -161,20 +162,28 @@ export function DotGridAttractCanvas({
           const fx = x + Math.cos(ang) * 3.4;
           const fy = y + Math.sin(ang) * 3.4;
 
-          // 呼吸点亮（约 10% 的点，各自相位）
+          // 大小呼吸：普通点微动，活跃点（~12%）大幅波动
           const hash = (i * 31 + j * 17) % 97;
-          let alphaK = 0;
-          if (hash < 10) {
-            alphaK = Math.max(0, Math.sin(breatheT + hash * 0.65)) * 0.55;
-          }
-          const bucketIndex = Math.min(FLOW_BUCKETS - 1, Math.round(alphaK * (FLOW_BUCKETS - 1)));
+          const active = hash < 12;
+          const sizeWave = Math.sin(time * 0.0007 + hash * 1.7);
+          const radius = DOT_RADIUS * (1 + (active ? 0.85 : 0.22) * sizeWave);
+          // 形状变化：活跃点在圆与椭圆之间缓慢变形
+          const shapeWave = active ? Math.sin(time * 0.0009 + hash * 2.3) : 0;
+          const rx = radius * (1 + 0.3 * shapeWave);
+          const ry = radius * (1 - 0.3 * shapeWave);
+
+          // 颜色与亮度：活跃点 glow 驱动弱提亮 + 弱强调色混入（弱于吸引）
+          const glow = active ? Math.max(0, Math.sin(time * 0.0011 + hash * 0.65)) : 0;
+          const bucketIndex = active
+            ? Math.min(FLOW_BUCKETS - 1, 1 + Math.round(glow * (FLOW_BUCKETS - 2)))
+            : 0;
           let path = buckets[bucketIndex];
           if (!path) {
             path = new Path2D();
             buckets[bucketIndex] = path;
           }
-          path.moveTo(fx + DOT_RADIUS, fy);
-          path.arc(fx, fy, DOT_RADIUS, 0, TAU);
+          path.moveTo(fx + rx, fy);
+          path.ellipse(fx, fy, Math.max(rx, 0.3), Math.max(ry, 0.3), 0, 0, TAU);
         }
       }
 
@@ -182,7 +191,13 @@ export function DotGridAttractCanvas({
         const path = buckets[index];
         if (!path) continue;
         const k = index / (FLOW_BUCKETS - 1);
-        ctx.fillStyle = `rgba(${BASE_R}, ${BASE_G}, ${BASE_B}, ${BASE_ALPHA + (0.42 - BASE_ALPHA) * k})`;
+        // 基础点 alpha 0.10 恒定（永不消失）；活跃点最高 0.26（弱于吸引 0.35）
+        const alpha = 0.1 + (0.26 - 0.1) * k;
+        const colorMix = k * 0.34;
+        const r = Math.round(BASE_R + (accent.r - BASE_R) * colorMix);
+        const g = Math.round(BASE_G + (accent.g - BASE_G) * colorMix);
+        const b = Math.round(BASE_B + (accent.b - BASE_B) * colorMix);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
         ctx.fill(path);
       }
     };
@@ -225,7 +240,8 @@ export function DotGridAttractCanvas({
           if (dist > REDRAW_RADIUS) continue;
 
           const t = Math.max(0, 1 - dist / INFLUENCE_RADIUS);
-          const colorK = t * t;
+          // 变色程度与吸引程度对应：t^1.5 让中距离的强调色也更明确
+          const colorK = Math.pow(t, 1.5);
           const bucketIndex = Math.round(colorK * (COLOR_BUCKETS - 1));
           let path = buckets[bucketIndex];
           if (!path) {
@@ -264,7 +280,9 @@ export function DotGridAttractCanvas({
 
     const drawArrow = () => {
       if (arrowStrength <= 0.01) return;
-      const { direction } = readDotGridArrow();
+      const { direction, accentColor } = readDotGridArrow();
+      // 箭头用对方页面强调色（bus 传入），缺省回落本页 accent
+      const arrowAccent = (accentColor && parseHexColor(accentColor)) || accent;
       const dirSign = direction === "right" ? 1 : -1;
       const cx = direction === "right" ? cssWidth - 72 : 72;
       const cy = cssHeight / 2;
@@ -308,9 +326,9 @@ export function DotGridAttractCanvas({
           const k = arrowStrength * (0.25 + 0.75 * edge);
           const radius = DOT_RADIUS + 2.6 * k;
           const colorK = Math.min(1, k * 1.25);
-          const r = Math.round(BASE_R + (accent.r - BASE_R) * colorK);
-          const g = Math.round(BASE_G + (accent.g - BASE_G) * colorK);
-          const b = Math.round(BASE_B + (accent.b - BASE_B) * colorK);
+          const r = Math.round(BASE_R + (arrowAccent.r - BASE_R) * colorK);
+          const g = Math.round(BASE_G + (arrowAccent.g - BASE_G) * colorK);
+          const b = Math.round(BASE_B + (arrowAccent.b - BASE_B) * colorK);
           ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.12 + 0.78 * k})`;
           ctx.beginPath();
           ctx.arc(px, py, radius, 0, TAU);

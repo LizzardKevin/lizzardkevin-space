@@ -260,9 +260,13 @@ export function ScrollPageShell({
             style={{ "--ark-switch-accent": SWITCH_ACCENT_COLORS[switchTarget.accent] } as CSSProperties}
             aria-label={`${copy.switchAriaPrefix} ${switchTarget.label}`}
             onClick={handleSwitch}
-            onMouseEnter={() => setDotGridArrow(switchTarget.side)}
+            onMouseEnter={() =>
+              setDotGridArrow(switchTarget.side, SWITCH_ACCENT_COLORS[switchTarget.accent])
+            }
             onMouseLeave={() => setDotGridArrow(null)}
-            onFocus={() => setDotGridArrow(switchTarget.side)}
+            onFocus={() =>
+              setDotGridArrow(switchTarget.side, SWITCH_ACCENT_COLORS[switchTarget.accent])
+            }
             onBlur={() => setDotGridArrow(null)}
           >
             <span className="ark-switchstrip__code">{switchTarget.code}</span>
