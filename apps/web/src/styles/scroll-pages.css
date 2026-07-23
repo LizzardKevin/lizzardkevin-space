@@ -850,7 +850,7 @@
 
 .ark-glass-tile__edge {
   position: absolute;
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--ark-accent) 55%, #ffffff 45%);
   opacity: 0;
   pointer-events: none;
 }
