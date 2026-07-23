@@ -1,1 +1,1 @@
-WebGPU 全面迁移（去 N8AO/EffectComposer）；平台 trimesh 碰撞与加减速手感修好；视觉改 Firewatch 向 Toon+雾+轻 Bloom（GTAO 暂关）；审计三角面 exhibit 过重；排查白屏与部署；Blender AO 烘焙流程进行中（Bake active 节点待完成）。
+这几天把渲染迁到 WebGPU，顺手拆掉 N8AO / EffectComposer。平台台阶的 trimesh 碰撞和加减速手感调顺了；视觉改成 Firewatch 向的 Toon + 雾 + 轻 Bloom，GTAO 先关掉。顺带查了三角面：exhibit 偏重。线上白屏和部署路径也排过一轮。Blender AO 烘焙流程开了头，Bake 时还得记得在 Shader Editor 里点中 active 节点。

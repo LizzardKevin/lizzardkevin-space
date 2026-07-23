@@ -1,1 +1,1 @@
-展品准星瞄准+左键进 Focus（mousedown、父级冒泡 exhibitId、退出吞首击）；主场景 Focus 时禁用底层指针；Focus 300ms 虚化加深+150ms 内容淡入；纯白 2s 线性入口 splash；WebGPU Neutral exposure 1.15、Bloom+Vignette 无 AO；pivot 优先旋转中心；按钮 hover/billboard 已回退待新方案。
+展品改成准星瞄准后左键进 Focus：用 mousedown，向父级冒泡找 exhibitId，退出时吞掉第一次点击。主场景进 Focus 会关掉底层指针。Focus 先 300ms 虚化加深，再 150ms 淡入内容。入口是纯白 splash，2s 线性淡出。渲染仍是 WebGPU，Neutral、exposure 1.15，Bloom + Vignette，不开 AO。旋转中心优先用 pivot。按钮 hover / billboard 做过又整段回退了，等新方案。

@@ -4,21 +4,19 @@
 
 ## 本次目标
 
-- 继续整理桌面端第一屏、Pointer Lock、Overlay、DevStories 和滚轮目录，让桌面 SPACE 从“可跑”进入更稳定的前端基准。
-- 将生产主场景从 `gallery_main` 切到 `space_main`：`gallery_main` 只保留为历史 demo / 测试资产。
-- 为手机端单独做一套轻量页面，不再强行加载 WebGPU SPACE、Pointer Lock、桌面 Overlay 或 DevStories。
-- 手机端以 terminal / markdown 文档感为主，先承载 Projects、Skills.md、Soul.md、Contact.md 和中英文内容。
-- 将关键交互约定写成脚本级 contract test，避免后续继续靠主观手测回忆状态。
+这轮有两条线一起往前走。桌面端继续整理第一屏、Pointer Lock、Overlay、DevStories 和滚轮目录，先做出一版稳定的前端基准；生产主场景从 `gallery_main` 换到 `space_main`，旧场景只留作历史 demo / 测试资产。
+
+手机端单独做轻量页面，不加载 WebGPU SPACE、Pointer Lock、桌面 Overlay 或 DevStories。内容先按 terminal / markdown 的形式放入 Projects、Skills.md、Soul.md、Contact.md，并支持中英文。关键交互会写进脚本级 contract test，后面不用只靠手测去回忆状态。
 
 ## 已完成产出
 
-### 1) 桌面入口与第一人称恢复
+### 1) 桌面入口和第一人称恢复
 
-- 入口白屏继续保持极简：
+- 入口白屏只留下：
   - `LizzardKevin Space`
   - 点击进入提示
   - 整组文字可点击，可键盘进入。
-- 桌面端进入前会等待 SPACE canvas ready，避免用户点进去后看到未准备好的 3D 背景。
+- 桌面端会等 SPACE canvas ready 后再进入，免得点击后先看到没准备好的 3D 背景。
 - 点击入口时在同一用户手势里请求 pointer lock，减少浏览器安全限制导致的失败。
 - Overlay 关闭时继续同步 cursor return 与 pointer lock 恢复：
   - 普通关闭走 cursor return。
@@ -28,7 +26,7 @@
   - 关闭 Overlay 后回到 SPACE 控制。
   - 滚轮切换时保留 cursor 反馈。
 
-### 2) Frosted Split Overlay 与 DevStories 基准
+### 2) Frosted Split Overlay 和 DevStories
 
 - Profile / DevStories 从长页面改成全屏 Frosted Split：
   - 左侧白色 Profile。
@@ -36,22 +34,22 @@
   - 中间滑动分界线。
   - 半透明毛玻璃和低密度 index。
 - DevStories 侧接入 `apps/web/src/content/devStories.ts`，并让最新日志出现在桌面端 DevStories 列表中。
-- 中间 stage 的滚轮目录改为明确状态机：
+- 中间 stage 的滚轮目录改成状态机：
   - 慢速跟手。
   - 过阈值时上一条飞出、下一条飞入。
   - 首尾回弹。
   - 一次 wheel gesture 只允许跳一条，防止触控板惯性连续跳页。
-- Detail 控件从容易误读的两位数字改为 `+ / -`，更像展开/收起动作。
+- Detail 控件从容易误读的两位数字换成 `+ / -`，对应展开和收起。
 - 追加 `scripts/frosted-split-wheel-paging-test.mjs` 和 `scripts/frosted-overlay-contract-test.mjs` 锁定这些交互约束。
 
-### 3) `space_main` 生产资产切换
+### 3) 生产主场景换到 `space_main`
 
 - 新增并接入生产主空间：
   - `BlenderFile/space_main.blend`
   - `apps/web/public/models/space_main.glb`
 - `galleryConfig.ts` 改为加载：
   - `/models/space_main.glb?v=20260614-space-main`
-- `space_main` 的运行时契约已经进入资产文档：
+- 资产文档记录了 `space_main` 的运行时约定：
   - `COL_floor_*`
   - `COL_wall_*`
   - `COL_stair_*`
@@ -63,14 +61,14 @@
   - 当前 `space_main` 暂未放置 `exhibit_*` hit mesh。
   - `demo_box` / `demo_bass` 的 Focus 特写仍保留在 `public/exhibits/<id>/focus_<id>.glb`。
 
-### 4) 手机端独立入口与加载策略
+### 4) 手机端独立入口和加载
 
 - `SpacePage` 按平台分支：
   - desktop：加载 WebGPU SPACE、TopBar、Overlay。
   - mobile：只加载 `MobileExperience`。
 - `App.tsx` 将桌面 chrome 拆到 `desktop/DesktopChrome.tsx` 并 lazy load，手机端不会静态引入桌面 TopBar / Overlay。
 - `useClientPlatform` 首次 mount 时固定平台，避免横竖屏、外接鼠标或触控板导致桌面/手机分支来回切换。
-- 手机端入口不显示旧的 “Preparing mobile SPACE” 占位，进入后直接进入 terminal boot：
+- 手机端删掉旧的 “Preparing mobile SPACE” 占位，进入后直接跑 terminal boot：
   - `$ space-cli boot --mode mobile`
   - `loading terminal session...`
 - boot 不再是固定 3 秒假加载：
@@ -107,7 +105,7 @@
   - 包含姓名、身份行、电话、邮箱、地点、GitHub 和 practice formula。
 - 所有主要正文支持 `en` / `zh`，terminal command 仍保持英文 shell 语法，避免出现伪中文命令。
 
-### 6) 手机端设置、主题与字体
+### 6) 手机端设置、主题和字体
 
 - 手机端设置面板包含：
   - 语言：`EN` / `中文`
@@ -116,7 +114,7 @@
   - `mobileTerminalLanguage`
   - `mobileTerminalThemeV2`
 - 默认语言为英文，默认主题为浅色。
-- 主题切换不是直接闪变：
+- 主题切换做了过渡：
   - 记录点击按钮中心点。
   - 用 `clip-path: circle(...)` 做圆形 reveal。
   - 通过 `mix-blend-mode: difference` 做黑白反相式过渡。
@@ -126,9 +124,9 @@
   - `apps/web/public/fonts/ubuntu-mono/UbuntuMono-Bold.woff2`
 - 中文模式不下载额外中文 web font，使用系统中文字体栈，避免移动端字体包膨胀。
 
-### 7) 手机端滚动折叠与动效修复
+### 7) 手机端滚动折叠和动效
 
-- 手机端 header 不再使用旧的 boolean compact class，而是通过滚动进度写 CSS variables：
+- 手机端 header 不再靠旧的 boolean compact class，而是根据滚动进度写入 CSS variables：
   - `--terminal-collapse`
   - `--terminal-content-scroll-y`
   - `--terminal-nav-scroll-y`
@@ -183,7 +181,7 @@
 
 ## 当前验证状态
 
-本轮文档补写前，相关功能变更已通过最近提交进入 `main`。本次补写后已重新执行以下验证：
+相关功能变更在补写文档前已经随最近提交进入 `main`。文档补完后，重新执行了：
 
 ```text
 node scripts/mobile-site-contract-test.mjs
@@ -199,15 +197,15 @@ npm run package:test
 - Space interaction contract：通过，覆盖入口、pointer lock、cursor 与 `space_main` 相关交互约定。
 - Build chunk contract：通过，确认桌面重依赖仍被分包，不重新压回入口。
 - Package test：通过，生成 `release/LizzardKevin-Space-test.zip`。
-- 已知剩余手测项：真实手机 Safari / Chrome 的滚动手感、safe-area、字体 fallback、主题 reveal；真实桌面 Chrome 的 WebGPU / Pointer Lock / `space_main` 渲染。
+- 还要手测真实手机 Safari / Chrome 的滚动手感、safe-area、字体 fallback、主题 reveal，以及真实桌面 Chrome 的 WebGPU / Pointer Lock / `space_main` 渲染。
 
 ## 下一步计划
 
-1. **真机手机 QA**：iPhone Safari、Android Chrome 上检查 boot、滚动折叠、主题 reveal、Contact 链接、横竖屏和系统字体。
-2. **手机端内容替换**：把 12 个 project placeholder 逐步替换为真实作品、图片、视频、音频和更明确的 SPACE 房间映射。
-3. **桌面 Focus 继续推进**：回到三按钮 hover、状态、billboard 和展品媒体资源接入。
-4. **`space_main` 展品 hit mesh**：在 Blender 内添加正式 `exhibit_*` 节点，让桌面 Focus 不再只依赖 demo 资产。
-5. **部署检查**：确认 `/models/space_main.glb`、`/fonts/ubuntu-mono/`、`/draco/`、`/exhibits/`、`/audio/` 在部署环境完整上传。
+1. 在 iPhone Safari、Android Chrome 上检查 boot、滚动折叠、主题 reveal、Contact 链接、横竖屏和系统字体。
+2. 把 12 个 project placeholder 逐步替换为真实作品、图片、视频、音频和更明确的 SPACE 房间映射。
+3. 继续做桌面 Focus 的三按钮 hover、状态、billboard 和展品媒体资源接入。
+4. 在 Blender 内给 `space_main` 添加正式 `exhibit_*` hit mesh，让桌面 Focus 不再只依赖 demo 资产。
+5. 检查 `/models/space_main.glb`、`/fonts/ubuntu-mono/`、`/draco/`、`/exhibits/`、`/audio/` 是否在部署环境完整上传。
 
 ## 相关文件索引
 
