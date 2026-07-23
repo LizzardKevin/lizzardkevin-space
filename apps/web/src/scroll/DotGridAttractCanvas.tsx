@@ -67,8 +67,11 @@ function parseHexColor(value: string): RgbColor | null {
  */
 export function DotGridAttractCanvas({
   className,
+  accentColor,
 }: {
   className?: string;
+  /** 页面强调色（hex）；缺省时从最近 [data-accent] 祖先读 --ark-accent */
+  accentColor?: string;
 }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -78,14 +81,16 @@ export function DotGridAttractCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return undefined;
 
-    // mount 时解析强调色：最近的 [data-accent] 祖先（.ark-page），退化到 offsetParent
-    let accent = FALLBACK_ACCENT;
-    const accentHost = canvas.closest("[data-accent]") ?? canvas.offsetParent;
-    if (accentHost) {
-      const parsed = parseHexColor(
-        window.getComputedStyle(accentHost as Element).getPropertyValue("--ark-accent"),
-      );
-      if (parsed) accent = parsed;
+    // 优先用 prop；否则 mount 时从最近 [data-accent] 祖先读 --ark-accent
+    let accent = parseHexColor(accentColor ?? "") ?? FALLBACK_ACCENT;
+    if (!accentColor) {
+      const accentHost = canvas.closest("[data-accent]") ?? canvas.offsetParent;
+      if (accentHost) {
+        const parsed = parseHexColor(
+          window.getComputedStyle(accentHost as Element).getPropertyValue("--ark-accent"),
+        );
+        if (parsed) accent = parsed;
+      }
     }
 
     let dpr = window.devicePixelRatio || 1;
@@ -429,7 +434,7 @@ export function DotGridAttractCanvas({
       scrollEl?.removeEventListener("scroll", handleScroll);
       if (frame !== null) window.cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [accentColor]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
 }
