@@ -851,64 +851,109 @@
 .ark-glass-tile__edge {
   position: absolute;
   pointer-events: none;
-  /* 颜色落在渐变里；整条基础亮度仍由 --ark-glass-edge-*（离边距离）控制 */
+  /* 整条基础亮度：离边距离；沿边峰值跟指针；R/B 错位制造色差 */
   opacity: 0;
+  mix-blend-mode: screen;
 }
 
 .ark-glass-tile__edge--t {
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   opacity: var(--ark-glass-edge-t);
-  background: radial-gradient(
-    140px 3px at var(--ark-glass-mx) 50%,
-    color-mix(in srgb, var(--ark-accent) 55%, #ffffff 45%) 0%,
-    color-mix(in srgb, var(--ark-accent) 22%, transparent) 42%,
-    transparent 78%
-  );
+  background:
+    radial-gradient(
+      150px 4px at calc(var(--ark-glass-mx) - 5px) 50%,
+      rgba(255, 72, 96, 0.7) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      150px 4px at calc(var(--ark-glass-mx) + 5px) 50%,
+      rgba(64, 210, 255, 0.65) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      120px 3px at var(--ark-glass-mx) 50%,
+      color-mix(in srgb, var(--ark-accent) 50%, #ffffff 50%) 0%,
+      color-mix(in srgb, var(--ark-accent) 18%, transparent) 48%,
+      transparent 78%
+    );
 }
 
 .ark-glass-tile__edge--b {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   opacity: var(--ark-glass-edge-b);
-  background: radial-gradient(
-    140px 3px at var(--ark-glass-mx) 50%,
-    color-mix(in srgb, var(--ark-accent) 55%, #ffffff 45%) 0%,
-    color-mix(in srgb, var(--ark-accent) 22%, transparent) 42%,
-    transparent 78%
-  );
+  background:
+    radial-gradient(
+      150px 4px at calc(var(--ark-glass-mx) - 5px) 50%,
+      rgba(255, 72, 96, 0.7) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      150px 4px at calc(var(--ark-glass-mx) + 5px) 50%,
+      rgba(64, 210, 255, 0.65) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      120px 3px at var(--ark-glass-mx) 50%,
+      color-mix(in srgb, var(--ark-accent) 50%, #ffffff 50%) 0%,
+      color-mix(in srgb, var(--ark-accent) 18%, transparent) 48%,
+      transparent 78%
+    );
 }
 
 .ark-glass-tile__edge--l {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 2px;
+  width: 3px;
   opacity: var(--ark-glass-edge-l);
-  background: radial-gradient(
-    3px 140px at 50% var(--ark-glass-my),
-    color-mix(in srgb, var(--ark-accent) 55%, #ffffff 45%) 0%,
-    color-mix(in srgb, var(--ark-accent) 22%, transparent) 42%,
-    transparent 78%
-  );
+  background:
+    radial-gradient(
+      4px 150px at 50% calc(var(--ark-glass-my) - 5px),
+      rgba(255, 72, 96, 0.7) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      4px 150px at 50% calc(var(--ark-glass-my) + 5px),
+      rgba(64, 210, 255, 0.65) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      3px 120px at 50% var(--ark-glass-my),
+      color-mix(in srgb, var(--ark-accent) 50%, #ffffff 50%) 0%,
+      color-mix(in srgb, var(--ark-accent) 18%, transparent) 48%,
+      transparent 78%
+    );
 }
 
 .ark-glass-tile__edge--r {
   top: 0;
   bottom: 0;
   right: 0;
-  width: 2px;
+  width: 3px;
   opacity: var(--ark-glass-edge-r);
-  background: radial-gradient(
-    3px 140px at 50% var(--ark-glass-my),
-    color-mix(in srgb, var(--ark-accent) 55%, #ffffff 45%) 0%,
-    color-mix(in srgb, var(--ark-accent) 22%, transparent) 42%,
-    transparent 78%
-  );
+  background:
+    radial-gradient(
+      4px 150px at 50% calc(var(--ark-glass-my) - 5px),
+      rgba(255, 72, 96, 0.7) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      4px 150px at 50% calc(var(--ark-glass-my) + 5px),
+      rgba(64, 210, 255, 0.65) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      3px 120px at 50% var(--ark-glass-my),
+      color-mix(in srgb, var(--ark-accent) 50%, #ffffff 50%) 0%,
+      color-mix(in srgb, var(--ark-accent) 18%, transparent) 48%,
+      transparent 78%
+    );
 }
 
 @media (prefers-reduced-motion: reduce) {
