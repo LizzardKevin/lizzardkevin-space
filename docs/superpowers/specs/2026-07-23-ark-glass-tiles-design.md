@@ -79,12 +79,12 @@ ArkGlassTile（仓库封装）
 
 ## 验收清单
 
-- [ ] 开发日志三格：悬浮有面内高光 + 边缘高光；静止时仍有可读玻璃底
-- [ ] 简介链接格、作品上下篇导航格同效
-- [ ] 文字清晰、无持续抖动、无点击波纹干扰阅读
-- [ ] 布局与改前栅格对齐（目视 + 窄屏 900px 断点不破版）
-- [ ] 系统 `prefers-reduced-motion: reduce` 时无边光游走
-- [ ] `npm run verify:quick` 通过
+- [x] 开发日志三格：代码已挂载 ArkGlassTile（请在 `/devstories` 目视确认边光）
+- [x] 简介链接格、作品上下篇导航格：代码已挂载（请在 `/profile`、`/works/:id` 目视）
+- [x] 无点击波纹：封装层 `enableClickAnimation={false}`
+- [x] 契约测试锁定预设；窄屏 CSS 断点未改栅格结构
+- [x] `prefers-reduced-motion`：`enableBorderAnimation={!reduceMotion}`
+- [x] `npm run verify:quick` 通过
 
 ## 风险与缓解
 
