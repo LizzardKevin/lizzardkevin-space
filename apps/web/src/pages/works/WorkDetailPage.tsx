@@ -1,7 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ArkGlassTile } from "../../components/ArkGlassTile";
 import { generatedExhibitLabels } from "../../generated/exhibitLabels.generated";
 import { formatExhibitIdFallback, type ExhibitContent } from "../../exhibits/exhibitContent";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
@@ -15,16 +14,16 @@ import {
 import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { useScrubSections } from "../../scroll/useScrubSections";
 import { prefersReducedMotion } from "../../scroll/useLenisScroll";
+import { useGalleryEntrance } from "../../scroll/useGalleryEntrance";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { ImageLightbox } from "../../scroll/ImageLightbox";
 import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
+import { gsap } from "../../scroll/scrollGsap";
 import "../../styles/scroll-lightbox.css";
 import { useWorkDetail } from "./useWorkDetail";
 import { useDragScroll } from "./useDragScroll";
 import { WorkModelViewer } from "./WorkModelViewer";
-
-gsap.registerPlugin(ScrollTrigger);
 
 /**
  * /works/:exhibitId 作品详情页：通用数据驱动、条件分节。
@@ -72,6 +71,11 @@ function resolveWorkTitle(
   if (content?.title) return content.title;
   const label = generatedExhibitLabels[exhibitId as keyof typeof generatedExhibitLabels];
   return label?.[language] ?? label?.en ?? formatExhibitIdFallback(exhibitId);
+}
+
+/** 有视频分节时编号整体后移一位（01 overview → 02 video → …）。 */
+function sectionNo(hasVideo: boolean, base: number): string {
+  return String(hasVideo ? base + 1 : base).padStart(2, "0");
 }
 
 function WorkStage({
@@ -122,9 +126,6 @@ function WorkStage({
       ) : posterUrl ? (
         <img className="ark-wstage__media" src={posterUrl} alt="" />
       ) : null}
-      {modelFailed && posterUrl ? (
-        <img className="ark-wstage__media" src={posterUrl} alt="" />
-      ) : null}
       <span className="ark-wstage__badge">
         {copy.typeLabels[type] ?? type.toUpperCase()}
         {modelFailed ? ` · ${copy.modelFailed}` : ""}
@@ -152,20 +153,33 @@ export default function WorkDetailPage({
     if (state.content?.overview) list.push({ id: "work-overview", label: "OVW" });
     if (state.exhibit.media?.videoUrl) list.push({ id: "work-video", label: "VID" });
     const images = state.exhibit.media?.imageUrls ?? [];
-    if (images.length >= 2) list.push({ id: "work-gallery", label: "IMG" });
+    const hasModel = state.exhibit.type === "model3d" && Boolean(state.exhibit.focusGlbUrl);
+    const stageUsesPoster = !hasModel && !state.exhibit.media?.videoUrl && images.length > 0;
+    const galleryImages = stageUsesPoster ? images.slice(1) : images;
+    if (galleryImages.length >= 1) list.push({ id: "work-gallery", label: "IMG" });
     if (state.content?.storyHtml) list.push({ id: "work-story", label: "STY" });
     return list;
   }, [state]);
 
   const ready = state.status === "ready";
+  const galleryImageCount =
+    state.status === "ready"
+      ? (() => {
+          const images = state.exhibit.media?.imageUrls ?? [];
+          const hasModel = state.exhibit.type === "model3d" && Boolean(state.exhibit.focusGlbUrl);
+          const stageUsesPoster = !hasModel && !state.exhibit.media?.videoUrl && images.length > 0;
+          return (stageUsesPoster ? images.slice(1) : images).length;
+        })()
+      : 0;
   useScrubSections(
     [
       { selector: ".ark-wgallery", drift: 48, minHeightRatio: 0.4 },
       { selector: ".ark-section", drift: 40, minHeightRatio: 0.3 },
     ],
-    [ready, state],
+    [ready, exhibitId],
   );
-  useHeroTitleShrink(heroTitleRef, "work-hero", [ready, state]);
+  useHeroTitleShrink(heroTitleRef, "work-hero", [ready, exhibitId]);
+  useGalleryEntrance(galleryRef, galleryImageCount >= 2, [ready, exhibitId]);
 
   if (!exhibitId || state.status === "not-found") return <NotFound />;
 
@@ -180,9 +194,7 @@ export default function WorkDetailPage({
         <section className="ark-hero">
           <p className="ark-hero__eyebrow">{copy.work.eyebrow}</p>
           <h1 className="ark-hero__title">
-            {generatedExhibitLabels[
-              exhibitId as keyof typeof generatedExhibitLabels
-            ]?.[language] ?? formatExhibitIdFallback(exhibitId)}
+            {resolveWorkTitle(exhibitId, null, language)}
           </h1>
         </section>
       </ScrollPageShell>
@@ -292,7 +304,7 @@ export default function WorkDetailPage({
         <div className="ark-wgallery-zone">
           <section className="ark-wgallery" id="work-gallery">
             <div className="ark-wgallery__head">
-              <SectionHeader number={videoUrl ? "03" : "02"} title={copy.work.galleryLabel} />
+              <SectionHeader number={sectionNo(Boolean(videoUrl), 2)} title={copy.work.galleryLabel} />
               <span className="ark-wgallery__hint">{copy.work.dragHint} ↔</span>
             </div>
             <div className="ark-wgallery__track" ref={galleryRef}>
@@ -339,7 +351,7 @@ export default function WorkDetailPage({
       {content?.storyHtml ? (
         <section className="ark-section" id="work-story">
           <Reveal>
-            <SectionHeader number={videoUrl ? "04" : "03"} title={copy.work.storyLabel} />
+            <SectionHeader number={sectionNo(Boolean(videoUrl), 3)} title={copy.work.storyLabel} />
           </Reveal>
           <Reveal>
             <div
@@ -354,7 +366,7 @@ export default function WorkDetailPage({
       {metadata.length > 0 ? (
         <section className="ark-section" id="work-spec">
           <Reveal>
-            <SectionHeader number={videoUrl ? "05" : "04"} title={copy.work.specLabel} />
+            <SectionHeader number={sectionNo(Boolean(videoUrl), 4)} title={copy.work.specLabel} />
           </Reveal>
           <div className="ark-wspec" style={{ marginTop: "3vh" }}>
             <DataStrip
@@ -365,24 +377,20 @@ export default function WorkDetailPage({
         </section>
       ) : null}
 
-      {prevWork || nextWork ? (
+      {prevWork && nextWork ? (
         <nav className="ark-wnav" aria-label="EXHIBITS">
-          {prevWork ? (
-            <Link className="ark-wnav__link" to={workRoute(prevWork.exhibitId)}>
+          <Link className="ark-wnav__link" to={workRoute(prevWork.exhibitId)}>
+            <ArkGlassTile className="ark-wnav__glass" variant="nav">
               <span className="ark-wnav__dir">← {copy.work.prevWork}</span>
               <span className="ark-wnav__title">{navTitle(prevWork.exhibitId)}</span>
-            </Link>
-          ) : (
-            <span />
-          )}
-          {nextWork ? (
-            <Link className="ark-wnav__link ark-wnav__link--next" to={workRoute(nextWork.exhibitId)}>
+            </ArkGlassTile>
+          </Link>
+          <Link className="ark-wnav__link ark-wnav__link--next" to={workRoute(nextWork.exhibitId)}>
+            <ArkGlassTile className="ark-wnav__glass" variant="nav">
               <span className="ark-wnav__dir">{copy.work.nextWork} →</span>
               <span className="ark-wnav__title">{navTitle(nextWork.exhibitId)}</span>
-            </Link>
-          ) : (
-            <span />
-          )}
+            </ArkGlassTile>
+          </Link>
         </nav>
       ) : null}
     </ScrollPageShell>
