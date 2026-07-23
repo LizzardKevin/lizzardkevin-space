@@ -55,60 +55,62 @@ export function DevStoriesContent() {
             </div>
           </div>
 
-          <div className="ark-dentry__main">
-            <Reveal>
-              <h2 className="ark-dentry__title">{story.title}</h2>
-            </Reveal>
-            <Reveal>
-              <p className="ark-dentry__summary">{story.summary}</p>
-            </Reveal>
-            <div className="ark-dentry__tags">
-              <TagRow tags={story.tags} />
+          <div className="ark-dentry__body">
+            <div className="ark-dentry__main">
+              <Reveal>
+                <h2 className="ark-dentry__title">{story.title}</h2>
+              </Reveal>
+              <Reveal>
+                <p className="ark-dentry__summary">{story.summary}</p>
+              </Reveal>
+              <div className="ark-dentry__tags">
+                <TagRow tags={story.tags} />
+              </div>
             </div>
-          </div>
 
-          <Reveal className="ark-dentry__gridReveal">
-            <div className="ark-dentry__grid">
-              {story.built.length > 0 ? (
-                <ArkGlassTile className="ark-dentry__panel" variant="panel">
-                  <span className="ark-dentry__panelLabel">
-                    {copy.devStories.builtLabel}
-                  </span>
-                  <ul>
-                    {story.built.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                </ArkGlassTile>
-              ) : null}
-              {story.trouble.length > 0 ? (
-                <ArkGlassTile
-                  className="ark-dentry__panel ark-dentry__panel--trouble"
-                  variant="panel"
-                >
-                  <span className="ark-dentry__panelLabel">
-                    {copy.devStories.troubleLabel}
-                  </span>
-                  <ul>
-                    {story.trouble.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                </ArkGlassTile>
-              ) : null}
-              {story.next ? (
-                <ArkGlassTile
-                  className="ark-dentry__panel ark-dentry__panel--next"
-                  variant="panel"
-                >
-                  <span className="ark-dentry__panelLabel">
-                    {copy.devStories.nextLabel}
-                  </span>
-                  <p>{story.next}</p>
-                </ArkGlassTile>
-              ) : null}
-            </div>
-          </Reveal>
+            <Reveal>
+              <div className="ark-dentry__grid">
+                {story.built.length > 0 ? (
+                  <ArkGlassTile className="ark-dentry__panel" variant="panel">
+                    <span className="ark-dentry__panelLabel">
+                      {copy.devStories.builtLabel}
+                    </span>
+                    <ul>
+                      {story.built.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </ArkGlassTile>
+                ) : null}
+                {story.trouble.length > 0 ? (
+                  <ArkGlassTile
+                    className="ark-dentry__panel ark-dentry__panel--trouble"
+                    variant="panel"
+                  >
+                    <span className="ark-dentry__panelLabel">
+                      {copy.devStories.troubleLabel}
+                    </span>
+                    <ul>
+                      {story.trouble.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </ArkGlassTile>
+                ) : null}
+                {story.next ? (
+                  <ArkGlassTile
+                    className="ark-dentry__panel ark-dentry__panel--next"
+                    variant="panel"
+                  >
+                    <span className="ark-dentry__panelLabel">
+                      {copy.devStories.nextLabel}
+                    </span>
+                    <p>{story.next}</p>
+                  </ArkGlassTile>
+                ) : null}
+              </div>
+            </Reveal>
+          </div>
         </section>
       ))}
     </>

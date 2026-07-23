@@ -677,26 +677,23 @@
   max-width: var(--ark-content-frame);
   margin-inline: auto;
   padding: 9vh var(--ark-gutter) 0;
-  display: grid;
-  grid-template-columns: minmax(140px, 16vw) minmax(0, 1fr);
-  column-gap: clamp(20px, 4vw, 64px);
-  align-items: start;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(20px, 4vw, 64px);
 }
 
 .ark-dentry__index {
-  grid-column: 1;
-  grid-row: 1 / -1;
+  flex: 0 0 clamp(140px, 16vw, 280px);
   display: flex;
   flex-direction: column;
   gap: var(--ark-gap-2);
   position: relative;
   padding-left: 22px;
-  /* 拉高到整篇（含玻璃 tab），sticky 数字可降到玻璃下沿 */
+  /* stretch 与 body 同高 → sticky 可一直滚到玻璃下沿 */
   align-self: stretch;
-  min-height: 100%;
 }
 
-/* 数字 sticky：在整篇高度内下滑，直到被下一篇挤走或抵达本篇底 */
+/* 数字 sticky：父级 .ark-dentry__index 与整篇 body（含玻璃）同高 */
 .ark-dentry__indexInner {
   position: sticky;
   top: 24px;
@@ -707,15 +704,14 @@
   width: 100%;
 }
 
-.ark-dentry__main {
-  grid-column: 2;
-  grid-row: 1;
+.ark-dentry__body {
+  flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.ark-dentry__gridReveal {
-  grid-column: 2;
-  grid-row: 2;
+.ark-dentry__main {
   min-width: 0;
 }
 
@@ -1398,20 +1394,16 @@
 
 @media (max-width: 900px) {
   .ark-top__anchors { display: none; }
-  .ark-psection,
-  .ark-dentry {
+  .ark-psection {
     grid-template-columns: 1fr;
   }
-  .ark-dentry__index {
-    grid-column: 1;
-    grid-row: auto;
-    position: static;
-    align-self: start;
+  .ark-dentry {
+    flex-direction: column;
   }
-  .ark-dentry__main,
-  .ark-dentry__gridReveal {
-    grid-column: 1;
-    grid-row: auto;
+  .ark-dentry__index {
+    flex: none;
+    width: 100%;
+    align-self: start;
   }
   .ark-dentry__indexInner {
     position: static;
