@@ -6,19 +6,19 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-01",
       "number": "01",
       "period": "2026.05.28",
-      "title": "Starting with a SPACE skeleton",
-      "summary": "On the first day I did not try to make the gallery beautiful. I made it able to keep growing: Vite, React, TypeScript, first-person movement, overlays, Focus, audio, and GLB naming all needed a place to connect.",
+      "title": "Getting a SPACE skeleton running",
+      "summary": "Day one was not about making the gallery look good. I wanted a base that could keep growing: Vite, React, TypeScript, first-person movement, overlays, Focus, audio, and GLB naming all needed somewhere to plug in.",
       "built": [
-        "I organized the workspace so `apps/web` became the main Vite + React + TypeScript app.",
-        "The top navigation became an overlay, so SPACE stays mounted and can return to the same first-person position.",
-        "The first movement pass connected gravity, wall sliding, ground snapping, and WASD relative to the camera.",
-        "I set early contracts for `COL_` collision meshes, the exhibit manifest, Focus overlay, and the shared playback bar."
+        "I set up the workspace so `apps/web` is the main Vite + React + TypeScript app.",
+        "Top navigation became an overlay, so SPACE stays mounted and can return to the same first-person position.",
+        "The first movement pass added gravity, wall sliding, ground snapping, and WASD relative to the camera.",
+        "I wrote early contracts for `COL_` collision meshes, the exhibit manifest, Focus overlay, and a shared playback bar."
       ],
       "trouble": [
         "The browser's Pointer Lock prompt cannot be hidden; the best fix is reducing how often the site asks for it.",
         "This pass was mostly foundation work. Visual direction, audio zones, exhibit buttons, and the real gallery model still had to come later."
       ],
-      "next": "Next I want to bring in the real gallery model, confirm `COL_` collision works, and then build out exhibit buttons, video channels, footsteps, and a clearer visual direction.",
+      "next": "Next I want the real gallery model in, confirm `COL_` works, then add exhibit buttons, video, footsteps, and a clearer look.",
       "tags": [
         "React",
         "Rapier",
@@ -30,21 +30,21 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-02",
       "number": "02",
       "period": "2026.05.29 - 06.01",
-      "title": "WebGPU arrived, then materials and performance arrived with it",
-      "summary": "I pushed the main scene to WebGPU and immediately had to face rendering, collision, movement, and deployment issues together. GTAO, Toon, fog, Bloom, trimesh, white screens, and Blender AO bake all tangled into one pass.",
+      "title": "WebGPU landed, then materials and performance followed",
+      "summary": "I moved the main scene to WebGPU and immediately hit rendering, collision, movement, and deploy issues together. GTAO, Toon, fog, Bloom, trimesh, white screens, and Blender AO bake all showed up in one pass.",
       "built": [
-        "I added WebGPU capability checks, renderer initialization, an error boundary, and a fallback page for unsupported browsers.",
-        "SpacePage and FocusOverlay moved to WebGPURenderer, and old WebGL post-processing dependencies were removed.",
-        "Platform and wall collisions were rebuilt with root-space baking, double-sided trimesh, floor openings, and autostep protection.",
-        "The current look settled on Toon gradientMap, fog, and light Bloom while I reviewed the triangle distribution in `gallery_main.glb`."
+        "I added WebGPU checks, renderer init, an error boundary, and a page for unsupported browsers.",
+        "SpacePage and FocusOverlay use WebGPURenderer now; the old WebGL post-processing stack is gone.",
+        "Platform and wall collisions were rebuilt with root-space baking, double-sided trimesh, floor openings, and autostep.",
+        "The look settled on Toon gradientMap, fog, and light Bloom while I checked triangle counts in `gallery_main.glb`."
       ],
       "trouble": [
-        "GTAO gave the wall bases more structure, but it was expensive and could make Toon/Basic materials too dark or fully black.",
-        "After removing GTAO, the scene felt too white, so the depth had to come back through color bands, fog, and lighting.",
-        "A production white screen could mean broken code, but it could also mean `dist/assets` was missing and JavaScript returned 404.",
-        "Blender AO bake got stuck on active Image Texture nodes, which reminded me the asset pipeline needs explicit notes, not memory."
+        "GTAO helped wall bases, but it was expensive and could turn Toon/Basic materials too dark or black.",
+        "Without GTAO the scene went too bright, so depth had to come back from color bands, fog, and lights.",
+        "A production white screen can be bad code, or just a missing `dist/assets` upload and JS 404.",
+        "Blender AO bake stuck on the active Image Texture node. The pipeline needs written notes, not memory."
       ],
-      "next": "I want to keep moving AO into assets instead of relying on real-time GTAO, reduce placeholder exhibit weight, and make the `dist` upload process boringly reliable.",
+      "next": "I want AO in assets instead of live GTAO, less weight on placeholder exhibits, and a boring, reliable `dist` upload.",
       "tags": [
         "WebGPU",
         "Toon",
@@ -56,21 +56,21 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-03",
       "number": "03",
       "period": "2026.06.02 - 06.03",
-      "title": "Making exhibits clickable, and backing out of the wrong ideas",
-      "summary": "These two days were mostly Focus work: crosshair targeting, left-click entry, background blur, a transparent foreground canvas, Orbit controls, entry fade, and model pivot strategy. A few ideas ran, but did not belong, so I pulled them back.",
+      "title": "Making exhibits clickable, and dropping bad ideas",
+      "summary": "These two days were mostly Focus: crosshair targeting, left-click entry, background blur, a transparent foreground canvas, Orbit, entry fade, and pivot strategy. A few ideas ran technically and still felt wrong, so I pulled them back.",
       "built": [
-        "The center ray now walks from child mesh to parent exhibitId, and entry moved from E key to left mousedown.",
-        "Entering Focus releases pointer lock, disables the background canvas events, and uses a transparent WebGPU canvas with OrbitControls.",
-        "I added a 300ms blur/dim, 150ms content fade, ESC close, and a top return button so Focus feels like a temporary exhibit table.",
-        "The entry white screen became a two-second fade, and the crosshair gained exhibit highlight plus a small empty-click pulse."
+        "The center ray walks from child mesh to parent exhibitId; entry moved from E key to left mousedown.",
+        "Entering Focus releases pointer lock, disables background canvas events, and opens a transparent WebGPU canvas with OrbitControls.",
+        "I added 300ms blur/dim, 150ms content fade, ESC close, and a top return button.",
+        "The entry white screen fades over two seconds; the crosshair highlights exhibits and pulses on empty clicks."
       ],
       "trouble": [
-        "Click events were unreliable inside pointer lock, but mousedown made Focus entry dependable.",
-        "Trying to stop propagation at the top level broke Orbit dragging, so the fix moved back to `pointer-events: none` on the background canvas.",
-        "Crosshair idle and pulse animations double-flashed together, so the always-on idle animation was removed.",
-        "Button hover emissive and Html billboards worked technically, but the interaction language felt wrong, so they stayed out."
+        "Click was unreliable under pointer lock; mousedown made Focus entry dependable.",
+        "Stopping propagation at the top broke Orbit dragging, so the fix went back to `pointer-events: none` on the background canvas.",
+        "Crosshair idle and pulse flashed twice together, so the always-on idle animation went away.",
+        "Button hover emissive and Html billboards worked, but the interaction language felt off, so they stayed out."
       ],
-      "next": "I want to rethink the three Focus button states and descriptions, keep adding media, and push more visual flicker fixes back into Blender and AO assets.",
+      "next": "I want to rethink the three Focus button states, keep adding media, and push more flicker fixes back into Blender and AO assets.",
       "tags": [
         "Focus",
         "Pointer Lock",
@@ -82,23 +82,23 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-04",
       "number": "04",
       "period": "2026.06.07 - 06.08",
-      "title": "After moving into Codex, I first got back to a verifiable state",
-      "summary": "This pass felt like taking over a machine and checking its pulse. I moved the context into Codex App Projects, got lint, TypeScript, build, package, and asset loading verifiable again, then returned to Focus, entry easter eggs, jump easter eggs, and exhibit asset tracking.",
+      "title": "After moving into Codex, get a verifiable build again",
+      "summary": "This pass was a takeover checklist. I moved context into Codex App Projects, got lint, TypeScript, build, bundles, and asset loading verifiable again, then went back to Focus, entry easter eggs, jump easter eggs, and the exhibit asset table.",
       "built": [
-        "I fixed P1 lint blockers from new React hook rules and split GallerySpawnContext so Fast Refresh stopped warning.",
-        "SpaceDesktopExperience and FocusOverlay became lazy-loaded, with Rolldown groups for React, Three, and Rapier vendor chunks.",
-        "The Draco decoder moved local to `/draco/`, avoiding failures from gstatic fetches.",
-        "Early placeholder Focus pivot, entry click easter eggs, first-person jump easter eggs, and jump/landing sounds were wired in.",
-        "I regenerated the exhibit asset tracker from the latest CSV so placeholders and the asset table matched again."
+        "I cleared P1 lint from new React hook rules and split GallerySpawnContext so Fast Refresh stopped warning.",
+        "SpaceDesktopExperience and FocusOverlay became lazy-loaded, with Rolldown groups for React, Three, and Rapier vendors.",
+        "The Draco decoder moved to local `/draco/`, so gstatic fetches no longer break loads.",
+        "Focus pivot rules, entry click easter eggs, first-person jump unlock, and jump/land sounds went in.",
+        "I regenerated the exhibit asset tracker from the latest CSV so placeholders matched the table again."
       ],
       "trouble": [
-        "Many lint issues came from necessary Three/R3F imperative mutation, so each case needed careful treatment.",
-        "The main entry chunk once went over 4 MB; splitting helped, but Three/Rapier vendor size remains a real constraint.",
-        "A Draco external-load failure can look like broken WASD or a faraway spawn, when the actual issue is a model that never loaded.",
-        "Old `dist` files can trick local preview, so fresh builds need output checks for leftover 20 MB assets.",
-        "Excel and CSV drifted apart, which means the exhibit asset process needs a clearer source of truth."
+        "Many lint hits came from needed Three/R3F imperative mutation; each case needed its own fix.",
+        "The main entry chunk once passed 4 MB. Splitting helped, but Three/Rapier vendor size is still a limit.",
+        "A failed Draco load can look like broken WASD or a far spawn when the model never loaded.",
+        "Old `dist` files can fool local preview, so fresh builds need a check for leftover 20 MB assets.",
+        "Excel and CSV drifted. The exhibit asset flow needs one clear source of truth."
       ],
-      "next": "Next I want to test jump feel and volume, rebuild the three Focus button interactions, and confirm `/draco/`, `/audio/`, and `/exhibits/` all publish completely.",
+      "next": "Next I want to test jump feel and volume, rebuild the three Focus buttons, and confirm `/draco/`, `/audio/`, and `/exhibits/` all publish complete.",
       "tags": [
         "Codex",
         "Lint",
@@ -110,23 +110,23 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-05",
       "number": "05",
       "period": "2026.06.09 - 06.16",
-      "title": "Desktop settled, mobile became a Terminal Site",
-      "summary": "This round split desktop and mobile into two honest paths. Desktop kept refining entry, Pointer Lock, cursor, Frosted Split, DevStories, and `space_main`; mobile stopped trying to squeeze in WebGPU SPACE and became a lighter Terminal Site.",
+      "title": "Desktop settled; mobile became a Terminal Site",
+      "summary": "This round split desktop and mobile. Desktop kept refining entry, Pointer Lock, cursor, Frosted Split, DevStories, and `space_main`. Mobile stopped forcing WebGPU SPACE and became a lighter Terminal Site.",
       "built": [
-        "Desktop entry now waits for Canvas ready and requests pointer lock inside the same user gesture.",
-        "Profile and DevStories stabilized inside Frosted Split: white Profile, black DevStories, sliding divider, sparse index, and animated detail groups.",
-        "The production space moved to `space_main.blend` / `space_main.glb`, loaded at runtime as `/models/space_main.glb?v=20260614-space-main`.",
-        "Mobile added MobileExperience and mobileArchiveData, without importing desktop TopBar, Overlay, WebGPU SPACE, or DevStories.",
+        "Desktop entry waits for Canvas ready and requests pointer lock in the same user gesture.",
+        "Profile and DevStories sit in Frosted Split: white Profile, black DevStories, sliding divider, sparse index, and animated detail groups.",
+        "Production space moved to `space_main.blend` / `space_main.glb`, loaded as `/models/space_main.glb?v=20260614-space-main`.",
+        "Mobile added MobileExperience and mobileArchiveData without importing desktop TopBar, Overlay, WebGPU SPACE, or DevStories.",
         "The mobile terminal gained boot, four tabs, bilingual copy, Light/Dark, Ubuntu Mono, local fonts, circular theme reveal, a collapsing header, and fold sections."
       ],
       "trouble": [
-        "Reusing desktop SPACE on a phone was too heavy; WebGPU, Pointer Lock, and Overlay were the wrong fit.",
-        "A fixed three-second boot was too naive, so it became minimum 3000ms, maximum 10000ms, and waits for fonts before falling back.",
-        "The first mobile header felt pinned to the body, so I separated content and nav compensation through CSS variables.",
-        "Text load animation caused layout shifts until it moved down to an inner load layer.",
-        "Trackpad inertia made desktop DevStories skip too many pages, so wheel paging gained a gesture lock."
+        "Reusing desktop SPACE on a phone was too heavy; WebGPU, Pointer Lock, and Overlay did not fit.",
+        "A fixed three-second boot was too blunt, so it became min 3000ms, max 10000ms, and waits for fonts before fallback.",
+        "The first mobile header felt pinned to the body, so content and nav compensation moved into separate CSS variables.",
+        "Text load animation shifted layout until it moved to an inner load layer.",
+        "Trackpad inertia skipped too many DevStories pages, so wheel paging got a gesture lock."
       ],
-      "next": "I still want real-device checks for iPhone Safari and Android Chrome: scrolling, safe area, font fallback, theme reveal, Contact links, and replacing more project slots with real work.",
+      "next": "I still want real-device checks on iPhone Safari and Android Chrome: scroll, safe area, font fallback, theme reveal, Contact links, and more real project content.",
       "tags": [
         "Mobile",
         "Terminal Site",
@@ -138,24 +138,24 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-06",
       "number": "06",
       "period": "2026.06.17 - 06.22",
-      "title": "Stabilizing cross-platform work and the space_main pipeline",
-      "summary": "I worked on the personal page and DevStories while connecting Windows Codex, macOS, GitHub, and the Blender asset pipeline. `space_main` spawn points, stairs, LEDs, collision, and materials started moving out of web-side rescue patches and back toward Blender source.",
+      "title": "Cross-platform work and the space_main pipeline",
+      "summary": "I worked on the personal page and DevStories while wiring Windows Codex, macOS, GitHub, and the Blender asset path. `space_main` spawn points, stairs, LEDs, collision, and materials started moving out of web rescue patches and back into Blender.",
       "built": [
-        "The LizzardKevin profile page and DevStories content layer became complete enough to show SPACE's growth, not only a resume.",
-        "I built a global custom cursor: dot, hover states, click pulse, text selection, scroll particles, Focus star, and return-to-center animation.",
-        "Alt / ESC pointer-lock release and cursor drift were reworked so the custom dot returns from screen center to the real system pointer.",
-        "The cross-platform Windows Codex branch made `.nvmrc`, package scripts, lockfile, and contract tests friendlier across machines.",
-        "Blender Plain Axes Empty nodes were standardized into `spawn_player_main`, and runtime can use marker height when floor collision is missing.",
-        "I switched Blender batch work to Python Console plus JSON reports, generated visible `STRUCT_STAIR_*` stairs, and wrote emissive LED materials onto `LIGHT_GENERIC_LIGHT_*` nodes."
+        "The LizzardKevin profile page and DevStories layer were complete enough to show how SPACE grew, not only a resume.",
+        "I built a global custom cursor: dot, hover, click pulse, text selection, scroll particles, Focus star, and return-to-center.",
+        "Alt / ESC pointer-lock release was reworked so the custom dot returns from screen center to the real system pointer.",
+        "The cross-platform Windows Codex branch made `.nvmrc`, package scripts, lockfile, and contract tests easier across machines.",
+        "Blender Plain Axes Empty nodes became `spawn_player_main`, and runtime can use marker height when floor collision is missing.",
+        "Blender batch work moved to Python Console plus JSON reports; visible `STRUCT_STAIR_*` stairs and emissive LED materials on `LIGHT_GENERIC_LIGHT_*` went in."
       ],
       "trouble": [
-        "Blender MCP repeatedly returned incomplete JSON or timed out over sockets, so Python Console became the more reliable path.",
+        "Blender MCP often returned incomplete JSON or timed out, so Python Console became the steadier path.",
         "Re-importing GLB could create duplicate `spawn_player_main.001`; scripts must keep the latest marker and clean old nodes.",
-        "When the new model only had `COL_STAIR_*`, the web hid collision bodies and the stairs looked missing, so visible structure nodes were needed.",
-        "Generic LEDs began as dark metal, so they needed real emissive factor and strength, not just names.",
-        "Node v26 triggers engine warnings and lockfile drift; the project still needs Node 24.11.0."
+        "When the new model only had `COL_STAIR_*`, the web hid collision bodies and stairs looked missing, so visible structure nodes were needed.",
+        "Generic LEDs started as dark metal and needed real emissive factor and strength, not only names.",
+        "Node v26 triggers engine warnings and lockfile drift; the project stays on Node 24.11.0."
       ],
-      "next": "Next I want real Chrome visual QA for stairs, LEDs, spawn, and movement feel, then write the visible/collision stair node rule back into the asset naming docs.",
+      "next": "Next I want real Chrome visual QA for stairs, LEDs, spawn, and movement, then write the visible/collision stair rule back into the naming docs.",
       "tags": [
         "Cross Platform",
         "Blender",
@@ -167,22 +167,22 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-07",
       "number": "07",
       "period": "2026.06.23 - 06.24",
-      "title": "Tuning movement feel and the physics tick",
-      "summary": "I focused on how movement felt after the new `space_main` model entered the web app. The dev-only debug overlay showed position, speed, ratio, and current `COL_*` contacts, and the real issue turned out to be render `dt` mixed with Rapier's fixed timestep.",
+      "title": "Movement feel and the physics tick",
+      "summary": "After `space_main` entered the web app, I focused on movement feel. A dev-only debug overlay showed position, speed, ratio, and current `COL_*` contacts. The real bug was render `dt` mixed with Rapier's fixed timestep.",
       "built": [
-        "I added `space:movement-debug` telemetry and a top-left debug overlay for pos, speed, ratio, target, grounded state, collision count, vertical velocity, and contact names.",
-        "`COL_*`, floor, prop fallback, and `SAFETY_GROUND` all register collider handles, so the browser can show exactly what the player is touching.",
-        "First-person look controls returned to the conservative working path before adding smaller delta guards later.",
-        "SPACE explicitly sets `<Physics timeStep={1 / 60}>`, and PlayerController uses a fixed `PLAYER_PHYSICS_TIME_STEP`.",
-        "Temporary doubled walk/sprint speeds returned to 2.45 / 3.85 while keeping smoothstep and lerp for stop inertia."
+        "I added `space:movement-debug` telemetry and a top-left overlay for pos, speed, ratio, target, grounded, collision count, vertical velocity, and contact names.",
+        "`COL_*`, floor, prop fallback, and `SAFETY_GROUND` register collider handles so the browser can show what the player touches.",
+        "First-person look controls returned to the conservative working path before smaller delta guards.",
+        "SPACE sets `<Physics timeStep={1 / 60}>`, and PlayerController uses the same fixed `PLAYER_PHYSICS_TIME_STEP`.",
+        "Temporary doubled walk/sprint speeds went back to 2.45 / 3.85, with smoothstep and lerp stop inertia kept."
       ],
       "trouble": [
-        "The debug ratio looked stable at first only because actual and desired speed both used the same dynamic `dtRef`, hiding the bug.",
-        "I briefly suspected the Vite dev server, then confirmed it only handles dev server/HMR; the real problem was browser runtime timing.",
-        "Custom guarded pointer lock controls had broken view movement before, so this area needs small guards rather than a big rewrite.",
-        "Collision problems in the new GLB cannot be guessed by feel; contact names need to point back to Blender `COL_*` nodes."
+        "Debug ratio looked stable at first only because actual and desired speed shared the same dynamic `dtRef`, hiding the bug.",
+        "I briefly blamed the Vite server, then confirmed it only handles HMR; the timing bug was in the browser runtime.",
+        "Custom guarded pointer lock had broken view movement before, so this area needs small guards, not a rewrite.",
+        "Collision issues in the new GLB cannot be guessed by feel; contact names need to map back to Blender `COL_*` nodes."
       ],
-      "next": "I will keep retesting movement in a real browser with the debug overlay; if mouse jump remains, the next minimal fix follows the Drei PointerLockControls path.",
+      "next": "I will keep retesting movement in a real browser with the debug overlay. If mouse jump remains, the next small fix follows the Drei PointerLockControls path.",
       "tags": [
         "Physics Tick",
         "Movement Debug",
@@ -194,23 +194,23 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-08",
       "number": "08",
       "period": "2026.07.02",
-      "title": "Closing one project pass, and hitting the performance wall",
-      "summary": "This time I stopped adding exhibits and did a project-management review plus low-risk cleanup. Repo hygiene, scripts, runtime, mobile storage, and DevStories data all got clearer, but SPACE also showed a serious runtime performance problem that needs its own thread.",
+      "title": "A project review pass, and the performance problem",
+      "summary": "I stopped adding exhibits and did a project-management review plus low-risk cleanup. Repo hygiene, scripts, runtime, mobile storage, and DevStories data got clearer. SPACE also showed a serious runtime performance problem that needs its own thread.",
       "built": [
-        "I opened a separate review branch and split parallel review into repo hygiene, SPACE runtime, and content/i18n/mobile/devlog.",
+        "I opened a separate review branch and split work into repo hygiene, SPACE runtime, and content/i18n/mobile/devlog.",
         "Low-risk fixes included root `release/` ignore behavior, timestamp-free placement cache, cross-platform Blender PATH lookup, and safer GitHub bootstrap defaults.",
-        "Runtime got small guardrails: hidden Focus canvas pauses on non-model pages, scene exhibit clones dispose their own materials, and mobile plus SPACE daily resume localStorage reads are wrapped.",
-        "README, DevStories maintenance notes, and outdated DevLog 7 script/collision descriptions were aligned with the current structure.",
+        "Runtime got small guardrails: hidden Focus canvas pauses on non-model pages, scene exhibit clones dispose their materials, and mobile plus SPACE daily resume localStorage reads are wrapped.",
+        "README, DevStories maintenance notes, and outdated DevLog 7 script/collision notes were aligned with the current structure.",
         "I added DevLog 8 and its summary, then tuned web DevStories 1 through 8 into first-person notes that are easier to keep reading."
       ],
       "trouble": [
-        "Some suggestions were tempting but outside the review scope: moving source GLB/JPG out of public, GitHub Pages migration, manifest loading rewrite, or changing Focus return copy.",
-        "DevStories Markdown and web data are not automatically synced, so a new log must update both `docs/devlog` and `apps/web/src/content/devStories.ts`.",
-        "The bigger issue is serious SPACE runtime performance degradation, especially when several exhibits and the main scene coexist. Small patches are no longer enough.",
-        "The copy can be lighter, but it still needs the technical thread: WebGPU, Rapier, Pointer Lock, GLB, chunk, and localStorage all matter.",
-        "This build produces local `apps/web/dist`, but it remains an ignored artifact and must not be committed."
+        "Some suggestions were tempting but out of scope: moving source GLB/JPG out of public, GitHub Pages migration, manifest rewrite, or Focus return copy changes.",
+        "DevStories Markdown and web data were not auto-synced, so a new log had to update both `docs/devlog` and `apps/web/src/content/devStories.ts`.",
+        "The bigger issue was serious SPACE runtime performance degradation when several exhibits and the main scene coexisted. Small patches were not enough.",
+        "Copy could be lighter, but it still needed the technical thread: WebGPU, Rapier, Pointer Lock, GLB, chunk, and localStorage.",
+        "That build wrote local `apps/web/dist`, which stayed an ignored artifact and could not be committed."
       ],
-      "next": "After the GitHub Pages / github.io migration thread handles deployment strategy, performance needs its own investigation: UABB, exhibit models, projector images, post-processing, or the main SPACE scene may be the real cost center.",
+      "next": "After deployment strategy is handled in the GitHub Pages thread, performance needs its own pass: UABB, exhibit models, projector images, post-processing, or the main SPACE scene may be the cost center.",
       "tags": [
         "Review",
         "DevLog",
@@ -222,23 +222,23 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-09",
       "number": "09",
       "period": "2026.07.15",
-      "title": "Turning the performance wall into Architecture V2",
-      "summary": "DevLog 8 stopped after a project review named SPACE's serious performance wall. This pass turned that diagnosis into Architecture V2: platform shells, persistent 3D routes, renderer fallback, separate start menus, explicit budgets, and a tested delivery to main.",
+      "title": "Architecture V2 after the performance review",
+      "summary": "DevLog 8 named the performance problem and stopped there. This pass shipped Architecture V2: platform shells, persistent 3D routes, renderer fallback, separate start menus, explicit budgets, and a tested merge to main.",
       "built": [
         "I split the root app into desktop and mobile shells, keeping MobileStartMenu and the Terminal Site free of Three, R3F, Rapier, GLB, and desktop renderer imports.",
-        "Real `/space`, `/profile`, `/devstories`, and work routes now reuse the same Canvas, Rapier world, GLBs, and player pose after SPACE has started.",
-        "The renderer path is WebGPU-first with WebGL2 fallback, full/simplified quality profiles, and an attempt-scoped boot controller that rejects stale initialization results.",
-        "I replaced the old splash and click easter eggs with a 3D desktop StartLobby plus a separate DOM/CSS mobile menu.",
-        "The workbook now generates independent exhibit title/subtitle entries for a roughly 50-stream glyph barrage with per-character attraction, rotation, inertia, restrained fragments, and a 300px dot field.",
-        "Focus loads every image for the selected work with real progress, while visual rules, asset budgets, browser baselines, and protected release gates make performance measurable."
+        "Real `/space`, `/profile`, `/devstories`, and work routes reuse the same Canvas, Rapier world, GLBs, and player pose after SPACE has started.",
+        "The renderer path is WebGPU-first with WebGL2 fallback, full/simplified quality profiles, and an attempt-scoped boot controller that rejects stale init results.",
+        "I replaced the old splash and click easter eggs with a 3D desktop StartLobby and a separate DOM/CSS mobile menu.",
+        "The workbook generates independent exhibit title/subtitle entries for about 50 glyph streams with per-character attraction, rotation, inertia, white fragments, and a 300px dot field.",
+        "Focus loads every image for the selected work with real progress; visual rules, asset budgets, browser baselines, and protected release gates make performance measurable."
       ],
       "trouble": [
-        "Returning from Focus, Profile, or DevStories initially still needed one extra click; the fix required correlated pointer-lock attempts, stale-request cancellation, overlay lifetime control, and a stable Canvas owner.",
-        "StartLobby could go black under failed or repeated renderer initialization, so root ownership, viewport lifetime, renderer release, and handoff needed explicit boundaries.",
-        "A persistent 3D runtime cannot mean keeping every cold asset resident: lightweight routes may idle-prefetch code, but work media still loads only after selection.",
-        "The interactive lobby background needed a strict 30fps/DPR/particle budget and reduced-motion path so the artwork did not become another performance wall."
+        "Returning from Focus, Profile, or DevStories first still needed one extra click; the fix needed correlated pointer-lock attempts, stale-request cancel, overlay lifetime, and a stable Canvas owner.",
+        "StartLobby could go black under failed or repeated renderer init, so root ownership, viewport lifetime, renderer release, and handoff needed clear boundaries.",
+        "A persistent 3D runtime cannot keep every cold asset resident: light routes may idle-prefetch code, but work media still loads only after selection.",
+        "The lobby background needed a 30fps / DPR / particle budget and a reduced-motion path so the artwork did not become another performance problem."
       ],
-      "next": "Next I want to watch the production GitHub Pages result, finish iPhone Safari and Android Chrome checks, and keep comparing full/simplified frame and memory budgets. Any KTX2, Meshopt/Draco, LOD, collision, Blender, or source-asset changes will stay in a separately approved asset phase.",
+      "next": "Next I want to watch the production GitHub Pages result, finish iPhone Safari and Android Chrome checks, and keep comparing full/simplified frame and memory budgets. KTX2, Meshopt/Draco, LOD, collision, Blender, or source-asset changes stay in a separately approved asset phase.",
       "tags": [
         "Architecture V2",
         "App Shell",
@@ -254,19 +254,19 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-01",
       "number": "01",
       "period": "2026.05.28",
-      "title": "先把 SPACE 的骨架搭起来",
-      "summary": "第一天我没有急着把展厅做漂亮，而是先把它搭成一个能继续长下去的空间。Vite、React、TypeScript、第一人称移动、Overlay、Focus、音频和 GLB 命名这些底座先接上，后面才有地方慢慢加内容。",
+      "title": "先把 SPACE 骨架跑起来",
+      "summary": "第一天没急着把展厅做漂亮，先搭能继续往上长的底座：Vite、React、TypeScript、第一人称移动、Overlay、Focus、音频和 GLB 命名都得有地方接。",
       "built": [
-        "我把 workspace 先整理出来，让 `apps/web` 成为 Vite + React + TypeScript 的主应用。",
-        "顶栏改成 Overlay，打开菜单时 SPACE 不会被卸载，关掉后还能回到原来的第一人称位置。",
-        "第一版移动接上 Rapier 风格的角色控制，先有重力、滑墙、地面吸附和随视角 WASD。",
-        "我顺手约定了 `COL_` 碰撞网格、展品 manifest、Focus overlay 和统一播放进度条这些之后会反复用到的接口。"
+        "workspace 整理好，`apps/web` 成了 Vite + React + TypeScript 主应用。",
+        "顶栏改成 Overlay，开菜单不卸 SPACE，关掉还能回到原来的第一人称位置。",
+        "第一版移动接上 Rapier 风格的角色控制：重力、滑墙、贴地，以及跟着视角的 WASD。",
+        "顺手定了 `COL_` 碰撞网格、展品 manifest、Focus overlay 和统一播放进度条这些后面会反复用的接口。"
       ],
       "trouble": [
-        "Pointer Lock 的浏览器提示框没法被网页藏掉，只能从交互节奏上减少频繁锁定和释放。",
-        "这一版更像是在铺地基，视觉、音频 zone、展品按钮和真实 `gallery_main.glb` 都还没有真正展开。"
+        "Pointer Lock 的浏览器提示藏不掉，只能少请求锁定。",
+        "这版更像铺地基；视觉、音频 zone、展品按钮和真实 `gallery_main.glb` 都还没展开。"
       ],
-      "next": "下一步我想把真实 gallery 模型导进来，确认 `COL_` 碰撞能走，再继续补展品按钮、视频通道、脚步声和更明确的视觉方向。",
+      "next": "下一步把真实 gallery 模型导进来，确认 `COL_` 能走，再补展品按钮、视频、脚步声和更明确的视觉方向。",
       "tags": [
         "React",
         "Rapier",
@@ -278,21 +278,21 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-02",
       "number": "02",
       "period": "2026.05.29 - 06.01",
-      "title": "WebGPU 上线，然后材质和性能一起找上门",
-      "summary": "这一轮我把主场景推到 WebGPU，结果渲染、碰撞、移动和部署问题一起冒出来。GTAO、Toon、雾效、Bloom、trimesh、线上白屏和 Blender AO bake 全都搅在一起，最后先选了 Toon + Fog + 轻 Bloom 这条更稳的路线。",
+      "title": "WebGPU 上了，材质和性能也跟着来",
+      "summary": "主场景迁到 WebGPU 后，渲染、碰撞、移动和部署问题一起冒出来。GTAO、Toon、雾、Bloom、trimesh、线上白屏和 Blender AO bake 搅在同一轮里。",
       "built": [
-        "我加了 WebGPU 能力检测、Renderer 初始化、错误边界和不支持 WebGPU 时的提示页。",
-        "SpacePage 和 FocusOverlay 都切到 WebGPURenderer，同时把旧 WebGL 后处理依赖拿掉。",
-        "平台和外墙碰撞重新梳理了一遍，用 root 空间烘焙、双面 trimesh、地面开孔和 autostep 先把穿模压住。",
-        "当前视觉先落在 Toon gradientMap、Fog 和轻 Bloom 上，也顺手审了一遍 `gallery_main.glb` 的三角面分布。"
+        "加了 WebGPU 能力检测、Renderer 初始化、错误边界和不支持时的提示页。",
+        "SpacePage 和 FocusOverlay 切到 WebGPURenderer，旧 WebGL 后处理依赖拿掉。",
+        "平台和外墙碰撞重做：root 空间烘焙、双面 trimesh、地面开孔、autostep。",
+        "视觉先落在 Toon gradientMap、Fog 和轻 Bloom，也审了一遍 `gallery_main.glb` 的三角面。"
       ],
       "trouble": [
-        "GTAO 确实能让墙根更有结构，但开销明显，和 Toon/Basic 混在一起还容易变暗甚至全黑。",
-        "关掉 GTAO 后场景又太白，我只能用色带、雾和补光把空间层次一点点找回来。",
-        "线上白屏不一定是代码坏了，也可能只是部署时漏传了 `dist/assets` 或 JS 404。",
-        "Blender AO bake 卡在 active Image Texture 节点，提醒我资产管线也要写清楚，不能只靠记忆。"
+        "GTAO 能让墙根更有结构，但开销大，跟 Toon/Basic 叠在一起还容易过暗甚至全黑。",
+        "关掉 GTAO 后太白，只能靠色带、雾和补光把层次找回来。",
+        "线上白屏不一定是代码坏了，也可能是 `dist/assets` 没传全或 JS 404。",
+        "Blender AO bake 卡在 active Image Texture 节点，资产流程得写成字，不能只靠记。"
       ],
-      "next": "后面我想继续把 AO 往资产里烘，少依赖实时 GTAO；同时降低占位展品面数，并把完整 `dist` 上传流程写得更笨也更可靠。",
+      "next": "后面想把 AO 烘进资产，少依赖实时 GTAO；占位展品减面；`dist` 上传做成无聊但稳定的流程。",
       "tags": [
         "WebGPU",
         "Toon",
@@ -304,21 +304,21 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-03",
       "number": "03",
       "period": "2026.06.02 - 06.03",
-      "title": "让展品真的能被点开，也把不合适的方案退回来",
-      "summary": "这两天我主要在做 Focus：准星瞄准、左键进入、背景虚化、独立透明 Canvas、Orbit 旋转、入口白屏和 pivot 策略都跑通了。也有几次明显绕远路，尤其是按钮 hover 和 billboard，做完后发现不对，就先退回来。",
+      "title": "展品能点开了，不对的方案也退回去了",
+      "summary": "这两天主要在做 Focus：准星、左键进入、背景虚化、独立透明 Canvas、Orbit、入口白屏和 pivot。也有方案技术上能跑，交互却不对，后来整段退掉。",
       "built": [
-        "中心射线从子 mesh 往父级找 exhibitId，入口也从 E 键改成左键 mousedown，手感更像真的在点展品。",
-        "进入 Focus 时释放 pointer lock，底层 Canvas 不再抢事件，前景用独立透明 WebGPU Canvas 和 OrbitControls。",
-        "我做了 300ms blur/dim、150ms 内容淡入、ESC 退出和右上角返回，让 Focus 像一个临时打开的展示台。",
-        "入口白屏改成 2 秒淡出，准星也有了展品高亮和空点击的小反馈。"
+        "中心射线从子 mesh 往父级找 exhibitId；入口从 E 键改成左键 mousedown。",
+        "进 Focus 释放 pointer lock，底层 Canvas 不再抢事件，前景用独立透明 WebGPU Canvas 和 OrbitControls。",
+        "做了 300ms blur/dim、150ms 内容淡入、ESC 退出和右上角返回。",
+        "入口白屏改成 2 秒淡出；准星有展品高亮和空点击脉冲。"
       ],
       "trouble": [
-        "Pointer lock 里 click 不稳定，换成 mousedown 后左键 Focus 才可靠。",
-        "我试过在顶层捕获并 stopPropagation，结果把 Focus 内 Orbit 拖拽弄坏了，最后退回到底层 Canvas `pointer-events: none`。",
-        "准星 idle 和 pulse 动画叠在一起会连闪两次，于是我删掉了常驻 idle。",
-        "按钮 hover emissive 和 Html billboard 技术上能跑，但方向不对，先退掉，等交互语言更清楚再做。"
+        "pointer lock 里 click 不稳，换成 mousedown 后左键 Focus 才可靠。",
+        "顶层 stopPropagation 会弄坏 Orbit 拖拽，最后退回底层 Canvas `pointer-events: none`。",
+        "准星 idle 和 pulse 叠在一起会连闪两次，于是删掉常驻 idle。",
+        "按钮 hover emissive 和 Html billboard 能跑，但交互语言不对，先退掉。"
       ],
-      "next": "接下来我想重新想 Focus 三个按钮的 hover、状态和说明方式，同时继续补媒体资源，把视觉闪动问题更多放回 Blender 和 AO 资产侧解决。",
+      "next": "接下来想重做 Focus 三按钮的状态和说明，继续补媒体，把闪动问题更多放回 Blender 和 AO 资产侧。",
       "tags": [
         "Focus",
         "Pointer Lock",
@@ -330,23 +330,23 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-04",
       "number": "04",
       "period": "2026.06.07 - 06.08",
-      "title": "把项目搬到 Codex 后，先救回可验证状态",
-      "summary": "这一轮像一次接管和体检。我把上下文从 Cursor/projectless chat 搬进 Codex App Projects，先让 lint、TypeScript、构建、包体和资源加载重新变得可验证，然后再继续修 Focus、入口彩蛋、跳跃彩蛋和展品资产表。",
+      "title": "搬进 Codex 后，先救回可验证状态",
+      "summary": "这一轮像接管体检：上下文迁到 Codex App Projects，先让 lint、TypeScript、构建、包体和资源加载重新可验证，再回头做 Focus、入口彩蛋、跳跃彩蛋和展品资产表。",
       "built": [
-        "我修掉 React hooks 新规则带来的 P1 lint 阻断，也拆了 GallerySpawnContext，让 Fast Refresh 不再报警。",
-        "SpaceDesktopExperience 和 FocusOverlay 改成 lazy 加载，再用 Rolldown groups 拆出 React、Three 和 Rapier vendor。",
-        "Draco decoder 本地化到 `/draco/`，避免 useGLTF 去 gstatic 拉资源失败。",
-        "早期占位 Focus 的旋转中心、入口点击彩蛋、第一人称跳跃彩蛋和起跳/落地音也在这一轮接上。",
-        "我用最新 CSV 重新生成了 exhibit asset tracker，让占位展品和资产表重新对齐。"
+        "修掉 React hooks 新规则的 P1 lint，拆开 GallerySpawnContext，Fast Refresh 不再报警。",
+        "SpaceDesktopExperience 和 FocusOverlay 改 lazy；Rolldown 拆出 React、Three、Rapier vendor。",
+        "Draco decoder 放到本地 `/draco/`，不再去 gstatic 拉。",
+        "Focus 旋转中心规则、入口点击彩蛋、空格解锁跳跃和起跳/落地音接上了。",
+        "用最新 CSV 重生成 exhibit asset tracker，占位展品和表重新对齐。"
       ],
       "trouble": [
-        "lint failure 很多都来自 Three/R3F 必要的 imperative mutation，需要一类一类处理，不能一刀切。",
-        "主入口 chunk 曾经超过 4 MB，拆包后入口下来了，但 Three/Rapier vendor 大是现实问题。",
-        "Draco 外链失败的表象很迷惑，可能看起来像出生点很远、WASD 失效，其实是模型没正常加载。",
-        "旧 `dist` 里残留的大 GLB 会骗过本地预览，所以重新 build 后还要检查产物里有没有 20 MB 以上的残留文件。",
-        "Excel 和 CSV 一度不一致，说明展品资产流程需要一个更明确的事实源。"
+        "不少 lint 来自 Three/R3F 必要的 imperative mutation，得一类一类处理。",
+        "主入口 chunk 曾经超过 4 MB；拆包后入口下来了，Three/Rapier vendor 仍大。",
+        "Draco 外链失败的表象很迷惑，可能像出生点很远、WASD 失效，其实是模型没加载。",
+        "旧 `dist` 残留大 GLB 会骗过本地预览，重新 build 后要查有没有 20 MB 以上残留。",
+        "Excel 和 CSV 一度不一致，展品资产需要明确的事实源。"
       ],
-      "next": "下一步我会继续手测跳跃手感和音量，重做 Focus 三按钮交互，并在上线前确认 `/draco/`、`/audio/`、`/exhibits/` 都完整发布。",
+      "next": "下一步手测跳跃手感和音量，重做 Focus 三按钮，上线前确认 `/draco/`、`/audio/`、`/exhibits/` 都传全。",
       "tags": [
         "Codex",
         "Lint",
@@ -359,22 +359,22 @@ export const generatedDevStoriesByLanguage = {
       "number": "05",
       "period": "2026.06.09 - 06.16",
       "title": "桌面稳住，手机端改走 Terminal Site",
-      "summary": "这一轮我把桌面和手机拆成两条路。桌面继续整理入口、Pointer Lock、cursor、Frosted Split、DevStories 和 `space_main` 资产；手机端不再硬塞 WebGPU SPACE，而是改成更轻的 Terminal Site，用 Projects、Skills.md、Soul.md 和 Contact.md 承载信息。",
+      "summary": "这一轮把桌面和手机拆开。桌面继续整理入口、Pointer Lock、cursor、Frosted Split、DevStories 和 `space_main`；手机不再硬塞 WebGPU SPACE，改成更轻的 Terminal Site。",
       "built": [
-        "桌面入口会等 Canvas ready 后再进入，并在同一次用户手势里请求 pointer lock。",
-        "Profile / DevStories 稳定在 Frosted Split 里，白色 Profile、黑色 DevStories、滑动分界线、低密度 index 和 + / - detail 都成型了。",
-        "生产主空间切到 `space_main.blend` / `space_main.glb`，运行时加载 `/models/space_main.glb?v=20260614-space-main`。",
-        "手机端新增 MobileExperience 和 mobileArchiveData，只加载 terminal 页面，不导入桌面 TopBar、Overlay、WebGPU SPACE 或 DevStories。",
-        "手机 terminal 做了 boot、四个 tab、中英文 copy、Light/Dark、Ubuntu Mono、自托管字体、圆形主题 reveal、滚动折叠 header 和 fold section 动效。"
+        "桌面入口等 Canvas ready 后再进，并在同一次手势里请求 pointer lock。",
+        "Profile / DevStories 落在 Frosted Split：白 Profile、黑 DevStories、滑动分界、低密度 index、+/- detail。",
+        "生产主空间切到 `space_main.blend` / `space_main.glb`，加载 `/models/space_main.glb?v=20260614-space-main`。",
+        "手机端加了 MobileExperience 和 mobileArchiveData，不导入桌面 TopBar、Overlay、WebGPU SPACE 或 DevStories。",
+        "手机 terminal 做了 boot、四个 tab、中英文、Light/Dark、Ubuntu Mono、自托管字体、圆形主题 reveal、滚动折叠 header 和 fold section。"
       ],
       "trouble": [
-        "手机复用桌面 SPACE 太重，WebGPU、Pointer Lock 和 Overlay 都不适合，所以最后改成平台分支。",
-        "boot 固定 3 秒不够聪明，后来改成最短 3000ms、最长 10000ms，并等待字体加载，失败就 fallback。",
-        "手机 header 初版像把正文钉住了，我改成连续 CSS variables，让 content 和 nav 的滚动补偿分开。",
-        "文本 load animation 放错层会造成布局抖动，最后下沉到内部 load layer。",
-        "触控板惯性会让桌面 DevStories 一下跳好几页，所以 wheel paging 加了 gesture lock。"
+        "手机复用桌面 SPACE 太重，WebGPU、Pointer Lock、Overlay 都不合适。",
+        "boot 固定 3 秒太粗，后来改成最短 3000ms、最长 10000ms，等字体，失败再 fallback。",
+        "手机 header 初版像钉住正文，改成 CSS variables 分开 content 和 nav 的滚动补偿。",
+        "文本 load animation 放错层会抖布局，最后下沉到内部 load layer。",
+        "触控板惯性会让 DevStories 一次跳好几页，wheel paging 加了 gesture lock。"
       ],
-      "next": "我还想拿真机继续测 iPhone Safari 和 Android Chrome 的滚动、safe-area、字体 fallback、主题 reveal 和 Contact 链接，同时把更多 project slot 换成真实内容。",
+      "next": "还想用真机测 iPhone Safari 和 Android Chrome 的滚动、safe-area、字体 fallback、主题 reveal 和 Contact 链接，并把更多项目换成真实内容。",
       "tags": [
         "Mobile",
         "Terminal Site",
@@ -386,24 +386,24 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-06",
       "number": "06",
       "period": "2026.06.17 - 06.22",
-      "title": "把跨平台开发和 space_main 管线接稳",
-      "summary": "这一轮我一边补个人页和 DevStories，一边把 Windows Codex、macOS、GitHub 和 Blender 资产管线接起来。`space_main` 的出生点、楼梯、LED、碰撞和材质开始从网页临时补救，慢慢回到 Blender 源文件里。",
+      "title": "跨平台开发和 space_main 管线",
+      "summary": "一边补个人页和 DevStories，一边把 Windows Codex、macOS、GitHub 和 Blender 资产管线接上。`space_main` 的出生点、楼梯、LED、碰撞和材质开始从网页临时补救，回到 Blender 源文件。",
       "built": [
-        "LizzardKevin 个人页和 DevStories 内容层补齐了，个人网站不只是简历，也能看到 SPACE 一路怎么长出来。",
-        "我做了全局自定义 cursor：圆点、hover、点击脉冲、文字选择、滚动粒子、Focus 八角星和回第一人称前的回中心动画。",
-        "Alt / ESC 释放 pointer lock 后的 cursor 漂移被重新处理，自定义圆点会从中心飞回真实系统鼠标位置。",
-        "Windows Codex 的跨平台分支合入后，`.nvmrc`、package scripts、lockfile 和 contract tests 都更适合双平台继续开发。",
-        "Blender 里的 Plain Axes Empty 规范成 `spawn_player_main`，runtime 在缺少地板碰撞时会用 marker 自身高度。",
-        "我改用 Blender Python Console 做资产批处理，生成可见 `STRUCT_STAIR_*` 楼梯，并给 `LIGHT_GENERIC_LIGHT_*` 写入 emissive LED 材质。"
+        "LizzardKevin 个人页和 DevStories 内容层补齐了，网站不只是简历，也能看到 SPACE 怎么长出来。",
+        "做了全局自定义 cursor：圆点、hover、点击脉冲、文字选择、滚动粒子、Focus 八角星、回中心动画。",
+        "Alt / ESC 释放 pointer lock 后，自定义圆点会从屏幕中心飞回真实系统鼠标位置。",
+        "跨平台分支合入后，`.nvmrc`、package scripts、lockfile 和 contract tests 更适合双机继续开发。",
+        "Blender Plain Axes Empty 规范成 `spawn_player_main`；缺地板碰撞时 runtime 可用 marker 高度。",
+        "资产批处理改走 Blender Python Console + JSON report；生成可见 `STRUCT_STAIR_*`，给 `LIGHT_GENERIC_LIGHT_*` 写 emissive LED。"
       ],
       "trouble": [
-        "Blender MCP 多次返回不完整 JSON，直接 socket 也会超时，所以我把本阶段主流程改成 Python Console + JSON report。",
-        "重新导入 GLB 后会出现重复的 `spawn_player_main.001`，批处理必须保留最新 marker 并清掉旧节点。",
-        "新模型只有 `COL_STAIR_*` 时，网页会隐藏碰撞体，看起来就像楼梯不存在，所以必须单独生成可见结构。",
-        "generic LED 初始还是 dark metal，视觉上完全不发光，需要真正写入 emissive factor 和 emissive strength。",
-        "Node v26 会触发 engine warning，还会让 lockfile 有无意义漂移，后续还是要统一 Node 24.11.0。"
+        "Blender MCP 常返回不完整 JSON 或超时，本阶段主流程改成 Python Console。",
+        "重导 GLB 会出现重复的 `spawn_player_main.001`，批处理要保留最新 marker 并清旧节点。",
+        "新模型只有 `COL_STAIR_*` 时网页会藏碰撞体，看起来像没楼梯，所以要单独生成可见结构。",
+        "generic LED 一开始还是 dark metal，得真正写入 emissive factor / strength。",
+        "Node v26 会触发 engine warning，还会让 lockfile 无意义漂移；项目仍用 Node 24.11.0。"
       ],
-      "next": "接下来我会继续做真实 Chrome 视觉 QA，确认楼梯、LED、出生点和移动手感，然后把楼梯视觉/碰撞双节点规则写回资产命名文档。",
+      "next": "接下来做真实 Chrome 视觉 QA，确认楼梯、LED、出生点和移动手感，再把楼梯视觉/碰撞双节点规则写回命名文档。",
       "tags": [
         "Cross Platform",
         "Blender",
@@ -415,22 +415,22 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-07",
       "number": "07",
       "period": "2026.06.23 - 06.24",
-      "title": "把移动手感和 physics tick 调顺",
-      "summary": "这一轮我盯着 `space_main` 新模型进网页后的移动手感。先加 dev-only debug overlay，看位置、速度、ratio 和当前接触的 `COL_*`，再确认问题不在 Vite server，而是 render `dt` 和 Rapier fixed timestep 混用。最后把 physics 和玩家移动都固定回 1/60。",
+      "title": "移动手感和 physics tick",
+      "summary": "`space_main` 进网页后，我盯着移动手感。dev-only overlay 能看位置、速度、ratio 和当前 `COL_*`。问题不在 Vite server，而是 render `dt` 和 Rapier 固定步进混用。最后把 physics 和玩家移动都固定到 1/60。",
       "built": [
-        "我加了 `space:movement-debug` telemetry 和左上角 debug overlay，能看到 pos、speed、ratio、target、grounded、collision count、vertical velocity 和 contact 名称。",
-        "`COL_*`、floor、prop fallback 和 `SAFETY_GROUND` 都能注册 collider handle，真实浏览器里可以直接看到踩到了谁。",
-        "第一人称视角控制先保守回到可用链路，再在后续用更小的 delta 防护处理跳闪。",
-        "SPACE 显式设置 `<Physics timeStep={1 / 60}>`，PlayerController 也使用固定 `PLAYER_PHYSICS_TIME_STEP`。",
-        "临时翻倍的走路/冲刺速度回到 2.45 / 3.85，同时保留 smoothstep 和 lerp 带来的停止惯性。"
+        "加了 `space:movement-debug` 和左上角 overlay：pos、speed、ratio、target、grounded、collision count、vertical velocity、contact 名。",
+        "`COL_*`、floor、prop fallback、`SAFETY_GROUND` 都能注册 collider handle，浏览器里能直接看到踩到谁。",
+        "第一人称视角先退回可用链路，再在后面加更小的 delta 防护。",
+        "SPACE 显式设置 `<Physics timeStep={1 / 60}>`，PlayerController 也用固定 `PLAYER_PHYSICS_TIME_STEP`。",
+        "临时翻倍的走路/冲刺速度回到 2.45 / 3.85，smoothstep 和 lerp 的停止惯性保留。"
       ],
       "trouble": [
-        "debug ratio 一开始看起来很稳，是因为 actual/desired 都用了同一个动态 `dtRef`，反而把问题藏起来了。",
-        "我一度怀疑 Vite dev server 在跑动态 tick，后来确认它只负责 dev server/HMR，真正的问题在浏览器运行时。",
-        "自定义 guarded pointer lock controls 曾经把视角移动搞坏，所以这一块不能大拆，只能小心加防护。",
-        "新 GLB 的碰撞异常不能靠体感猜，必须拿 contact 名称回 Blender 找对应 `COL_*`。"
+        "debug ratio 一开始看起来稳，是因为 actual/desired 共用同一个动态 `dtRef`，反而把 bug 藏住了。",
+        "一度怀疑 Vite，后来确认它只负责 HMR；真正问题在浏览器运行时。",
+        "自定义 guarded pointer lock 以前把视角弄坏过，这块只能小步加防护。",
+        "新 GLB 碰撞不能靠体感猜，得用 contact 名回 Blender 找 `COL_*`。"
       ],
-      "next": "我还会继续用真实浏览器和 debug overlay 复测移动手感；如果鼠标跳闪还在，就沿着 Drei PointerLockControls 链路做最小防护。",
+      "next": "继续用真浏览器和 debug overlay 复测；如果鼠标跳闪还在，就沿 Drei PointerLockControls 做最小防护。",
       "tags": [
         "Physics Tick",
         "Movement Debug",
@@ -442,23 +442,23 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-08",
       "number": "08",
       "period": "2026.07.02",
-      "title": "做一次项目收口，也撞上性能墙",
-      "summary": "这次我没有继续往 SPACE 里加新展品，而是停下来做项目管理审查和低风险修补。repo、脚本、runtime、移动端存储和 DevStories 数据都顺了一遍，但同时也很明确地看到：SPACE 现在遇到了严重性能问题，后面必须单独拆出来处理。",
+      "title": "项目收口，也撞上性能问题",
+      "summary": "这轮没继续加展品，而是做项目管理审查和低风险修补。repo、脚本、runtime、移动端存储和 DevStories 数据都顺了一遍；同时也很清楚：SPACE 运行时性能已经需要单独开一轮。",
       "built": [
-        "我先开了独立 review 分支，派了三个并行审查方向：repo hygiene、SPACE runtime、content/i18n/mobile/devlog。",
-        "低风险修复包括：root `release/` ignore 不再误伤 `apps/web/tests/release`，placement cache 去掉时间戳，Blender 脚本补上跨平台 PATH 查找，GitHub bootstrap 不再默认推已有 origin。",
-        "运行时顺手补了几个小安全垫：Focus 非模型页暂停隐藏 Canvas 渲染，scene exhibit clone 在卸载时释放自有 material，手机和 SPACE daily resume 的 localStorage 访问都加了 try/catch。",
-        "README、DevStories 维护说明和 DevLog 7 里过期的脚本/碰撞描述也一起对齐到当前结构。",
-        "我新增了这条 DevLog 8 和摘要，也把网页端 DevStories 的 1 到 8 条整理成更适合继续阅读和维护的第一人称记录。"
+        "开了独立 review 分支，并行看 repo hygiene、SPACE runtime、content/i18n/mobile/devlog。",
+        "低风险修复：root `release/` ignore 不再误伤 `apps/web/tests/release`，placement cache 去时间戳，Blender 脚本补跨平台 PATH，GitHub bootstrap 不再默认推已有 origin。",
+        "运行时补了小安全垫：Focus 非模型页暂停隐藏 Canvas；scene exhibit clone 卸载时释放自有 material；手机和 SPACE daily resume 的 localStorage 加了 try/catch。",
+        "README、DevStories 维护说明和 DevLog 7 里过期的脚本/碰撞描述对齐到当前结构。",
+        "新增 DevLog 8 和摘要，并把网页端 DevStories 1 到 8 整理成更好读的第一人称记录。"
       ],
       "trouble": [
-        "有些建议很诱人但不适合顺手改，比如把 public 里的 source GLB/JPG 搬出发布目录、做 GitHub Pages 迁移、重写 manifest 加载方式或改 Focus 返回文案。",
-        "DevStories 的 Markdown 和网页数据不是自动同步的，所以新增日志时必须同时更新 `docs/devlog` 和 `apps/web/src/content/devStories.ts`。",
-        "更大的问题是 SPACE 运行时已经出现严重性能问题，尤其在多个展品和主空间同时存在时，单靠小补丁已经不够，需要下一轮专门拆性能账。",
-        "内容表达可以更轻一点，但不能丢掉技术脉络，我保留了 WebGPU、Rapier、Pointer Lock、GLB、chunk、localStorage 这些必要线索。",
-        "这轮 build 会生成本地 `apps/web/dist`，但它仍然是被忽略的本地产物，不能提交。"
+        "有些建议诱人但不适合顺手改，比如搬出 public 里的源 GLB/JPG、GitHub Pages 迁移、重写 manifest、改 Focus 返回文案。",
+        "当时 DevStories 的 Markdown 和网页数据不会自动同步，新日志要同时改 `docs/devlog` 和 `apps/web/src/content/devStories.ts`。",
+        "更大的问题是多展品和主空间同时存在时，SPACE 运行时已有严重性能问题，小补丁不够。",
+        "文案可以更轻，但不能丢掉 WebGPU、Rapier、Pointer Lock、GLB、chunk、localStorage 这些线索。",
+        "那轮 build 会生成本地 `apps/web/dist`，它仍是被忽略的本地产物，不能提交。"
       ],
-      "next": "下一步除了让 GitHub Pages / github.io 迁移线程接手部署策略，也要把严重性能问题单独开出来：先判断主开销到底来自 UABB、展品模型、投影图片、后处理还是 SPACE 主场景，再决定怎么减。",
+      "next": "部署策略交给 GitHub Pages 线程后，性能要单独查：主开销到底在 UABB、展品模型、投影图、后处理，还是 SPACE 主场景。",
       "tags": [
         "Review",
         "DevLog",
@@ -470,23 +470,23 @@ export const generatedDevStoriesByLanguage = {
       "id": "devlog-09",
       "number": "09",
       "period": "2026.07.15",
-      "title": "把性能墙拆成 Architecture V2",
-      "summary": "DevLog 8 停在项目审查和严重性能问题记录；这一轮把那堵性能墙拆成真正落地的 Architecture V2：平台 Shell、持久化 3D 路由、渲染回退、双端开始菜单、量化预算和经过验证的 main 交付。",
+      "title": "性能审查之后的 Architecture V2",
+      "summary": "DevLog 8 记下了性能问题就停住。这一轮把 Architecture V2 做完并合进 main：平台 Shell、持久化 3D 路由、渲染回退、两端开始菜单、量化预算和验证过的交付。",
       "built": [
-        "我把根应用拆成桌面和移动 Shell，MobileStartMenu 与 Terminal Site 不导入 Three、R3F、Rapier、GLB 或桌面 renderer。",
-        "真实的 `/space`、`/profile`、`/devstories` 和作品路由会在 SPACE 启动后复用同一 Canvas、Rapier world、GLB 和玩家位置。",
-        "渲染路径改为 WebGPU 优先、WebGL2 回退，提供完整/简化两档，并用 attempt-scoped boot controller 拒绝旧初始化结果。",
-        "我删除旧 Splash、点击进入和彩蛋，换成桌面 3D StartLobby 与独立的 DOM/CSS 移动开始菜单。",
-        "工作簿会生成解耦的展品 title/subtitle，形成约 50 条逐字符弹幕；字符可被吸引、旋转、保持惯性并以克制碎片消失，点阵场半径约 300px。",
-        "Focus 会为选中的作品加载全部图片并显示真实进度；视觉规范、资产预算、浏览器基线和 protected release gates 让性能变得可测。"
+        "根应用拆成桌面和移动 Shell；MobileStartMenu 与 Terminal Site 不导入 Three、R3F、Rapier、GLB 或桌面 renderer。",
+        "真实 `/space`、`/profile`、`/devstories` 和作品路由在 SPACE 启动后复用同一 Canvas、Rapier world、GLB 和玩家位置。",
+        "渲染改为 WebGPU 优先、WebGL2 回退，完整/简化两档；attempt-scoped boot controller 会丢掉过期的初始化结果。",
+        "删掉旧 Splash 和点击彩蛋，换成桌面 3D StartLobby 和移动端纯 DOM/CSS 开始菜单。",
+        "工作簿生成解耦的展品 title/subtitle，大约 50 条逐字符弹幕；字符可被吸引、旋转、保持惯性，碰到指针碎成白点，点阵场约 300px。",
+        "Focus 选中作品后加载该作品全部图片并显示进度；视觉规范、资产预算、浏览器基线和 release gates 让性能可测。"
       ],
       "trouble": [
-        "从 Focus、Profile 或 DevStories 返回时最初仍要多点一次；最后用关联 pointer-lock attempt、取消过期请求、延长 overlay 生命周期和稳定 Canvas owner 才真正修好。",
-        "StartLobby 在 renderer 失败或重复初始化时可能纯黑，所以 root ownership、viewport 生命周期、renderer release 和 handoff 都需要明确边界。",
-        "持久化 3D runtime 不等于让所有冷资产常驻：轻量路由可以空闲预取代码，但作品媒体仍然只在选中后加载。",
-        "入口互动背景必须限制在 30fps、受控 DPR 和粒子预算内，并提供 reduced-motion，否则数字艺术本身会成为新的性能墙。"
+        "从 Focus、Profile 或 DevStories 返回时最初还要多点一次；后来靠关联 pointer-lock attempt、取消过期请求、overlay 生命周期和稳定 Canvas owner 才修好。",
+        "StartLobby 在 renderer 失败或重复初始化时可能纯黑，root ownership、viewport 生命周期、renderer release 和 handoff 都要划清。",
+        "持久化 3D runtime 不等于所有冷资产常驻：轻量路由可以空闲预取代码，作品媒体仍只在选中后加载。",
+        "入口背景限制在 30fps、受控 DPR 和粒子预算内，并提供 reduced-motion，否则入口艺术本身又会变成性能负担。"
       ],
-      "next": "下一步先观察 GitHub Pages 的真实部署，再完成 iPhone Safari 和 Android Chrome 真机检查，并持续对比完整/简化档的帧与内存预算。KTX2、Meshopt/Draco、LOD、碰撞、Blender 或源资产改动继续留在单独授权的资产阶段。",
+      "next": "先看 GitHub Pages 的真实部署，再做完 iPhone Safari 和 Android Chrome 真机检查，并持续对比完整/简化档的帧和内存。KTX2、Meshopt/Draco、LOD、碰撞、Blender 或源资产改动继续留在单独授权的资产阶段。",
       "tags": [
         "Architecture V2",
         "App Shell",

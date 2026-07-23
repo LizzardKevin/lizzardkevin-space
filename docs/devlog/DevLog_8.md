@@ -4,26 +4,23 @@
 
 ## 本次目标
 
-- 停下来做一次 SPACE 的项目管理审查，而不是继续往功能里猛加东西。
-- 把 repo hygiene、脚本入口、生成产物、WebGPU/runtime 风险、内容表达和 devlog 数据结构都过一遍。
-- 对低风险、能自己判断的问题直接修；对会影响审美、部署策略或产品体验的问题只记录，不顺手重构。
-- 新增一份最新版 devlog，并把网页端 DevStories 整理成更适合继续阅读和维护的个人记录。
-- 记录一个更大的现实问题：SPACE 现在遇到了严重性能问题，下一轮需要单独拆开查。
-- 保持本地 main 可验证、可交接，但不 push，也不做 GitHub Pages 迁移。
+这轮先停下加功能，把 SPACE 当成一个要继续维护的项目检查一遍。范围包括 repo hygiene、脚本入口、生成产物、WebGPU/runtime 风险、内容表达和 devlog 数据结构。
+
+低风险且能直接判断的问题当场修；会影响审美、部署策略或产品体验的部分只记录，不顺手重构。同时补最新版 devlog，把网页端 DevStories 整理成后续容易读、也容易维护的个人记录。SPACE 目前还有严重性能问题，留到下一轮单独拆查。本地 main 要保持可验证、可交接，但这轮不 push，也不做 GitHub Pages 迁移。
 
 ## 已完成产出
 
-### 1) 项目管理审查与 subagent 分工
+### 1) 项目检查和 subagent 分工
 
 - 我先确认当前 worktree 是独立 linked worktree，起点是本地 `main` 的 `9059a8f`。
 - 新建并使用分支 `codex/project-management-code-review`，没有直接在 `main` 上开发。
-- 并行派了三个只读审查方向：
+- 三个只读审查方向并行进行：
   - Repo hygiene / scripts / gitignore / generated assets / package scripts / verification entrypoints。
   - Frontend architecture / SPACE runtime / WebGPU compatibility / performance-sensitive patterns。
   - Content / i18n / mobile / devlog web surface / reader-facing tone。
-- 审查结果里低风险的部分我直接处理；高风险或需要审美/部署选择的部分留到交接里，不在这轮强行做。
+- 低风险部分直接处理；高风险或需要审美/部署选择的内容写进交接，这轮不动。
 
-### 2) repo hygiene 和脚本低风险修复
+### 2) repo hygiene 和脚本小修
 
 - `.gitignore` 里 root 本地产物更明确：
   - `/release/`
@@ -33,7 +30,7 @@
 - `scripts/generate-exhibit-placement-cache.mjs` 去掉 `generatedAt`：
   - 生成的 `generated-exhibit-placement.json` 不再每次带时间戳漂移。
   - `scene-pipeline.contract-test.mjs` 加了断言，防止时间戳以后又被悄悄加回来。
-- `scripts/prepare-exhibit-models.mjs` 的 Blender 查找更稳：
+- `scripts/prepare-exhibit-models.mjs` 补了 Blender 查找方式：
   - 仍支持 `BLENDER` 显式路径。
   - Windows 继续支持已知安装路径和 `where.exe blender`。
   - macOS/Linux 也能通过 `which blender` 找 PATH 上的 Blender。
@@ -41,7 +38,7 @@
   - 现在会提示手动确认。
   - 真要脚本推已有远端，需要显式传 `--push-existing`。
 
-### 3) runtime 小修补
+### 3) runtime 小修
 
 - Focus Overlay：
   - 非模型页，也就是图片/视频页，隐藏的 WebGPU model Canvas 现在用 `frameloop="never"` 暂停渲染。
@@ -50,12 +47,12 @@
   - 场景展品会 clone GLTF scene 和 material。
   - 现在 clone 出来的自有 material 会在组件卸载时 dispose，避免距离加载/卸载反复切换时积累 GPU material。
   - 几何和贴图仍然由 GLTF 缓存共享，没有顺手乱 dispose。
-- localStorage：
+- localStorage 访问：
   - `spaceDailyResume` 的默认 `window.localStorage` 访问包进 try/catch。
   - 手机端 language/theme 偏好也改用安全读写 helper。
-  - 隐私模式或 storage 被禁用时，SPACE 和手机 terminal 会降级，而不是因为偏好存储失败直接中断。
+  - 隐私模式或 storage 被禁用时，SPACE 和手机 terminal 会继续运行，不会因为偏好存储失败而中断。
 
-### 4) 文档和维护入口对齐
+### 4) 对齐文档和维护入口
 
 - README 里的主场景从旧 `gallery_main.glb` 更新为当前 `space_main.glb`。
 - README 增加 `npm run verify:quick` 作为日常开发验证入口。
@@ -66,7 +63,7 @@
   - Markdown 不会自动生成网页数据，新增日志要两边同步。
 - DevLog 7 里过期的 `GalleryFloorCollider`、旧脚本路径和旧验证描述也顺手修正到当前结构。
 
-### 5) DevStories 网页内容整理与性能问题记录
+### 5) 整理 DevStories，记录性能问题
 
 - 我保留了 `DevStory` 原有数据结构：
   - `id`
@@ -79,12 +76,12 @@
   - `next`
   - `tags`
 - 没有引入 MDX、生成脚本或新的孤立格式。
-- 网页端 1 到 8 条 DevStories 都整理成更像“我今天把这块调顺了”的个人记录：
+- 网页端 1 到 8 条 DevStories 改成第一人称的个人记录：
   - 标题更口语。
   - summary 改成第一人称。
   - detail 里保留技术信息，但少用冷冰冰的任务清单口吻。
 - DevLog 8 的最新部分不再把“修改日志表达”当成主要事件，而是把项目收口和当前严重性能问题写清楚。
-- Frosted Split 里的 DevStories 标签也变轻一点：
+- Frosted Split 里的 DevStories 标签也一起改了：
   - `Built` 改成 `What I tuned`
   - `Trouble / Rollback` 改成 `What got weird`
   - `Next` 改成 `Next note`
@@ -107,7 +104,7 @@
 
 ## 当前验证状态
 
-本轮执行过：
+这轮执行了：
 
 ```text
 node scripts/prepare-exhibit-models.mjs --help
@@ -130,11 +127,11 @@ npm run build:chunks
 
 ## 下一步计划
 
-1. **GitHub Pages / github.io 迁移另开线程**：迁移前先确认 Vite base path、SPA fallback、public 静态资源路径和 GitHub Pages 的仓库/域名策略。
-2. **public source assets 策略**：`*.source.glb` 和 projector `source/*.jpg` 目前在 `public` 下，会被原样部署；是否移出 public、放 LFS、CDN 或保留，需要单独决策。
-3. **Focus 返回文案国际化**：`回到 space` 在英文模式下是否保留品牌感，属于产品表达选择，这轮没有擅自改。
-4. **manifest 加载缓存**：桌面入口和 scene exhibit placement 仍有 manifest 加载重复空间，但要不要抽缓存需要再评估。
-5. **DevStories 自动同步**：当前 Markdown 和网页数据是手动双写；如果日志继续变多，可以再考虑生成脚本，但这轮保持简单。
+1. GitHub Pages / github.io 迁移另开线程。迁移前先确认 Vite base path、SPA fallback、public 静态资源路径和 GitHub Pages 的仓库/域名策略。
+2. `*.source.glb` 和 projector `source/*.jpg` 目前在 `public` 下，会被原样部署。是否移出 public、放 LFS、CDN 或保留，需要单独决定。
+3. `回到 space` 在英文模式下是否保留品牌感，属于产品表达选择，这轮没有改。
+4. 桌面入口和 scene exhibit placement 仍有 manifest 重复加载的空间，要不要抽缓存还需评估。
+5. Markdown 和网页数据目前手动双写。日志继续变多时再考虑生成脚本，这轮先维持现状。
 
 ## 相关文件索引
 

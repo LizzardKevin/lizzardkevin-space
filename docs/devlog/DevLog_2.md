@@ -2,92 +2,77 @@
 
 时间：2026-05-29 ~ 2026-06-01（多轮会话，今日收工）
 
-## 本次目标
+## 这次想做成什么
 
-- 完成 `gallery_main.glb` 主场景在 **WebGPU** 下的渲染迁移（替换 WebGL + N8AO/EffectComposer）。
-- 修复平台台阶、外墙等 **碰撞** 与 **移动手感**。
-- 在不用 GTAO 的前提下，逼近 **Firewatch 式** 平面 Toon 着色 + 雾 + 轻量 Bloom。
-- 排查卡顿与白屏，并启动 **Blender 烘焙 AO** 流程（进行中）。
+- 把 `gallery_main.glb` 主场景迁到 WebGPU，换掉 WebGL + N8AO / EffectComposer。
+- 修平台台阶、外墙的碰撞和移动手感。
+- 不用 GTAO 的前提下，尽量靠近 Firewatch 那种平面 Toon + 雾 + 轻 Bloom。
+- 查卡顿和白屏；Blender 烘焙 AO 开了头，还没做完。
 
-## 已完成产出
+## 做完了什么
 
-### 1) WebGPU 渲染栈（Phase 0–4）
+### 1) WebGPU 渲染栈（Phase 0-4）
 
-- 新增 WebGPU 基础设施：
-  - `apps/web/src/rendering/webgpuSupport.ts` — 能力检测、超时、错误文案
-  - `apps/web/src/rendering/createWebGPURenderer.ts` — `WebGPURenderer` + `init()`
-  - `apps/web/src/rendering/WebGPUUnavailable.tsx` — 不支持 WebGPU 时的提示页
-  - `apps/web/src/rendering/WebGPUErrorBoundary.tsx` — Canvas 初始化失败兜底
-- `SpacePage` / `FocusOverlay` 均改用 WebGPURenderer；移除 WebGL `shadowMap` 专有配置。
-- `GalleryRenderPipeline.tsx` — TSL **GTAO** + **Bloom**（`RenderPipeline` + `useFrame` priority 1）。
-- 移除 `@react-three/postprocessing`、`postprocessing`（N8AO 依赖树）。
-- 默认阴影关闭：`ENABLE_GALLERY_RUNTIME_SHADOWS = false`（Blender 删阳光后避免运行时 shadow map 假影）。
+新增：
 
-### 2) 物理与碰撞
+- `apps/web/src/rendering/webgpuSupport.ts`：能力检测、超时、错误文案
+- `apps/web/src/rendering/createWebGPURenderer.ts`：`WebGPURenderer` + `init()`
+- `apps/web/src/rendering/WebGPUUnavailable.tsx`：不支持时的提示页
+- `apps/web/src/rendering/WebGPUErrorBoundary.tsx`：Canvas 初始化失败兜底
 
-- **Trimesh 烘焙**：`trimeshColliderUtils.ts` — root 空间烘焙 + **双面三角**（解决平台/外墙 trimesh 失效）。
-- `COL_outer_*` / `COL_platform_*` 走 TrimeshCollider；`COL_inner_*` 仍 cuboid。
-- `GalleryFloorCollider` — 在 `COL_platform_*` XZ 区域对地面薄板 **开孔**，避免与台阶 trimesh 打架。
-- **PlayerController**：
-  - 胶囊：直径 0.5 m，总高 1.8 m，眼高 offset +0.7 m
-  - `enableAutostep(0.35, 0.15)` — 上台阶
-  - 速度：WALK 2.45 / SPRINT 3.85 m/s
-  - **smoothstep + lerp** 加减速；`MOVE_ACCEL 11` / `MOVE_DECEL 15`（约为初版 2 倍，响应更干脆）
+`SpacePage` / `FocusOverlay` 都改用 WebGPURenderer，去掉 WebGL `shadowMap` 专有配置。`apps/web/src/rendering/GalleryRenderPipeline.tsx` 接过 TSL GTAO + Bloom（`RenderPipeline` + `useFrame` priority 1）。`@react-three/postprocessing` 和 `postprocessing`（N8AO 那棵树）已移除。默认关阴影：`ENABLE_GALLERY_RUNTIME_SHADOWS = false`（Blender 删了阳光之后，运行时 shadow map 容易出假影）。
 
-### 3) 视觉管线迭代（GTAO ↔ Toon）
+### 2) 物理和碰撞
+
+- `trimeshColliderUtils.ts`：在 root 空间烘焙，双面三角，不然平台 / 外墙 trimesh 经常失效。
+- `COL_outer_*` / `COL_platform_*` 走 TrimeshCollider；`COL_inner_*` 仍用 cuboid。
+- `GalleryFloorCollider`：在 `COL_platform_*` 的 XZ 区域给地面薄板开孔，避免和台阶 trimesh 打架。
+- `PlayerController`：
+  - 胶囊直径 0.5 m，总高 1.8 m，眼高 offset +0.7 m
+  - `enableAutostep(0.35, 0.15)`
+  - WALK 2.45 / SPRINT 3.85 m/s
+  - smoothstep + lerp 加减速；`MOVE_ACCEL 11` / `MOVE_DECEL 15`（大约是初版两倍，手感更干脆）
+
+### 3) 视觉：GTAO 试过，最后回到 Toon
 
 | 阶段 | 做法 | 结果 |
 |------|------|------|
 | WebGL 后处理 | N8AO + Bloom | 已移除 |
-| WebGPU GTAO | RenderPipeline + GTAONode | 有墙根 AO，但 **偏卡**；与 Toon 叠加强时易过暗 |
-| MeshBasicMaterial | 无光照纯色 | 稳定灰，但 **结构看不清** |
-| **当前方案** | **MeshToonMaterial + gradientMap + Fog + 调光** | Firewatch 向色阶；GTAO **关** |
-| Bloom | 轻量开启 | `strength 0.28`，`threshold 0.82` |
+| WebGPU GTAO | RenderPipeline + GTAONode | 墙根有 AO，但偏卡；和 Toon 叠重了容易过暗 |
+| MeshBasicMaterial | 无光照纯色 | 稳定，但结构看不清 |
+| 当前 | `MeshToonMaterial` + `gradientMap` + Fog + 调光 | Firewatch 向色阶；GTAO 关 |
+| Bloom | 轻量开 | `strength 0.28`，`threshold 0.82` |
 
-- 新增：
-  - `galleryToonMaterial.ts` — 四档灰度 `gradientMap` + `MeshToonMaterial`
-  - `GalleryAtmosphere.tsx` — `THREE.Fog`（`fogNear 16` / `fogFar 52`）
-  - `galleryConfig.ts` — `GALLERY_TOON` 灯光/雾/色带参数；`ENABLE_GALLERY_TOON = true`
-- TopBar：去掉底色条，文字加 **浅阴影** 以在浅灰背景上可读。
+新增 `galleryToonMaterial.ts`（四档灰度 `gradientMap`）、`GalleryAtmosphere.tsx`（`THREE.Fog`，`fogNear 16` / `fogFar 52`）、`apps/web/src/scenes/gallery/galleryConfig.ts` 里的 `GALLERY_TOON` 参数，并设定 `ENABLE_GALLERY_TOON = true`。TopBar 去掉底色条，文字加浅阴影，浅灰背景上才读得清。
 
-### 4) 性能与资产审计
+### 4) 性能和资产
 
-- `gallery_main.glb` 可见三角面 **~17,708**（运行时隐藏 `COL_*`）。
-  - 建筑 `struct_*` 仅 **~5,406** 面 — 合理。
-  - **`exhibit_demo_box` 单物体 ~12,278 面** — 占可见面数约 69%，优先减面候选。
-- 物理碰撞 trimesh（双面）约 **~10,372** 面 — CPU 侧亦有成本。
-- 有 GTAO 时建议整场景可见面 **≤ 3 万**；当前 Toon + 轻 Bloom 路径对几何压力较小，卡顿主要来自后处理与 JS 包体（~4.2 MB）。
+`gallery_main.glb` 可见三角面约 17,708（运行时隐藏 `COL_*`）。建筑 `struct_*` 大约 5,406 面，还算合理；`exhibit_demo_box` 一个物体就约 12,278 面，占可见面大概 69%，减面优先做它。物理双面 trimesh 约 10,372 面，CPU 也有成本。有 GTAO 时整场景最好压到 3 万面以下；现在走 Toon + 轻 Bloom，几何压力小一些，卡顿更多来自后处理和 JS 包体（约 4.2 MB）。
 
-### 5) 部署与白屏排查
+### 5) 部署和白屏
 
-- 仓库 **无 git remote / 无 CI 自动部署**；`npm run build` 产物在 `apps/web/dist/`，需 **手动上传** COS / Cloudflare Pages（见 `docs/tencent-cloud-deploy.md`）。
-- 本地 `npm run preview` 正常；线上白屏常见原因：只上传 `index.html` 未传 `assets/`、或 JS 404。
-- 补充：`index.html` Loading 占位、`AppErrorBoundary`、WebGPU 检测 loading 文案；进入前背景改深色避免「假白屏」。
+仓库当时还没有 git remote / CI。`npm run build` 产物在 `apps/web/dist/`，得手动上传 COS 或 Cloudflare Pages（见 `docs/tencent-cloud-deploy.md`）。本地 `npm run preview` 正常；线上白屏常见原因是只传了 `index.html`，没把 `assets/` 带上，或者 JS 404。补了 Loading 占位、`AppErrorBoundary`、WebGPU 检测文案；进页前背景改深色，少一点「假白屏」。
 
-### 6) 文档与规范
+### 6) 文档
 
-- `docs/assets/exhibit-asset-tracker-gallery_nodes.csv` — 更新为 WebGPU GTAO/Bloom 描述（后续可改回 Toon + 烘焙 AO）。
-- `docs/gallery-mesh-naming.md` — 已有 `struct_` / `COL_` / `bulb_` 约定；GLB 内 **尚无 `bulb_` mesh**（点光源列表为空）。
+`docs/assets/exhibit-asset-tracker-gallery_nodes.csv` 更新过 WebGPU GTAO / Bloom 描述（后面可以改回 Toon + 烘焙 AO）。`docs/gallery-mesh-naming.md` 里已有 `struct_` / `COL_` / `bulb_` 约定；GLB 里暂时还没有 `bulb_` mesh，点光源列表是空的。
 
-### 7) Blender 烘焙 AO（进行中，未完工）
+### 7) Blender 烘焙 AO（未完工）
 
-- 目标：用 **烘焙 AO** 替代实时 GTAO，贴近 Firewatch（结构在资产里，不在后处理里）。
-- 已梳理 Cycles **Ambient Occlusion Bake** 流程；用户卡在 **「no active and selected image texture node」**。
-- 正确做法：Shader Editor 里 **左键点选** `ao_*` Image Texture 节点（橙框）→ 再点 Bake；节点 **无需** 连到 Principled。
-- 今日收工点：节点结构已对，待掌握「选中 active 节点」后完成首次烘焙。
+想用烘焙 AO 替代实时 GTAO，把结构感放进资产。Cycles Ambient Occlusion Bake 流程已经理过一遍；用户卡在 “no active and selected image texture node”。正确做法是：Shader Editor 里左键点中 `ao_*` Image Texture 节点（出现橙框），再点 Bake；节点不必接到 Principled。今天收工时节点结构已经对了，下次把「选中 active」做熟就能出第一次烘焙。
 
-## 遇到的问题与处理
+## 问题和处理
 
 | 问题 | 处理 |
 |------|------|
-| WebGPU 迁移后材质全黑 | GTAO 乘法 + RenderPipeline 与 Toon/Basic 组合不稳定；改为 Toon + 关 GTAO |
-| 关 GTAO 后太白、结构不清 | 上 Toon gradientMap + Fog + 主/补光分层 |
-| GTAO 开启后卡顿 | 三角面不是主因；GTAO 16 samples + 半分辨率仍重；Toon 路径关 GTAO |
-| 平台台阶穿模 / trimesh 无效 | 双面烘焙 + 地面开孔 + autostep |
-| 线上白屏 | 非自动部署；加强 loading/error UI；需确认 `dist/assets` 完整上传 |
-| Blender Bake 报错 | 需在 Shader Editor **选中** Image Texture 节点（active） |
+| WebGPU 后材质全黑 | GTAO 乘法和 RenderPipeline 跟 Toon / Basic 叠不稳；改 Toon，关 GTAO |
+| 关 GTAO 后太白、结构不清 | Toon gradientMap + Fog + 主补光分层 |
+| 开 GTAO 卡顿 | 主因不是三角面；16 samples + 半分辨率仍然重；Toon 路径关 GTAO |
+| 台阶穿模 / trimesh 无效 | 双面烘焙 + 地面开孔 + autostep |
+| 线上白屏 | 非自动部署；加强 loading / error；确认 `dist/assets` 完整上传 |
+| Blender Bake 报错 | Shader Editor 里选中 Image Texture 节点 |
 
-## 当前运行时开关（摘要）
+## 当前开关
 
 ```text
 ENABLE_GALLERY_TOON = true
@@ -96,18 +81,18 @@ ENABLE_GALLERY_BLOOM = true（轻量）
 ENABLE_GALLERY_RUNTIME_SHADOWS = false
 ```
 
-## 下一步计划
+## 下一步
 
-1. **Blender AO 烘焙**：完成 `struct_*` atlas 烘焙 → 导出 glb → 改 `prepareGalleryScene` **保留** `aoMap`/albedo（不再整表覆盖为纯色 Toon）。
-2. **减面**：`exhibit_demo_box` 降至 2k–4k 三角面；外墙可选 LOD。
-3. **部署**：构建并上传完整 `apps/web/dist/`；确认 CDN 对 `index.html` 短缓存、`assets/*` 长缓存。
-4. **FocusOverlay**：同步 Toon/雾/Bloom 策略；`useMemo` 副作用已改 `useEffect`。
-5. **音频 zone**：按空间位置切换 BGM（当前仍 hardcode `"architecture"`）。
-6. **DevStories 内容**：对接 `docs/devlog/` 本地 Markdown。
+1. 做完 `struct_*` atlas 烘焙，导出 glb，让 `prepareGalleryScene` 保留 `aoMap` / albedo，别再整表盖成纯色 Toon。
+2. `exhibit_demo_box` 减到 2k-4k 三角面；外墙可考虑 LOD。
+3. 构建并上传完整 `apps/web/dist/`；CDN 对 `index.html` 短缓存、`assets/*` 长缓存。
+4. FocusOverlay 对齐 Toon / 雾 / Bloom；副作用从 `useMemo` 改到 `useEffect`（已改）。
+5. 音频 zone：按位置切 BGM（现在还 hardcode `"architecture"`）。
+6. DevStories 对接 `docs/devlog/`。
 
-## 相关文件索引
+## 相关文件
 
-- 渲染：`apps/web/src/rendering/*`，`apps/web/src/scenes/gallery/galleryConfig.ts`
-- Toon：`galleryToonMaterial.ts`，`GalleryAtmosphere.tsx`，`prepareGalleryScene.ts`
-- 物理：`PlayerController.tsx`，`trimeshColliderUtils.ts`，`colColliders.tsx`，`GalleryFloorCollider.tsx`
-- 页面：`SpacePage.tsx`，`TopBar.tsx`
+渲染：`apps/web/src/rendering/*`，`apps/web/src/scenes/gallery/galleryConfig.ts`
+Toon：`apps/web/src/scenes/gallery/galleryToonMaterial.ts`，`apps/web/src/scenes/gallery/GalleryAtmosphere.tsx`，`apps/web/src/scenes/gallery/prepareGalleryScene.ts`
+物理：`apps/web/src/scenes/Player/PlayerController.tsx`，`apps/web/src/scenes/collision/trimeshColliderUtils.ts`，`apps/web/src/scenes/collision/colColliders.tsx`，`apps/web/src/scenes/gallery/GalleryFloorCollider.tsx`
+页面：`apps/web/src/pages/SpacePage.tsx`，`apps/web/src/components/TopBar.tsx`

@@ -4,32 +4,30 @@
 
 ## 本次目标
 
-- 让个人网站在桌面端继续从“空间体验”走向“可阅读的个人档案”：补 LizzardKevin 个人页和 DevStories 内容层。
-- 将 cursor、Pointer Lock、Overlay 退出和第一人称恢复做成统一桌面交互系统，而不是各页面各自处理鼠标。
-- 建立跨平台开发方式：本机 macOS 和 Windows Codex 都能改同一个 GitHub 仓库，并明确冲突时的事实源。
-- 继续推进 `space_main.blend` / `space_main.glb` 的生产资产流程：出生点、朝向、楼梯、碰撞、LED emissive 和材质分层都进入 Blender 源文件，而不是靠网页运行时临时补救。
-- 保持发布前可验证：每轮关键改动后跑 lint、TypeScript、build、GLB 节点检查，并用 Vite 交给人工视觉 QA。
+这轮先补桌面端的 LizzardKevin 个人页和 DevStories，让网站除了空间体验，也能直接阅读个人档案。cursor、Pointer Lock、Overlay 退出和第一人称恢复收进同一套桌面交互，不再让各页面各管一段鼠标逻辑。
+
+开发环境要同时覆盖本机 macOS 和 Windows Codex，并约定仓库冲突时以哪边为事实源。`space_main.blend` / `space_main.glb` 也继续往 Blender 源文件里收：出生点、朝向、楼梯、碰撞、LED emissive 和材质分层都在资产侧处理，不靠网页运行时临时补。每轮关键改动后照常跑 lint、TypeScript、build、GLB 节点检查，再用 Vite 做人工视觉 QA。
 
 ## 已完成产出
 
-### 1) LizzardKevin 个人页与 DevStories 内容层
+### 1) LizzardKevin 个人页和 DevStories
 
-- 个人页从简单占位推进到更接近传统个人简历的桌面内容结构：
+- 个人页不再只是简单占位，桌面内容按个人简历来组织：
   - 学生阶段：Pratt 本科、Columbia University 研究生。
   - 建筑职业阶段：三年建筑实践经历。
   - 摄影、乐队、二次元和其它个人表达。
   - 身份称谓围绕 AI 创意设计师、空间设计师、摄影师、贝斯手等展开。
-- DevStories 页面改为适合持续扩展的开发日志阅读层：
+- DevStories 页面按后续持续追加日志的方式整理：
   - 使用现有 Frosted Split 的页面语言，不新增路由，也不弹新窗口。
   - 右侧 DevStories 继续用 index + stage + detail 的方式查看每条日志。
-  - 内容不是单纯 changelog，而是把“做成了什么”和“哪里卡住了/为什么回退”放在一起。
+- 内容不只记 changelog，也会写清楚“做成了什么”和“哪里卡住了/为什么回退”。
 - 将 `docs/devlog/DevLog_1~5.md` 和 `DevLogSum_1~5.md` 重新理解后包装进 `apps/web/src/content/devStories.ts`。
 - 第五轮之后的内容继续沿用同一数据结构，后续新增日志只需要：
   - 增加 `docs/devlog/DevLog_N.md`
   - 增加 `docs/devlog/DevLogSum_N.md`
   - 在 `devStories.ts` 追加一条 story 数据。
 
-### 2) 全局自定义 Cursor 与 Pointer Lock 恢复
+### 2) 全局自定义 Cursor 和 Pointer Lock 恢复
 
 - 桌面端建立统一自定义 cursor 层，覆盖 SPACE、LizzardKevin、DevStories 和 Focus Overlay。
 - 默认 cursor 为圆点，并根据交互状态变化：
@@ -42,7 +40,7 @@
 - 入口白屏单独处理 cursor tone：
   - 白底上使用灰色圆点，避免白色 cursor 不可见。
   - 进入 SPACE 后回到深色/浅色上下文切换逻辑。
-- 修正 ESC / Alt 释放 pointer lock 后的 cursor 漂移：
+- ESC / Alt 释放 pointer lock 后，cursor 曾经会漂移：
   - 早期方案从中心开始用 `movementX/Y` 推算 cursor，但系统鼠标真实位置仍在旧坐标，下一次释放时会跳变。
   - 后来改为在释放 pointer lock 时，让自定义圆点从中心动画飞向真实 OS 鼠标位置。
   - 动画途中如果鼠标继续移动，目标点会更新，避免飞到旧坐标后再跳一下。
@@ -52,9 +50,9 @@
   - 如果按住 Alt 后进入 LizzardKevin 或 DevStories，松开 Alt 不自动回锁。
 - Overlay 的“双击空白退出”提示从正文滚动流里移到固定安全区，并放宽可双击返回区域，减少误操作。
 
-### 3) 入口、彩蛋与第一人称反馈继续打磨
+### 3) 入口、彩蛋和第一人称反馈
 
-- 入口白屏的点击提示继续保留：
+- 入口白屏保留点击提示：
   - 点击空白区域会让标题文字 pulse。
   - pulse 结束后停留在略微放大的状态。
   - 放大取消最大上限，形成“别点空白，点文字”的渐进提示。
@@ -73,7 +71,7 @@
   - 发现本地/远端切换后走路速度需要重新核对。
   - 当前 `PlayerController` 使用更直接的桌面速度配置，并继续保留 smoothstep 加减速。
 
-### 4) 跨平台开发与 Git 事实源
+### 4) 跨平台开发和 Git 事实源
 
 - Windows Codex 侧新增 cross-platform development 分支，包含：
   - `.gitattributes`
@@ -97,12 +95,12 @@
 - 处理策略：
   - 还原无意义的 `package-lock.json` 漂移。
   - 后续跨平台开发以 `.nvmrc` 指定 Node 24.11.0 为准。
-- 后续远端又出现模型更新提交时，最终确认“本机是最新事实源”：
+- 远端后来又出现模型更新提交，此时确认“本机是最新事实源”：
   - 本地提交模型和材质改动。
   - 使用 `git push --force-with-lease origin main` 让远端 `main` 对齐本机。
   - 这一步明确是用户指定的工作流，不是默认的多人协作策略。
 
-### 5) `space_main` 出生点、朝向与 GLB revision
+### 5) `space_main` 出生点、朝向和 GLB revision
 
 - 用户在 Blender 中放置 Plain Axes Empty，作为新的出生点。
 - 批处理将该 Empty 改为规范名称：
@@ -125,13 +123,13 @@
   - runtime 解析出生点约为 `[-0.510, 37.758, -48.318]`。
   - 初始视线平视朝 Blender `-Y`。
 
-### 6) Blender Python Console 资产管线
+### 6) 改用 Blender Python Console
 
-- 原计划使用 Blender MCP 批量调整模型，但实际遇到：
+- 原本准备使用 Blender MCP 批量调整模型，但碰到：
   - MCP 返回 `Incomplete JSON response received`。
   - 直接 socket 到 Blender 端口超时。
   - 插件通路不稳定，不适合作为本阶段资产批处理的主流程。
-- 之后明确改用 Blender Python Console：
+- 后来改用 Blender Python Console：
   - 通过 Computer Use 聚焦 Blender。
   - 使用 Python Console 执行批处理脚本。
   - 每次输出 `/tmp/lk_blender_*.json` 报告，方便终端复查。
@@ -143,7 +141,7 @@
   - 导出覆盖 `apps/web/public/models/space_main.glb`。
 - 用户明确要求后续 Blender 批处理都直接使用 Python Console，这条作为当前项目工作习惯保留。
 
-### 7) 楼梯与 LED emissive 修复
+### 7) 楼梯和 LED emissive
 
 - 网页检查发现楼梯在 SPACE 里不正常：
   - 视觉上像只有透明碰撞体。
@@ -188,7 +186,7 @@
 
 ## 当前验证状态
 
-本轮关键步骤中已多次执行以下验证：
+关键步骤中多次执行了：
 
 ```text
 npm run lint
@@ -207,15 +205,15 @@ find apps/web/dist apps/web/public/models -type f -size +20M -print
   - 69 个楼梯碰撞体。
   - 55 个 emissive generic LED。
   - 8 个最终材质，导入时的临时 Material 噪声已清理。
-- Vite dev server 已重启到 `http://127.0.0.1:5173/`，交给人工检查楼梯、LED、出生点和移动手感。
+- Vite dev server 已重启到 `http://127.0.0.1:5173/`，接下来人工检查楼梯、LED、出生点和移动手感。
 
 ## 下一步计划
 
-1. **真实视觉 QA**：在 Chrome 中检查楼梯是否可见、LED 是否足够亮、碰撞是否仍能正常上楼。
-2. **灯光策略**：决定 emissive mesh 只做视觉，还是让 `LIGHT_GENERIC_LIGHT_*` 同时驱动运行时 point light / area light。
-3. **资产命名收口**：将 `STRUCT_STAIR_*` 写回命名文档，明确楼梯视觉和碰撞双节点规则。
-4. **跨平台版本统一**：macOS 和 Windows 都切到 `.nvmrc` 指定 Node 24.11.0，减少 lockfile 差异。
-5. **继续补展品节点**：在 `space_main.blend` 内增加正式 `exhibit_*` hit mesh，让 Focus 不再依赖 demo 资产。
+1. 在 Chrome 中检查楼梯是否可见、LED 是否足够亮、碰撞是否仍能正常上楼。
+2. 决定 emissive mesh 只做视觉，还是让 `LIGHT_GENERIC_LIGHT_*` 同时驱动运行时 point light / area light。
+3. 将 `STRUCT_STAIR_*` 写回命名文档，明确楼梯视觉和碰撞双节点规则。
+4. macOS 和 Windows 都切到 `.nvmrc` 指定 Node 24.11.0，减少 lockfile 差异。
+5. 在 `space_main.blend` 内增加正式 `exhibit_*` hit mesh，让 Focus 不再依赖 demo 资产。
 
 ## 相关文件索引
 

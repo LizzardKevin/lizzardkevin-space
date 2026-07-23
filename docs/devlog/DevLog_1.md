@@ -2,13 +2,13 @@
 
 时间：2026-05-28（约 4h）
 
-## 本次目标
+## 这次想做成什么
 
-- 从零把「LizzardKevin Space」的技术骨架跑起来：3D 第一人称漫游 + 顶栏/Overlay + 基础音频与展品框架，并为后续导入 `gallery_main.glb` 与展品 Focus glb 做好接口与规范。
+把「LizzardKevin Space」的技术骨架先跑通：3D 第一人称漫游、顶栏 / Overlay、基础音频和展品框架。后面导入 `gallery_main.glb` 和展品 Focus glb 时，接口和命名约定得先有。
 
-## 已完成产出（可直接运行）
+## 做完了什么
 
-### 1) 项目结构与开发脚手架
+### 1) 项目结构和脚手架
 
 - 项目根目录：`/Users/lizzardkevin/Documents/LizzardKevin Space`
 - Workspaces：根目录 `package.json` 以 `apps/web` 为主（Vite + React + TS）
@@ -16,59 +16,45 @@
   - `npm run dev`（开发）
   - `npm run build`（构建）
 
-### 2) 顶栏与 Overlay（不中断 SPACE）
+### 2) 顶栏和 Overlay（不中断 SPACE）
 
-- 顶栏 Tab 改成 **Overlay 模式**（不切路由，不卸载 Canvas），并加入下拉/回收动画（带缓冲）。
-- 进入 Overlay 时释放 pointer lock；退出 Overlay 时回到 SPACE（继续原位置）。
-- 相关实现：
-  - `apps/web/src/App.tsx`
-  - `apps/web/src/components/TopBar.tsx`
-  - `apps/web/src/overlay/OverlayLayer.tsx`
+顶栏 Tab 改成 Overlay：不切路由，也不卸载 Canvas。下拉 / 回收有一点缓冲动画。进 Overlay 会释放 pointer lock；退出后回到 SPACE，位置还在。
 
-### 3) 第一人称移动：重力/碰撞/手感
+相关文件：`apps/web/src/App.tsx`、`apps/web/src/components/TopBar.tsx`、`apps/web/src/overlay/OverlayLayer.tsx`。
 
-- 从“坦克式/运动学平移”升级为 Rapier 的 **KinematicCharacterController** 风格：
-  - 重力下落
-  - 地面吸附与滑墙
-  - 轻微 head-bob（走路视角小幅晃动）
-  - WASD **随视角方向移动**（现代 FPS）
-- 相关实现：
-  - `apps/web/src/scenes/Player/PlayerController.tsx`
-  - `apps/web/src/scenes/SpaceScene.tsx`
+### 3) 第一人称移动
 
-### 4) glb 碰撞约定：`COL_` 自动识别
+不再用坦克式平移，改成 Rapier 的 KinematicCharacterController 风格：有重力、会贴地、能滑墙，走路带一点 head-bob。WASD 跟着视角走，接近常见 FPS。
 
-- 新增对 `COL_` 碰撞网格的识别与生成静态 trimesh 碰撞（并隐藏碰撞网格）。
-- 相关实现：
-  - `apps/web/src/scenes/collision/colColliders.tsx`
-- 建模约定文档：
-  - `docs/asset-manifest.md`
+相关文件：`apps/web/src/scenes/Player/PlayerController.tsx`、`apps/web/src/scenes/SpaceScene.tsx`。
 
-### 5) 展品 Focus glb + manifest + 播放进度条（最小闭环）
+### 4) glb 碰撞约定：`COL_`
 
-- 建立 `public/exhibits/manifest.json`（示例结构）与加载器：
-  - `apps/web/public/exhibits/manifest.json`
-  - `apps/web/src/exhibits/manifest.ts`
-- Focus overlay：全屏暗化/模糊 + 旋转/缩放查看 Focus glb（OrbitControls）：
-  - `apps/web/src/exhibits/FocusOverlay.tsx`
-- 音频播放内核 + 底部统一进度条（音视频将共用此 UI）：
-  - `apps/web/src/media/PlaybackContext.tsx`
-  - `apps/web/src/media/PlaybackBar.tsx`
+识别 `COL_` 碰撞网格，生成静态 trimesh，并把碰撞网格藏起来。约定写在 `docs/asset-manifest.md`，实现在 `apps/web/src/scenes/collision/colColliders.tsx`。
 
-### 6) 视觉与字体（临时方案）
+### 5) 展品 Focus 最小闭环
 
-- 灰墙 + 白地面 + 更亮环境光（方便看清），保留 Toon + Bloom 骨架。
-- 全局系统无衬线字体栈：
-  - `apps/web/src/styles/global.css`
+- `apps/web/public/exhibits/manifest.json` + `apps/web/src/exhibits/manifest.ts`
+- Focus overlay：全屏暗化 / 模糊，OrbitControls 转 Focus glb（`apps/web/src/exhibits/FocusOverlay.tsx`）
+- 音频播放内核 + 底部进度条，音视频后面共用（`apps/web/src/media/PlaybackContext.tsx`、`apps/web/src/media/PlaybackBar.tsx`）
 
-### 7) 国内部署方向（腾讯云）
+### 6) 视觉和字体（临时）
 
-- 文档：腾讯云 COS + CDN 的静态站 + 大资源（glb/mp3/mp4）组织建议：
-  - `docs/tencent-cloud-deploy.md`
+灰墙、白地面、环境光调亮一点方便看清。Toon + Bloom 骨架先留着。全局用系统无衬线字体栈（`apps/web/src/styles/global.css`）。
 
-## 遇到的问题与处理
+### 7) 部署方向
 
-- **Pointer Lock 系统提示框**：Chrome 会在进入/退出鼠标锁定时显示系统级提示，这是浏览器安全机制，网页无法隐藏；因此以交互设计减少频繁切换为主（保留现状）。
-## 下一步计划（简要）
+写了腾讯云 COS + CDN 的静态站和大资源（glb / mp3 / mp4）组织建议：`docs/tencent-cloud-deploy.md`。
 
-1. **真正启用 `gallery_main.glb`**：放入 `apps/web/public/models/gallery_main.glb`，并打开 `SpaceScene.tsx` 的加载开关；验证 `COL_` 碰撞网格是否工作。\n2. **展品按钮映射**：按 manifest 规则实现“点击 Focus glb 上的按钮 mesh → play/pause/seek”完整链路（替换当前临时播放按钮）。\n3. **视频通道**：接入 `videoUrl`（HTMLVideoElement + 进度同步到 `PlaybackBar`），并支持按钮控制。\n4. **脚步声与地面材质映射**：基于 `FOOT_*` 或 zone 规则切换脚步样本，并做基础音量 UI。\n5. **视觉打磨**：Firewatch-ish 的雾、颜色层级、Bloom 阈值与亮度；之后再讨论阴影策略（AO/lightmap vs 局部实时阴影）。\n6. **内容接入**：本地 JSON / Markdown（`manifest.json`、`content.json`、`docs/devlog/`）。\n
+## 卡住过的地方
+
+Chrome 进出鼠标锁定会弹系统提示，网页藏不掉。只能少切换，交互上绕开。
+
+## 下一步
+
+1. 真正启用 `gallery_main.glb`：放进 `apps/web/public/models/gallery_main.glb`，打开 `apps/web/src/scenes/SpaceScene.tsx` 的加载开关，核对 `COL_` 是否生效。
+2. 展品按钮映射：按 manifest，点 Focus glb 上的按钮 mesh 就能 play / pause / seek。
+3. 视频通道：接上 `videoUrl`，进度同步到 `PlaybackBar`。
+4. 脚步声：按 `FOOT_*` 或 zone 切样本，再做简单音量 UI。
+5. 视觉：雾、颜色层级、Bloom 阈值；阴影策略（AO / lightmap vs 局部实时）之后再定。
+6. 内容：本地 JSON / Markdown（`manifest.json`、`content.json`、`docs/devlog/`）。

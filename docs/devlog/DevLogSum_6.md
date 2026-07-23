@@ -1,1 +1,3 @@
-桌面端补齐 LizzardKevin 个人页和 DevStories 内容层，并继续统一全局自定义 cursor、Alt/ESC pointer lock 释放与回中心动画；建立 macOS / Windows Codex 跨平台开发流程，确认本机作为事实源时用 `--force-with-lease` 同步远端；`space_main` 资产管线改为 Blender Python Console 批处理，修正 `spawn_player_main` 出生点、平视朝 Blender -Y、marker 高度 fallback、GLB revision；重新整理 Blender collections 和材质，生成 69 个 `STRUCT_STAIR_*` 可见楼梯，保留 `COL_STAIR_*` 碰撞体，并给 55 个 `LIGHT_GENERIC_LIGHT_*` 赋 emissive LED 材质；持续用 lint、TypeScript、build、GLB 节点检查和 Vite 人工 QA 验证。
+这轮补了 LizzardKevin 个人页和 DevStories 内容，也把全局自定义 cursor、Alt/ESC pointer lock 释放和回中心动画放进同一套桌面交互里。macOS / Windows Codex 的跨平台流程也定了下来：本机作为事实源时，用 `--force-with-lease` 同步远端。
+
+`space_main` 资产批处理改走 Blender Python Console，修了 `spawn_player_main` 出生点、平视朝 Blender -Y、marker 高度 fallback 和 GLB revision。Blender collections 与材质重新整理后，生成 69 个 `STRUCT_STAIR_*` 可见楼梯，保留 `COL_STAIR_*` 碰撞体，并给 55 个 `LIGHT_GENERIC_LIGHT_*` 换上 emissive LED 材质。最后继续用 lint、TypeScript、build、GLB 节点检查和 Vite 人工 QA 验证。
