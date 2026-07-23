@@ -10,8 +10,8 @@ const BASE_B = 216;
 const BASE_ALPHA = 0.07;
 
 const INFLUENCE_RADIUS = 340;
-const MAX_OFFSET = 8.4;
-const MAX_ALPHA = 0.35;
+const MAX_OFFSET = 10.5;
+const MAX_ALPHA = 0.45;
 const LERP_FACTOR = 0.14;
 const COLOR_BUCKETS = 32;
 const TAU = Math.PI * 2;
@@ -364,11 +364,16 @@ export function DotGridAttractCanvas({
     let lastFlowAt = 0;
 
     // 常驻 ~30fps 流动循环；指针/箭头事件经 wake 立即补帧保持手感
+    let lastStepAt = performance.now();
     const step = (now: number) => {
       const { targetStrength } = readDotGridArrow();
-      pointerX += (targetX - pointerX) * LERP_FACTOR;
-      pointerY += (targetY - pointerY) * LERP_FACTOR;
-      arrowStrength += (targetStrength - arrowStrength) * 0.14;
+      // dt 归一化 lerp：主线程繁忙掉帧时（如 works 页 3D 渲染）收敛速度不变
+      const dt = Math.min(now - lastStepAt, 100);
+      lastStepAt = now;
+      const k = 1 - Math.pow(1 - LERP_FACTOR, dt / 16.7);
+      pointerX += (targetX - pointerX) * k;
+      pointerY += (targetY - pointerY) * k;
+      arrowStrength += (targetStrength - arrowStrength) * k;
       if ((window.devicePixelRatio || 1) !== dpr) resize();
       if (now - lastFlowAt >= FLOW_FRAME_MS) {
         lastFlowAt = now;
