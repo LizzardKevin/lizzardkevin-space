@@ -38,18 +38,25 @@ describe("ArkGlassTile contract", () => {
     assert.match(src, /blur=\{1\}/);
     assert.match(src, /enableGlassEffect=\{false\}/);
     assert.match(src, /displacementScale=\{0\}/);
-    assert.match(src, /ark-glass-tile__fx/);
-    assert.match(src, /--ark-glass-mx/);
+    assert.match(src, /POINTER_LERP = 0\.2/);
+    assert.match(src, /--ark-glass-edge-t/);
+    assert.match(src, /ark-glass-tile__glow/);
+    assert.match(src, /contentClassName="ark-glass-tile__pad"/);
   });
 
-  it("scroll-pages CSS uses hover edge inset + clipped accent glow (not library shine)", () => {
+  it("scroll-pages CSS pads content inside the frame and proximity edge lights", () => {
     const css = read(join(root, "src/styles/scroll-pages.css"));
-    assert.match(css, /\.ark-glass-tile__fx/);
-    assert.match(css, /\.ark-glass-tile:hover \.ark-glass-tile__fx/);
-    assert.match(css, /box-shadow:\s*[\s\S]*?inset 0 1px 0/);
-    assert.match(css, /--ark-accent/);
+    assert.match(css, /\.ark-glass-tile__pad/);
+    assert.match(css, /\.ark-dentry__panel \.ark-glass-tile__pad[\s\S]*?padding:\s*32px 36px 36px/);
+    assert.match(css, /\.ark-glass-tile__edge--t/);
+    assert.match(css, /--ark-glass-edge-t/);
+    assert.match(css, /\.ark-glass-tile__glow/);
     assert.match(css, /overflow:\s*hidden/);
     assert.match(css, /\.ark-glass-tile \.liquidGlass-shine[\s\S]*?opacity:\s*0\s*!important/);
+    assert.doesNotMatch(
+      css,
+      /\.ark-glass-tile__fx \{[\s\S]*?box-shadow:\s*[\s\S]*?inset 0 1px 0/,
+    );
   });
 
   it("is the only apps/web/src consumer of @khvicha/react-liquid-glass", () => {
