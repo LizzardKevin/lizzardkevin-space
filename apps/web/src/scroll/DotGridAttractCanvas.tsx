@@ -2,22 +2,23 @@ import { useEffect, useRef, type JSX } from "react";
 import { readDotGridArrow, subscribeDotGridArrow } from "./dotGridArrowBus";
 
 const GRID_SPACING = 20;
-const TILE_SPAN = GRID_SPACING * 2;
 const DOT_RADIUS = 1.2;
 
 const BASE_R = 213;
 const BASE_G = 214;
 const BASE_B = 216;
 const BASE_ALPHA = 0.07;
-const BASE_COLOR = `rgba(${BASE_R}, ${BASE_G}, ${BASE_B}, ${BASE_ALPHA})`;
 
 const INFLUENCE_RADIUS = 340;
-const MAX_OFFSET = 12;
-const MAX_ALPHA = 0.5;
+const MAX_OFFSET = 8.4;
+const MAX_ALPHA = 0.35;
 const LERP_FACTOR = 0.14;
-const IDLE_STOP_MS = 300;
 const COLOR_BUCKETS = 32;
 const TAU = Math.PI * 2;
+
+/** 流动动画节流（~30fps 常驻）与呼吸分桶 */
+const FLOW_FRAME_MS = 33;
+const FLOW_BUCKETS = 8;
 
 /** 擦除半径：影响半径 + 最大位移 + 点半径，保证被吸引偏离的点也落在重绘区内 */
 const ERASE_RADIUS = INFLUENCE_RADIUS + MAX_OFFSET + DOT_RADIUS;
@@ -90,33 +91,6 @@ export function DotGridAttractCanvas({
     let dpr = window.devicePixelRatio || 1;
     let cssWidth = 0;
     let cssHeight = 0;
-    let tile: HTMLCanvasElement | null = null;
-
-    const buildTile = () => {
-      const next = document.createElement("canvas");
-      next.width = Math.max(1, Math.round(TILE_SPAN * dpr));
-      next.height = Math.max(1, Math.round(TILE_SPAN * dpr));
-      const tileCtx = next.getContext("2d");
-      if (!tileCtx) {
-        tile = null;
-        return;
-      }
-      tileCtx.scale(dpr, dpr);
-      tileCtx.fillStyle = BASE_COLOR;
-      // 四个点：原点处的点被瓦片边缘裁成四份，平铺后由相邻瓦片拼回整点，
-      // 这样 40px 周期的瓦片能覆盖完整的 20px 网格。
-      for (const [dx, dy] of [
-        [0, 0],
-        [GRID_SPACING, 0],
-        [0, GRID_SPACING],
-        [GRID_SPACING, GRID_SPACING],
-      ] as const) {
-        tileCtx.beginPath();
-        tileCtx.arc(dx, dy, DOT_RADIUS, 0, TAU);
-        tileCtx.fill();
-      }
-      tile = next;
-    };
 
     const resize = () => {
       dpr = window.devicePixelRatio || 1;
@@ -125,7 +99,6 @@ export function DotGridAttractCanvas({
       cssHeight = rect.height;
       canvas.width = Math.max(1, Math.round(cssWidth * dpr));
       canvas.height = Math.max(1, Math.round(cssHeight * dpr));
-      buildTile();
     };
 
     // 滚动跟随：.ark-scroll 与组件同级（都在 .ark-page 下），拿不到则退化为不跟随
@@ -143,6 +116,76 @@ export function DotGridAttractCanvas({
     let arrowStrength = 0;
     // 滚动跟随的纵向偏移（每帧 draw 前刷新）
     let offsetY = 0;
+
+    /** 箭头区域判定（供流动层让位与箭头层复用） */
+    const arrowContains = (px: number, py: number): boolean => {
+      if (arrowStrength <= 0.01) return false;
+      const { direction } = readDotGridArrow();
+      const dirSign = direction === "right" ? 1 : -1;
+      const cx = direction === "right" ? cssWidth - 72 : 72;
+      const cy = cssHeight / 2;
+      const x0 = cx - ARROW_W / 2;
+      const x1 = cx + ARROW_W / 2;
+      const u = dirSign > 0 ? (px - x0) / ARROW_W : (x1 - px) / ARROW_W;
+      if (u < 0 || u > 1) return false;
+      const halfH = (ARROW_H / 2) * u;
+      return Math.abs(py - cy) <= halfH;
+    };
+
+    /** 自主动画层：全量点阵随流场缓慢漂移，~10% 的点各自相位呼吸点亮。
+     *  指针影响区与箭头区让位给对应层绘制。 */
+    const drawFlow = (time: number) => {
+      const flowT = time * 0.00045;
+      const breatheT = time * 0.0011;
+      const iMax = Math.ceil(cssWidth / GRID_SPACING);
+      const jMax = Math.ceil(cssHeight / GRID_SPACING);
+      const buckets: (Path2D | undefined)[] = [];
+
+      for (let i = 0; i <= iMax; i += 1) {
+        const x = i * GRID_SPACING;
+        for (let j = 0; j <= jMax; j += 1) {
+          const y = j * GRID_SPACING + offsetY;
+          if (y < -GRID_SPACING || y > cssHeight + GRID_SPACING) continue;
+
+          // 让位：指针影响区与箭头区由对应层绘制
+          if (pointerSeen) {
+            const pdx = pointerX - x;
+            const pdy = pointerY - y;
+            if (pdx * pdx + pdy * pdy < REDRAW_RADIUS * REDRAW_RADIUS) continue;
+          }
+          if (arrowContains(x, y)) continue;
+
+          // 流场偏移（缓慢漂移）
+          const a = Math.sin(x * 0.0048 + flowT) + Math.cos(y * 0.0042 - flowT * 0.8);
+          const ang = a * Math.PI * 0.5;
+          const fx = x + Math.cos(ang) * 3.4;
+          const fy = y + Math.sin(ang) * 3.4;
+
+          // 呼吸点亮（约 10% 的点，各自相位）
+          const hash = (i * 31 + j * 17) % 97;
+          let alphaK = 0;
+          if (hash < 10) {
+            alphaK = Math.max(0, Math.sin(breatheT + hash * 0.65)) * 0.55;
+          }
+          const bucketIndex = Math.min(FLOW_BUCKETS - 1, Math.round(alphaK * (FLOW_BUCKETS - 1)));
+          let path = buckets[bucketIndex];
+          if (!path) {
+            path = new Path2D();
+            buckets[bucketIndex] = path;
+          }
+          path.moveTo(fx + DOT_RADIUS, fy);
+          path.arc(fx, fy, DOT_RADIUS, 0, TAU);
+        }
+      }
+
+      for (let index = 0; index < FLOW_BUCKETS; index += 1) {
+        const path = buckets[index];
+        if (!path) continue;
+        const k = index / (FLOW_BUCKETS - 1);
+        ctx.fillStyle = `rgba(${BASE_R}, ${BASE_G}, ${BASE_B}, ${BASE_ALPHA + (0.42 - BASE_ALPHA) * k})`;
+        ctx.fill(path);
+      }
+    };
 
     const drawInfluence = () => {
       if (!pointerSeen) return;
@@ -276,20 +319,15 @@ export function DotGridAttractCanvas({
       }
     };
 
-    const draw = () => {
+    const draw = (time?: number) => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, cssWidth, cssHeight);
-      if (!tile || cssWidth <= 0 || cssHeight <= 0) return;
+      if (cssWidth <= 0 || cssHeight <= 0) return;
 
       offsetY = ((scrollTop % GRID_SPACING) + GRID_SPACING) % GRID_SPACING;
 
-      // 1. 平铺基础网格（滚动跟随）
-      for (let y = offsetY - TILE_SPAN; y < cssHeight; y += TILE_SPAN) {
-        for (let x = 0; x < cssWidth; x += TILE_SPAN) {
-          ctx.drawImage(tile, x, y, TILE_SPAN, TILE_SPAN);
-        }
-      }
-
+      // 1. 自主动画流动层（流场漂移 + 呼吸点亮）
+      drawFlow(time ?? performance.now());
       // 2. 指针吸引层
       drawInfluence();
       // 3. 切换条 hover 的点阵箭头（若有强度）
@@ -305,37 +343,33 @@ export function DotGridAttractCanvas({
     }
 
     let frame: number | null = null;
-    let lastActivity = 0;
+    let lastFlowAt = 0;
 
-    const isSettled = () =>
-      Math.abs(targetX - pointerX) < 0.4 && Math.abs(targetY - pointerY) < 0.4;
-
-    const step = () => {
+    // 常驻 ~30fps 流动循环；指针/箭头事件经 wake 立即补帧保持手感
+    const step = (now: number) => {
       const { targetStrength } = readDotGridArrow();
       pointerX += (targetX - pointerX) * LERP_FACTOR;
       pointerY += (targetY - pointerY) * LERP_FACTOR;
       arrowStrength += (targetStrength - arrowStrength) * 0.14;
       if ((window.devicePixelRatio || 1) !== dpr) resize();
-      draw();
-      if (
-        isSettled() &&
-        Math.abs(targetStrength - arrowStrength) < 0.02 &&
-        performance.now() - lastActivity > IDLE_STOP_MS
-      ) {
-        pointerX = targetX;
-        pointerY = targetY;
-        arrowStrength = targetStrength;
-        draw();
-        frame = null;
-        return;
+      if (now - lastFlowAt >= FLOW_FRAME_MS) {
+        lastFlowAt = now;
+        draw(now);
       }
       frame = window.requestAnimationFrame(step);
     };
 
     const wake = () => {
-      lastActivity = performance.now();
-      if (frame === null) frame = window.requestAnimationFrame(step);
+      if (frame === null) {
+        lastFlowAt = 0;
+        frame = window.requestAnimationFrame(step);
+        return;
+      }
+      draw();
     };
+
+    // 常驻流动：立即启动循环（不等首次输入）
+    frame = window.requestAnimationFrame(step);
 
     const handlePointerMove = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
