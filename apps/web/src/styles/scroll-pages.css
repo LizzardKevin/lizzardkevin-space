@@ -1416,6 +1416,9 @@
   .ark-dentry__indexInner {
     position: static;
   }
+  .ark-psection__railInner {
+    position: static;
+  }
   .ark-dentry__grid { grid-template-columns: 1fr; margin-left: 0; }
   .ark-wspec { grid-template-columns: 1fr; }
   .ark-wnav { grid-template-columns: 1fr; }
