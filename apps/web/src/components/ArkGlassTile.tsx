@@ -25,10 +25,11 @@ const VARIANT_TINT: Record<ArkGlassTileVariant, string> = {
   nav: "rgba(255, 255, 255, 0.012)",
 };
 
+/** 空闲白边；悬停高光由 CSS FX 负责，不画在边框上 */
 const VARIANT_BORDER: Record<ArkGlassTileVariant, string> = {
-  panel: "rgba(213, 214, 216, 0.22)",
-  link: "rgba(213, 214, 216, 0.18)",
-  nav: "rgba(213, 214, 216, 0.22)",
+  panel: "rgba(255, 255, 255, 0.42)",
+  link: "rgba(255, 255, 255, 0.42)",
+  nav: "rgba(255, 255, 255, 0.42)",
 };
 
 function clamp01(n: number) {
@@ -41,7 +42,7 @@ function edgeStrength(distanceFromEdge: number) {
 
 /**
  * 舟味克制工业玻璃贴：
- * - 空闲近透明、无光
+ * - 空闲：近透明 + 白边，无高光
  * - 悬停：贴边高光按离指针距离变亮（贴在内缘，不外扩）
  * - 悬停：框内强调色光晕，lerp 阻尼与 CursorDot 一致，overflow 裁切
  */

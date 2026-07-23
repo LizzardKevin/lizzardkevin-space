@@ -42,6 +42,7 @@ describe("ArkGlassTile contract", () => {
     assert.match(src, /--ark-glass-edge-t/);
     assert.match(src, /ark-glass-tile__glow/);
     assert.match(src, /contentClassName="ark-glass-tile__pad"/);
+    assert.match(src, /rgba\(255,\s*255,\s*255,\s*0\.42\)/);
   });
 
   it("scroll-pages CSS pads content inside the frame and proximity edge lights", () => {
@@ -53,6 +54,10 @@ describe("ArkGlassTile contract", () => {
     assert.match(css, /\.ark-glass-tile__glow/);
     assert.match(css, /overflow:\s*hidden/);
     assert.match(css, /\.ark-glass-tile \.liquidGlass-shine[\s\S]*?opacity:\s*0\s*!important/);
+    assert.match(
+      css,
+      /\.ark-glass-tile__fx \{[\s\S]*?opacity:\s*0;/,
+    );
     assert.doesNotMatch(
       css,
       /\.ark-glass-tile__fx \{[\s\S]*?box-shadow:\s*[\s\S]*?inset 0 1px 0/,

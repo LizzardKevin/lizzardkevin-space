@@ -1246,11 +1246,6 @@
   flex-direction: column;
 }
 
-/* 作品详情强调色（黄）边框，覆盖玻璃默认灰边 */
-.ark-wnav__glass .liquidGlass-wrapper {
-  --lg-border: color-mix(in srgb, var(--ark-accent) 58%, transparent);
-}
-
 .ark-wnav__glass .ark-glass-tile__pad {
   display: flex;
   flex-direction: column;
