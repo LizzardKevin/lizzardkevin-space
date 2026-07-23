@@ -11,14 +11,17 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getScrollPagesCopy, type ScrollPageAccent } from "../content/scrollPagesCopy";
 import type { SupportedLanguage } from "../i18n/resolveInitialLanguage";
+import Magnet from "../components/react-bits/Magnet";
 import { ScrollPageContext } from "./scrollPageContext";
-import { useLenisScroll } from "./useLenisScroll";
+import { useLenisScroll, prefersReducedMotion } from "./useLenisScroll";
 import { usePageLanguage } from "./usePageLanguage";
 import { useEscapeToSpace } from "./useEscapeToSpace";
+import { useScrollTriggerRefresh } from "./useScrollTriggerRefresh";
 import { DotGridAttractCanvas } from "./DotGridAttractCanvas";
 import { setDotGridArrow } from "./dotGridArrowBus";
 import { CursorDot } from "./CursorDot";
 import { HazardRule } from "./primitives";
+import { gsap } from "./scrollGsap";
 
 export type ScrollPageAnchor = { id: string; label: string };
 export type SpaceReturnHandler = (options?: { fromEscape?: boolean }) => void;
@@ -31,6 +34,13 @@ export type ScrollPageSwitchTarget = {
   side: "left" | "right";
   /** 对方页面强调色（halo 用）：teal 或 orange */
   accent: "teal" | "orange";
+};
+
+/** 与 --ark-accent / 切换条 halo 同源的色值。 */
+const PAGE_ACCENT_COLORS: Record<ScrollPageAccent, string> = {
+  teal: "#67c2be",
+  orange: "#ef8b61",
+  yellow: "#e8d44d",
 };
 
 /** 与对方页面 --ark-accent 对应的色值（切换条 hover halo）。 */
@@ -120,6 +130,9 @@ export function ScrollPageShell({
   const navigate = useNavigate();
   const language = usePageLanguage();
   const copy = useMemo(() => getScrollPagesCopy(language), [language]);
+  const pageRef = useRef<HTMLDivElement | null>(null);
+  const leavingRef = useRef(false);
+  const magnetOff = prefersReducedMotion();
 
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [content, setContent] = useState<HTMLDivElement | null>(null);
@@ -128,7 +141,38 @@ export function ScrollPageShell({
   const activeAnchorRef = useRef<string | null>(null);
   const [miniTitleVisible, setMiniTitleVisible] = useState(false);
 
-  useEscapeToSpace(onNavigateToSpace);
+  useScrollTriggerRefresh(scroller);
+
+  const leaveToSpace = useCallback(
+    (options?: { fromEscape?: boolean }) => {
+      if (leavingRef.current) return;
+      leavingRef.current = true;
+      // ESC：立刻回 SPACE 并接管指针锁；延迟会导致首击落在展品上又进作品页
+      if (options?.fromEscape || prefersReducedMotion()) {
+        onNavigateToSpace(options);
+        return;
+      }
+      const root = pageRef.current;
+      if (!root) {
+        onNavigateToSpace(options);
+        return;
+      }
+      const chrome = root.querySelectorAll<HTMLElement>(".ark-top, .ark-footer");
+      if (chrome.length === 0) {
+        onNavigateToSpace(options);
+        return;
+      }
+      gsap.to(chrome, {
+        autoAlpha: 0,
+        duration: 0.12,
+        ease: "power1.out",
+        onComplete: () => onNavigateToSpace(options),
+      });
+    },
+    [onNavigateToSpace],
+  );
+
+  useEscapeToSpace(leaveToSpace);
 
   const handleSwitch = useCallback(() => {
     if (!switchTarget) return;
@@ -176,8 +220,8 @@ export function ScrollPageShell({
   }, [scroller, anchors]);
 
   const contextValue = useMemo(
-    () => ({ scroller, scrollToTarget }),
-    [scroller, scrollToTarget],
+    () => ({ scroller }),
+    [scroller],
   );
 
   // 迷你标题：滚过指定 section 后左上常驻。
@@ -199,8 +243,11 @@ export function ScrollPageShell({
 
   return (
     <ScrollPageContext.Provider value={contextValue}>
-      <div className="ark-page" data-accent={accent}>
-        <DotGridAttractCanvas className="ark-dotgrid-canvas" />
+      <div className="ark-page" data-accent={accent} ref={pageRef}>
+        <DotGridAttractCanvas
+          className="ark-dotgrid-canvas"
+          accentColor={PAGE_ACCENT_COLORS[accent]}
+        />
         <CursorDot />
         <header className="ark-top">
           <div className="ark-top__brand">
@@ -225,7 +272,7 @@ export function ScrollPageShell({
             <button
               type="button"
               className="ark-top__back"
-              onClick={() => onNavigateToSpace()}
+              onClick={() => leaveToSpace()}
             >
               <span aria-hidden="true">←</span> {copy.backToSpace}
             </button>
@@ -246,13 +293,15 @@ export function ScrollPageShell({
                     <span key={line}>{line}</span>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  className="ark-footer__cta"
-                  onClick={() => onNavigateToSpace()}
-                >
-                  {copy.backToSpace} <span aria-hidden="true">→</span>
-                </button>
+                <Magnet disabled={magnetOff} wrapperClassName="ark-magnet">
+                  <button
+                    type="button"
+                    className="ark-footer__cta"
+                    onClick={() => leaveToSpace()}
+                  >
+                    {copy.backToSpace} <span aria-hidden="true">→</span>
+                  </button>
+                </Magnet>
               </div>
             </footer>
           </div>

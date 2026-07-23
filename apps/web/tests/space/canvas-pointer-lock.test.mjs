@@ -151,18 +151,25 @@ test("scroll page return delegates to the DesktopApp pointer-lock resume chain e
     (desktop.match(/<ArchiveHub\s+tab=["'](?:profile|devstories)["']\s+onNavigateToSpace=\{navigateToSpace\}\s*\/>/g) ?? []).length,
     2,
   );
-  assert.match(shell, /onClick=\{\(\) => onNavigateToSpace\(\)\}/);
-  assert.match(shell, /useEscapeToSpace\(onNavigateToSpace\)/);
+  assert.match(shell, /onClick=\{\(\) => leaveToSpace\(\)\}/);
+  assert.match(shell, /useEscapeToSpace\(leaveToSpace\)/);
   assert.match(escapeHook, /onNavigateToSpace\(\{\s*fromEscape:\s*true\s*\}\)/);
   assert.doesNotMatch(shell, /navigate\(["']\/["']\)/);
   assert.doesNotMatch(shell, /resumeSpaceFirstPerson|requestSpacePointerLock/);
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonAfterEscape/g) ?? []).length, 1);
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonWithCursorReturn/g) ?? []).length, 1);
   assert.equal((escapeBody.match(/addEventListener\(["']keyup["']/g) ?? []).length, 1);
+  // expiry + post-keyup lock-success cleanup window
   assert.equal((escapeBody.match(/setTimeout/g) ?? []).length, 2);
   assert.match(escapeBody, /addEventListener\(["']blur["']/);
   assert.match(escapeBody, /addEventListener\(["']pagehide["']/);
+  assert.match(escapeBody, /pointerlockchange/);
   assert.match(escapeBody, /clearTimeout/);
+});
+
+test("escape recovery exposes a pending guard for exhibit click suppression", () => {
+  const pointerLockApi = source("space/requestSpacePointerLock.ts");
+  assert.match(pointerLockApi, /export function isPendingEscapePointerLockRecovery/);
 });
 
 test("Focus arms the return handoff before making exactly one pointer-lock request", () => {
