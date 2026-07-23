@@ -142,6 +142,7 @@ export default function WorkDetailPage() {
     if (state.status !== "ready") return [];
     const list: ScrollPageAnchor[] = [{ id: "work-stage", label: "STG" }];
     if (state.content?.overview) list.push({ id: "work-overview", label: "OVW" });
+    if (state.exhibit.media?.videoUrl) list.push({ id: "work-video", label: "VID" });
     const images = state.exhibit.media?.imageUrls ?? [];
     if (images.length >= 2) list.push({ id: "work-gallery", label: "IMG" });
     if (state.content?.storyHtml) list.push({ id: "work-story", label: "STY" });
@@ -258,11 +259,30 @@ export default function WorkDetailPage() {
         </section>
       ) : null}
 
+      {videoUrl ? (
+        <section className="ark-section" id="work-video">
+          <Reveal>
+            <SectionHeader number="02" title={copy.work.videoLabel} />
+          </Reveal>
+          <Reveal>
+            <div className="ark-wvideo" style={{ marginTop: "3vh" }}>
+              <video
+                className="ark-wvideo__player"
+                src={videoUrl}
+                controls
+                playsInline
+                preload="metadata"
+              />
+            </div>
+          </Reveal>
+        </section>
+      ) : null}
+
       {galleryImages.length >= 2 ? (
         <div className="ark-wgallery-zone">
           <section className="ark-wgallery" id="work-gallery">
             <div className="ark-wgallery__head">
-              <SectionHeader number="02" title={copy.work.galleryLabel} />
+              <SectionHeader number={videoUrl ? "03" : "02"} title={copy.work.galleryLabel} />
               <span className="ark-wgallery__hint">{copy.work.dragHint} ↔</span>
             </div>
             <div className="ark-wgallery__track" ref={galleryRef}>
@@ -309,7 +329,7 @@ export default function WorkDetailPage() {
       {content?.storyHtml ? (
         <section className="ark-section" id="work-story">
           <Reveal>
-            <SectionHeader number="03" title={copy.work.storyLabel} />
+            <SectionHeader number={videoUrl ? "04" : "03"} title={copy.work.storyLabel} />
           </Reveal>
           <Reveal>
             <div
@@ -324,7 +344,7 @@ export default function WorkDetailPage() {
       {metadata.length > 0 ? (
         <section className="ark-section" id="work-spec">
           <Reveal>
-            <SectionHeader number="04" title={copy.work.specLabel} />
+            <SectionHeader number={videoUrl ? "05" : "04"} title={copy.work.specLabel} />
           </Reveal>
           <div className="ark-wspec" style={{ marginTop: "3vh" }}>
             <DataStrip

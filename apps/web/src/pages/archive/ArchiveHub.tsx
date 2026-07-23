@@ -14,21 +14,25 @@ gsap.registerPlugin(ScrollTrigger);
 
 export type ArchiveHubTab = "profile" | "devstories";
 
-/** 非活动面板：absolute + opacity 0（保持布局与合成状态，切换零重排）。 */
+/** 非活动面板：absolute + opacity 0（保持布局与合成状态，切换零重排）。
+ *  overflow hidden：裁剪超出内容，避免撑大滚动容器的 scrollHeight。 */
 const PANEL_HIDDEN_STYLE = {
   position: "absolute",
   inset: 0,
   opacity: 0,
   pointerEvents: "none",
   visibility: "hidden",
+  overflow: "hidden",
 } as const;
 
 /** 切换动画中的离场面板：脱离文档流（滚动高度只由进场面板撑开，
- *  避免双面板叠加导致的滚动跳变/卡顿），对齐容器顶部原位滑出。 */
+ *  避免双面板叠加导致的滚动跳变/卡顿），对齐容器顶部原位滑出。
+ *  overflow hidden：同样防止溢出内容撑高滚动区。 */
 const PANEL_LEAVING_STYLE = {
   position: "absolute",
   inset: 0,
   zIndex: 1,
+  overflow: "hidden",
 } as const;
 
 /**

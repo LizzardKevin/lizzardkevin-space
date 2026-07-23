@@ -1001,6 +1001,19 @@
 
 .ark-wstory a { color: var(--ark-accent); }
 
+.ark-wvideo {
+  border: 1px solid var(--ark-line);
+  background: var(--ark-bg-deep);
+}
+
+.ark-wvideo__player {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 76vh;
+  background: #000;
+}
+
 .ark-wspec {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

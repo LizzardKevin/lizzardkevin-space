@@ -11,7 +11,7 @@ const BASE_ALPHA = 0.07;
 
 const INFLUENCE_RADIUS = 340;
 const MAX_OFFSET = 10.5;
-const MAX_ALPHA = 0.45;
+const MAX_ALPHA = 0.56;
 const LERP_FACTOR = 0.14;
 const COLOR_BUCKETS = 32;
 const TAU = Math.PI * 2;
@@ -256,8 +256,9 @@ export function DotGridAttractCanvas({
             drawX += (dx / dist) * offset;
             drawY += (dy / dist) * offset;
           }
-          path.moveTo(drawX + DOT_RADIUS, drawY);
-          path.arc(drawX, drawY, DOT_RADIUS, 0, TAU);
+          const attractedRadius = DOT_RADIUS * 1.25;
+          path.moveTo(drawX + attractedRadius, drawY);
+          path.arc(drawX, drawY, attractedRadius, 0, TAU);
         }
       }
 
@@ -327,12 +328,12 @@ export function DotGridAttractCanvas({
           if (dy > halfH) continue;
           const edge = 1 - dy / halfH;
           const k = arrowStrength * (0.25 + 0.75 * edge);
-          const radius = DOT_RADIUS + 2.6 * k;
+          const radius = (DOT_RADIUS + 2.6 * k) * 1.25;
           const colorK = Math.min(1, k * 1.25);
           const r = Math.round(BASE_R + (arrowAccent.r - BASE_R) * colorK);
           const g = Math.round(BASE_G + (arrowAccent.g - BASE_G) * colorK);
           const b = Math.round(BASE_B + (arrowAccent.b - BASE_B) * colorK);
-          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.12 + 0.78 * k})`;
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.15 + 0.85 * k})`;
           ctx.beginPath();
           ctx.arc(px, py, radius, 0, TAU);
           ctx.fill();

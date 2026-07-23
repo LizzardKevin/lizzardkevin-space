@@ -44,6 +44,7 @@ export type ScrollPagesCopy = {
     storyLabel: string;
     galleryLabel: string;
     specLabel: string;
+    videoLabel: string;
     prevWork: string;
     nextWork: string;
     modelLoading: string;
@@ -89,6 +90,7 @@ const zh: ScrollPagesCopy = {
     storyLabel: "故事 STORY",
     galleryLabel: "图集 GALLERY",
     specLabel: "规格 SPEC",
+    videoLabel: "视频 VIDEO",
     prevWork: "上一件",
     nextWork: "下一件",
     modelLoading: "模型加载中",
@@ -139,6 +141,7 @@ const en: ScrollPagesCopy = {
     storyLabel: "STORY",
     galleryLabel: "GALLERY",
     specLabel: "SPEC",
+    videoLabel: "VIDEO",
     prevWork: "PREV",
     nextWork: "NEXT",
     modelLoading: "Loading model",
