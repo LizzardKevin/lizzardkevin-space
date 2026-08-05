@@ -12,7 +12,6 @@ import { useGLTF } from "@react-three/drei";
 import type { WebGPURenderer } from "three/webgpu";
 import { createWebGPURenderer } from "../../rendering/createWebGPURenderer";
 import { GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH } from "../../scenes/gallery/galleryConfig";
-import { getGalleryInkOutlineMaterial } from "../../scenes/gallery/galleryInkOutline";
 import type { SpacePlayerPose } from "../spaceDailyResume";
 import { readSpaceReducedMotionPreference } from "../spaceMotionPolicy";
 import { SPACE_VISUAL_TOKENS } from "../spaceVisualTokens";
@@ -119,7 +118,21 @@ function SpaceMinimapCanvas({
     }
 
     if (model.inkGeometry) {
-      const inkMesh = new THREE.Mesh(model.inkGeometry, getGalleryInkOutlineMaterial());
+      // 不用主场景共享的实色墨线:实心 BackSide 壳会把全息体蒙成不透明。
+      // 本地半透明墨线,既保留粗线轮廓,又让墙面真的透光。
+      const inkMaterial = new THREE.MeshBasicMaterial({
+        name: "space_minimap_ink",
+        color: SPACE_VISUAL_TOKENS.colors.inkOutline,
+        toneMapped: false,
+        side: THREE.BackSide,
+        transparent: true,
+        opacity: 0.28,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+      });
+      layerMaterials.push(inkMaterial);
+      const inkMesh = new THREE.Mesh(model.inkGeometry, inkMaterial);
       inkMesh.renderOrder = 2;
       inkMesh.raycast = () => null;
       scene.add(inkMesh);

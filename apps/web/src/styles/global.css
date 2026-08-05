@@ -2364,19 +2364,19 @@ button {
 
 .space-quests__frame {
   position: relative;
-  min-width: 190px;
-  max-width: 260px;
+  min-width: 250px;
+  max-width: 360px;
   padding: 2px 0;
 }
 
 .space-quests__title {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  padding-left: 22px;
-  margin-bottom: 10px;
+  gap: 12px;
+  padding-left: 34px;
+  margin-bottom: 14px;
   color: var(--space-brand-teal);
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 650;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2400,11 +2400,11 @@ button {
   position: relative;
   list-style: none;
   margin: 0;
-  padding: 0 0 0 22px;
+  padding: 0 0 0 34px;
   display: grid;
-  gap: 9px;
+  gap: 14px;
   overflow: hidden;
-  max-height: 240px;
+  max-height: 340px;
   transition:
     max-height 360ms ease,
     opacity 240ms ease;
@@ -2414,9 +2414,9 @@ button {
 .space-quests__list::before {
   content: "";
   position: absolute;
-  left: 5px;
-  top: 2px;
-  bottom: 6px;
+  left: 7px;
+  top: 3px;
+  bottom: 8px;
   width: 2px;
   background: linear-gradient(to bottom, var(--space-brand-teal), rgb(103 194 190 / 0.12));
 }
@@ -2434,7 +2434,7 @@ button {
   position: relative;
   color: var(--space-paper);
   opacity: 0.66;
-  font-size: 12px;
+  font-size: 17px;
   line-height: 1.35;
   text-shadow:
     0 1px 2px rgb(23 40 42 / 0.85),
@@ -2447,10 +2447,10 @@ button {
 /* 节点:方形描边,压在线轨上 */
 .space-quests__check {
   position: absolute;
-  left: -22px;
-  top: 1px;
-  width: 12px;
-  height: 12px;
+  left: -34px;
+  top: 2px;
+  width: 17px;
+  height: 17px;
   border: 2px solid var(--space-paper);
   box-sizing: border-box;
   background: transparent;
@@ -2463,7 +2463,7 @@ button {
 /* 当前任务:信号橙节点 + 文案提亮前移 */
 .space-quests__row[data-current] {
   opacity: 1;
-  transform: translateX(3px);
+  transform: translateX(4px);
 }
 
 .space-quests__row[data-current] .space-quests__check {
@@ -2491,10 +2491,10 @@ button {
 .space-quests__row[data-done] .space-quests__check::after {
   content: "";
   position: absolute;
-  left: 1px;
-  top: 0;
-  width: 4px;
-  height: 7px;
+  left: 2px;
+  top: 1px;
+  width: 6px;
+  height: 10px;
   border-right: 2px solid var(--space-ink);
   border-bottom: 2px solid var(--space-ink);
   transform: rotate(42deg);
@@ -2518,7 +2518,7 @@ button {
   top: 64px;
   right: 40px;
   z-index: 9;
-  width: min(264px, 24vw);
+  width: min(470px, 32vw);
   aspect-ratio: 1 / 1;
   pointer-events: none;
   opacity: 0;
@@ -2541,8 +2541,6 @@ button {
   display: block;
   width: 100%;
   height: 100%;
-  /* 轻微的墨青落影,让全息体在亮部场景上也有分离度 */
-  filter: drop-shadow(0 2px 10px rgb(23 40 42 / 0.35));
 }
 
 @media (prefers-reduced-motion: reduce) {
