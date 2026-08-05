@@ -2518,7 +2518,7 @@ button {
   top: 64px;
   right: 40px;
   z-index: 9;
-  width: min(470px, 32vw);
+  width: min(376px, 25.6vw);
   aspect-ratio: 1 / 1;
   pointer-events: none;
   opacity: 0;
