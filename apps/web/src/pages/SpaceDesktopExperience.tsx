@@ -28,6 +28,7 @@ import {
 } from "../space/spaceDailyResume";
 import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
+import { createSpaceQuestStore } from "../space/quests/spaceQuests";
 import type { SpaceBootController } from "../boot/useSpaceBootController";
 
 const JUMP_HINT_VISIBLE_MS = 5000;
@@ -109,6 +110,8 @@ export function SpaceDesktopExperience({
   const initialResumePose = sessionResumePose ?? dailyResumePose;
   const [devFocusExhibitId] = useState<string | null>(() => readDevFocusExhibitId(searchParams));
   const [onboardingCompleted, setOnboardingCompleted] = useState(initialResumePose !== null);
+  const [questStore] = useState(() => createSpaceQuestStore());
+  const questsEnabledRef = useRef(false);
   const latestSpacePoseRef = useRef<SpacePlayerPose | null>(initialResumePose);
   const lastDailyResumeSaveAtRef = useRef(0);
   const lastSessionPoseSaveAtRef = useRef(0);
@@ -188,10 +191,15 @@ export function SpaceDesktopExperience({
   });
   const canSaveDailyResume = entered && dailyResumeSavingEnabled && !focusSurfaceOpen;
 
+  useEffect(() => {
+    questsEnabledRef.current = entered && onboardingCompleted && !overlay.isOverlayOpen;
+  }, [entered, onboardingCompleted, overlay.isOverlayOpen]);
+
   const handleSpacePoseSample = useCallback(
     (pose: SpacePlayerPose) => {
       latestSpacePoseRef.current = pose;
       const nowMs = Date.now();
+      if (questsEnabledRef.current) questStore.sampleSkyGaze(pose.pitchRad, nowMs);
       if (nowMs - lastSessionPoseSaveAtRef.current >= SPACE_DAILY_RESUME_SAVE_INTERVAL_MS) {
         writeSpaceSessionPose(undefined, pose);
         lastSessionPoseSaveAtRef.current = nowMs;
@@ -201,7 +209,7 @@ export function SpaceDesktopExperience({
       writeSpaceDailyResume(undefined, pose, new Date(nowMs));
       lastDailyResumeSaveAtRef.current = nowMs;
     },
-    [canSaveDailyResume],
+    [canSaveDailyResume, questStore],
   );
 
   useEffect(() => {
@@ -273,12 +281,13 @@ export function SpaceDesktopExperience({
       flushSync(() => {
         setExhibitTarget(null);
       });
+      if (questsEnabledRef.current) questStore.recordExhibitView(found.exhibitId);
       onNavigateToWork(found.exhibitId);
       if (document.pointerLockElement) {
         document.exitPointerLock();
       }
     },
-    [manifest, onNavigateToWork],
+    [manifest, onNavigateToWork, questStore],
   );
 
   const isHovering = exhibitTarget !== null && !focusSurfaceOpen;
@@ -300,12 +309,16 @@ export function SpaceDesktopExperience({
     !onboardingEnabled &&
     exhibitTarget?.interactionKind === "projector";
 
-  const requestProjectorSlide = useCallback((direction: ProjectorSlideDirection) => {
-    setProjectorSlideCommand({
-      nonce: ++projectorSlideCommandNonceRef.current,
-      direction,
-    });
-  }, []);
+  const requestProjectorSlide = useCallback(
+    (direction: ProjectorSlideDirection) => {
+      if (questsEnabledRef.current) questStore.recordProjectorCommand();
+      setProjectorSlideCommand({
+        nonce: ++projectorSlideCommandNonceRef.current,
+        direction,
+      });
+    },
+    [questStore],
+  );
 
   useEffect(() => {
     if (!projectorHintVisible) return;
@@ -334,10 +347,16 @@ export function SpaceDesktopExperience({
     if (suppressNextExhibitClick) setSuppressNextExhibitClick(false);
   }, [suppressNextExhibitClick]);
 
-  const handleJumpNotice = useCallback((messageKey: SpaceJumpNoticeKey) => {
-    setJumpHintKey(messageKey);
-    setJumpHintVisible(true);
-  }, []);
+  const handleJumpNotice = useCallback(
+    (messageKey: SpaceJumpNoticeKey) => {
+      if (messageKey === "space.jumpUnlocked" && questsEnabledRef.current) {
+        questStore.recordJumpUnlocked();
+      }
+      setJumpHintKey(messageKey);
+      setJumpHintVisible(true);
+    },
+    [questStore],
+  );
   const jumpHintMessage = jumpHintKey ? t(jumpHintKey) : "";
   const toastMessage = toast ? (toast.values ? t(toast.key, toast.values) : t(toast.key)) : null;
 
@@ -391,6 +410,10 @@ export function SpaceDesktopExperience({
               onToastDone={() => setToast(null)}
               rendererFailed={error !== null}
               rendererLoading={loading}
+              questStore={questStore}
+              poseRef={latestSpacePoseRef}
+              onboardingCompleted={onboardingCompleted}
+              routeBlocked={routeBlocked}
               loadedItems={
                 bootState.items.loaded + bootState.items.failed + bootState.items.deferred
               }

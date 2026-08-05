@@ -14,6 +14,17 @@ export const runtimeResourceAugmentation = {
       rendererUnavailableTitle: "Renderer unavailable",
       rendererUnavailableBody: "Unable to initialize a WebGPU or WebGL2 renderer.",
       retry: "Retry",
+      quests: {
+        title: "EXPLORATION",
+        exhibitTour: "Study exhibits {{count}}/{{target}}",
+        projectorControl: "Switch the projector (Q/E)",
+        skyGaze: "Look up at the skylight",
+        jumpUnlock: "Unlock jumping",
+        allDone: "All done — wander freely",
+      },
+      map: {
+        label: "MAP",
+      },
     },
   },
   zh: {
@@ -26,6 +37,17 @@ export const runtimeResourceAugmentation = {
       rendererUnavailableTitle: "渲染器不可用",
       rendererUnavailableBody: "无法初始化 WebGPU 或 WebGL2 渲染器。",
       retry: "重试",
+      quests: {
+        title: "探索目标",
+        exhibitTour: "细看展品 {{count}}/{{target}}",
+        projectorControl: "控制投影换页(Q/E)",
+        skyGaze: "抬头看看天窗",
+        jumpUnlock: "解锁跳跃",
+        allDone: "全部完成 · 自由逛逛",
+      },
+      map: {
+        label: "地图",
+      },
     },
   },
 } as const;
