@@ -2339,12 +2339,12 @@ button {
   }
 }
 
-/* --- SPACE 探索目标面板 + 全息小地图(z-index 9:高于 canvas 装饰层,低于 topbar 下拉) --- */
+/* --- SPACE 探索目标 + 全息小地图:无框悬浮件(z-index 9:高于 canvas 装饰层,低于 topbar 下拉) --- */
 
 .space-quests {
   position: fixed;
   top: 56px;
-  left: 16px;
+  left: 20px;
   z-index: 9;
   pointer-events: none;
   opacity: 0;
@@ -2363,43 +2363,62 @@ button {
 }
 
 .space-quests__frame {
-  min-width: 208px;
-  max-width: 280px;
-  padding: 10px 12px;
-  background: var(--space-hud-panel);
-  border: 2px solid var(--space-paper);
-  box-shadow: 4px 4px 0 rgb(23 40 42 / 0.9);
+  position: relative;
+  min-width: 190px;
+  max-width: 260px;
+  padding: 2px 0;
 }
 
 .space-quests__title {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 10px;
+  padding-left: 22px;
+  margin-bottom: 10px;
   color: var(--space-brand-teal);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 650;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 2px rgb(23 40 42 / 0.85),
+    0 0 14px rgb(23 40 42 / 0.5);
+}
+
+.space-quests[data-settled] .space-quests__title::before {
+  content: "\2713  ";
+  color: var(--space-brand-teal);
 }
 
 .space-quests__count {
   color: var(--space-paper);
-  opacity: 0.7;
+  opacity: 0.85;
   font-variant-numeric: tabular-nums;
 }
 
 .space-quests__list {
+  position: relative;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 22px;
   display: grid;
-  gap: 7px;
+  gap: 9px;
   overflow: hidden;
   max-height: 240px;
   transition:
     max-height 360ms ease,
     opacity 240ms ease;
+}
+
+/* 引导发丝线:在列表内与节点同坐标系,贯穿首末节点 */
+.space-quests__list::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  bottom: 6px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--space-brand-teal), rgb(103 194 190 / 0.12));
 }
 
 .space-quests[data-settled] .space-quests__list {
@@ -2412,23 +2431,47 @@ button {
 }
 
 .space-quests__row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-left: 0;
-  border-left: 3px solid transparent;
+  position: relative;
   color: var(--space-paper);
-  opacity: 0.62;
+  opacity: 0.66;
   font-size: 12px;
   line-height: 1.35;
+  text-shadow:
+    0 1px 2px rgb(23 40 42 / 0.85),
+    0 0 12px rgb(23 40 42 / 0.55);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
 }
 
+/* 节点:方形描边,压在线轨上 */
+.space-quests__check {
+  position: absolute;
+  left: -22px;
+  top: 1px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--space-paper);
+  box-sizing: border-box;
+  background: transparent;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 200ms ease;
+}
+
+/* 当前任务:信号橙节点 + 文案提亮前移 */
 .space-quests__row[data-current] {
-  padding-left: 7px;
-  border-left-color: var(--space-signal);
   opacity: 1;
+  transform: translateX(3px);
 }
 
+.space-quests__row[data-current] .space-quests__check {
+  border-color: var(--space-signal);
+  box-shadow: 0 0 0 3px rgb(239 139 97 / 0.22);
+}
+
+/* 完成:teal 实底 + 墨勾,文案橙色删除线淡出 */
 .space-quests__row[data-done] {
   opacity: 0.5;
 }
@@ -2436,16 +2479,7 @@ button {
 .space-quests__row[data-done] .space-quests__label {
   text-decoration: line-through;
   text-decoration-thickness: 2px;
-  text-decoration-color: var(--space-brand-teal);
-}
-
-.space-quests__check {
-  position: relative;
-  flex: none;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--space-paper);
-  box-sizing: border-box;
+  text-decoration-color: var(--space-signal);
 }
 
 .space-quests__row[data-done] .space-quests__check {
@@ -2478,10 +2512,11 @@ button {
   }
 }
 
+/* 全息小地图:无框无底无字,只有悬浮模型本体 */
 .space-minimap {
   position: fixed;
-  top: 56px;
-  right: 16px;
+  top: 52px;
+  right: 20px;
   z-index: 9;
   width: min(264px, 24vw);
   aspect-ratio: 1 / 1;
@@ -2501,37 +2536,19 @@ button {
   transform: none;
 }
 
-.space-minimap__frame {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: var(--space-hud-panel);
-  border: 2px solid var(--space-paper);
-  box-shadow: 4px 4px 0 rgb(23 40 42 / 0.9);
-}
-
 .space-minimap__canvas {
-  position: absolute;
-  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-}
-
-.space-minimap__label {
-  position: absolute;
-  top: 7px;
-  left: 9px;
-  z-index: 1;
-  color: var(--space-brand-teal);
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.08em;
+  /* 轻微的墨青落影,让全息体在亮部场景上也有分离度 */
+  filter: drop-shadow(0 2px 10px rgb(23 40 42 / 0.35));
 }
 
 @media (prefers-reduced-motion: reduce) {
   .space-quests,
   .space-quests__list,
+  .space-quests__row,
+  .space-quests__check,
   .space-minimap {
     transition: none;
   }

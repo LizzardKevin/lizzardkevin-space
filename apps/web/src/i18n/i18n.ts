@@ -22,9 +22,6 @@ export const runtimeResourceAugmentation = {
         jumpUnlock: "Unlock jumping",
         allDone: "All done — wander freely",
       },
-      map: {
-        label: "MAP",
-      },
     },
   },
   zh: {
@@ -44,9 +41,6 @@ export const runtimeResourceAugmentation = {
         skyGaze: "抬头看看天窗",
         jumpUnlock: "解锁跳跃",
         allDone: "全部完成 · 自由逛逛",
-      },
-      map: {
-        label: "地图",
       },
     },
   },

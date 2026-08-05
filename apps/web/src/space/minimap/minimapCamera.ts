@@ -14,11 +14,22 @@ export function spaceMinimapAzimuthForYaw(yawRad: number) {
   return yawRad;
 }
 
-/** 相机仰角:~35°,兼顾体量轮廓与楼层内部可读性。 */
+/** 相机基础仰角:~35°,兼顾体量轮廓与楼层内部可读性。 */
 export const SPACE_MINIMAP_ELEVATION_RAD = 0.62;
 
-/** 包围球半径外的取景留白。 */
-export const SPACE_MINIMAP_VIEW_MARGIN = 1.1;
+/** 俯仰跟随:玩家抬头/低头时地图轻微反向俯仰,只做"有反馈"的伴随转动。 */
+export const SPACE_MINIMAP_PITCH_FOLLOW = 0.16;
+export const SPACE_MINIMAP_ELEVATION_MIN_RAD = 0.38;
+export const SPACE_MINIMAP_ELEVATION_MAX_RAD = 0.95;
+
+/** 由玩家 pitch 求地图仰角:小系数跟随 + 上下限保护构图。 */
+export function resolveSpaceMinimapElevationRad(pitchRad: number) {
+  const target = SPACE_MINIMAP_ELEVATION_RAD + pitchRad * SPACE_MINIMAP_PITCH_FOLLOW;
+  return Math.min(Math.max(target, SPACE_MINIMAP_ELEVATION_MIN_RAD), SPACE_MINIMAP_ELEVATION_MAX_RAD);
+}
+
+/** 包围球半径外的取景留白;无框悬浮后建筑可以更撑满画面。 */
+export const SPACE_MINIMAP_VIEW_MARGIN = 0.92;
 
 /** 方位角阻尼(指数平滑,1/s);reduced-motion 下直接吸附不走阻尼。 */
 export const SPACE_MINIMAP_AZIMUTH_LAMBDA = 8;
@@ -49,6 +60,7 @@ export function fitSpaceMinimapCamera(
   radius: number,
   azimuthRad: number,
   aspect: number,
+  elevationRad: number = SPACE_MINIMAP_ELEVATION_RAD,
 ) {
   const safeRadius = Math.max(radius, 0.001);
   const safeAspect = Math.max(aspect, 0.001);
@@ -63,10 +75,10 @@ export function fitSpaceMinimapCamera(
   camera.near = 0.1;
   camera.far = distance + safeRadius * 4;
 
-  const cosElevation = Math.cos(SPACE_MINIMAP_ELEVATION_RAD);
+  const cosElevation = Math.cos(elevationRad);
   camera.position.set(
     center.x + Math.sin(azimuthRad) * cosElevation * distance,
-    center.y + Math.sin(SPACE_MINIMAP_ELEVATION_RAD) * distance,
+    center.y + Math.sin(elevationRad) * distance,
     center.z + Math.cos(azimuthRad) * cosElevation * distance,
   );
   camera.up.set(0, 1, 0);

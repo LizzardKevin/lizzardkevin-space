@@ -10,8 +10,12 @@ const {
 const {
   dampSpaceMinimapAngleRad,
   fitSpaceMinimapCamera,
+  resolveSpaceMinimapElevationRad,
   spaceMinimapAzimuthForYaw,
+  SPACE_MINIMAP_ELEVATION_MAX_RAD,
+  SPACE_MINIMAP_ELEVATION_MIN_RAD,
   SPACE_MINIMAP_ELEVATION_RAD,
+  SPACE_MINIMAP_PITCH_FOLLOW,
   SPACE_MINIMAP_VIEW_MARGIN,
 } = await importSourceModule("space/minimap/minimapCamera.ts");
 
@@ -130,4 +134,30 @@ test("camera azimuth rotates the view around the model", () => {
   const atQuarter = camera.position.clone();
   assert.ok(atZero.distanceTo(atQuarter) > 1, "方位角变化驱动地图旋转");
   assert.ok(Math.abs(atZero.length() - atQuarter.length()) < 1e-6, "旋转不改变距离");
+});
+
+test("elevation follows player pitch gently with clamps, never 1:1", () => {
+  assert.equal(resolveSpaceMinimapElevationRad(0), SPACE_MINIMAP_ELEVATION_RAD, "平视用基础仰角");
+
+  const gentleUp = resolveSpaceMinimapElevationRad(0.5);
+  assert.ok(gentleUp > SPACE_MINIMAP_ELEVATION_RAD, "抬头时地图仰角随之抬高");
+  assert.ok(
+    Math.abs(gentleUp - SPACE_MINIMAP_ELEVATION_RAD) < 0.5,
+    "跟随幅度远小于玩家俯仰(只做反馈)",
+  );
+  assert.ok(
+    Math.abs(gentleUp - SPACE_MINIMAP_ELEVATION_RAD - 0.5 * SPACE_MINIMAP_PITCH_FOLLOW) < 1e-9,
+    "跟随系数生效",
+  );
+
+  assert.equal(
+    resolveSpaceMinimapElevationRad(3),
+    SPACE_MINIMAP_ELEVATION_MAX_RAD,
+    "极端抬头被上限钳制",
+  );
+  assert.equal(
+    resolveSpaceMinimapElevationRad(-3),
+    SPACE_MINIMAP_ELEVATION_MIN_RAD,
+    "极端低头被下限钳制",
+  );
 });

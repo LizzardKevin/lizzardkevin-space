@@ -7,7 +7,6 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import type { WebGPURenderer } from "three/webgpu";
@@ -21,6 +20,7 @@ import { SPACE_VISUAL_TOKENS } from "../spaceVisualTokens";
 import {
   dampSpaceMinimapAngleRad,
   fitSpaceMinimapCamera,
+  resolveSpaceMinimapElevationRad,
   SPACE_MINIMAP_AZIMUTH_LAMBDA,
   spaceMinimapAzimuthForYaw,
 } from "./minimapCamera";
@@ -101,7 +101,7 @@ function SpaceMinimapCanvas({
       color: SPACE_VISUAL_TOKENS.colors.brandTeal,
       gradientMap: getGalleryToonGradientMap(),
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.3,
       depthWrite: true,
     });
     const holoMesh = new THREE.Mesh(model.holoGeometry, holoMaterial);
@@ -139,6 +139,7 @@ function SpaceMinimapCanvas({
     let lastRenderMs = 0;
     let lastDampMs: number | null = null;
     let azimuthRad: number | null = null;
+    let elevationRad: number | null = null;
     let viewportAspect = 1;
 
     const resizeObserver = new ResizeObserver((entries) => {
@@ -179,11 +180,13 @@ function SpaceMinimapCanvas({
 
       const pose = poseRef.current;
       const targetAzimuth = spaceMinimapAzimuthForYaw(pose?.yawRad ?? 0);
+      const targetElevation = resolveSpaceMinimapElevationRad(pose?.pitchRad ?? 0);
       const dampDtSec =
         lastDampMs === null ? 0 : Math.min((nowMs - lastDampMs) / 1000, 0.1);
       lastDampMs = nowMs;
-      if (azimuthRad === null || reducedMotion) {
+      if (azimuthRad === null || elevationRad === null || reducedMotion) {
         azimuthRad = targetAzimuth;
+        elevationRad = targetElevation;
       } else {
         azimuthRad = dampSpaceMinimapAngleRad(
           azimuthRad,
@@ -191,9 +194,15 @@ function SpaceMinimapCanvas({
           SPACE_MINIMAP_AZIMUTH_LAMBDA,
           dampDtSec,
         );
+        elevationRad = dampSpaceMinimapAngleRad(
+          elevationRad,
+          targetElevation,
+          SPACE_MINIMAP_AZIMUTH_LAMBDA,
+          dampDtSec,
+        );
       }
 
-      fitSpaceMinimapCamera(camera, model.center, model.radius, azimuthRad, viewportAspect);
+      fitSpaceMinimapCamera(camera, model.center, model.radius, azimuthRad, viewportAspect, elevationRad);
 
       if (pose) {
         dot.visible = true;
@@ -230,20 +239,16 @@ export function SpaceMinimap({
   poseRef: RefObject<SpacePlayerPose | null>;
   visible: boolean;
 }) {
-  const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
   if (failed) return null;
 
   return (
     <div className="space-minimap" data-visible={visible || undefined} aria-hidden={!visible}>
-      <div className="space-minimap__frame">
-        <span className="space-minimap__label">{t("space.map.label")}</span>
-        <SpaceMinimapErrorBoundary onFailed={() => setFailed(true)}>
-          <Suspense fallback={null}>
-            <SpaceMinimapCanvas poseRef={poseRef} active={visible} onFailed={() => setFailed(true)} />
-          </Suspense>
-        </SpaceMinimapErrorBoundary>
-      </div>
+      <SpaceMinimapErrorBoundary onFailed={() => setFailed(true)}>
+        <Suspense fallback={null}>
+          <SpaceMinimapCanvas poseRef={poseRef} active={visible} onFailed={() => setFailed(true)} />
+        </Suspense>
+      </SpaceMinimapErrorBoundary>
     </div>
   );
 }

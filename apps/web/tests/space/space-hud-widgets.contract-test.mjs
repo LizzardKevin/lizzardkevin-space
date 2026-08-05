@@ -56,8 +56,15 @@ for (const key of [
 ]) {
   assert.ok(questHud.includes(`"${key}"`), `SpaceQuestHud must read ${key} from i18n`);
 }
-assert.ok(minimap.includes('"space.map.label"'), "SpaceMinimap must read space.map.label from i18n");
-for (const copy of ["探索目标", "EXPLORATION", "解锁跳跃", "Unlock jumping", "地图", "MAP"]) {
+assert.ok(
+  !minimap.includes("space.map.label") && !minimap.includes("__frame") && !minimap.includes("__label"),
+  "全息地图不渲染任何外框/标签元素,只有模型本体",
+);
+assert.ok(
+  !i18n.includes("space.map") && !i18n.includes("地图"),
+  "地图无文字标签,i18n 不应残留 map 文案",
+);
+for (const copy of ["探索目标", "EXPLORATION", "解锁跳跃", "Unlock jumping"]) {
   assert.ok(i18n.includes(copy), `i18n runtime augmentation must define ${copy}`);
 }
 assert.ok(
@@ -81,8 +88,13 @@ assert.ok(
   minimapCamera.includes("spaceMinimapAzimuthForYaw"),
   "方位角映射必须是独立可测函数",
 );
+assert.ok(
+  minimapCamera.includes("resolveSpaceMinimapElevationRad") &&
+    minimap.includes("resolveSpaceMinimapElevationRad"),
+  "地图仰角必须经独立函数轻微跟随玩家 pitch",
+);
 
-// --- CSS:同一家族的粗边框/硬阴影面板,reduced-motion 只收非必要动效 ---
+// --- CSS:无框悬浮件,reduced-motion 只收非必要动效 ---
 for (const selector of [".space-quests", ".space-quests__check", ".space-minimap", ".space-minimap__canvas"]) {
   assert.ok(css.includes(selector), `global.css must style ${selector}`);
 }
@@ -90,11 +102,22 @@ assert.match(css, /\.space-quests\s*\{[\s\S]*?z-index:\s*9;/, "quest panel stays
 assert.match(css, /\.space-minimap\s*\{[\s\S]*?z-index:\s*9;/, "minimap stays below the topbar");
 assert.match(
   css,
+  /\.space-minimap\s*\{[^}]*?\}/,
+  "minimap wrapper exists",
+);
+{
+  const minimapRule = /\.space-minimap\s*\{([^}]*?)\}/.exec(css)?.[1] ?? "";
+  assert.ok(!/border|background/.test(minimapRule), "全息地图无外框无底色");
+  assert.ok(!css.includes(".space-minimap__frame") && !css.includes(".space-minimap__label"), "frame/label 样式已随元素一并移除");
+  const questFrame = /\.space-quests__frame\s*\{([^}]*?)\}/.exec(css)?.[1] ?? "";
+  assert.ok(!/background|border/.test(questFrame), "任务面板无盒式背景与边框(发丝线轨设计)");
+}
+assert.match(
+  css,
   /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.space-quests__row\[data-done\] \.space-quests__check[\s\S]*?animation: none;/,
   "reduced-motion must still cover the new HUD widgets",
 );
 assert.ok(css.includes("var(--space-signal)"), "quest current marker uses the signal token");
-assert.ok(css.includes("var(--space-hud-panel)"), "widget frames reuse the HUD panel token");
 
 // --- 测试注册(仓库约定:脚本显式枚举测试文件) ---
 assert.match(packageJson.scripts["test:unit"], /space-quests\.test\.mjs/);
