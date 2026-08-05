@@ -1573,7 +1573,7 @@ button {
 .space-movement-debug {
   position: fixed;
   left: 14px;
-  top: 14px;
+  bottom: 14px;
   z-index: 28;
   width: min(390px, calc(100vw - 28px));
   padding: 10px 12px;
