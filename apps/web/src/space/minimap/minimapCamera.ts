@@ -14,13 +14,13 @@ export function spaceMinimapAzimuthForYaw(yawRad: number) {
   return yawRad;
 }
 
-/** 相机基础仰角:~35°,兼顾体量轮廓与楼层内部可读性。 */
-export const SPACE_MINIMAP_ELEVATION_RAD = 0.62;
+/** 相机基础仰角:~20°,接近平视,体量以立面读感为主。 */
+export const SPACE_MINIMAP_ELEVATION_RAD = 0.36;
 
 /** 俯仰跟随:玩家抬头/低头时地图轻微反向俯仰,只做"有反馈"的伴随转动。 */
 export const SPACE_MINIMAP_PITCH_FOLLOW = 0.16;
-export const SPACE_MINIMAP_ELEVATION_MIN_RAD = 0.38;
-export const SPACE_MINIMAP_ELEVATION_MAX_RAD = 0.95;
+export const SPACE_MINIMAP_ELEVATION_MIN_RAD = 0.16;
+export const SPACE_MINIMAP_ELEVATION_MAX_RAD = 0.66;
 
 /** 由玩家 pitch 求地图仰角:小系数跟随 + 上下限保护构图。 */
 export function resolveSpaceMinimapElevationRad(pitchRad: number) {

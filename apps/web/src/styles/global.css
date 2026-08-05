@@ -2531,7 +2531,8 @@ button {
 }
 
 .space-minimap[data-visible] {
-  opacity: 1;
+  /* 整体再做一层削弱:材质透明之外,组件级淡出,退到场景氛围里 */
+  opacity: 0.62;
   visibility: visible;
   transform: none;
 }

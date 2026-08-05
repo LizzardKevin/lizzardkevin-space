@@ -101,15 +101,18 @@ function SpaceMinimapCanvas({
       color: SPACE_VISUAL_TOKENS.colors.brandTeal,
       gradientMap: getGalleryToonGradientMap(),
       transparent: true,
-      opacity: 0.3,
-      depthWrite: true,
+      opacity: 0.14,
+      // 不写深度:近端面片不遮挡远端,整栋建筑呈可透视的全息体。
+      depthWrite: false,
     });
     const holoMesh = new THREE.Mesh(model.holoGeometry, holoMaterial);
+    holoMesh.renderOrder = 1;
     holoMesh.raycast = () => null;
     scene.add(holoMesh);
 
     if (model.inkGeometry) {
       const inkMesh = new THREE.Mesh(model.inkGeometry, getGalleryInkOutlineMaterial());
+      inkMesh.renderOrder = 2;
       inkMesh.raycast = () => null;
       scene.add(inkMesh);
     }
