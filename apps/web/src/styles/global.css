@@ -2343,8 +2343,8 @@ button {
 
 .space-quests {
   position: fixed;
-  top: 56px;
-  left: 20px;
+  top: 68px;
+  left: 40px;
   z-index: 9;
   pointer-events: none;
   opacity: 0;
@@ -2515,8 +2515,8 @@ button {
 /* 全息小地图:无框无底无字,只有悬浮模型本体 */
 .space-minimap {
   position: fixed;
-  top: 52px;
-  right: 20px;
+  top: 64px;
+  right: 40px;
   z-index: 9;
   width: min(264px, 24vw);
   aspect-ratio: 1 / 1;

@@ -77,6 +77,14 @@ assert.ok(minimap.includes("createWebGPURenderer"), "小地图必须复用叠层
 assert.ok(!minimap.includes("useFrame"), "小地图不得使用 R3F useFrame(会抢占主渲染循环)");
 assert.ok(!minimap.includes("GalleryRenderPipeline"), "小地图不得触碰主后处理管线");
 assert.ok(minimap.includes("colors.signal"), "玩家点必须使用既有 signal 橙色 token");
+assert.ok(
+  minimap.includes("SPACE_MINIMAP_LAYER_OPACITY") && minimap.includes("colors.paper"),
+  "全息模型必须是纯白分层透明度材质",
+);
+assert.ok(
+  minimapModel.includes("resolveSpaceMinimapLayer"),
+  "地图模型必须按命名前缀分层(floor/wall/other)",
+);
 assert.ok(minimap.includes("depthTest: false"), "玩家点必须穿透墙体(BOTW 式 xray dot)");
 assert.match(minimapModel, /"ARCH_"/);
 assert.doesNotMatch(minimapModel, /"COL_|"EXHIBITS_/, "地图模型不得包含碰撞体与展品前缀");

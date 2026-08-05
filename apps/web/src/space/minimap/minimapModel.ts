@@ -26,8 +26,19 @@ export const SPACE_MINIMAP_INCLUDE_PREFIXES = [
 /** 地图缩尺下主场景的 0.035m 墨线偏细,加粗以保持“粗线条”读感。 */
 export const SPACE_MINIMAP_INK_WIDTH = 0.08;
 
+/** 地图分层:楼板/楼梯(含步行面)与墙/天花给不同透明度,制造“层层叠叠”的体积读感。 */
+export type SpaceMinimapLayer = "floor" | "wall" | "other";
+
+export function resolveSpaceMinimapLayer(name: string): SpaceMinimapLayer {
+  if (/^(?:STRUCT|ARCH)_(?:FLOOR|STAIR)_/.test(name)) return "floor";
+  if (name.startsWith("PLASTER_") || name.includes("_WALL_") || name.includes("_CEILING_")) {
+    return "wall";
+  }
+  return "other";
+}
+
 export type SpaceMinimapModel = {
-  holoGeometry: THREE.BufferGeometry;
+  layers: Readonly<Record<SpaceMinimapLayer, THREE.BufferGeometry | null>>;
   inkGeometry: THREE.BufferGeometry | null;
   center: THREE.Vector3;
   radius: number;
@@ -37,18 +48,24 @@ function matchesSpaceMinimapPrefix(name: string) {
   return SPACE_MINIMAP_INCLUDE_PREFIXES.some((prefix) => name.startsWith(prefix));
 }
 
+export type SpaceMinimapSource = GalleryInkShellSource & { name: string };
+
 export function collectSpaceMinimapSources(root: THREE.Object3D): {
-  holo: GalleryInkShellSource[];
-  ink: GalleryInkShellSource[];
+  holo: SpaceMinimapSource[];
+  ink: SpaceMinimapSource[];
 } {
   root.updateWorldMatrix(true, true);
-  const holo: GalleryInkShellSource[] = [];
-  const ink: GalleryInkShellSource[] = [];
+  const holo: SpaceMinimapSource[] = [];
+  const ink: SpaceMinimapSource[] = [];
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh;
     if (!mesh.isMesh || !mesh.visible) return;
     if (!matchesSpaceMinimapPrefix(mesh.name)) return;
-    const source: GalleryInkShellSource = { geometry: mesh.geometry, matrixWorld: mesh.matrixWorld };
+    const source: SpaceMinimapSource = {
+      name: mesh.name,
+      geometry: mesh.geometry,
+      matrixWorld: mesh.matrixWorld,
+    };
     holo.push(source);
     if (
       getGalleryMaterialStyleAction(mesh.name) === "stylize" &&
@@ -86,29 +103,46 @@ export function buildSpaceMinimapModel(root: THREE.Object3D): SpaceMinimapModel 
   const { holo, ink } = collectSpaceMinimapSources(root);
   if (holo.length === 0) return null;
 
-  const parts = holo.map(toSpaceMinimapWorldGeometry);
-  const holoGeometry = mergeGeometries(parts, false);
-  parts.forEach((part) => part.dispose());
-  if (!holoGeometry) return null;
+  const byLayer: Record<SpaceMinimapLayer, SpaceMinimapSource[]> = {
+    floor: [],
+    wall: [],
+    other: [],
+  };
+  for (const source of holo) byLayer[resolveSpaceMinimapLayer(source.name)].push(source);
 
-  // toon 材质需要 normal;GLB 建筑面在硬边处顶点本来就是分裂的,
-  // 这里重建法线后墙面仍保持硬边,只有真共享顶点才会被平滑。
-  holoGeometry.computeVertexNormals();
+  const layers: Partial<Record<SpaceMinimapLayer, THREE.BufferGeometry | null>> = {};
+  const bounds = new THREE.Box3();
+  let kept = 0;
+  for (const layer of ["floor", "wall", "other"] as const) {
+    const sources = byLayer[layer];
+    if (sources.length === 0) {
+      layers[layer] = null;
+      continue;
+    }
+    const parts = sources.map(toSpaceMinimapWorldGeometry);
+    const merged = mergeGeometries(parts, false);
+    parts.forEach((part) => part.dispose());
+    if (!merged) {
+      layers[layer] = null;
+      continue;
+    }
+    // toon 渐变在白色全息上会把暗部压成深灰,材质走纯白 basic,这里无需法线。
+    merged.deleteAttribute("normal");
+    merged.computeBoundingBox();
+    bounds.union(merged.boundingBox!);
+    layers[layer] = merged;
+    kept += 1;
+  }
+  if (kept === 0) return null;
 
   const inkGeometry = createInkShellGeometry(ink, SPACE_MINIMAP_INK_WIDTH);
 
-  holoGeometry.computeBoundingSphere();
-  const boundingSphere = holoGeometry.boundingSphere;
-  if (!boundingSphere) {
-    holoGeometry.dispose();
-    inkGeometry?.dispose();
-    return null;
-  }
-
+  const sphere = new THREE.Sphere();
+  bounds.getBoundingSphere(sphere);
   return {
-    holoGeometry,
+    layers: layers as Record<SpaceMinimapLayer, THREE.BufferGeometry | null>,
     inkGeometry,
-    center: boundingSphere.center.clone(),
-    radius: boundingSphere.radius,
+    center: sphere.center.clone(),
+    radius: sphere.radius,
   };
 }

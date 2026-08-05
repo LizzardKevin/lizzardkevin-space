@@ -51,15 +51,18 @@ test("collection keeps visible architecture/glass/metal and drops colliders, exh
   assert.equal(ink.length, 1, "只有 stylize 且非地面/楼梯的建筑面进墨线(ARCH_WALL_A)");
 });
 
-test("model build merges kept meshes into one world-space geometry with bounds", () => {
+test("model build merges kept meshes into layered world-space geometries with bounds", () => {
   const model = buildSpaceMinimapModel(buildSyntheticGallery());
   assert.ok(model, "model should build");
 
-  const boxPositionCount = new THREE.BoxGeometry(1, 1, 1).getAttribute("position").count;
+  const unitBox = new THREE.BoxGeometry(1, 1, 1).getAttribute("position").count;
+  const bigBox = new THREE.BoxGeometry(2, 2, 2).getAttribute("position").count;
+  assert.equal(model.layers.floor?.getAttribute("position").count, bigBox, "floor 层只有 STRUCT_FLOOR_A");
+  assert.equal(model.layers.wall?.getAttribute("position").count, unitBox, "wall 层只有 ARCH_WALL_A");
   assert.equal(
-    model.holoGeometry.getAttribute("position").count,
-    boxPositionCount * 3 + new THREE.BoxGeometry(2, 2, 2).getAttribute("position").count,
-    "holo geometry merges exactly the kept meshes",
+    model.layers.other?.getAttribute("position").count,
+    unitBox * 2,
+    "other 层为 GLASS_ + METAL_ALUMINUM_",
   );
 
   assert.ok(model.radius > 0);
@@ -71,8 +74,20 @@ test("model build merges kept meshes into one world-space geometry with bounds",
   const inkPositions = model.inkGeometry.getAttribute("position").count;
   assert.equal(inkPositions, 8, "单个 box 的焊接墨线壳为 8 顶点");
 
-  model.holoGeometry.dispose();
+  for (const geometry of Object.values(model.layers)) geometry?.dispose();
   model.inkGeometry.dispose();
+});
+
+test("layer classification separates walkable floors from walls and structure", async () => {
+  const { resolveSpaceMinimapLayer } = await importSourceModule("space/minimap/minimapModel.ts");
+  assert.equal(resolveSpaceMinimapLayer("STRUCT_FLOOR_A"), "floor");
+  assert.equal(resolveSpaceMinimapLayer("ARCH_STAIR_001"), "floor");
+  assert.equal(resolveSpaceMinimapLayer("ARCH_WALL_PLASTER_WHITE_013"), "wall");
+  assert.equal(resolveSpaceMinimapLayer("PLASTER_A"), "wall");
+  assert.equal(resolveSpaceMinimapLayer("STRUCT_CEILING_A"), "wall");
+  assert.equal(resolveSpaceMinimapLayer("ARCH_BEAM_A"), "other");
+  assert.equal(resolveSpaceMinimapLayer("GLASS_SKYLIGHT_A"), "other");
+  assert.equal(resolveSpaceMinimapLayer("METAL_ALUMINUM_RAIL_A"), "other");
 });
 
 test("model build returns null when nothing matches the prefixes", () => {
