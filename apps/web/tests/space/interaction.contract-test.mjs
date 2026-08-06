@@ -19,9 +19,10 @@ assert(
     !files.exhibitTargetLabel.includes("exhibit-target-label--float") &&
     !files.css.includes("exhibit-target-label--float") &&
     files.css.includes(".exhibit-target-label") &&
-    files.css.includes("0 0 8px rgba(255, 255, 255, 0.58)") &&
-    files.css.includes("0 0 22px rgba(255, 255, 255, 0.22)"),
-  "exhibit hover name tag should render immediately as glowing cursor-adjacent canvas UI",
+    files.css.includes("color: var(--space-paper)") &&
+    files.css.includes("0 1px 2px rgb(23 40 42 / 0.85)") &&
+    !/\.exhibit-target-label\s*\{[^}]*?rgba\(255, 255, 255, 0\.58\)/.test(files.css),
+  "exhibit hover name tag should render as cursor-adjacent canvas UI in the paper/ink HUD language (no glow)",
 );
 assert(
   files.exhibitRaycast.includes("lastActiveKey") &&

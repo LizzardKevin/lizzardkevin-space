@@ -13,7 +13,6 @@ import {
   SPACE_ONBOARDING_LOOK_HIT_SIZE,
   SPACE_ONBOARDING_NOTICE_VISIBLE_MS,
   SPACE_ONBOARDING_SIGNS,
-  resolveSpaceOnboardingSignImageSrc,
   type SpaceOnboardingSign,
   type SpaceOnboardingSignStepId,
 } from "./spaceOnboardingConfig.ts";
@@ -38,6 +37,9 @@ function activeSignIdForState(state: SpaceOnboardingState): SpaceOnboardingSignS
   return state.step;
 }
 
+/**
+ * 导览字牌:HTML 活字(探索 HUD 同款 paper/teal/signal 语言),随 i18n 即时切换。
+ */
 function SpaceOnboardingSignText({
   sign,
   status,
@@ -45,18 +47,14 @@ function SpaceOnboardingSignText({
   sign: SpaceOnboardingSign;
   status: SpaceOnboardingVisibleSign["status"];
 }) {
-  const { i18n, t } = useTranslation();
-  const imageSrc = resolveSpaceOnboardingSignImageSrc(
-    sign,
-    i18n.resolvedLanguage ?? i18n.language,
-  );
-  const imageStyle = {
-    "--space-onboarding-sign-image-width": `${sign.displayWidthPx}px`,
+  const { t } = useTranslation();
+  const style = {
     "--space-onboarding-enter-ms": `${enterMsForSign(sign.id)}ms`,
   } as CSSProperties;
   const className = [
     "space-onboarding-sign",
     sign.className ?? "",
+    sign.tone === "interactive" ? "space-onboarding-sign--interactive" : "",
     status === "enter" ? "space-onboarding-sign--entering" : "",
     sign.id === "relock" ? "space-onboarding-sign--swapping" : "",
     status === "exiting" ? "space-onboarding-sign--exiting" : "",
@@ -73,15 +71,17 @@ function SpaceOnboardingSignText({
       zIndexRange={[38, 0]}
       style={{ pointerEvents: "none", userSelect: "none" }}
     >
-      <div className={className} role="img" aria-label={t(sign.textKey)} style={imageStyle}>
-        <img
-          className="space-onboarding-sign__image"
-          src={imageSrc}
-          alt=""
-          width={sign.imageWidthPx}
-          height={sign.imageHeightPx}
-          draggable={false}
-        />
+      <div className={className} style={style}>
+        <span className="space-onboarding-sign__text">{t(sign.textKey)}</span>
+        {sign.keycaps ? (
+          <span className="space-onboarding-sign__keycaps" aria-hidden>
+            {sign.keycaps.map((cap) => (
+              <kbd key={cap} className="space-onboarding-sign__keycap">
+                {cap}
+              </kbd>
+            ))}
+          </span>
+        ) : null}
       </div>
     </Html>
   );

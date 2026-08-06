@@ -40,32 +40,13 @@ const i18n = readProjectFile("apps/web/src/generated/i18nResources.generated.ts"
 const css = files.css;
 const packageJson = readProjectFile("package.json");
 
-const expectedAssetPaths = [
-  "apps/web/public/onboarding/space-onboarding-move.png",
-  "apps/web/public/onboarding/space-onboarding-notice.png",
-  "apps/web/public/onboarding/space-onboarding-look.png",
-  "apps/web/public/onboarding/space-onboarding-demo.png",
-  "apps/web/public/onboarding/space-onboarding-esc.png",
-  "apps/web/public/onboarding/space-onboarding-relock.png",
-  "apps/web/public/onboarding/space-onboarding-done.png",
-];
+assert.equal(
+  existsSync(projectPath("apps/web/public/onboarding")),
+  false,
+  "PNG onboarding sign assets should be retired in favor of live HTML text",
+);
 
-function readPngDimensions(assetPath) {
-  const bytes = readFileSync(projectPath(assetPath));
-  return {
-    width: bytes.readUInt32BE(16),
-    height: bytes.readUInt32BE(20),
-  };
-}
 
-for (const assetPath of expectedAssetPaths) {
-  const absolutePath = projectPath(assetPath);
-  assert.ok(existsSync(absolutePath), `${assetPath} must exist`);
-  assert.ok(statSync(absolutePath).size > 1024, `${assetPath} should contain a real PNG asset`);
-  const dimensions = readPngDimensions(assetPath);
-  assert.ok(dimensions.height >= 280, `${assetPath} should include a taller transparent canvas for dissolve blur`);
-  assert.ok(dimensions.width >= 860, `${assetPath} should include wide transparent padding for glow and dissolve blur`);
-}
 
 assert.match(
   config,
@@ -76,11 +57,6 @@ assert.match(
   config,
   /SPACE_ONBOARDING_NOTICE_VISIBLE_MS\s*=\s*2000/,
   "opening notice should stay visible for two seconds before dissolving into the movement tutorial",
-);
-assert.match(
-  config,
-  /imageSrc:\s*"\/onboarding\/space-onboarding-notice\.png"/,
-  "opening notice should use a generated onboarding PNG",
 );
 assert.match(
   config,
@@ -119,8 +95,13 @@ assert.match(
 );
 assert.match(
   config,
-  /imageSrc:\s*"\/onboarding\/space-onboarding-look\.png"/,
-  "look sign should use a generated onboarding PNG",
+  /tone:\s*"interactive"/,
+  "aim/click target signs should carry the interactive tone marker",
+);
+assert.match(
+  config,
+  /keycaps:\s*\["W",\s*"A",\s*"S",\s*"D"\]/,
+  "move sign should carry WASD keycaps",
 );
 assert.match(
   config,
@@ -161,11 +142,19 @@ assert.match(
 assert(onboardingScene.includes("Html"), "onboarding signs should use drei Html");
 assert(onboardingScene.includes("transform"), "onboarding signs should be bound to world coordinates");
 assert(onboardingScene.includes("sprite"), "onboarding signs should face the camera");
-assert(onboardingScene.includes("space-onboarding-sign__image"), "onboarding signs should render PNG text assets");
-assert(onboardingScene.includes("aria-label={t(sign.textKey)}"), "PNG signs should keep translated accessible labels");
+assert(onboardingScene.includes("space-onboarding-sign__text"), "onboarding signs should render live text");
+assert(onboardingScene.includes("{t(sign.textKey)}"), "onboarding signs should translate live text through i18n");
 assert(
-  !onboardingScene.includes("{t(sign.textKey)}</div>"),
-  "onboarding world signs should not render live text after PNG asset integration",
+  onboardingScene.includes("space-onboarding-sign__keycap"),
+  "key-press steps should render keycap chips",
+);
+assert(
+  onboardingScene.includes("space-onboarding-sign--interactive"),
+  "aim/click target signs should carry the interactive marker class",
+);
+assert(
+  !onboardingScene.includes("space-onboarding-sign__image") && !onboardingScene.includes("resolveSpaceOnboardingSignImageSrc"),
+  "onboarding signs must not fall back to PNG assets",
 );
 assert(
   onboardingScene.includes("updateSpaceOnboardingSignQueue") &&
@@ -308,21 +297,25 @@ assert(
   "English relock copy should teach clicking blank space",
 );
 assert(css.includes(".space-onboarding-sign"), "global CSS should style world onboarding signs");
-assert(css.includes(".space-onboarding-sign__image"), "global CSS should style generated onboarding PNGs");
-assert(css.includes("drop-shadow"), "generated onboarding PNGs should receive runtime glow");
+assert(css.includes(".space-onboarding-sign__text"), "global CSS should style live sign text");
+assert(css.includes(".space-onboarding-sign__keycap"), "global CSS should style keycap chips");
+assert.match(
+  css,
+  /\.space-onboarding-sign--interactive::before[\s\S]*?var\(--space-signal\)/,
+  "interactive target signs should carry the signal marker bar",
+);
+{
+  const signRule = /\.space-onboarding-sign\s*\{([^}]*?)\}/.exec(css)?.[1] ?? "";
+  assert.ok(!/drop-shadow|glow|mist/i.test(signRule), "live sign text must not carry glow or mist decoration");
+  assert.match(signRule, /var\(--space-paper\)/, "sign text should use the paper token");
+}
 assert(css.includes("spaceOnboardingTextEnter"), "global CSS should fade onboarding text in");
 assert(css.includes("--space-onboarding-enter-ms"), "global CSS should allow the opening notice to enter faster");
 assert(css.includes("spaceOnboardingTextSwap"), "global CSS should animate Esc/relock text conversion");
 assert(css.includes(".space-onboarding-sign--exiting"), "global CSS should animate onboarding sign exits");
-assert(css.includes("spaceOnboardingDissolve"), "global CSS should dissolve completed onboarding signs");
-assert(css.includes("spaceOnboardingMistDissolve"), "global CSS should dissolve text through a soft mist layer");
-assert(
-  css.includes("filter: blur(3.5px)") &&
-    css.includes("translate3d(0, -7px, 0)") &&
-    css.includes("scale(1.018)"),
-  "onboarding sign dissolve should stay inside the PNG transparent bounds instead of blooming past the image outline",
-);
-assert(css.includes("cubic-bezier(0.16, 1, 0.3, 1)"), "dissolve animation should use a smooth non-choppy easing");
+assert(css.includes("spaceOnboardingTextExit"), "exit animation should be a short fade, not a glow dissolve");
+assert(!css.includes("spaceOnboardingFloat"), "onboarding signs must not float forever");
+assert(!css.includes("spaceOnboardingMistDissolve"), "mist/glow dissolve should be retired");
 assert(css.includes(".space-onboarding-focus"), "global CSS should style the demo focus overlay");
 
 const dailyResume = readProjectFile("apps/web/src/space/spaceDailyResume.ts");
