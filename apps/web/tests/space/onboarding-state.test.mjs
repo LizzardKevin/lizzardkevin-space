@@ -130,7 +130,7 @@ test("space onboarding sign timing constants match the approved queue timings", 
 
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_ENTER_MS, 500);
   assert.equal(visibility.SPACE_ONBOARDING_NOTICE_ENTER_MS, 260);
-  assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_MS, 950);
+  assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_MS, 320);
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M, 0.45);
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS, 100);
   assert.equal(visibility.SPACE_ONBOARDING_NOTICE_COMPLETE_FALLBACK_MS, 0);

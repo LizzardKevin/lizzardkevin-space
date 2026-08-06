@@ -33,6 +33,7 @@ type SpaceHudProps = {
   poseRef: RefObject<SpacePlayerPose | null>;
   onboardingCompleted: boolean;
   routeBlocked: boolean;
+  exhibitHint: { exhibitId: string; title: string; subtitle: string } | null;
 };
 
 function JumpHint({ message, visible }: { message: string; visible: boolean }) {
@@ -86,6 +87,7 @@ export function SpaceHud({
   poseRef,
   onboardingCompleted,
   routeBlocked,
+  exhibitHint,
 }: SpaceHudProps) {
   const { t } = useTranslation();
   // 探索目标与全息地图:onboarding 结束、无遮盖层、路由未被接管时才展示。
@@ -112,6 +114,14 @@ export function SpaceHud({
       <SpaceMinimap poseRef={poseRef} visible={widgetsVisible} />
       {pointerLocked ? (
         <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} />
+      ) : null}
+      {pointerLocked && !focusOpen && exhibitHint ? (
+        <div className="space-exhibit-hint" key={exhibitHint.exhibitId}>
+          <span className="space-exhibit-hint__title">{exhibitHint.title}</span>
+          {exhibitHint.subtitle ? (
+            <span className="space-exhibit-hint__subtitle">{exhibitHint.subtitle}</span>
+          ) : null}
+        </div>
       ) : null}
       <PlaybackBar elevated={focusOpen} />
       {rendererFailed ? <WebGPUUnavailable /> : null}

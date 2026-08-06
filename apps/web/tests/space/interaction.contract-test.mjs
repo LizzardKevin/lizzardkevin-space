@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { cssRule, declarationValue } from "../helpers/cssAssertions.mjs";
 import { files } from "../helpers/spaceContractFixture.mjs";
+import { readProjectFile } from "../helpers/projectPaths.mjs";
 
 assert(files.hoverHighlight.includes("restoreFrameRef"), "exhibit hover material restore should be deferred off the hot raycast path");
 assert(files.hoverHighlight.includes("requestAnimationFrame"), "exhibit hover material restore should be scheduled with requestAnimationFrame");
@@ -30,6 +31,32 @@ assert(
     files.exhibitRaycast.includes("target.interactionKind"),
   "exhibit raycast target change detection must distinguish projector and exhibit targets that share an exhibitId",
 );
+const hudSource = readProjectFile("apps/web/src/space/SpaceHud.tsx");
+const desktopSource = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
+const summarySource = readProjectFile("apps/web/src/space/exhibitContentSummary.ts");
+assert(
+  desktopSource.includes("fetchExhibitContentSummary") && desktopSource.includes("exhibitHintForTarget"),
+  "hover exhibit hint should load content.json on demand and filter by current target",
+);
+assert(
+  hudSource.includes("space-exhibit-hint__title") && hudSource.includes("space-exhibit-hint__subtitle"),
+  "bottom-of-screen exhibit hint should render target title and subtitle",
+);
+assert(
+  summarySource.includes("content.json") && summarySource.includes("summaryCache"),
+  "exhibit content summary must be fetched per-exhibit with an in-session cache",
+);
+assert(
+  desktopSource.includes('interactionKind === "exhibit"'),
+  "hover hint must only respond to exhibit targets, not the projector",
+);
+assert(
+  files.css.includes(".space-exhibit-hint__title") &&
+    files.css.includes(".space-exhibit-hint__subtitle") &&
+    files.css.includes("bottom: 40px"),
+  "exhibit hint should be styled bottom-center in the HUD language",
+);
+
 assert(
   files.exhibitInteractionRegistryProvider.includes("ExhibitInteractionRegistryProvider") &&
     files.exhibitInteractionRegistry.includes("useRegisterExhibitInteractionTarget") &&

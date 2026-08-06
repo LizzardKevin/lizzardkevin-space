@@ -1667,7 +1667,8 @@ button {
   user-select: none;
   text-shadow:
     0 1px 2px rgb(23 40 42 / 0.85),
-    0 0 14px rgb(23 40 42 / 0.55);
+    0 0 14px rgb(23 40 42 / 0.55),
+    0 0 10px rgba(185, 220, 255, 0.32);
 }
 
 .space-onboarding-sign__text {
@@ -1716,7 +1717,7 @@ button {
 }
 
 .space-onboarding-sign--exiting {
-  animation: spaceOnboardingTextExit 420ms ease forwards;
+  animation: spaceOnboardingTextExit 140ms ease forwards;
 }
 
 @keyframes spaceOnboardingTextEnter {
@@ -1801,6 +1802,8 @@ button {
 .space-onboarding-focus__dots {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
@@ -2431,5 +2434,62 @@ button {
   .space-quests__check,
   .space-minimap {
     transition: none;
+  }
+}
+
+/* --- 悬停展品提示:画面正下方,title + subtitle,与 HUD 同语言 --- */
+
+.space-exhibit-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 40px;
+  z-index: 22;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  max-width: min(520px, 80vw);
+  padding-left: 12px;
+  border-left: 3px solid var(--space-signal);
+  pointer-events: none;
+  text-align: left;
+  transform: translateX(-50%);
+  animation: spaceExhibitHintEnter 180ms ease both;
+}
+
+.space-exhibit-hint__title {
+  color: var(--space-paper);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 1px 2px rgb(23 40 42 / 0.85),
+    0 0 12px rgb(23 40 42 / 0.55);
+}
+
+.space-exhibit-hint__subtitle {
+  color: rgb(243 240 231 / 0.62);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
+  text-shadow:
+    0 1px 2px rgb(23 40 42 / 0.85),
+    0 0 12px rgb(23 40 42 / 0.55);
+}
+
+@keyframes spaceExhibitHintEnter {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-exhibit-hint {
+    animation: none;
   }
 }
