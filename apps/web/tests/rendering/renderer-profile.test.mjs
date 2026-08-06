@@ -189,6 +189,93 @@ test("full rejection is final because Three already attempted its internal fallb
   assert.equal(disposeCount, 0);
 });
 
+test("strict WebGPU implementations that require vertex.entryPoint are detected", async () => {
+  const { supportsImplicitWebGPUVertexEntryPoint } = await importSourceModule(
+    "rendering/rendererProfile.ts",
+  );
+  assert.equal(typeof supportsImplicitWebGPUVertexEntryPoint, "function");
+
+  let observedDescriptor = null;
+  const compatible = supportsImplicitWebGPUVertexEntryPoint({
+    createShaderModule: () => ({ label: "probe-module" }),
+    createRenderPipeline: (descriptor) => {
+      observedDescriptor = descriptor;
+      throw new TypeError(
+        "Failed to read the 'entryPoint' property from 'GPUProgrammableStage': Required member is undefined.",
+      );
+    },
+  });
+
+  assert.equal(compatible, false);
+  assert.equal("entryPoint" in observedDescriptor.vertex, false);
+});
+
+test("entryPoint compatibility probe does not hide unrelated pipeline failures", async () => {
+  const { supportsImplicitWebGPUVertexEntryPoint } = await importSourceModule(
+    "rendering/rendererProfile.ts",
+  );
+  const validationFailure = new TypeError("invalid pipeline layout");
+
+  assert.throws(() => supportsImplicitWebGPUVertexEntryPoint({
+    createShaderModule: () => ({}),
+    createRenderPipeline: () => { throw validationFailure; },
+  }), validationFailure);
+});
+
+test("incompatible full WebGPU disposes it and retries once with forced WebGL", async () => {
+  const { initializeCompatibleProfiledRenderer } = await importSourceModule(
+    "rendering/rendererProfile.ts",
+  );
+  assert.equal(typeof initializeCompatibleProfiledRenderer, "function");
+
+  const forced = [];
+  const disposals = [];
+  const initialized = await initializeCompatibleProfiledRenderer(
+    "full",
+    (forceWebGL) => {
+      forced.push(forceWebGL);
+      const id = forceWebGL ? "fallback" : "incompatible";
+      return {
+        id,
+        backend: forceWebGL ? { isWebGLBackend: true } : { isWebGPUBackend: true },
+        async init() {},
+        dispose() { disposals.push(id); },
+      };
+    },
+    () => false,
+  );
+
+  assert.deepEqual(forced, [false, true]);
+  assert.deepEqual(disposals, ["incompatible"]);
+  assert.equal(initialized.renderer.id, "fallback");
+  assert.deepEqual(initialized.resolution, { backend: "webgl2", profile: "simplified" });
+});
+
+test("compatible full WebGPU remains the preferred single renderer", async () => {
+  const { initializeCompatibleProfiledRenderer } = await importSourceModule(
+    "rendering/rendererProfile.ts",
+  );
+  const forced = [];
+  let disposals = 0;
+
+  const initialized = await initializeCompatibleProfiledRenderer(
+    "full",
+    (forceWebGL) => {
+      forced.push(forceWebGL);
+      return {
+        backend: { isWebGPUBackend: true },
+        async init() {},
+        dispose() { disposals += 1; },
+      };
+    },
+    () => true,
+  );
+
+  assert.deepEqual(forced, [false]);
+  assert.equal(disposals, 0);
+  assert.deepEqual(initialized.resolution, { backend: "webgpu", profile: "full" });
+});
+
 test("visual settings default and legacy storage normalize to the full preset", async () => {
   const visual = await importSourceModule("space/spaceVisualSettings.ts");
   assert.deepEqual(visual.DEFAULT_SPACE_VISUAL_SETTINGS, { qualityPreset: "full" });

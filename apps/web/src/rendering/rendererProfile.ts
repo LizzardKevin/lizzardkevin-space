@@ -97,6 +97,40 @@ type ProfiledRenderer = {
 
 type RendererFactory<Renderer extends ProfiledRenderer> = (forceWebGL: boolean) => Renderer;
 
+export type WebGPUEntryPointProbeDevice = {
+  createShaderModule: (descriptor: { code: string }) => unknown;
+  createRenderPipeline: (descriptor: {
+    layout: "auto";
+    vertex: { module: unknown };
+  }) => unknown;
+};
+
+const IMPLICIT_VERTEX_ENTRY_POINT_PROBE = `
+  @vertex
+  fn probeVertex() -> @builtin(position) vec4<f32> {
+    return vec4<f32>(0.0, 0.0, 0.0, 1.0);
+  }
+`;
+
+function isRequiredWebGPUEntryPointError(error: unknown) {
+  return error instanceof TypeError
+    && /entryPoint/i.test(error.message)
+    && /required member is undefined/i.test(error.message);
+}
+
+export function supportsImplicitWebGPUVertexEntryPoint(
+  device: WebGPUEntryPointProbeDevice,
+) {
+  const module = device.createShaderModule({ code: IMPLICIT_VERTEX_ENTRY_POINT_PROBE });
+  try {
+    device.createRenderPipeline({ layout: "auto", vertex: { module } });
+    return true;
+  } catch (error) {
+    if (isRequiredWebGPUEntryPointError(error)) return false;
+    throw error;
+  }
+}
+
 async function initRenderer<Renderer extends ProfiledRenderer>(renderer: Renderer) {
   await renderer.init();
   return renderer;
@@ -117,4 +151,23 @@ export async function initializeProfiledRenderer<Renderer extends ProfiledRender
 ) {
   const renderer = createRenderer(requestedProfile === "simplified");
   return resolveInitializedRenderer(await initRenderer(renderer));
+}
+
+export async function initializeCompatibleProfiledRenderer<Renderer extends ProfiledRenderer>(
+  requestedProfile: RendererProfileId,
+  createRenderer: RendererFactory<Renderer>,
+  isCompatible: (renderer: Renderer) => boolean,
+) {
+  const initialized = await initializeProfiledRenderer(requestedProfile, createRenderer);
+  if (initialized.resolution.backend !== "webgpu") return initialized;
+
+  try {
+    if (isCompatible(initialized.renderer)) return initialized;
+  } catch (error) {
+    initialized.renderer.dispose();
+    throw error;
+  }
+
+  initialized.renderer.dispose();
+  return initializeProfiledRenderer("simplified", createRenderer);
 }

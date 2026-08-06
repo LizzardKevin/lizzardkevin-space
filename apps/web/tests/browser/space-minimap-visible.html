@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SPACE visible minimap lifecycle harness</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <pre id="result" data-status="running">Running...</pre>
+    <script type="module">
+      import { StrictMode, createElement } from "react";
+      import { createRoot } from "react-dom/client";
+      import { SpaceMinimap } from "../../src/space/minimap/SpaceMinimap.tsx";
+      import "../../src/styles/global.css";
+
+      const output = document.querySelector("#result");
+      const host = document.querySelector("#root");
+      const runtimeFailures = [];
+      const wait = (durationMs) => new Promise((resolve) => setTimeout(resolve, durationMs));
+      const serializeError = (error) => ({
+        name: error instanceof Error || error instanceof DOMException ? error.name : typeof error,
+        message: error instanceof Error || error instanceof DOMException ? error.message : String(error),
+        stack: error instanceof Error || error instanceof DOMException ? error.stack ?? null : null,
+      });
+
+      window.addEventListener("error", (event) => runtimeFailures.push(serializeError(event.error)));
+      window.addEventListener("unhandledrejection", (event) => {
+        runtimeFailures.push(serializeError(event.reason));
+      });
+
+      const poseRef = {
+        current: { position: [0, 2, 0], yawRad: 0.35, pitchRad: -0.12 },
+      };
+      const root = createRoot(host);
+      const renderVisibleMinimap = () => root.render(
+        createElement(
+          StrictMode,
+          null,
+          createElement(SpaceMinimap, { poseRef, visible: true }),
+        ),
+      );
+
+      const readMountedMinimap = () => {
+        const container = document.querySelector(".space-minimap[data-visible]");
+        const canvas = container?.querySelector("canvas");
+        if (!container || !canvas || canvas.width < 1 || canvas.height < 1) {
+          throw new Error("Visible minimap canvas did not mount with a positive drawing buffer");
+        }
+        if (container.getAttribute("aria-hidden") !== "false") {
+          throw new Error("Visible minimap remained aria-hidden");
+        }
+        return { width: canvas.width, height: canvas.height };
+      };
+
+      const run = async () => {
+        renderVisibleMinimap();
+        await wait(10_000);
+        const firstMount = readMountedMinimap();
+
+        root.render(null);
+        await wait(250);
+        if (document.querySelector(".space-minimap")) {
+          throw new Error("Minimap canvas survived owner unmount");
+        }
+
+        renderVisibleMinimap();
+        await wait(4_000);
+        const secondMount = readMountedMinimap();
+        if (runtimeFailures.length > 0) {
+          throw new Error(`Minimap lifecycle emitted runtime failures: ${JSON.stringify(runtimeFailures)}`);
+        }
+
+        return { ok: true, firstMount, unmounted: true, secondMount };
+      };
+
+      run()
+        .then((result) => {
+          output.dataset.status = "passed";
+          output.textContent = JSON.stringify(result, null, 2);
+        })
+        .catch((error) => {
+          console.error(error);
+          output.dataset.status = "failed";
+          output.textContent = JSON.stringify({ ok: false, error: serializeError(error) }, null, 2);
+        });
+    </script>
+  </body>
+</html>

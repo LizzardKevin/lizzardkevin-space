@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebGPU entryPoint compatibility diagnostics</title>
+  </head>
+  <body>
+    <main>
+      <h1>WebGPU entryPoint compatibility diagnostics</h1>
+      <pre id="diagnostics" data-status="running">Running…</pre>
+    </main>
+    <script type="module">
+      const output = document.querySelector("#diagnostics");
+
+      const serializeError = (error) => ({
+        name: error instanceof Error || error instanceof DOMException ? error.name : typeof error,
+        message: error instanceof Error || error instanceof DOMException ? error.message : String(error),
+        stack: error instanceof Error || error instanceof DOMException ? error.stack ?? null : null,
+      });
+
+      const pipelineResult = async (device, descriptor) => {
+        device.pushErrorScope("validation");
+        try {
+          device.createRenderPipeline(descriptor);
+          const validationError = await device.popErrorScope();
+          return validationError ? { ok: false, error: serializeError(validationError) } : { ok: true };
+        } catch (error) {
+          await device.popErrorScope().catch(() => null);
+          return { ok: false, error: serializeError(error) };
+        }
+      };
+
+      const run = async () => {
+        const result = {
+          userAgent: navigator.userAgent,
+          userAgentData: navigator.userAgentData
+            ? {
+                brands: navigator.userAgentData.brands,
+                mobile: navigator.userAgentData.mobile,
+                platform: navigator.userAgentData.platform,
+              }
+            : null,
+          secureContext: globalThis.isSecureContext,
+          navigatorGpu: Boolean(navigator.gpu),
+          preferredCanvasFormat: navigator.gpu?.getPreferredCanvasFormat?.() ?? null,
+          adapter: null,
+          device: null,
+          implicitVertexEntryPoint: null,
+          explicitVertexEntryPoint: null,
+        };
+
+        if (!navigator.gpu) return result;
+
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter) throw new Error("navigator.gpu.requestAdapter() returned null");
+        const info = adapter.info ?? null;
+        result.adapter = {
+          isFallbackAdapter: adapter.isFallbackAdapter ?? null,
+          features: Array.from(adapter.features),
+          info: info
+            ? Object.fromEntries(
+                ["vendor", "architecture", "device", "description", "backend", "type"].map(
+                  (key) => [key, info[key] ?? null],
+                ),
+              )
+            : null,
+        };
+
+        const device = await adapter.requestDevice();
+        result.device = {
+          label: device.label,
+          features: Array.from(device.features),
+        };
+
+        const module = device.createShaderModule({
+          code: `
+            @vertex
+            fn mainVS(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4f {
+              var positions = array(
+                vec2f(-1.0, -1.0),
+                vec2f( 3.0, -1.0),
+                vec2f(-1.0,  3.0)
+              );
+              return vec4f(positions[vertexIndex], 0.0, 1.0);
+            }
+
+            @fragment
+            fn mainFS() -> @location(0) vec4f {
+              return vec4f(0.18, 0.36, 0.32, 1.0);
+            }
+          `,
+        });
+        const baseDescriptor = {
+          layout: "auto",
+          fragment: {
+            module,
+            entryPoint: "mainFS",
+            targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }],
+          },
+        };
+
+        result.implicitVertexEntryPoint = await pipelineResult(device, {
+          ...baseDescriptor,
+          vertex: { module },
+        });
+        result.explicitVertexEntryPoint = await pipelineResult(device, {
+          ...baseDescriptor,
+          vertex: { module, entryPoint: "mainVS" },
+        });
+        device.destroy();
+        return result;
+      };
+
+      run()
+        .then((result) => {
+          output.dataset.status = "complete";
+          output.textContent = JSON.stringify(result, null, 2);
+        })
+        .catch((error) => {
+          output.dataset.status = "failed";
+          output.textContent = JSON.stringify({ fatal: serializeError(error) }, null, 2);
+        });
+    </script>
+  </body>
+</html>

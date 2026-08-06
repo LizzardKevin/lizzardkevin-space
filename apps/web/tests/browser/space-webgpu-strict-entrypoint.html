@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SPACE strict WebGPU entryPoint regression</title>
+  </head>
+  <body>
+    <main>
+      <h1>SPACE strict WebGPU entryPoint regression</h1>
+      <canvas id="control-surface" width="64" height="64" hidden></canvas>
+      <canvas id="surface" width="64" height="64"></canvas>
+      <pre id="result" data-status="running">Running…</pre>
+    </main>
+    <script type="module">
+      import * as THREE from "three";
+      import { WebGPURenderer } from "three/webgpu";
+      import { createWebGPURenderer } from "../../src/rendering/createWebGPURenderer.ts";
+
+      const output = document.querySelector("#result");
+      const controlCanvas = document.querySelector("#control-surface");
+      const canvas = document.querySelector("#surface");
+      const strictEntryPointMessage =
+        "Failed to execute 'createRenderPipeline' on 'GPUDevice': Failed to read the 'vertex' property from 'GPURenderPipelineDescriptor': Failed to read the 'entryPoint' property from 'GPUProgrammableStage': Required member is undefined.";
+
+      const serializeError = (error) => ({
+        name: error instanceof Error || error instanceof DOMException ? error.name : typeof error,
+        message: error instanceof Error || error instanceof DOMException ? error.message : String(error),
+        stack: error instanceof Error || error instanceof DOMException ? error.stack ?? null : null,
+      });
+
+      const createTexturedScene = () => {
+        const geometry = new THREE.PlaneGeometry(1, 1);
+        const textureCanvas = document.createElement("canvas");
+        textureCanvas.width = 4;
+        textureCanvas.height = 4;
+        const textureContext = textureCanvas.getContext("2d");
+        textureContext.fillStyle = "#2f5d52";
+        textureContext.fillRect(0, 0, 4, 4);
+        const texture = new THREE.CanvasTexture(textureCanvas);
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+        const scene = new THREE.Scene();
+        scene.add(new THREE.Mesh(geometry, material));
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+        camera.position.z = 2;
+
+        return {
+          scene,
+          camera,
+          dispose() {
+            material.dispose();
+            texture.dispose();
+            geometry.dispose();
+          },
+        };
+      };
+
+      const run = async () => {
+        if (!navigator.gpu) throw new Error("WebGPU is unavailable; strict entryPoint harness cannot run");
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter) throw new Error("navigator.gpu.requestAdapter() returned null");
+        const probeDevice = await adapter.requestDevice();
+        const devicePrototype = Object.getPrototypeOf(probeDevice);
+        const originalCreateRenderPipeline = devicePrototype.createRenderPipeline;
+        devicePrototype.createRenderPipeline = function strictCreateRenderPipeline(descriptor) {
+          if (descriptor?.vertex?.entryPoint === undefined) {
+            throw new TypeError(strictEntryPointMessage);
+          }
+          return Reflect.apply(originalCreateRenderPipeline, this, [descriptor]);
+        };
+        probeDevice.destroy();
+
+        try {
+          const control = createTexturedScene();
+          let controlRenderer = null;
+          let controlError = null;
+          try {
+            controlRenderer = new WebGPURenderer({ canvas: controlCanvas });
+            await controlRenderer.init();
+            controlRenderer.setSize(64, 64, false);
+            try {
+              controlRenderer.render(control.scene, control.camera);
+            } catch (error) {
+              controlError = serializeError(error);
+            }
+          } finally {
+            controlRenderer?.dispose();
+            control.dispose();
+          }
+
+          if (controlError?.message !== strictEntryPointMessage) {
+            throw new Error(
+              `Raw Three render did not produce the expected strict entryPoint failure: ${JSON.stringify(controlError)}`,
+            );
+          }
+
+          const fallback = createTexturedScene();
+          let renderer = null;
+          let backend = "unknown";
+          try {
+            renderer = await createWebGPURenderer({ canvas });
+            renderer.setSize(64, 64, false);
+            renderer.render(fallback.scene, fallback.camera);
+            backend = renderer.backend.isWebGLBackend
+              ? "webgl2"
+              : renderer.backend.isWebGPUBackend
+                ? "webgpu"
+                : "unknown";
+          } finally {
+            renderer?.dispose();
+            fallback.dispose();
+          }
+
+          if (backend !== "webgl2") {
+            throw new Error(`Expected strict WebGPU compatibility fallback to use WebGL2, got ${backend}`);
+          }
+
+          return {
+            ok: true,
+            control: { phase: "raw-render", error: controlError },
+            fallback: { backend },
+          };
+        } finally {
+          devicePrototype.createRenderPipeline = originalCreateRenderPipeline;
+        }
+      };
+
+      run()
+        .then((result) => {
+          output.dataset.status = result.ok ? "passed" : "failed";
+          output.textContent = JSON.stringify(result, null, 2);
+        })
+        .catch((error) => {
+          console.error(error);
+          output.dataset.status = "failed";
+          output.textContent = JSON.stringify({ ok: false, error: serializeError(error) }, null, 2);
+        });
+    </script>
+  </body>
+</html>

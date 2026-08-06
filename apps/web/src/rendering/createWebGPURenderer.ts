@@ -2,9 +2,11 @@ import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
 import { ENABLE_GALLERY_RENDERER_ANTIALIAS } from "../scenes/gallery/galleryConfig";
 import {
-  initializeProfiledRenderer,
+  initializeCompatibleProfiledRenderer,
+  supportsImplicitWebGPUVertexEntryPoint,
   type RendererProfileId,
   type RendererResolution,
+  type WebGPUEntryPointProbeDevice,
 } from "./rendererProfile";
 import { disposeRendererIfCanvasDetached } from "./rendererLifecycle";
 
@@ -17,7 +19,7 @@ type WebGPUCanvasProps = {
 };
 
 export async function createWebGPURenderer(props: WebGPUCanvasProps): Promise<WebGPURenderer> {
-  const { renderer, resolution } = await initializeProfiledRenderer(
+  const { renderer, resolution } = await initializeCompatibleProfiledRenderer(
     props.requestedProfile ?? "full",
     (forceWebGL) =>
       new WebGPURenderer({
@@ -26,6 +28,10 @@ export async function createWebGPURenderer(props: WebGPUCanvasProps): Promise<We
         alpha: props.alpha ?? false,
         forceWebGL,
       }),
+    (candidate) => {
+      const device = (candidate.backend as { device?: WebGPUEntryPointProbeDevice }).device;
+      return device ? supportsImplicitWebGPUVertexEntryPoint(device) : true;
+    },
   );
 
   if (disposeRendererIfCanvasDetached(renderer, props.canvas)) {
