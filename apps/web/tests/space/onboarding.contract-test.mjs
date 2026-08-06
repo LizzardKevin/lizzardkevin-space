@@ -319,6 +319,15 @@ assert(!css.includes("spaceOnboardingMistDissolve"), "mist/glow dissolve should 
 assert(css.includes(".space-onboarding-focus"), "global CSS should style the demo focus overlay");
 
 const dailyResume = readProjectFile("apps/web/src/space/spaceDailyResume.ts");
+const sessionPose = readProjectFile("apps/web/src/space/spaceSessionPose.ts");
+assert(
+  sessionPose.includes("clearSpaceSessionPose"),
+  "space session pose should expose a silent reset helper mirroring daily resume",
+);
+assert(
+  desktop.includes("clearSpaceSessionPose"),
+  "resetSpaceOnboarding must clear the session pose too, otherwise onboarding cannot be replayed",
+);
 assert(
   dailyResume.includes('SPACE_DAILY_RESUME_STORAGE_KEY = "spaceDailyResumeV1"'),
   "SPACE daily resume should use the planned localStorage key",

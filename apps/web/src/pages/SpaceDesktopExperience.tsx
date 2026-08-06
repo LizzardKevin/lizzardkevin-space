@@ -26,7 +26,7 @@ import {
   writeSpaceDailyResume,
   type SpacePlayerPose,
 } from "../space/spaceDailyResume";
-import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
+import { clearSpaceSessionPose, readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
 import { spaceExplorationStore } from "../space/quests/spaceQuests";
 import type { SpaceBootController } from "../boot/useSpaceBootController";
@@ -53,6 +53,9 @@ type SpaceToastState = {
 function readInitialDailyResumePose(params: URLSearchParams) {
   if (params.get(SPACE_DAILY_RESUME_RESET_PARAM) === "1") {
     clearSpaceDailyResume();
+    // 会话位姿(sessionStorage)同样决定 onboardingCompleted;只清 daily resume
+    // 无法真正重走 onboarding,必须一并清掉。
+    clearSpaceSessionPose();
     return null;
   }
   return readSpaceDailyResume();
