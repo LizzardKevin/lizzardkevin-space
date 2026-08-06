@@ -70,6 +70,24 @@ assert.doesNotMatch(chrome, /spaceWordSourceRect/, "topbar no longer captures sp
 assert.doesNotMatch(desktop, /location\.state/, "desktop routes no longer read location state");
 assert.match(workPage, /\buseParams\b|exhibitId/);
 
+// works 详情页:双击空白返回 SPACE(壳层 opt-in;ESC 与双击共用 leaveToSpace → 指针锁恢复路径)
+assert.match(shell, /blankDoubleClickToSpace\?:\s*boolean/, "shell must expose blankDoubleClickToSpace opt-in");
+assert.match(
+  shell,
+  /addEventListener\("dblclick"[\s\S]*?leaveToSpace\(\)/,
+  "shell must bind dblclick to leaveToSpace when enabled",
+);
+assert.match(
+  shell,
+  /target\.closest\([\s\S]*?a, button, input, select, textarea, video, canvas, img[\s\S]*?\.ark-top, \.ark-footer/,
+  "blank double-click must ignore interactive elements and page chrome",
+);
+assert.match(shell, /data-ark-lightbox/, "blank double-click must yield while the lightbox is open");
+assert(
+  (workPage.match(/blankDoubleClickToSpace/g) ?? []).length >= 2,
+  "work detail page must enable blankDoubleClickToSpace on both shell branches (loading + ready)",
+);
+
 const files = [];
 const pending = [sourceRoot];
 while (pending.length) {

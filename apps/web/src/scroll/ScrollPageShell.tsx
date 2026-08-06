@@ -112,6 +112,7 @@ export function ScrollPageShell({
   switchTarget,
   miniTitle,
   miniTitleAfterId,
+  blankDoubleClickToSpace = false,
   onNavigateToSpace,
   children,
 }: {
@@ -124,6 +125,8 @@ export function ScrollPageShell({
   /** 滚过 miniTitleAfterId 后左上常驻的迷你标题（works 展品名） */
   miniTitle?: string;
   miniTitleAfterId?: string;
+  /** 双击页面空白处返回 SPACE（works 详情页启用）；交互元素不触发 */
+  blankDoubleClickToSpace?: boolean;
   onNavigateToSpace: SpaceReturnHandler;
   children: ReactNode;
 }) {
@@ -173,6 +176,31 @@ export function ScrollPageShell({
   );
 
   useEscapeToSpace(leaveToSpace);
+
+  // 双击空白返回 SPACE:仅启用的页面(works 详情);链接/按钮/媒体/图片/顶底栏不算空白。
+  // 走 leaveToSpace() 非 ESC 路径:dblclick 自带用户激活,指针锁在点击手势内直接恢复。
+  useEffect(() => {
+    if (!blankDoubleClickToSpace) return undefined;
+    const root = pageRef.current;
+    if (!root) return undefined;
+    const onDoubleClick = (event: MouseEvent) => {
+      if (event.defaultPrevented) return;
+      if (document.querySelector("[data-ark-lightbox]")) return;
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest(
+          "a, button, input, select, textarea, video, canvas, img, [role='button'], .ark-top, .ark-footer",
+        )
+      ) {
+        return;
+      }
+      event.preventDefault();
+      leaveToSpace();
+    };
+    root.addEventListener("dblclick", onDoubleClick);
+    return () => root.removeEventListener("dblclick", onDoubleClick);
+  }, [blankDoubleClickToSpace, leaveToSpace]);
 
   const handleSwitch = useCallback(() => {
     if (!switchTarget) return;

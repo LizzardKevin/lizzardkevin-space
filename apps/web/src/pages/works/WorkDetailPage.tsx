@@ -189,6 +189,7 @@ export default function WorkDetailPage({
         accent="yellow"
         pageCode={copy.work.pageCode}
         anchors={[]}
+        blankDoubleClickToSpace
         onNavigateToSpace={onNavigateToSpace}
       >
         <section className="ark-hero">
@@ -226,6 +227,7 @@ export default function WorkDetailPage({
       footerMeta={[exhibitId, `${index + 1} / ${works.length}`]}
       miniTitle={title}
       miniTitleAfterId="work-hero"
+      blankDoubleClickToSpace
       onNavigateToSpace={onNavigateToSpace}
     >
       <section className="ark-hero" id="work-hero">
