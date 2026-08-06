@@ -209,24 +209,24 @@ test("elevation follows player pitch gently with clamps, never 1:1", () => {
   assert.equal(resolveSpaceMinimapElevationRad(0), SPACE_MINIMAP_ELEVATION_RAD, "平视用基础仰角");
 
   const gentleUp = resolveSpaceMinimapElevationRad(0.5);
-  assert.ok(gentleUp > SPACE_MINIMAP_ELEVATION_RAD, "抬头时地图仰角随之抬高");
+  assert.ok(gentleUp < SPACE_MINIMAP_ELEVATION_RAD, "抬头时地图仰角反向减小(前倾)");
   assert.ok(
     Math.abs(gentleUp - SPACE_MINIMAP_ELEVATION_RAD) < 0.5,
     "跟随幅度远小于玩家俯仰(只做反馈)",
   );
   assert.ok(
-    Math.abs(gentleUp - SPACE_MINIMAP_ELEVATION_RAD - 0.5 * SPACE_MINIMAP_PITCH_FOLLOW) < 1e-9,
-    "跟随系数生效",
+    Math.abs(SPACE_MINIMAP_ELEVATION_RAD - gentleUp - 0.5 * SPACE_MINIMAP_PITCH_FOLLOW) < 1e-9,
+    "反向跟随系数生效",
   );
 
   assert.equal(
     resolveSpaceMinimapElevationRad(3),
-    SPACE_MINIMAP_ELEVATION_MAX_RAD,
-    "极端抬头被上限钳制",
+    SPACE_MINIMAP_ELEVATION_MIN_RAD,
+    "极端抬头被下限钳制",
   );
   assert.equal(
     resolveSpaceMinimapElevationRad(-3),
-    SPACE_MINIMAP_ELEVATION_MIN_RAD,
-    "极端低头被下限钳制",
+    SPACE_MINIMAP_ELEVATION_MAX_RAD,
+    "极端低头被上限钳制",
   );
 });

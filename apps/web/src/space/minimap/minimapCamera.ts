@@ -22,9 +22,9 @@ export const SPACE_MINIMAP_PITCH_FOLLOW = 0.16;
 export const SPACE_MINIMAP_ELEVATION_MIN_RAD = 0.16;
 export const SPACE_MINIMAP_ELEVATION_MAX_RAD = 0.66;
 
-/** 由玩家 pitch 求地图仰角:小系数跟随 + 上下限保护构图。 */
+/** 由玩家 pitch 求地图仰角:反向小系数跟随(抬头时地图前倾)+ 上下限保护构图。 */
 export function resolveSpaceMinimapElevationRad(pitchRad: number) {
-  const target = SPACE_MINIMAP_ELEVATION_RAD + pitchRad * SPACE_MINIMAP_PITCH_FOLLOW;
+  const target = SPACE_MINIMAP_ELEVATION_RAD - pitchRad * SPACE_MINIMAP_PITCH_FOLLOW;
   return Math.min(Math.max(target, SPACE_MINIMAP_ELEVATION_MIN_RAD), SPACE_MINIMAP_ELEVATION_MAX_RAD);
 }
 
