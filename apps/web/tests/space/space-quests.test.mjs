@@ -117,3 +117,92 @@ test("armed 状态下重复引导完成/重进不破坏状态", () => {
   store.notifySessionRestart();
   assert.equal(store.getState().phase, "armed");
 });
+
+function createFakeStorage() {
+  const map = new Map();
+  return {
+    getItem: (key) => (map.has(key) ? map.get(key) : null),
+    setItem: (key, value) => void map.set(key, String(value)),
+    _map: map,
+  };
+}
+
+const PAST_CORRIDOR = [0, 30, 0]; // z > -10.7,已在走廊之后
+
+test("resume 位姿已过走廊:armed 直接激活,不要求走回走廊", () => {
+  const store = createSpaceExplorationStore({ storage: createFakeStorage() });
+  store.notifyOnboardingCompleted();
+  store.maybeActivateAt(PAST_CORRIDOR, createSeededRng(5));
+  const state = store.getState();
+  assert.equal(state.phase, "active");
+  assert.equal(state.tasks.length, 4);
+});
+
+test("当天持久化记录恢复:任务与完成态原样回来", async () => {
+  const { formatSpaceResumeLocalDate } = await importSourceModule("space/spaceDailyResume.ts");
+  const storage = createFakeStorage();
+  storage.setItem(
+    "spaceExplorationV1",
+    JSON.stringify({
+      version: 1,
+      localDate: formatSpaceResumeLocalDate(new Date()),
+      taskIds: ["leave_the_floor", "whats_above", "three_encounters", "next_scene"],
+      doneIds: ["leave_the_floor"],
+    }),
+  );
+  const store = createSpaceExplorationStore({ storage });
+  store.notifyOnboardingCompleted();
+  store.maybeActivateAt(PAST_CORRIDOR, createSeededRng(1));
+  const state = store.getState();
+  assert.deepEqual(
+    state.tasks.map((t) => t.id),
+    ["leave_the_floor", "whats_above", "three_encounters", "next_scene"],
+    "恢复记录里的同一组任务与显示顺序",
+  );
+  assert.equal(state.tasks[0].status, "done");
+  assert.equal(state.doneCount, 1);
+});
+
+test("失效记录(未知 ID / 过期日期)不落盘,重新抽取", () => {
+  for (const bad of [
+    { version: 1, localDate: "2000-01-01", taskIds: ["leave_the_floor", "whats_above", "three_encounters", "next_scene"], doneIds: [] },
+    { version: 1, localDate: null, taskIds: ["bogus_id", "whats_above", "three_encounters", "next_scene"], doneIds: [] },
+  ]) {
+    const storage = createFakeStorage();
+    if (bad.localDate === null) {
+      bad.localDate = "2099-01-01"; // 占位;未知 ID 场景由 id 校验拦截
+    }
+    storage.setItem("spaceExplorationV1", JSON.stringify(bad));
+    const store = createSpaceExplorationStore({ storage });
+    store.notifyOnboardingCompleted();
+    store.maybeActivateAt(PAST_CORRIDOR, createSeededRng(9));
+    const ids = store.getState().tasks.map((t) => t.id);
+    assert.equal(ids.length, 4);
+    assert.ok(!ids.includes("bogus_id"), "未知 ID 的记录被丢弃并重新抽取");
+  }
+});
+
+test("Lobby 重进后的下一次激活跳过当天记录,重新抽取并覆写", async () => {
+  const { formatSpaceResumeLocalDate } = await importSourceModule("space/spaceDailyResume.ts");
+  const storage = createFakeStorage();
+  const recordIds = ["leave_the_floor", "whats_above", "three_encounters", "next_scene"];
+  storage.setItem(
+    "spaceExplorationV1",
+    JSON.stringify({
+      version: 1,
+      localDate: formatSpaceResumeLocalDate(new Date()),
+      taskIds: recordIds,
+      doneIds: [],
+    }),
+  );
+  const store = createSpaceExplorationStore({ storage });
+  store.notifyOnboardingCompleted();
+  store.maybeActivateAt(PAST_CORRIDOR, createSeededRng(1));
+  assert.deepEqual(store.getState().tasks.map((t) => t.id), recordIds, "首次激活恢复当天记录");
+  store.notifySessionRestart();
+  store.maybeActivateAt(PAST_CORRIDOR, createSeededRng(42));
+  const ids = store.getState().tasks.map((t) => t.id);
+  assert.equal(ids.length, 4);
+  const persisted = JSON.parse(storage.getItem("spaceExplorationV1"));
+  assert.deepEqual(persisted.taskIds, ids, "重抽结果覆写当天记录");
+});

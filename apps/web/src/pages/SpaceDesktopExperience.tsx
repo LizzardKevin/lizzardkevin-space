@@ -199,8 +199,13 @@ export function SpaceDesktopExperience({
   }, [onboardingCompleted]);
 
   const prevEnteredRef = useRef(entered);
+  const hasEnteredOnceRef = useRef(false);
   useEffect(() => {
-    if (entered && !prevEnteredRef.current) spaceExplorationStore.notifySessionRestart();
+    if (entered && !prevEnteredRef.current) {
+      // 仅“从 Lobby 返回后再进”才算会话重开;页面加载后的首次进入不打断恢复状态。
+      if (hasEnteredOnceRef.current) spaceExplorationStore.notifySessionRestart();
+      hasEnteredOnceRef.current = true;
+    }
     prevEnteredRef.current = entered;
   }, [entered]);
 

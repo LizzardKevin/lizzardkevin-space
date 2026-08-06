@@ -69,8 +69,16 @@ assert.ok(
 assert.ok(selection.includes("selectExplorationTasks") && selection.includes("SPACE_EXPLORATION_POOL"));
 assert.ok(sensors.includes("isInDownhillCorridor") && sensors.includes("SPACE_DOWNHILL_CORRIDOR"));
 assert.ok(
-  !quests.includes("localStorage") && !selection.includes("localStorage") && !sensors.includes("localStorage"),
-  "探索提示是会话内状态,不写入 localStorage",
+  quests.includes("SPACE_EXPLORATION_STORAGE_KEY") && quests.includes("formatSpaceResumeLocalDate"),
+  "探索提示按 daily resume 同款同日持久化(刷新后续玩)",
+);
+assert.ok(
+  quests.includes("isPastDownhillCorridor"),
+  "已过走廊的 resume 位姿必须直接激活面板",
+);
+assert.ok(
+  !selection.includes("localStorage") && !sensors.includes("localStorage"),
+  "抽取与传感器不直接读写存储",
 );
 
 // --- 事件源:投影实际切换 / 阻挡提示实际显示 / 模型有效拖拽 ---

@@ -221,3 +221,11 @@ export function isInDownhillCorridor(position: readonly [number, number, number]
     y <= SPACE_DOWNHILL_CORRIDOR.maxY
   );
 }
+
+/**
+ * 已在走廊之后(z 越过坡道远端):刷新后 daily resume 把玩家放在展厅深处时,
+ * 探索提示应直接激活,不要求走回走廊。
+ */
+export function isPastDownhillCorridor(position: readonly [number, number, number]) {
+  return position[2] > SPACE_DOWNHILL_CORRIDOR.maxZ;
+}
