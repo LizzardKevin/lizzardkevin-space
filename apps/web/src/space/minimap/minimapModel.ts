@@ -10,11 +10,23 @@ import { getGalleryMaterialStyleAction } from "../../scenes/gallery/galleryStyle
 import { publicAssetUrl } from "../../platform/publicAssets.ts";
 
 /**
- * SPACE 全息小地图的模型与坐标。
- * 显示模型 = 独立的减面 GLB(space_hologram_map.glb,自身局部坐标、贴地归一);
- * 玩家点映射 = 主场景建筑包围盒 → 地图包围盒的均匀缩放+平移(minimapWorldMapper)。
- * 只读源场景,产物由调用方持有并负责 dispose。
+ * SPACE 全息小地图的模型与坐标。两条模型来源路径并存,由 SPACE_MINIMAP_SOURCE 切换:
+ *
+ * - "strip"(当前启用):运行时从 useGLTF 缓存的 space_main 场景剥离建筑壳。
+ *   流程:按命名前缀(ARCH_/PLASTER_/STRUCT_/METAL_ALUMINUM_/GLASS_)收集可见网格
+ *   (COL_/EXHIBITS_/灯具/spawn 与主场景已隐藏的重复面自然排除)→ 逐网格克隆
+ *   position+index 并 applyMatrix4 到世界空间 → 按 resolveSpaceMinimapLayer 分
+ *   floor/wall/other 三层分别 mergeGeometries 合并 → 包围盒/包围球取自合并结果;
+ *   墨线壳只对 stylize 建筑面(排除地面/楼梯)用 createInkShellGeometry 生成。
+ *   模型在世界坐标系内,玩家点直接用 pose.position,无需映射。
+ *
+ * - "hologram":独立减面 GLB(space_hologram_map.glb,Codex 从 Blender 导出,
+ *   499KB / 1.4 万顶点,MAP_FLOOR/MAP_WALL/MAP_STAIR 三个网格,局部归一坐标)。
+ *   直接分层合并;玩家点经 computeSpaceArchitectureBounds(主场景建筑包围盒)
+ *   与 createSpaceMinimapWorldMapper(中心对齐 + 半径均匀缩放)映射进地图局部坐标。
+ *   渲染负载最低,但需要美术侧同步维护该 GLB。
  */
+export const SPACE_MINIMAP_SOURCE: "strip" | "hologram" = "strip";
 
 /** Bump when replacing space_hologram_map.glb so dev/browser reloads geometry. */
 export const SPACE_HOLOGRAM_GLB_REVISION = "20260806-holo1";
@@ -133,7 +145,26 @@ export function buildSpaceHologramModel(root: THREE.Object3D): SpaceMinimapModel
       matrixWorld: mesh.matrixWorld,
     });
   });
+  return finalizeSpaceMinimapModel(byLayer, [...byLayer.floor, ...byLayer.wall, ...byLayer.other]);
+}
 
+/** 运行时剥离:主场景缓存 → 前缀过滤 → 分层合并;墨线仅 stylize 建筑面。 */
+export function buildSpaceMinimapModel(root: THREE.Object3D): SpaceMinimapModel | null {
+  const { holo, ink } = collectSpaceMinimapSources(root);
+  if (holo.length === 0) return null;
+  const byLayer: Record<SpaceMinimapLayer, SpaceMinimapSource[]> = {
+    floor: [],
+    wall: [],
+    other: [],
+  };
+  for (const source of holo) byLayer[resolveSpaceMinimapLayer(source.name)].push(source);
+  return finalizeSpaceMinimapModel(byLayer, ink);
+}
+
+function finalizeSpaceMinimapModel(
+  byLayer: Record<SpaceMinimapLayer, SpaceMinimapSource[]>,
+  inkSources: SpaceMinimapSource[],
+): SpaceMinimapModel | null {
   const layers: Partial<Record<SpaceMinimapLayer, THREE.BufferGeometry | null>> = {};
   const bounds = new THREE.Box3();
   let kept = 0;
@@ -152,8 +183,7 @@ export function buildSpaceHologramModel(root: THREE.Object3D): SpaceMinimapModel
   }
   if (kept === 0) return null;
 
-  const allSources = [...byLayer.floor, ...byLayer.wall, ...byLayer.other];
-  const inkGeometry = createInkShellGeometry(allSources, SPACE_MINIMAP_INK_WIDTH);
+  const inkGeometry = createInkShellGeometry(inkSources, SPACE_MINIMAP_INK_WIDTH);
 
   const sphere = new THREE.Sphere();
   bounds.getBoundingSphere(sphere);

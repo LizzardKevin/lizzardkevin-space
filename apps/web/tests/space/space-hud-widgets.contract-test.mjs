@@ -93,8 +93,13 @@ assert.ok(
   "全息 GLB 直载 + 世界包围盒映射必须是独立可测函数",
 );
 assert.ok(
-  minimap.includes("SPACE_HOLOGRAM_GLB_URL"),
-  "地图必须加载减面全息 GLB,而不是运行时剥离主场景几何",
+  minimap.includes("SPACE_HOLOGRAM_GLB_URL") && minimap.includes("SPACE_MINIMAP_SOURCE"),
+  "地图模型来源必须经 SPACE_MINIMAP_SOURCE 显式切换",
+);
+assert.ok(
+  minimapModel.includes("buildSpaceMinimapModel") &&
+    minimapModel.includes("buildSpaceHologramModel"),
+  "运行时剥离与减面 GLB 两条实现路径必须并存保留",
 );
 assert.ok(
   existsSync(projectPath("apps/web/public/models/space_hologram_map.glb")),

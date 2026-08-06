@@ -24,9 +24,11 @@ import {
 } from "./minimapCamera";
 import {
   buildSpaceHologramModel,
+  buildSpaceMinimapModel,
   computeSpaceArchitectureBounds,
   createSpaceMinimapWorldMapper,
   SPACE_HOLOGRAM_GLB_URL,
+  SPACE_MINIMAP_SOURCE,
 } from "./minimapModel";
 
 /**
@@ -94,14 +96,21 @@ function SpaceMinimapCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const model = buildSpaceHologramModel(holoGltf.scene);
+    const model =
+      SPACE_MINIMAP_SOURCE === "hologram"
+        ? buildSpaceHologramModel(holoGltf.scene)
+        : buildSpaceMinimapModel(galleryGltf.scene);
     if (!model) {
-      if (import.meta.env.DEV) console.warn("[SpaceMinimap] hologram GLB has no meshes");
+      if (import.meta.env.DEV) console.warn("[SpaceMinimap] no map geometry from source:", SPACE_MINIMAP_SOURCE);
       onFailed();
       return;
     }
-    // 玩家点坐标映射:主场景建筑包围盒 → 全息 GLB 局部框。
-    const worldBounds = computeSpaceArchitectureBounds(galleryGltf.scene);
+    // 玩家点坐标:strip 路径模型就在世界坐标系,直接用 pose;
+    // hologram 路径是局部归一 GLB,需经主场景建筑包围盒映射。
+    const worldBounds =
+      SPACE_MINIMAP_SOURCE === "hologram"
+        ? computeSpaceArchitectureBounds(galleryGltf.scene)
+        : null;
     const mapWorldPose = worldBounds
       ? createSpaceMinimapWorldMapper(worldBounds, model.center, model.radius)
       : null;
@@ -240,9 +249,9 @@ function SpaceMinimapCanvas({
 
       fitSpaceMinimapCamera(camera, model.center, model.radius, azimuthRad, viewportAspect, elevationRad);
 
-      if (pose && mapWorldPose) {
+      if (pose) {
         dot.visible = true;
-        const [mapX, mapY, mapZ] = mapWorldPose(pose.position);
+        const [mapX, mapY, mapZ] = mapWorldPose ? mapWorldPose(pose.position) : pose.position;
         dot.position.set(mapX, mapY + dotRadius * 0.6, mapZ);
       } else {
         dot.visible = false;
