@@ -1,17 +1,23 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
+import { cssRule, declarationValue } from "../helpers/cssAssertions.mjs";
 import { projectPath, readProjectFile, readSourceFile, readWebFile } from "../helpers/projectPaths.mjs";
 
 /**
- * SPACE 探索目标 + 全息小地图的集成契约:
+ * SPACE 探索提示 + 全息小地图的集成契约:
  * 字符串级断言保证两个 widget 始终挂在既有 HUD/pose/交互链路上,
- * 且视觉走 token 化 CSS,不引入第二个主题。
+ * 视觉与动效遵守探索提示系统规格(无框/空心方格/橙色填充/粗体 35% 文字)。
  */
 
 const hud = readSourceFile("space/SpaceHud.tsx");
 const desktop = readSourceFile("pages/SpaceDesktopExperience.tsx");
 const questHud = readSourceFile("space/quests/SpaceQuestHud.tsx");
 const quests = readSourceFile("space/quests/spaceQuests.ts");
+const selection = readSourceFile("space/quests/spaceQuestSelection.ts");
+const sensors = readSourceFile("space/quests/spaceQuestSensors.ts");
+const projector = readSourceFile("scenes/projector/SpaceProjectorInstallation.tsx");
+const tempBlocker = readSourceFile("scenes/gallery/TempBlockerNotices.tsx");
+const workViewer = readSourceFile("pages/works/WorkModelViewer.tsx");
 const minimap = readSourceFile("space/minimap/SpaceMinimap.tsx");
 const minimapModel = readSourceFile("space/minimap/minimapModel.ts");
 const minimapCamera = readSourceFile("space/minimap/minimapCamera.ts");
@@ -28,50 +34,71 @@ for (const gate of ["onboardingCompleted", "routeBlocked", "focusOpen", "rendere
   assert.ok(hud.includes(gate), `SpaceHud visibility gate must include ${gate}`);
 }
 
-// --- SpaceDesktopExperience 挂钩既有交互事件,不新建平行链路 ---
+// --- SpaceDesktopExperience:探索提示事件复用既有链路,pose ≤10Hz 且不进 React state ---
 for (const hook of [
-  "recordExhibitView",
-  "recordProjectorCommand",
-  "recordJumpUnlocked",
-  "sampleSkyGaze",
+  "spaceExplorationStore.maybeActivateAt",
+  'type: "pose-sampled"',
+  'type: "work-opened"',
+  'type: "work-targeted"',
+  'type: "stillness-reset"',
 ]) {
-  assert.ok(desktop.includes(hook), `SpaceDesktopExperience must call questStore.${hook}`);
+  assert.ok(desktop.includes(hook), `SpaceDesktopExperience must dispatch ${hook}`);
 }
+assert.match(desktop, /SPACE_EXPLORATION_POSE_INTERVAL_MS\s*=\s*100/, "pose 事件必须节流到 10Hz");
 assert.ok(
   desktop.includes('messageKey === "space.jumpUnlocked"'),
-  "解锁跳跃任务必须复用既有 jump notice,而不是另造键盘监听",
+  "leave_the_floor 必须复用既有 jump notice",
 );
+assert.ok(desktop.includes("poseRef={latestSpacePoseRef}"), "pose ref 必须透传给 SpaceHud");
+assert.ok(!desktop.includes("questStore"), "旧 quest store 引用必须清干净");
+
+// --- 探索提示 store/抽取/传感器 ---
+for (const token of [
+  "createSpaceExplorationStore",
+  "spaceExplorationStore",
+  "notifyOnboardingCompleted",
+  "notifySessionRestart",
+  "maybeActivateAt",
+]) {
+  assert.ok(quests.includes(token), `exploration store missing ${token}`);
+}
 assert.ok(
-  desktop.includes("questStore={questStore}") && desktop.includes("poseRef={latestSpacePoseRef}"),
-  "quest store 与每帧 pose ref 必须透传给 SpaceHud",
+  quests.includes('phase = "armed"') || quests.includes('"armed"'),
+  "store 必须实现 disabled→armed→active 阶段机",
+);
+assert.ok(selection.includes("selectExplorationTasks") && selection.includes("SPACE_EXPLORATION_POOL"));
+assert.ok(sensors.includes("isInDownhillCorridor") && sensors.includes("SPACE_DOWNHILL_CORRIDOR"));
+assert.ok(
+  !quests.includes("localStorage") && !selection.includes("localStorage") && !sensors.includes("localStorage"),
+  "探索提示是会话内状态,不写入 localStorage",
 );
 
-// --- 任务文案走 i18n runtime 增量(不动 generated content) ---
-for (const key of [
-  "space.quests.title",
-  "space.quests.exhibitTour",
-  "space.quests.projectorControl",
-  "space.quests.skyGaze",
-  "space.quests.jumpUnlock",
-  "space.quests.allDone",
+// --- 事件源:投影实际切换 / 阻挡提示实际显示 / 模型有效拖拽 ---
+assert.ok(projector.includes('"projector-slide-changed"'), "投影必须在画面真正切换后投递事件");
+assert.ok(tempBlocker.includes('"closed-zone-hint-shown"'), "阻挡提示必须在真正显示时投递事件");
+assert.ok(workViewer.includes('"work-model-dragged"'), "作品页必须识别有效拖拽后投递事件");
+
+// --- HUD 文案:i18n runtime 增量,只显示暗示性名称 ---
+assert.ok(questHud.includes('"space.exploration.label"'), "HUD 标题走 i18n");
+assert.ok(questHud.includes("space.exploration.tasks."), "任务名走 i18n 动态键");
+for (const copy of [
+  "EXPLORE",
+  "LEAVE THE FLOOR",
+  "THE LONG WAY",
+  "WHAT'S ABOVE",
+  "LET THE ROOM SETTLE",
+  "THREE ENCOUNTERS",
+  "DON'T LOOK AWAY",
+  "ANOTHER ANGLE",
+  "NEXT SCENE",
+  "BEYOND THE BARRIER",
+  "离开地面",
+  "漫长路径",
+  "屏障之后",
 ]) {
-  assert.ok(questHud.includes(`"${key}"`), `SpaceQuestHud must read ${key} from i18n`);
-}
-assert.ok(
-  !minimap.includes("space.map.label") && !minimap.includes("__frame") && !minimap.includes("__label"),
-  "全息地图不渲染任何外框/标签元素,只有模型本体",
-);
-assert.ok(
-  !i18n.includes("space.map") && !i18n.includes("地图"),
-  "地图无文字标签,i18n 不应残留 map 文案",
-);
-for (const copy of ["探索目标", "EXPLORATION", "解锁跳跃", "Unlock jumping"]) {
   assert.ok(i18n.includes(copy), `i18n runtime augmentation must define ${copy}`);
 }
-assert.ok(
-  !quests.includes("localStorage") && !questHud.includes("localStorage"),
-  "探索目标是会话内状态,不写入 localStorage",
-);
+assert.ok(!questHud.includes("Toast"), "探索提示不使用 toast");
 
 // --- 小地图渲染边界:独立 renderer,不进主 Canvas 的 R3F 帧循环/后处理 ---
 assert.ok(minimap.includes("createWebGPURenderer"), "小地图必须复用叠层 renderer 工厂");
@@ -83,23 +110,12 @@ assert.ok(
   "全息模型必须是纯白分层透明度材质",
 );
 assert.ok(
-  minimapModel.includes("resolveSpaceMinimapLayer"),
-  "地图模型必须按命名前缀分层(floor/wall/other)",
-);
-assert.ok(
-  minimapModel.includes("buildSpaceHologramModel") &&
-    minimapModel.includes("computeSpaceArchitectureBounds") &&
-    minimapModel.includes("createSpaceMinimapWorldMapper"),
-  "全息 GLB 直载 + 世界包围盒映射必须是独立可测函数",
+  minimapModel.includes("buildSpaceMinimapModel") && minimapModel.includes("buildSpaceHologramModel"),
+  "运行时剥离与离线 GLB 两条实现路径必须并存保留",
 );
 assert.ok(
   minimap.includes("SPACE_MINIMAP_GLB_URL") && minimap.includes("SPACE_MINIMAP_SOURCE"),
   "地图模型来源必须经 SPACE_MINIMAP_SOURCE 显式切换",
-);
-assert.ok(
-  minimapModel.includes("buildSpaceMinimapModel") &&
-    minimapModel.includes("buildSpaceHologramModel"),
-  "运行时剥离与离线 GLB 两条实现路径必须并存保留",
 );
 assert.ok(
   existsSync(projectPath("apps/web/public/models/space_minimap_strip.glb")),
@@ -130,48 +146,65 @@ assert.ok(
 assert.ok(minimap.includes("depthTest: false"), "玩家点必须穿透墙体(BOTW 式 xray dot)");
 assert.match(minimapModel, /"ARCH_"/);
 assert.doesNotMatch(minimapModel, /"COL_|"EXHIBITS_/, "地图模型不得包含碰撞体与展品前缀");
-assert.ok(
-  minimapModel.includes("createInkShellGeometry"),
-  "地图墨线必须复用主场景 inverted-hull 工具",
-);
-assert.ok(
-  minimapCamera.includes("spaceMinimapAzimuthForYaw"),
-  "方位角映射必须是独立可测函数",
-);
+assert.ok(minimapCamera.includes("spaceMinimapAzimuthForYaw"), "方位角映射必须是独立可测函数");
 assert.ok(
   minimapCamera.includes("resolveSpaceMinimapElevationRad") &&
     minimap.includes("resolveSpaceMinimapElevationRad"),
   "地图仰角必须经独立函数轻微跟随玩家 pitch",
 );
 
-// --- CSS:无框悬浮件,reduced-motion 只收非必要动效 ---
-for (const selector of [".space-quests", ".space-quests__check", ".space-minimap", ".space-minimap__canvas"]) {
-  assert.ok(css.includes(selector), `global.css must style ${selector}`);
+// --- 探索提示 CSS 规格 ---
+assert.equal(declarationValue(cssRule(css, ".space-quests__check"), "width"), "8px", "方格 7-8px");
+assert.equal(
+  declarationValue(cssRule(css, ".space-quests__check"), "background"),
+  "transparent",
+  "未完成方格必须空心",
+);
+{
+  const doneCheck = cssRule(css, ".space-quests__row[data-done] .space-quests__check");
+  assert.equal(declarationValue(doneCheck, "background"), "var(--space-signal)", "完成方格填项目橙");
+  const doneLabel = cssRule(css, ".space-quests__row[data-done] .space-quests__label");
+  assert.equal(declarationValue(doneLabel, "opacity"), "0.35", "完成文字透明度精确 0.35");
+  assert.equal(declarationValue(doneLabel, "font-weight"), "700", "完成文字必须粗体");
+  const check = cssRule(css, ".space-quests__check");
+  assert.match(declarationValue(check, "transition"), /160ms/, "方格填充过渡约 160ms");
+  const label = cssRule(css, ".space-quests__label");
+  assert.match(declarationValue(label, "transition"), /180ms/, "文字淡化过渡约 180ms");
+  const row = cssRule(css, ".space-quests__row[data-done]");
+  assert.doesNotMatch(row, /text-decoration|display:\s*none/, "完成项不打删除线、不隐藏");
+  const frame = declarationValue(cssRule(css, ".space-quests__frame"), "padding");
+  assert.ok(frame, "面板容器仅承担布局");
+  assert.doesNotMatch(
+    cssRule(css, ".space-quests__frame"),
+    /background|border|box-shadow/,
+    "面板无背景板/边框/阴影",
+  );
 }
-assert.match(css, /\.space-quests\s*\{[\s\S]*?z-index:\s*9;/, "quest panel stays below the topbar");
-assert.match(css, /\.space-minimap\s*\{[\s\S]*?z-index:\s*9;/, "minimap stays below the topbar");
 assert.match(
   css,
-  /\.space-minimap\s*\{[^}]*?\}/,
-  "minimap wrapper exists",
+  /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.space-quests__check[\s\S]*?transition:\s*none;/,
+  "reduced-motion 下方格/文字直接切换无过渡",
 );
+
+// --- 小地图 CSS ---
+assert.match(css, /\.space-quests\s*\{[\s\S]*?z-index:\s*9;/, "quest panel stays below the topbar");
+assert.match(css, /\.space-minimap\s*\{[\s\S]*?z-index:\s*9;/, "minimap stays below the topbar");
 {
   const minimapRule = /\.space-minimap\s*\{([^}]*?)\}/.exec(css)?.[1] ?? "";
   assert.ok(!/border|background/.test(minimapRule), "全息地图无外框无底色");
-  assert.ok(!css.includes(".space-minimap__frame") && !css.includes(".space-minimap__label"), "frame/label 样式已随元素一并移除");
-  const questFrame = /\.space-quests__frame\s*\{([^}]*?)\}/.exec(css)?.[1] ?? "";
-  assert.ok(!/background|border/.test(questFrame), "任务面板无盒式背景与边框(发丝线轨设计)");
+  assert.ok(!css.includes(".space-minimap__frame") && !css.includes(".space-minimap__label"));
 }
-assert.match(
-  css,
-  /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.space-quests__row\[data-done\] \.space-quests__check[\s\S]*?animation: none;/,
-  "reduced-motion must still cover the new HUD widgets",
-);
-assert.ok(css.includes("var(--space-signal)"), "quest current marker uses the signal token");
 
 // --- 测试注册(仓库约定:脚本显式枚举测试文件) ---
-assert.match(packageJson.scripts["test:unit"], /space-quests\.test\.mjs/);
-assert.match(packageJson.scripts["test:unit"], /space-minimap\.test\.mjs/);
+for (const file of [
+  "space-quests.test.mjs",
+  "space-quest-selection.test.mjs",
+  "space-quest-sensors.test.mjs",
+  "space-minimap.test.mjs",
+  "space-minimap-floor-detect.test.mjs",
+]) {
+  assert.match(packageJson.scripts["test:unit"], new RegExp(file.replace(".", "\\.")), `${file} 必须注册进 test:unit`);
+}
 assert.match(packageJson.scripts["test:contracts"], /space-hud-widgets\.contract-test\.mjs/);
 
 console.log("space HUD widgets contract tests passed");

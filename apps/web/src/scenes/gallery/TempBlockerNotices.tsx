@@ -1,9 +1,10 @@
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import { isTempBlockerMeshName } from "./prepareGalleryScene";
+import { spaceExplorationStore } from "../../space/quests/spaceQuests";
 
 export const TEMP_BLOCKER_NOTICE_DISTANCE_M = 3;
 
@@ -90,6 +91,16 @@ export function TempBlockerNotices({ root }: { root: THREE.Object3D }) {
   });
 
   const activeNames = useMemo(() => new Set(activeKey ? activeKey.split("|") : []), [activeKey]);
+
+  // 探索提示:提示由隐藏变为可见(距离触发激活)时投递一次;离开再靠近会重新激活。
+  useEffect(() => {
+    if (!activeKey) return;
+    spaceExplorationStore.dispatch(
+      { type: "closed-zone-hint-shown", zoneId: activeKey },
+      Date.now(),
+    );
+  }, [activeKey]);
+
   if (specs.length === 0) return null;
 
   return (

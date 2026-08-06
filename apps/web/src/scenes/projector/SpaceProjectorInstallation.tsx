@@ -6,6 +6,7 @@ import { preloadProjectorImageTexture, useProjectorImageTexture } from "./projec
 import { buildProjectorSlides, type ProjectorSlide, type ProjectorSlideCommand } from "./projectorSlides";
 import { useProjectorSlideshow } from "./useProjectorSlideshow";
 import { useRegisterExhibitInteractionTarget } from "../exhibits/exhibitInteractionRegistry";
+import { spaceExplorationStore } from "../../space/quests/spaceQuests";
 
 const PROJECTOR_SCREEN_NODE_NAME = "EXHIBITS_Projector_001";
 const PROJECTOR_SCREEN_FRONT_OFFSET = 0.055;
@@ -292,6 +293,19 @@ export function SpaceProjectorInstallation({
     };
   }, [activeSlide, interactive, screen]);
   useRegisterExhibitInteractionTarget(screen, Boolean(screen && activeSlide && interactive));
+
+  // 探索提示:只在画面真正切换后投递(挂载首个画面只是基线,不算;Q/E 按键本身不算)。
+  const baselineSlideRef = useRef<ProjectorSlide | null>(null);
+  useEffect(() => {
+    if (!activeSlide) return;
+    if (baselineSlideRef.current && baselineSlideRef.current.imageUrl !== activeSlide.imageUrl) {
+      spaceExplorationStore.dispatch(
+        { type: "projector-slide-changed", slideId: activeSlide.imageUrl },
+        Date.now(),
+      );
+    }
+    baselineSlideRef.current = activeSlide;
+  }, [activeSlide]);
 
   if (!layout || slides.length === 0) return null;
 

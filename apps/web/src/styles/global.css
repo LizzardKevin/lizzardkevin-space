@@ -2341,6 +2341,8 @@ button {
 
 /* --- SPACE 探索目标 + 全息小地图:无框悬浮件(z-index 9:高于 canvas 装饰层,低于 topbar 下拉) --- */
 
+/* --- SPACE 探索提示 + 全息小地图:无框悬浮件(z-index 9:高于 canvas 装饰层,低于 topbar 下拉) --- */
+
 .space-quests {
   position: fixed;
   top: 68px;
@@ -2364,19 +2366,18 @@ button {
 
 .space-quests__frame {
   position: relative;
-  min-width: 250px;
-  max-width: 360px;
+  min-width: 200px;
+  max-width: 340px;
   padding: 2px 0;
 }
 
 .space-quests__title {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  padding-left: 34px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 12px;
   color: var(--space-brand-teal);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 650;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2385,131 +2386,63 @@ button {
     0 0 14px rgb(23 40 42 / 0.5);
 }
 
-.space-quests[data-settled] .space-quests__title::before {
-  content: "\2713  ";
-  color: var(--space-brand-teal);
-}
-
 .space-quests__count {
   color: var(--space-paper);
-  opacity: 0.85;
+  opacity: 0.55;
   font-variant-numeric: tabular-nums;
 }
 
 .space-quests__list {
-  position: relative;
   list-style: none;
   margin: 0;
-  padding: 0 0 0 34px;
+  padding: 0;
   display: grid;
-  gap: 14px;
-  overflow: hidden;
-  max-height: 340px;
-  transition:
-    max-height 360ms ease,
-    opacity 240ms ease;
-}
-
-/* 引导发丝线:在列表内与节点同坐标系,贯穿首末节点 */
-.space-quests__list::before {
-  content: "";
-  position: absolute;
-  left: 7px;
-  top: 3px;
-  bottom: 8px;
-  width: 2px;
-  background: linear-gradient(to bottom, var(--space-brand-teal), rgb(103 194 190 / 0.12));
-}
-
-.space-quests[data-settled] .space-quests__list {
-  max-height: 0;
-  opacity: 0;
-}
-
-.space-quests[data-settled] .space-quests__title {
-  margin-bottom: 0;
+  gap: 12px;
 }
 
 .space-quests__row {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   color: var(--space-paper);
-  opacity: 0.66;
-  font-size: 17px;
+  opacity: 0.65;
+  font-size: 15px;
   line-height: 1.35;
   text-shadow:
     0 1px 2px rgb(23 40 42 / 0.85),
     0 0 12px rgb(23 40 42 / 0.55);
-  transition:
-    opacity 200ms ease,
-    transform 200ms ease;
 }
 
-/* 节点:方形描边,压在线轨上 */
+.space-quests__label {
+  transition: opacity 180ms ease;
+}
+
+/* 未完成:8px 空心方格 */
 .space-quests__check {
-  position: absolute;
-  left: -34px;
-  top: 2px;
-  width: 17px;
-  height: 17px;
-  border: 2px solid var(--space-paper);
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--space-paper);
   box-sizing: border-box;
   background: transparent;
   transition:
-    border-color 160ms ease,
     background-color 160ms ease,
-    box-shadow 200ms ease;
+    border-color 160ms ease;
 }
 
-/* 当前任务:信号橙节点 + 文案提亮前移 */
-.space-quests__row[data-current] {
-  opacity: 1;
-  transform: translateX(4px);
-}
-
-.space-quests__row[data-current] .space-quests__check {
-  border-color: var(--space-signal);
-  box-shadow: 0 0 0 3px rgb(239 139 97 / 0.22);
-}
-
-/* 完成:teal 实底 + 墨勾,文案橙色删除线淡出 */
+/* 完成:方格填充项目橙;文字粗体 35% 透明;不删除线、不重排、不隐藏 */
 .space-quests__row[data-done] {
-  opacity: 0.5;
-}
-
-.space-quests__row[data-done] .space-quests__label {
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
-  text-decoration-color: var(--space-signal);
+  opacity: 1;
 }
 
 .space-quests__row[data-done] .space-quests__check {
-  border-color: var(--space-brand-teal);
-  background: var(--space-brand-teal);
-  animation: space-quest-done-pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  background: var(--space-signal);
+  border-color: var(--space-signal);
 }
 
-.space-quests__row[data-done] .space-quests__check::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  top: 1px;
-  width: 6px;
-  height: 10px;
-  border-right: 2px solid var(--space-ink);
-  border-bottom: 2px solid var(--space-ink);
-  transform: rotate(42deg);
-}
-
-@keyframes space-quest-done-pop {
-  0% {
-    transform: scale(1);
-  }
-  35% {
-    transform: scale(1.14);
-  }
-  100% {
-    transform: scale(1);
-  }
+.space-quests__row[data-done] .space-quests__label {
+  opacity: 0.35;
+  font-weight: 700;
 }
 
 /* 全息小地图:无框无底无字,只有悬浮模型本体 */
@@ -2545,14 +2478,9 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   .space-quests,
-  .space-quests__list,
-  .space-quests__row,
+  .space-quests__label,
   .space-quests__check,
   .space-minimap {
     transition: none;
-  }
-
-  .space-quests__row[data-done] .space-quests__check {
-    animation: none;
   }
 }

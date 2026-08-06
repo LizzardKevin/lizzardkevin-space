@@ -1,122 +1,121 @@
+import {
+  selectExplorationTasks,
+  SPACE_EXPLORATION_POOL,
+  type SpaceExplorationTaskDef,
+} from "./spaceQuestSelection.ts";
+import {
+  createSpaceQuestSensor,
+  isInDownhillCorridor,
+  type SpaceExplorationEvent,
+  type SpaceQuestSensor,
+} from "./spaceQuestSensors.ts";
+
 /**
- * SPACE 探索目标(软引导任务):轻量、会话内、无惩罚的体验清单。
- * 纯 TS 实现,无 DOM/存储依赖,node --test 可直接覆盖;
- * React 侧通过 useSyncExternalStore(store.subscribe, store.getState) 订阅。
+ * SPACE 自由探索提示 store(演进自原 quest store)。
+ * 阶段机:disabled →(新手引导完成)→ armed →(进入下坡走廊)→ active(抽取 4 项)。
+ * 会话内模块单例:Focus/Profile/DevStories 往返不重抽;刷新或从 Lobby 重新进入时
+ * 经 notifySessionRestart 重置为 armed(下一次进走廊重新抽取)。
+ * 无持久化、无 React state 高频写入:pose 事件由调用方以 ≤10Hz 节流后 dispatch,
+ * 仅在状态实际变化时通知订阅者。
  */
 
-export const SPACE_QUEST_IDS = [
-  "exhibitTour",
-  "projectorControl",
-  "skyGaze",
-  "jumpUnlock",
-] as const;
+export type SpaceExplorationPhase = "disabled" | "armed" | "active";
 
-export type SpaceQuestId = (typeof SPACE_QUEST_IDS)[number];
-
-export type SpaceQuestStatus = "active" | "done";
-
-export type SpaceQuestSnapshot = Readonly<{
-  status: SpaceQuestStatus;
-  progress: number;
-  target: number;
+export type SpaceExplorationTaskState = Readonly<{
+  id: SpaceExplorationTaskDef["id"];
+  category: SpaceExplorationTaskDef["category"];
+  status: "active" | "done";
 }>;
 
-export type SpaceQuestsSnapshot = Readonly<{
-  quests: Readonly<Record<SpaceQuestId, SpaceQuestSnapshot>>;
+export type SpaceExplorationSnapshot = Readonly<{
+  phase: SpaceExplorationPhase;
+  tasks: readonly SpaceExplorationTaskState[];
   doneCount: number;
   totalCount: number;
   allDone: boolean;
 }>;
 
-/** 「查看三个展品」目标数量。 */
-export const SPACE_QUEST_EXHIBIT_TARGET = 3;
+type SpaceExplorationListener = () => void;
 
-/** 「仰望天窗」:俯仰角阈值(约 55°)与累计保持时长。 */
-export const SPACE_QUEST_SKY_GAZE_PITCH_RAD = 0.96;
-export const SPACE_QUEST_SKY_GAZE_HOLD_MS = 1500;
+const EMPTY_SNAPSHOT: SpaceExplorationSnapshot = Object.freeze({
+  phase: "disabled",
+  tasks: Object.freeze([]),
+  doneCount: 0,
+  totalCount: 0,
+  allDone: false,
+});
 
-/** 掉帧/切后台时的单帧最大计入间隔,避免大间隔被一次性累计。 */
-const SKY_GAZE_MAX_FRAME_MS = 120;
+export type SpaceExplorationStore = ReturnType<typeof createSpaceExplorationStore>;
 
-type SpaceQuestListener = () => void;
+export function createSpaceExplorationStore() {
+  let phase: SpaceExplorationPhase = "disabled";
+  let tasks: SpaceExplorationTaskState[] = [];
+  let sensors = new Map<string, SpaceQuestSensor>();
+  let snapshot: SpaceExplorationSnapshot = EMPTY_SNAPSHOT;
+  const listeners = new Set<SpaceExplorationListener>();
 
-export type SpaceQuestStore = ReturnType<typeof createSpaceQuestStore>;
-
-export function createSpaceQuestStore() {
-  const viewedExhibitIds = new Set<string>();
-  let projectorDone = false;
-  let jumpDone = false;
-  let skyGazeAccumulatedMs = 0;
-  let lastSkySampleMs: number | null = null;
-
-  let snapshot = buildSnapshot();
-  const listeners = new Set<SpaceQuestListener>();
-
-  function buildSnapshot(): SpaceQuestsSnapshot {
-    const exhibitProgress = Math.min(viewedExhibitIds.size, SPACE_QUEST_EXHIBIT_TARGET);
-    const quests: Record<SpaceQuestId, SpaceQuestSnapshot> = {
-      exhibitTour: {
-        status: exhibitProgress >= SPACE_QUEST_EXHIBIT_TARGET ? "done" : "active",
-        progress: exhibitProgress,
-        target: SPACE_QUEST_EXHIBIT_TARGET,
-      },
-      projectorControl: { status: projectorDone ? "done" : "active", progress: projectorDone ? 1 : 0, target: 1 },
-      skyGaze: { status: skyGazeAccumulatedMs >= SPACE_QUEST_SKY_GAZE_HOLD_MS ? "done" : "active", progress: 0, target: 1 },
-      jumpUnlock: { status: jumpDone ? "done" : "active", progress: jumpDone ? 1 : 0, target: 1 },
-    };
-    const doneCount = SPACE_QUEST_IDS.filter((id) => quests[id].status === "done").length;
-    return {
-      quests,
+  function rebuildSnapshot() {
+    const doneCount = tasks.filter((task) => task.status === "done").length;
+    snapshot = {
+      phase,
+      tasks: [...tasks],
       doneCount,
-      totalCount: SPACE_QUEST_IDS.length,
-      allDone: doneCount === SPACE_QUEST_IDS.length,
+      totalCount: tasks.length,
+      allDone: tasks.length > 0 && doneCount === tasks.length,
     };
   }
 
   function emit() {
-    snapshot = buildSnapshot();
+    rebuildSnapshot();
     for (const listener of listeners) listener();
   }
 
-  function recordExhibitView(exhibitId: string) {
-    if (typeof exhibitId !== "string" || exhibitId.length === 0) return;
-    if (viewedExhibitIds.size >= SPACE_QUEST_EXHIBIT_TARGET) return;
-    if (viewedExhibitIds.has(exhibitId)) return;
-    viewedExhibitIds.add(exhibitId);
+  function notifyOnboardingCompleted() {
+    if (phase !== "disabled") return;
+    phase = "armed";
     emit();
   }
 
-  function recordProjectorCommand() {
-    if (projectorDone) return;
-    projectorDone = true;
+  /** Lobby 重新进入:清空已抽任务,回到 armed(下一次进走廊重新抽取)。 */
+  function notifySessionRestart() {
+    if (phase === "disabled") return;
+    if (phase === "armed" && tasks.length === 0) return;
+    phase = "armed";
+    tasks = [];
+    sensors = new Map();
     emit();
   }
 
-  function recordJumpUnlocked() {
-    if (jumpDone) return;
-    jumpDone = true;
+  /** pose 流里调用:armed 且进入下坡走廊时抽取 4 项任务,进入 active。 */
+  function maybeActivateAt(position: readonly [number, number, number], rng?: () => number) {
+    if (phase !== "armed") return;
+    if (!isInDownhillCorridor(position)) return;
+    const drawn = selectExplorationTasks(SPACE_EXPLORATION_POOL, rng ?? Math.random);
+    tasks = drawn.map((task) => ({ id: task.id, category: task.category, status: "active" }));
+    sensors = new Map(drawn.map((task) => [task.id, createSpaceQuestSensor(task.id)]));
+    phase = "active";
     emit();
   }
 
-  /**
-   * 每帧位姿采样:仅累计抬头超过阈值的时长;掉帧大间隔按上限截断。
-   * 完成前不发任何事件(避免每帧通知),完成时只发一次。
-   */
-  function sampleSkyGaze(pitchRad: number, nowMs: number) {
-    if (skyGazeAccumulatedMs >= SPACE_QUEST_SKY_GAZE_HOLD_MS) return;
-    if (!Number.isFinite(pitchRad) || !Number.isFinite(nowMs)) return;
-    if (lastSkySampleMs !== null) {
-      const deltaMs = Math.min(Math.max(nowMs - lastSkySampleMs, 0), SKY_GAZE_MAX_FRAME_MS);
-      if (pitchRad >= SPACE_QUEST_SKY_GAZE_PITCH_RAD) {
-        skyGazeAccumulatedMs += deltaMs;
+  /** 事件入口:完成判定幂等(已完成任务的传感器不再被调用)。 */
+  function dispatch(event: SpaceExplorationEvent, nowMs: number) {
+    if (phase !== "active") return;
+    let changed = false;
+    tasks = tasks.map((task) => {
+      if (task.status === "done") return task;
+      const sensor = sensors.get(task.id);
+      if (!sensor) return task;
+      if (sensor(event, nowMs)) {
+        changed = true;
+        return { ...task, status: "done" };
       }
-    }
-    lastSkySampleMs = nowMs;
-    if (skyGazeAccumulatedMs >= SPACE_QUEST_SKY_GAZE_HOLD_MS) emit();
+      return task;
+    });
+    if (changed) emit();
   }
 
   return {
-    subscribe(listener: SpaceQuestListener) {
+    subscribe(listener: SpaceExplorationListener) {
       listeners.add(listener);
       return () => {
         listeners.delete(listener);
@@ -125,9 +124,15 @@ export function createSpaceQuestStore() {
     getState() {
       return snapshot;
     },
-    recordExhibitView,
-    recordProjectorCommand,
-    recordJumpUnlocked,
-    sampleSkyGaze,
+    notifyOnboardingCompleted,
+    notifySessionRestart,
+    maybeActivateAt,
+    dispatch,
   };
 }
+
+/**
+ * 会话级单例:SPACE HUD、投影仪、阻挡提示、作品页模型查看器都向它投递事件。
+ * 模块状态随页面刷新自然重置;路由往返不重建。
+ */
+export const spaceExplorationStore = createSpaceExplorationStore();

@@ -6,7 +6,6 @@ import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
 import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
 import { useTranslation } from "react-i18next";
 import type { RefObject } from "react";
-import type { SpaceQuestStore } from "./quests/spaceQuests";
 import { SpaceQuestHud } from "./quests/SpaceQuestHud";
 import { SpaceMinimap } from "./minimap/SpaceMinimap";
 import type { SpacePlayerPose } from "./spaceDailyResume";
@@ -31,7 +30,6 @@ type SpaceHudProps = {
   bootFailed: boolean;
   bootError: string | null;
   onRetryBoot: () => void;
-  questStore: SpaceQuestStore;
   poseRef: RefObject<SpacePlayerPose | null>;
   onboardingCompleted: boolean;
   routeBlocked: boolean;
@@ -85,7 +83,6 @@ export function SpaceHud({
   bootFailed,
   bootError,
   onRetryBoot,
-  questStore,
   poseRef,
   onboardingCompleted,
   routeBlocked,
@@ -111,7 +108,7 @@ export function SpaceHud({
       <Toast message={toastMessage} durationMs={toastDurationMs} onDone={onToastDone} />
       <JumpHint message={jumpHintMessage} visible={jumpHintVisible} />
       <ProjectorControlsHint visible={projectorHintVisible} />
-      <SpaceQuestHud store={questStore} visible={widgetsVisible} />
+      <SpaceQuestHud visible={widgetsVisible} />
       <SpaceMinimap poseRef={poseRef} visible={widgetsVisible} />
       {pointerLocked ? (
         <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} />

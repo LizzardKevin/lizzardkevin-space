@@ -2,160 +2,118 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { importSourceModule } from "../helpers/projectPaths.mjs";
 
-const {
-  createSpaceQuestStore,
-  SPACE_QUEST_EXHIBIT_TARGET,
-  SPACE_QUEST_IDS,
-  SPACE_QUEST_SKY_GAZE_HOLD_MS,
-  SPACE_QUEST_SKY_GAZE_PITCH_RAD,
-} = await importSourceModule("space/quests/spaceQuests.ts");
+const { createSpaceExplorationStore } = await importSourceModule("space/quests/spaceQuests.ts");
+const { createSeededRng, SPACE_EXPLORATION_CATEGORIES } = await importSourceModule(
+  "space/quests/spaceQuestSelection.ts",
+);
+const { isInDownhillCorridor, SPACE_DOWNHILL_CORRIDOR } = await importSourceModule(
+  "space/quests/spaceQuestSensors.ts",
+);
 
-const ABOVE_SKY_GAZE_THRESHOLD = SPACE_QUEST_SKY_GAZE_PITCH_RAD + 0.2;
-const BELOW_SKY_GAZE_THRESHOLD = SPACE_QUEST_SKY_GAZE_PITCH_RAD - 0.4;
+const INSIDE_CORRIDOR = [
+  (SPACE_DOWNHILL_CORRIDOR.minX + SPACE_DOWNHILL_CORRIDOR.maxX) / 2,
+  33,
+  (SPACE_DOWNHILL_CORRIDOR.minZ + SPACE_DOWNHILL_CORRIDOR.maxZ) / 2,
+];
+const SPAWN_POSE = [-0.51, 36.897, -48.318];
 
-test("fresh store starts with every quest active and nothing done", () => {
-  const store = createSpaceQuestStore();
+function activateStore(store, seed = 7) {
+  store.notifyOnboardingCompleted();
+  store.maybeActivateAt(INSIDE_CORRIDOR, createSeededRng(seed));
+}
+
+test("初始 disabled;引导完成转 armed;走廊外不激活", () => {
+  const store = createSpaceExplorationStore();
+  assert.equal(store.getState().phase, "disabled");
+  store.notifySessionRestart();
+  assert.equal(store.getState().phase, "disabled", "disabled 下会话重启无效果");
+
+  store.notifyOnboardingCompleted();
+  assert.equal(store.getState().phase, "armed");
+  store.maybeActivateAt(SPAWN_POSE, createSeededRng(1));
+  assert.equal(store.getState().phase, "armed", "出生点不在走廊,不抽取");
+  assert.equal(store.getState().tasks.length, 0);
+});
+
+test("armed 进入下坡走廊抽 4 项:每类一项、无重复", () => {
+  const store = createSpaceExplorationStore();
+  activateStore(store);
   const state = store.getState();
+  assert.equal(state.phase, "active");
+  assert.equal(state.tasks.length, 4);
+  assert.deepEqual(
+    [...state.tasks.map((t) => t.category)].sort(),
+    [...SPACE_EXPLORATION_CATEGORIES].sort(),
+  );
+  assert.equal(new Set(state.tasks.map((t) => t.id)).size, 4);
   assert.equal(state.doneCount, 0);
-  assert.equal(state.totalCount, SPACE_QUEST_IDS.length);
   assert.equal(state.allDone, false);
-  for (const id of SPACE_QUEST_IDS) {
-    assert.equal(state.quests[id].status, "active", `${id} starts active`);
+});
+
+test("走廊范围与实测坡道一致:出生点/远点排除,坡道内命中", () => {
+  assert.equal(isInDownhillCorridor(SPAWN_POSE), false);
+  assert.equal(isInDownhillCorridor([0, 33, -16]), true);
+  assert.equal(isInDownhillCorridor([0, 33, -40]), false, "走廊外的 z 不命中");
+  assert.equal(isInDownhillCorridor([10, 33, -16]), false, "走廊外的 x 不命中");
+});
+
+test("active 前 dispatch 无效;完成后幂等;快照不可变", () => {
+  const store = createSpaceExplorationStore();
+  store.dispatch({ type: "jump-unlocked" }, 1000);
+  assert.equal(store.getState().doneCount, 0, "disabled 阶段事件无效");
+
+  activateStore(store, 3);
+  const ids = store.getState().tasks.map((t) => t.id);
+  const eventFor = {
+    leave_the_floor: { type: "jump-unlocked" },
+    three_encounters: { type: "work-opened", exhibitId: "a" },
+    next_scene: { type: "projector-slide-changed", slideId: "s1" },
+    beyond_the_barrier: { type: "closed-zone-hint-shown", zoneId: "z" },
+  };
+  // 找一个能一次性完成的瞬时任务来验证幂等
+  const instantId = ids.find((id) => eventFor[id]);
+  if (instantId === "next_scene") {
+    // next_scene 需要两次切换事件
+    store.dispatch({ type: "projector-slide-changed", slideId: "s2" }, 2000);
   }
-  assert.equal(state.quests.exhibitTour.target, SPACE_QUEST_EXHIBIT_TARGET);
-});
-
-test("exhibit tour counts unique exhibits and completes at the target", () => {
-  const store = createSpaceQuestStore();
-  let emissions = 0;
-  store.subscribe(() => {
-    emissions += 1;
-  });
-
-  store.recordExhibitView("exhibit-a");
-  store.recordExhibitView("exhibit-a");
-  assert.equal(store.getState().quests.exhibitTour.progress, 1, "duplicate views do not count");
-  assert.equal(emissions, 1, "duplicate views do not emit");
-
-  store.recordExhibitView("exhibit-b");
-  assert.equal(store.getState().quests.exhibitTour.status, "active");
-  store.recordExhibitView("exhibit-c");
-  const state = store.getState();
-  assert.equal(state.quests.exhibitTour.progress, SPACE_QUEST_EXHIBIT_TARGET);
-  assert.equal(state.quests.exhibitTour.status, "done");
-
-  store.recordExhibitView("exhibit-d");
-  assert.equal(
-    store.getState().quests.exhibitTour.progress,
-    SPACE_QUEST_EXHIBIT_TARGET,
-    "progress stays capped at the target",
-  );
-});
-
-test("exhibit tour ignores empty ids", () => {
-  const store = createSpaceQuestStore();
-  store.recordExhibitView("");
-  assert.equal(store.getState().quests.exhibitTour.progress, 0);
-});
-
-test("one-shot quests complete idempotently", () => {
-  const store = createSpaceQuestStore();
-  let emissions = 0;
-  store.subscribe(() => {
-    emissions += 1;
-  });
-
-  store.recordProjectorCommand();
-  store.recordProjectorCommand();
-  assert.equal(store.getState().quests.projectorControl.status, "done");
-  assert.equal(emissions, 1, "second projector command is a no-op");
-
-  store.recordJumpUnlocked();
-  store.recordJumpUnlocked();
-  assert.equal(store.getState().quests.jumpUnlock.status, "done");
-  assert.equal(emissions, 2, "second jump unlock is a no-op");
-});
-
-test("sky gaze accumulates only above the pitch threshold and completes after the hold time", () => {
-  const store = createSpaceQuestStore();
-  let nowMs = 1_000;
-  store.sampleSkyGaze(ABOVE_SKY_GAZE_THRESHOLD, nowMs); // 首个样本只建立时间基准
-  nowMs += 100;
-  store.sampleSkyGaze(ABOVE_SKY_GAZE_THRESHOLD, nowMs);
-  nowMs += 100;
-  store.sampleSkyGaze(BELOW_SKY_GAZE_THRESHOLD, nowMs); // 低于阈值不计入
-  nowMs += 100;
-  store.sampleSkyGaze(ABOVE_SKY_GAZE_THRESHOLD, nowMs);
-  assert.equal(store.getState().quests.skyGaze.status, "active", "200ms 不足以完成");
-
-  while (store.getState().quests.skyGaze.status !== "done") {
-    nowMs += 100;
-    store.sampleSkyGaze(ABOVE_SKY_GAZE_THRESHOLD, nowMs);
-  }
-  const elapsedMs = nowMs - 1_000;
-  assert.ok(
-    elapsedMs >= SPACE_QUEST_SKY_GAZE_HOLD_MS + 100, // 首次采样 + 低于阈值的 100ms 不计入
-    "完成需要累计足够抬头时长",
-  );
-  assert.equal(store.getState().allDone, false, "其余任务未完成时 allDone 仍为 false");
-});
-
-test("sky gaze clamps huge frame gaps instead of counting them wholesale", () => {
-  const store = createSpaceQuestStore();
-  store.sampleSkyGaze(ABOVE_SKY_GAZE_THRESHOLD, 1_000);
-  store.sampleSkyGaze(ABOVE_SKY_GAZE_THRESHOLD, 61_000); // 60s 掉帧/切后台,最多计 120ms
-  store.sampleSkyGaze(ABOVE_SKY_GAZE_THRESHOLD, 61_100);
-  assert.equal(
-    store.getState().quests.skyGaze.status,
-    "active",
-    "单次大间隔不能直接完成任务",
-  );
-});
-
-test("snapshots are replaced immutably so useSyncExternalStore sees changes", () => {
-  const store = createSpaceQuestStore();
+  if (!instantId) return; // 本组合全是累计型任务,幂等由传感器测试覆盖
   const before = store.getState();
-  store.recordProjectorCommand();
+  store.dispatch(eventFor[instantId], 3000);
   const after = store.getState();
-  assert.notEqual(before, after, "state object identity changes on emission");
-  assert.equal(before.quests.projectorControl.status, "active", "旧快照不被改写");
-  assert.equal(after.quests.projectorControl.status, "done");
-  assert.equal(store.getState(), after, "无变化时保持同一引用");
+  assert.notEqual(before, after, "状态变化产生新快照");
+  assert.equal(after.doneCount, before.doneCount + 1);
+  const emissions = [];
+  store.subscribe(() => emissions.push(1));
+  store.dispatch(eventFor[instantId], 4000);
+  store.dispatch(eventFor[instantId], 5000);
+  assert.equal(emissions.length, 0, "已完成任务重复事件不再通知");
+  assert.equal(store.getState().doneCount, after.doneCount, "完成计数不变");
 });
 
-test("unsubscribe stops notifications", () => {
-  const store = createSpaceQuestStore();
-  let emissions = 0;
-  const unsubscribe = store.subscribe(() => {
-    emissions += 1;
-  });
-  store.recordJumpUnlocked();
-  unsubscribe();
-  store.recordProjectorCommand();
-  assert.equal(emissions, 1);
+test("Lobby 重进重抽;Focus/页面往返不重抽", () => {
+  const store = createSpaceExplorationStore();
+  activateStore(store, 11);
+  const firstIds = store.getState().tasks.map((t) => t.id);
+
+  // Focus/Profile/DevStories 往返不触发任何 store 调用 → 任务不变
+  store.dispatch({ type: "work-targeted", exhibitId: "x" }, 1000);
+  assert.deepEqual(store.getState().tasks.map((t) => t.id), firstIds, "页面往返任务不变");
+
+  store.notifySessionRestart();
+  assert.equal(store.getState().phase, "armed");
+  assert.equal(store.getState().tasks.length, 0, "重进 Lobby 后任务清空待重抽");
+
+  store.maybeActivateAt(INSIDE_CORRIDOR, createSeededRng(99));
+  const second = store.getState();
+  assert.equal(second.phase, "active");
+  assert.equal(second.tasks.length, 4, "下一次进走廊重新抽满 4 项");
 });
 
-test("all quests done flips allDone exactly once", () => {
-  const store = createSpaceQuestStore();
-  let emissions = 0;
-  store.subscribe(() => {
-    emissions += 1;
-  });
-
-  for (const id of ["a", "b", "c"]) store.recordExhibitView(id);
-  store.recordProjectorCommand();
-  store.recordJumpUnlocked();
-  let nowMs = 0;
-  while (store.getState().quests.skyGaze.status !== "done") {
-    nowMs += 100;
-    store.sampleSkyGaze(ABOVE_SKY_GAZE_THRESHOLD, nowMs);
-  }
-  const state = store.getState();
-  assert.equal(state.allDone, true);
-  assert.equal(state.doneCount, state.totalCount);
-
-  const emissionsAtCompletion = emissions;
-  store.recordJumpUnlocked();
-  store.recordExhibitView("another");
-  assert.equal(emissions, emissionsAtCompletion, "完成后重复事件不再发通知");
+test("armed 状态下重复引导完成/重进不破坏状态", () => {
+  const store = createSpaceExplorationStore();
+  store.notifyOnboardingCompleted();
+  store.notifyOnboardingCompleted();
+  assert.equal(store.getState().phase, "armed");
+  store.notifySessionRestart();
+  assert.equal(store.getState().phase, "armed");
 });
