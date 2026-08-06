@@ -32,7 +32,11 @@ test("the release gate runs every approved automated phase in order", () => {
   );
   assert.equal(
     scripts["test:release-gates"],
-    "node --test apps/web/tests/release/release-gates.contract-test.mjs && npm run test:dependency-security",
+    "node --test apps/web/tests/release/release-gates.contract-test.mjs && npm run test:dependency-security && npm run test:webgpu-browser-contract",
+  );
+  assert.equal(
+    scripts["test:webgpu-browser-contract"],
+    "node --test apps/web/tests/rendering/webgpu-browser-harness.contract-test.mjs",
   );
   assert.equal(
     scripts["test:dependency-security"],

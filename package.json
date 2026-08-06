@@ -41,7 +41,7 @@
     "verify:release:protected": "node scripts/run-protected-release-gates.mjs",
     "deploy:pages": "npm run build -w apps/web && echo \"Deploy via Cloudflare Pages: set build output to apps/web/dist\"",
     "package:test": "node apps/web/tests/release/package-build.package-test.mjs",
-    "test:release-gates": "node --test apps/web/tests/release/release-gates.contract-test.mjs && npm run test:dependency-security",
+    "test:release-gates": "node --test apps/web/tests/release/release-gates.contract-test.mjs && npm run test:dependency-security && npm run test:webgpu-browser-contract",
     "test:renderer-profile": "node --test apps/web/tests/rendering/renderer-profile.test.mjs && node apps/web/tests/rendering/runtime-profile.contract-test.mjs",
     "test:asset-source": "node --test apps/web/tests/performance/asset-source.contract-test.mjs",
     "test:asset-budget": "node --test apps/web/tests/performance/asset-budget.test.mjs",
@@ -52,6 +52,7 @@
     "test:boot": "node --test apps/web/tests/boot/space-boot-reducer.test.mjs apps/web/tests/boot/space-boot-runtime.test.mjs apps/web/tests/rendering/renderer-surface-reconciliation.test.mjs",
     "github:push": "bash scripts/github-bootstrap.sh",
     "test:dependency-security": "node --test apps/web/tests/release/dependency-security.contract-test.mjs",
+    "test:webgpu-browser-contract": "node --test apps/web/tests/rendering/webgpu-browser-harness.contract-test.mjs",
     "minimap:generate": "node scripts/generate-space-minimap-glb.mjs"
   },
   "devDependencies": {

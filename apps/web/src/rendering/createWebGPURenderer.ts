@@ -3,10 +3,9 @@ import { WebGPURenderer } from "three/webgpu";
 import { ENABLE_GALLERY_RENDERER_ANTIALIAS } from "../scenes/gallery/galleryConfig";
 import {
   initializeCompatibleProfiledRenderer,
-  supportsImplicitWebGPUVertexEntryPoint,
+  supportsImplicitWebGPUVertexEntryPointForBackend,
   type RendererProfileId,
   type RendererResolution,
-  type WebGPUEntryPointProbeDevice,
 } from "./rendererProfile";
 import { disposeRendererIfCanvasDetached } from "./rendererLifecycle";
 
@@ -28,10 +27,10 @@ export async function createWebGPURenderer(props: WebGPUCanvasProps): Promise<We
         alpha: props.alpha ?? false,
         forceWebGL,
       }),
-    (candidate) => {
-      const device = (candidate.backend as { device?: WebGPUEntryPointProbeDevice }).device;
-      return device ? supportsImplicitWebGPUVertexEntryPoint(device) : true;
-    },
+    // Keep this probe device-only. Three r184 does not acquire the canvas WebGPU
+    // context until render, so an incompatible renderer can release its device
+    // before the same canvas is reused by the forced-WebGL fallback.
+    (candidate) => supportsImplicitWebGPUVertexEntryPointForBackend(candidate.backend),
   );
 
   if (disposeRendererIfCanvasDetached(renderer, props.canvas)) {

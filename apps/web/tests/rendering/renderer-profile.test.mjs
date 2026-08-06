@@ -196,7 +196,10 @@ test("strict WebGPU implementations that require vertex.entryPoint are detected"
   assert.equal(typeof supportsImplicitWebGPUVertexEntryPoint, "function");
 
   let observedDescriptor = null;
-  const compatible = supportsImplicitWebGPUVertexEntryPoint({
+  const scopeCalls = [];
+  const compatible = await supportsImplicitWebGPUVertexEntryPoint({
+    pushErrorScope: (filter) => scopeCalls.push(`push:${filter}`),
+    async popErrorScope() { scopeCalls.push("pop"); return null; },
     createShaderModule: () => ({ label: "probe-module" }),
     createRenderPipeline: (descriptor) => {
       observedDescriptor = descriptor;
@@ -208,6 +211,9 @@ test("strict WebGPU implementations that require vertex.entryPoint are detected"
 
   assert.equal(compatible, false);
   assert.equal("entryPoint" in observedDescriptor.vertex, false);
+  assert.equal(observedDescriptor.fragment.entryPoint, "probeFragment");
+  assert.deepEqual(observedDescriptor.fragment.targets, [{ format: "bgra8unorm" }]);
+  assert.deepEqual(scopeCalls, ["push:validation", "pop"]);
 });
 
 test("entryPoint compatibility probe does not hide unrelated pipeline failures", async () => {
@@ -216,10 +222,34 @@ test("entryPoint compatibility probe does not hide unrelated pipeline failures",
   );
   const validationFailure = new TypeError("invalid pipeline layout");
 
-  assert.throws(() => supportsImplicitWebGPUVertexEntryPoint({
+  await assert.rejects(supportsImplicitWebGPUVertexEntryPoint({
+    pushErrorScope() {},
+    async popErrorScope() { return null; },
     createShaderModule: () => ({}),
     createRenderPipeline: () => { throw validationFailure; },
   }), validationFailure);
+});
+
+test("entryPoint compatibility probe scopes validation errors without accepting them", async () => {
+  const { supportsImplicitWebGPUVertexEntryPoint } = await importSourceModule(
+    "rendering/rendererProfile.ts",
+  );
+  const validationFailure = new Error("probe shader validation failed");
+
+  await assert.rejects(supportsImplicitWebGPUVertexEntryPoint({
+    pushErrorScope() {},
+    async popErrorScope() { return validationFailure; },
+    createShaderModule: () => ({}),
+    createRenderPipeline() {},
+  }), validationFailure);
+});
+
+test("a WebGPU backend without its initialized device is incompatible", async () => {
+  const { supportsImplicitWebGPUVertexEntryPointForBackend } = await importSourceModule(
+    "rendering/rendererProfile.ts",
+  );
+  assert.equal(typeof supportsImplicitWebGPUVertexEntryPointForBackend, "function");
+  assert.equal(await supportsImplicitWebGPUVertexEntryPointForBackend({}), false);
 });
 
 test("incompatible full WebGPU disposes it and retries once with forced WebGL", async () => {
@@ -242,7 +272,7 @@ test("incompatible full WebGPU disposes it and retries once with forced WebGL", 
         dispose() { disposals.push(id); },
       };
     },
-    () => false,
+    async () => false,
   );
 
   assert.deepEqual(forced, [false, true]);

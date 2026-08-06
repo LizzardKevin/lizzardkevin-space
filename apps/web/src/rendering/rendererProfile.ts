@@ -98,16 +98,28 @@ type ProfiledRenderer = {
 type RendererFactory<Renderer extends ProfiledRenderer> = (forceWebGL: boolean) => Renderer;
 
 export type WebGPUEntryPointProbeDevice = {
+  pushErrorScope: (filter: "validation") => void;
+  popErrorScope: () => Promise<unknown | null>;
   createShaderModule: (descriptor: { code: string }) => unknown;
   createRenderPipeline: (descriptor: {
     layout: "auto";
     vertex: { module: unknown };
+    fragment: {
+      module: unknown;
+      entryPoint: "probeFragment";
+      targets: { format: "bgra8unorm" }[];
+    };
   }) => unknown;
 };
 
 const IMPLICIT_VERTEX_ENTRY_POINT_PROBE = `
   @vertex
   fn probeVertex() -> @builtin(position) vec4<f32> {
+    return vec4<f32>(0.0, 0.0, 0.0, 1.0);
+  }
+
+  @fragment
+  fn probeFragment() -> @location(0) vec4<f32> {
     return vec4<f32>(0.0, 0.0, 0.0, 1.0);
   }
 `;
@@ -118,17 +130,40 @@ function isRequiredWebGPUEntryPointError(error: unknown) {
     && /required member is undefined/i.test(error.message);
 }
 
-export function supportsImplicitWebGPUVertexEntryPoint(
+export async function supportsImplicitWebGPUVertexEntryPoint(
   device: WebGPUEntryPointProbeDevice,
 ) {
-  const module = device.createShaderModule({ code: IMPLICIT_VERTEX_ENTRY_POINT_PROBE });
+  device.pushErrorScope("validation");
+  let scopeOpen = true;
   try {
-    device.createRenderPipeline({ layout: "auto", vertex: { module } });
+    const module = device.createShaderModule({ code: IMPLICIT_VERTEX_ENTRY_POINT_PROBE });
+    device.createRenderPipeline({
+      layout: "auto",
+      vertex: { module },
+      fragment: {
+        module,
+        entryPoint: "probeFragment",
+        targets: [{ format: "bgra8unorm" }],
+      },
+    });
+    const validationPromise = device.popErrorScope();
+    scopeOpen = false;
+    const validationError = await validationPromise;
+    if (validationError) throw validationError;
     return true;
   } catch (error) {
+    if (scopeOpen) await device.popErrorScope().catch(() => null);
     if (isRequiredWebGPUEntryPointError(error)) return false;
     throw error;
   }
+}
+
+export async function supportsImplicitWebGPUVertexEntryPointForBackend(
+  backend: object,
+) {
+  const device = (backend as { device?: WebGPUEntryPointProbeDevice }).device;
+  if (!device) return false;
+  return supportsImplicitWebGPUVertexEntryPoint(device);
 }
 
 async function initRenderer<Renderer extends ProfiledRenderer>(renderer: Renderer) {
@@ -156,13 +191,13 @@ export async function initializeProfiledRenderer<Renderer extends ProfiledRender
 export async function initializeCompatibleProfiledRenderer<Renderer extends ProfiledRenderer>(
   requestedProfile: RendererProfileId,
   createRenderer: RendererFactory<Renderer>,
-  isCompatible: (renderer: Renderer) => boolean,
+  isCompatible: (renderer: Renderer) => boolean | Promise<boolean>,
 ) {
   const initialized = await initializeProfiledRenderer(requestedProfile, createRenderer);
   if (initialized.resolution.backend !== "webgpu") return initialized;
 
   try {
-    if (isCompatible(initialized.renderer)) return initialized;
+    if (await isCompatible(initialized.renderer)) return initialized;
   } catch (error) {
     initialized.renderer.dispose();
     throw error;
