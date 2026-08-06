@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { projectPath, readProjectFile, readSourceFile } from "../helpers/projectPaths.mjs";
+import { projectPath, readProjectFile, readSourceFile, readWebFile } from "../helpers/projectPaths.mjs";
 
 /**
  * SPACE 探索目标 + 全息小地图的集成契约:
@@ -104,6 +104,24 @@ assert.ok(
 assert.ok(
   existsSync(projectPath("apps/web/public/models/space_minimap_strip.glb")),
   "由 minimap:generate 生成的 space_minimap_strip.glb 必须随代码一并提交",
+);
+assert.ok(
+  minimap.includes("resolveSpaceMinimapFloorAt") && minimap.includes("SPACE_MINIMAP_PIECE_HIGHLIGHT"),
+  "地图必须做站立面检测并以墨绿半透明点亮",
+);
+assert.ok(
+  minimap.includes("easeOutBack") && minimap.includes("easeInOutCubic"),
+  "点亮/熄灭必须是非线性补间",
+);
+const floorDetect = readSourceFile("space/minimap/minimapFloorDetect.ts");
+assert.ok(
+  floorDetect.includes("SPACE_MINIMAP_FEET_OFFSET") && floorDetect.includes("resolveSpaceMinimapFloorAt"),
+  "站立检测必须是纯空间判定的独立可测模块",
+);
+const exportTool = readWebFile("tools/export-space-minimap.ts");
+assert.ok(
+  exportTool.includes('MAP_${piece.kind === "stair" ? "STAIR" : "FLOOR"}_'),
+  "生成脚本必须逐块导出楼板/楼梯节点",
 );
 assert.ok(
   packageJson.scripts["minimap:generate"] === "node scripts/generate-space-minimap-glb.mjs",

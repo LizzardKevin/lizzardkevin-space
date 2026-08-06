@@ -56,7 +56,6 @@ export const SPACE_MINIMAP_INCLUDE_PREFIXES = [
  */
 export const SPACE_MINIMAP_STRIP_EXCLUDE_PATTERNS = [
   /^(?:ARCH|STRUCT)_CEILING_/,
-  /^(?:ARCH|STRUCT)_STAIR_PLASTER_WHITE_/,
   ...GALLERY_INK.exemptPatterns,
 ] as const;
 
@@ -65,6 +64,14 @@ export const SPACE_MINIMAP_INK_WIDTH = 0.08;
 
 /** 地图分层:楼板/楼梯(含步行面)与墙/天花给不同透明度,制造“层层叠叠”的体积读感。 */
 export type SpaceMinimapLayer = "floor" | "wall" | "other";
+
+/** 可点亮的步行面单元:楼板或楼梯段,保留逐块几何与包围盒供站立检测。 */
+export type SpaceMinimapFloorPiece = {
+  name: string;
+  kind: "floor" | "stair";
+  geometry: THREE.BufferGeometry;
+  bounds: THREE.Box3;
+};
 
 export function resolveSpaceMinimapLayer(name: string): SpaceMinimapLayer {
   if (name.startsWith("MAP_FLOOR_") || name.startsWith("MAP_STAIR_")) return "floor";
@@ -76,8 +83,16 @@ export function resolveSpaceMinimapLayer(name: string): SpaceMinimapLayer {
   return "other";
 }
 
+/** 步行面单元类型:楼梯段与楼板在默认透明度与站立判定容差上不同。 */
+export function resolveSpaceMinimapFloorPieceKind(name: string): "floor" | "stair" {
+  return name.includes("_STAIR_") || name.includes("_STAIR") ? "stair" : "floor";
+}
+
 export type SpaceMinimapModel = {
-  layers: Readonly<Record<SpaceMinimapLayer, THREE.BufferGeometry | null>>;
+  /** 逐块步行面(楼板/楼梯段),世界坐标,供逐块高亮与站立检测。 */
+  floorPieces: SpaceMinimapFloorPiece[];
+  wallGeometry: THREE.BufferGeometry | null;
+  otherGeometry: THREE.BufferGeometry | null;
   inkGeometry: THREE.BufferGeometry | null;
   center: THREE.Vector3;
   radius: number;
@@ -146,7 +161,7 @@ function mergeSpaceMinimapLayer(sources: SpaceMinimapSource[]) {
   return merged;
 }
 
-/** 全息 GLB → 分层合并模型。GLB 已是纯建筑壳,不再按前缀过滤,只按名字分层。 */
+/** 全息 GLB → 逐块步行面 + 合并墙体。GLB 已是纯建筑壳,不再按前缀过滤,只按名字分层。 */
 export function buildSpaceHologramModel(root: THREE.Object3D): SpaceMinimapModel | null {
   root.updateWorldMatrix(true, true);
   const byLayer: Record<SpaceMinimapLayer, SpaceMinimapSource[]> = {
@@ -166,7 +181,7 @@ export function buildSpaceHologramModel(root: THREE.Object3D): SpaceMinimapModel
   return finalizeSpaceMinimapModel(byLayer, [...byLayer.floor, ...byLayer.wall, ...byLayer.other]);
 }
 
-/** 运行时剥离:主场景缓存 → 前缀过滤 → 分层合并;墨线仅 stylize 建筑面。 */
+/** 运行时剥离:主场景缓存 → 前缀过滤 → 逐块/分层处理;墨线仅 stylize 建筑面。 */
 export function buildSpaceMinimapModel(root: THREE.Object3D): SpaceMinimapModel | null {
   const { holo, ink } = collectSpaceMinimapSources(root);
   if (holo.length === 0) return null;
@@ -183,30 +198,48 @@ function finalizeSpaceMinimapModel(
   byLayer: Record<SpaceMinimapLayer, SpaceMinimapSource[]>,
   inkSources: SpaceMinimapSource[],
 ): SpaceMinimapModel | null {
-  const layers: Partial<Record<SpaceMinimapLayer, THREE.BufferGeometry | null>> = {};
-  const bounds = new THREE.Box3();
-  let kept = 0;
-  for (const layer of ["floor", "wall", "other"] as const) {
-    const merged = mergeSpaceMinimapLayer(byLayer[layer]);
-    if (!merged) {
-      layers[layer] = null;
+  // 步行面逐块保留(点亮/站立检测需要逐块几何与包围盒);墙/其余合并成单几何。
+  const floorPieces: SpaceMinimapFloorPiece[] = [];
+  for (const source of byLayer.floor) {
+    const geometry = toSpaceMinimapWorldGeometry(source);
+    // 纯白 basic 全息不需要法线;体积读感靠分层透明度,不靠光照。
+    geometry.deleteAttribute("normal");
+    geometry.computeBoundingBox();
+    if (!geometry.boundingBox) {
+      geometry.dispose();
       continue;
     }
-    // 纯白 basic 全息不需要法线;减面模型的“层层叠叠”靠分层透明度,不靠光照。
-    merged.deleteAttribute("normal");
-    merged.computeBoundingBox();
-    bounds.union(merged.boundingBox!);
-    layers[layer] = merged;
-    kept += 1;
+    floorPieces.push({
+      name: source.name,
+      kind: resolveSpaceMinimapFloorPieceKind(source.name),
+      geometry,
+      bounds: geometry.boundingBox.clone(),
+    });
   }
-  if (kept === 0) return null;
+
+  const bounds = new THREE.Box3();
+  for (const piece of floorPieces) bounds.union(piece.bounds);
+
+  const merged: Partial<Record<"wall" | "other", THREE.BufferGeometry | null>> = {};
+  for (const layer of ["wall", "other"] as const) {
+    const geometry = mergeSpaceMinimapLayer(byLayer[layer]);
+    if (geometry) {
+      geometry.deleteAttribute("normal");
+      geometry.computeBoundingBox();
+      bounds.union(geometry.boundingBox!);
+    }
+    merged[layer] = geometry;
+  }
+  if (floorPieces.length === 0 && !merged.wall && !merged.other) return null;
 
   const inkGeometry = createInkShellGeometry(inkSources, SPACE_MINIMAP_INK_WIDTH);
 
   const sphere = new THREE.Sphere();
   bounds.getBoundingSphere(sphere);
   return {
-    layers: layers as Record<SpaceMinimapLayer, THREE.BufferGeometry | null>,
+    floorPieces,
+    wallGeometry: merged.wall ?? null,
+    otherGeometry: merged.other ?? null,
     inkGeometry,
     center: sphere.center.clone(),
     radius: sphere.radius,

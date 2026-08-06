@@ -31,6 +31,7 @@ import {
   SPACE_MINIMAP_GLB_WORLD_ALIGNED,
   SPACE_MINIMAP_SOURCE,
 } from "./minimapModel";
+import { resolveSpaceMinimapFloorAt } from "./minimapFloorDetect";
 
 /**
  * 右上角全息小地图:独立 canvas + 独立 WebGPU/WebGL2 渲染器(叠层先例:
@@ -51,6 +52,24 @@ const SPACE_MINIMAP_LAYER_OPACITY = {
   wall: 0.1,
   other: 0.18,
 } as const;
+
+/** 楼梯段默认近隐形(防细部噪声),被踩中点亮时才显形。 */
+const SPACE_MINIMAP_STAIR_DEFAULT_OPACITY = 0.08;
+
+/** 站立面点亮:半透明墨绿;点亮 260ms 微回弹,熄灭 420ms 缓收。 */
+const SPACE_MINIMAP_PIECE_HIGHLIGHT = { color: "#2f5d52", opacity: 0.6 } as const;
+const SPACE_MINIMAP_HIGHLIGHT_IN_MS = 260;
+const SPACE_MINIMAP_HIGHLIGHT_OUT_MS = 420;
+
+function easeOutBack(t: number) {
+  const c = 1.35;
+  const u = t - 1;
+  return 1 + (c + 1) * u * u * u + c * u * u;
+}
+
+function easeInOutCubic(t: number) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
 
 /** 玩家点随建筑体量缩放,并轻微抬离脚部高度保证读感。 */
 function resolveSpaceMinimapDotRadius(modelRadius: number) {
@@ -120,10 +139,34 @@ function SpaceMinimapCanvas({
     const scene = new THREE.Scene();
     scene.name = "space_minimap_scene";
 
-    // 纯白 basic 全息:不受光照、不被色调映射压暗;分层透明度叠加出“层层叠叠”。
+    // 纯白 basic 全息:不受光照、不被色调映射压暗;逐块步行面独立材质供点亮。
     const layerMaterials: THREE.MeshBasicMaterial[] = [];
-    for (const layer of ["floor", "wall", "other"] as const) {
-      const geometry = model.layers[layer];
+    const pieceEntries: {
+      name: string;
+      kind: "floor" | "stair";
+      material: THREE.MeshBasicMaterial;
+    }[] = [];
+    for (const piece of model.floorPieces) {
+      const material = new THREE.MeshBasicMaterial({
+        name: `space_minimap_piece_${piece.name}`,
+        color: SPACE_VISUAL_TOKENS.colors.paper,
+        toneMapped: false,
+        transparent: true,
+        opacity:
+          piece.kind === "stair"
+            ? SPACE_MINIMAP_STAIR_DEFAULT_OPACITY
+            : SPACE_MINIMAP_LAYER_OPACITY.floor,
+        depthWrite: false,
+      });
+      layerMaterials.push(material);
+      const mesh = new THREE.Mesh(piece.geometry, material);
+      mesh.renderOrder = 1;
+      mesh.raycast = () => null;
+      scene.add(mesh);
+      pieceEntries.push({ name: piece.name, kind: piece.kind, material });
+    }
+    for (const layer of ["wall", "other"] as const) {
+      const geometry = layer === "wall" ? model.wallGeometry : model.otherGeometry;
       if (!geometry) continue;
       const material = new THREE.MeshBasicMaterial({
         name: `space_minimap_holo_${layer}`,
@@ -179,6 +222,50 @@ function SpaceMinimapCanvas({
 
     const camera = new THREE.OrthographicCamera();
     const reducedMotion = readSpaceReducedMotionPreference();
+
+    // 站立面高亮状态机:点亮 easeOutBack 微回弹,熄灭 easeInOutCubic 缓收。
+    type PieceTween = {
+      fromOpacity: number;
+      toOpacity: number;
+      fromColor: THREE.Color;
+      toColor: THREE.Color;
+      startMs: number;
+      durationMs: number;
+      ease: (t: number) => number;
+    };
+    const pieceTweens = new Map<string, PieceTween>();
+    let currentPieceName: string | null = null;
+    const highlightColor = new THREE.Color(SPACE_MINIMAP_PIECE_HIGHLIGHT.color);
+    const paperColor = new THREE.Color(SPACE_VISUAL_TOKENS.colors.paper);
+
+    const retargetPiece = (
+      entry: (typeof pieceEntries)[number],
+      target: "highlight" | "default",
+      nowMs: number,
+    ) => {
+      const toOpacity =
+        target === "highlight"
+          ? SPACE_MINIMAP_PIECE_HIGHLIGHT.opacity
+          : entry.kind === "stair"
+            ? SPACE_MINIMAP_STAIR_DEFAULT_OPACITY
+            : SPACE_MINIMAP_LAYER_OPACITY.floor;
+      const toColor = target === "highlight" ? highlightColor : paperColor;
+      if (reducedMotion) {
+        entry.material.opacity = toOpacity;
+        entry.material.color.copy(toColor);
+        pieceTweens.delete(entry.name);
+        return;
+      }
+      pieceTweens.set(entry.name, {
+        fromOpacity: entry.material.opacity,
+        toOpacity,
+        fromColor: entry.material.color.clone(),
+        toColor: toColor.clone(),
+        startMs: nowMs,
+        durationMs: target === "highlight" ? SPACE_MINIMAP_HIGHLIGHT_IN_MS : SPACE_MINIMAP_HIGHLIGHT_OUT_MS,
+        ease: target === "highlight" ? easeOutBack : easeInOutCubic,
+      });
+    };
 
     let renderer: WebGPURenderer | null = null;
     let disposed = false;
@@ -251,6 +338,36 @@ function SpaceMinimapCanvas({
 
       fitSpaceMinimapCamera(camera, model.center, model.radius, azimuthRad, viewportAspect, elevationRad);
 
+      // 站立面检测(与点同一坐标系)与高亮补间推进
+      const detectPos = pose ? (mapWorldPose ? mapWorldPose(pose.position) : pose.position) : null;
+      const nextPieceName = detectPos
+        ? resolveSpaceMinimapFloorAt(model.floorPieces, detectPos)
+        : null;
+      if (nextPieceName !== currentPieceName) {
+        const previousPieceName = currentPieceName;
+        currentPieceName = nextPieceName;
+        for (const entry of pieceEntries) {
+          if (entry.name === nextPieceName) retargetPiece(entry, "highlight", nowMs);
+          else if (entry.name === previousPieceName) retargetPiece(entry, "default", nowMs);
+        }
+      }
+      for (const [name, tween] of pieceTweens) {
+        const entry = pieceEntries.find((candidate) => candidate.name === name);
+        if (!entry) {
+          pieceTweens.delete(name);
+          continue;
+        }
+        const t = Math.min((nowMs - tween.startMs) / tween.durationMs, 1);
+        const eased = tween.ease(t);
+        entry.material.opacity = tween.fromOpacity + (tween.toOpacity - tween.fromOpacity) * eased;
+        entry.material.color.lerpColors(tween.fromColor, tween.toColor, Math.min(Math.max(eased, 0), 1));
+        if (t >= 1) {
+          entry.material.opacity = tween.toOpacity;
+          entry.material.color.copy(tween.toColor);
+          pieceTweens.delete(name);
+        }
+      }
+
       if (pose) {
         dot.visible = true;
         const [mapX, mapY, mapZ] = mapWorldPose ? mapWorldPose(pose.position) : pose.position;
@@ -271,7 +388,9 @@ function SpaceMinimapCanvas({
       layerMaterials.forEach((material) => material.dispose());
       dotGeometry.dispose();
       dotMaterial.dispose();
-      for (const geometry of Object.values(model.layers)) geometry?.dispose();
+      for (const piece of model.floorPieces) piece.geometry.dispose();
+      model.wallGeometry?.dispose();
+      model.otherGeometry?.dispose();
       model.inkGeometry?.dispose();
       // 共享资源不随地图释放:墨线材质为主场景模块级缓存。
     };

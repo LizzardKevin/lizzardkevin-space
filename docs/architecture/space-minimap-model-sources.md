@@ -8,8 +8,10 @@
 
 ## 路径 A:hologram —— 离线生成的剥离 GLB(当前启用)
 
-模型文件:`apps/web/public/models/space_minimap_strip.glb`(1,094,508 B ≈ 1.04 MB,
-57,168 顶点,2 个网格 `MAP_FLOOR_STRIP / MAP_WALL_STRIP`,**保留展厅世界坐标**)。
+模型文件:`apps/web/public/models/space_minimap_strip.glb`(1,393,312 B ≈ 1.36 MB,
+71,117 顶点,94 个节点:21 块楼板 `MAP_FLOOR_*` + 72 段楼梯 `MAP_STAIR_*` 逐块导出
++ 合并墙体 `MAP_WALL_STRIP`,**保留展厅世界坐标**)。步行面逐块保留是站立检测与
+逐块点亮的前提。
 
 生成方式(与运行时 strip 完全同一套代码,产物永远一致):
 
@@ -64,8 +66,14 @@ npm run minimap:generate   # = node scripts/generate-space-minimap-glb.mjs
 
 ## 两条路径共享的部分
 
-- 材质:三层 `MeshBasicMaterial`(paper 白,toneMapped:false,depthWrite:false,
-  opacity floor 0.34 / wall 0.10 / other 0.18)+ 本地半透明墨线(ink,BackSide,0.28)。
+- 材质:步行面逐块 `MeshBasicMaterial`(paper 白,toneMapped:false,depthWrite:false;
+  楼板默认 0.34、楼梯默认 0.08 近隐形),墙体/其余合并同材质(0.10/0.18),
+  外加本地半透明墨线(ink,BackSide,0.28)。
+- **站立面点亮**(`minimapFloorDetect.ts` + 组件内补间):纯空间判定 ——
+  脚底 y = pose.y − 0.9,楼板取"顶面不超过脚底容差(0.35m)的最高一块",
+  楼梯按竖直跨度包含判定且优先于楼板;命中块的材质以**非线性补间**过渡到
+  墨绿半透明(#2f5d52,opacity 0.6):点亮 easeOutBack 260ms 微回弹,
+  熄灭 easeInOutCubic 420ms 缓收;reduced-motion 直接切换不补间。
 - 相机:正交 heading-up(方位角 = 玩家 yaw),仰角 0.42 + pitch × 0.16 反向轻微跟随
   (钳制 0.16–0.66),reduced-motion 下吸附不走阻尼;30fps 独立 rAF。
 - 玩家点:signal 橙,`depthTest:false` 穿墙,半径 = 地图半径 × 0.03(钳 0.4–1.6)。

@@ -47,7 +47,7 @@ function buildSyntheticGallery() {
 
 test("collection keeps visible architecture and drops colliders, exhibits, lights, detail families, hidden meshes", () => {
   const { holo, ink } = collectSpaceMinimapSources(buildSyntheticGallery());
-  assert.equal(holo.length, 2, "ARCH_WALL_A + STRUCT_FLOOR_A;GLASS_/METAL_/楼梯/顶盖不进 strip 模型");
+  assert.equal(holo.length, 3, "ARCH_WALL_A + STRUCT_FLOOR_A + 楼梯;顶盖/坡面/玻璃/金属不进模型");
   assert.equal(ink.length, 1, "只有 stylize 且非地面/楼梯的建筑面进墨线(ARCH_WALL_A)");
 });
 
@@ -63,13 +63,10 @@ test("hologram build merges MAP_ meshes into floor/wall layers with bounds", asy
   assert.ok(model, "model should build");
 
   const boxPositions = new THREE.BoxGeometry(1, 1, 1).getAttribute("position").count;
-  assert.equal(
-    model.layers.floor?.getAttribute("position").count,
-    boxPositions * 2,
-    "floor 层 = MAP_FLOOR_ + MAP_STAIR_",
-  );
-  assert.equal(model.layers.wall?.getAttribute("position").count, boxPositions, "wall 层 = MAP_WALL_");
-  assert.equal(model.layers.other, null, "无未命名网格时 other 层为空");
+  assert.equal(model.floorPieces.length, 2, "MAP_FLOOR_ + MAP_STAIR_ 各自成块");
+  assert.deepEqual(model.floorPieces.map((piece) => piece.kind).sort(), ["floor", "stair"]);
+  assert.equal(model.wallGeometry?.getAttribute("position").count, boxPositions, "wall 合并为单几何");
+  assert.equal(model.otherGeometry, null, "无未命名网格时 other 为空");
 
   assert.ok(model.radius > 0);
   assert.ok(model.center.y > 0 && model.center.y < 3.5, "center 在几何范围内");
@@ -77,7 +74,8 @@ test("hologram build merges MAP_ meshes into floor/wall layers with bounds", asy
   assert.ok(model.inkGeometry, "全息网格整体生成墨线壳");
   assert.equal(model.inkGeometry.getAttribute("position").count, 8 * 3, "3 个 box 各焊成 8 顶点");
 
-  for (const geometry of Object.values(model.layers)) geometry?.dispose();
+  for (const piece of model.floorPieces) piece.geometry.dispose();
+  model.wallGeometry?.dispose();
   model.inkGeometry.dispose();
 });
 
@@ -115,22 +113,28 @@ test("layer classification separates walkable floors from walls and structure", 
   assert.equal(resolveSpaceMinimapLayer("MAP_WALL_MAIN"), "wall");
 });
 
-test("strip build merges prefixed meshes into layered world-space geometries", async () => {
+test("strip build keeps floor/stair pieces separate and merges walls", async () => {
   const { buildSpaceMinimapModel } = await importSourceModule("space/minimap/minimapModel.ts");
   const model = buildSpaceMinimapModel(buildSyntheticGallery());
   assert.ok(model, "strip model should build");
 
-  const boxPositions = new THREE.BoxGeometry(1, 1, 1).getAttribute("position").count;
-  assert.equal(model.layers.floor?.getAttribute("position").count, boxPositions, "floor 层只有 STRUCT_FLOOR_A");
-  assert.equal(model.layers.wall?.getAttribute("position").count, boxPositions, "wall 层只有 ARCH_WALL_A");
-  assert.equal(model.layers.other, null, "细节族与玻璃/金属被排除后 other 层为空");
-  assert.ok(model.radius > 0);
-  assert.ok(model.center.x < 10, "隐藏/剔除网格不应拉偏包围球");
-  assert.ok(model.inkGeometry, "stylize 建筑面生成墨线壳");
-  assert.equal(model.inkGeometry.getAttribute("position").count, 8, "单个 box 焊接为 8 顶点");
+  assert.equal(model.floorPieces.length, 2, "楼板与楼梯段各自成块");
+  const kinds = model.floorPieces.map((piece) => piece.kind).sort();
+  assert.deepEqual(kinds, ["floor", "stair"]);
+  const stair = model.floorPieces.find((piece) => piece.kind === "stair");
+  assert.equal(stair?.name, "ARCH_STAIR_PLASTER_WHITE_001");
+  for (const piece of model.floorPieces) {
+    assert.ok(piece.bounds instanceof THREE.Box3, "每块自带包围盒供站立检测");
+  }
 
-  for (const geometry of Object.values(model.layers)) geometry?.dispose();
-  model.inkGeometry.dispose();
+  const boxPositions = new THREE.BoxGeometry(1, 1, 1).getAttribute("position").count;
+  assert.equal(model.wallGeometry?.getAttribute("position").count, boxPositions, "wall 合并为单几何");
+  assert.equal(model.otherGeometry, null, "细节族排除后 other 为空");
+  assert.ok(model.inkGeometry, "stylize 建筑面生成墨线壳");
+
+  for (const piece of model.floorPieces) piece.geometry.dispose();
+  model.wallGeometry?.dispose();
+  model.inkGeometry?.dispose();
 });
 
 test("architecture bounds cover visible prefixed meshes and skip hidden ones", async () => {

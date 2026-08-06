@@ -21,20 +21,20 @@ export async function buildSpaceMinimapGlbBase64(): Promise<string> {
 
   const exportScene = new THREE.Scene();
   exportScene.name = "space_minimap_strip";
-  const layerNames = {
-    floor: "MAP_FLOOR_STRIP",
-    wall: "MAP_WALL_STRIP",
-    other: "MAP_OTHER_STRIP",
-  } as const;
   let totalVertices = 0;
-  for (const layer of ["floor", "wall", "other"] as const) {
-    const geometry = model.layers[layer];
-    if (!geometry) continue;
+  const addMesh = (name: string, geometry: THREE.BufferGeometry) => {
     const mesh = new THREE.Mesh(geometry);
-    mesh.name = layerNames[layer];
+    mesh.name = name;
     totalVertices += (geometry.getAttribute("position") as THREE.BufferAttribute).count;
     exportScene.add(mesh);
+  };
+
+  // 步行面逐块导出(站立检测/点亮需要逐块网格);墙体合并导出。
+  for (const piece of model.floorPieces) {
+    addMesh(`MAP_${piece.kind === "stair" ? "STAIR" : "FLOOR"}_${piece.name}`, piece.geometry);
   }
+  if (model.wallGeometry) addMesh("MAP_WALL_STRIP", model.wallGeometry);
+  if (model.otherGeometry) addMesh("MAP_OTHER_STRIP", model.otherGeometry);
 
   const exporter = new GLTFExporter();
   const result = await exporter.parseAsync(exportScene, { binary: true });
