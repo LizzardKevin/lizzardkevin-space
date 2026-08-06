@@ -2515,7 +2515,7 @@ button {
 /* 全息小地图:无框无底无字,只有悬浮模型本体 */
 .space-minimap {
   position: fixed;
-  top: 64px;
+  top: 42px;
   right: 40px;
   z-index: 9;
   width: min(376px, 25.6vw);

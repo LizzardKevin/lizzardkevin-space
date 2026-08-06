@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readProjectFile, readSourceFile } from "../helpers/projectPaths.mjs";
+import { existsSync } from "node:fs";
+import { projectPath, readProjectFile, readSourceFile } from "../helpers/projectPaths.mjs";
 
 /**
  * SPACE 探索目标 + 全息小地图的集成契约:
@@ -84,6 +85,20 @@ assert.ok(
 assert.ok(
   minimapModel.includes("resolveSpaceMinimapLayer"),
   "地图模型必须按命名前缀分层(floor/wall/other)",
+);
+assert.ok(
+  minimapModel.includes("buildSpaceHologramModel") &&
+    minimapModel.includes("computeSpaceArchitectureBounds") &&
+    minimapModel.includes("createSpaceMinimapWorldMapper"),
+  "全息 GLB 直载 + 世界包围盒映射必须是独立可测函数",
+);
+assert.ok(
+  minimap.includes("SPACE_HOLOGRAM_GLB_URL"),
+  "地图必须加载减面全息 GLB,而不是运行时剥离主场景几何",
+);
+assert.ok(
+  existsSync(projectPath("apps/web/public/models/space_hologram_map.glb")),
+  "space_hologram_map.glb 必须随代码一并提交",
 );
 assert.ok(minimap.includes("depthTest: false"), "玩家点必须穿透墙体(BOTW 式 xray dot)");
 assert.match(minimapModel, /"ARCH_"/);

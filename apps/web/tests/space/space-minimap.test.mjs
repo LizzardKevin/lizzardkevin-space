@@ -3,10 +3,7 @@ import test from "node:test";
 import * as THREE from "three";
 import { importSourceModule } from "../helpers/projectPaths.mjs";
 
-const {
-  buildSpaceMinimapModel,
-  collectSpaceMinimapSources,
-} = await importSourceModule("space/minimap/minimapModel.ts");
+const { collectSpaceMinimapSources } = await importSourceModule("space/minimap/minimapModel.ts");
 const {
   dampSpaceMinimapAngleRad,
   fitSpaceMinimapCamera,
@@ -51,31 +48,53 @@ test("collection keeps visible architecture/glass/metal and drops colliders, exh
   assert.equal(ink.length, 1, "只有 stylize 且非地面/楼梯的建筑面进墨线(ARCH_WALL_A)");
 });
 
-test("model build merges kept meshes into layered world-space geometries with bounds", () => {
-  const model = buildSpaceMinimapModel(buildSyntheticGallery());
+test("hologram build merges MAP_ meshes into floor/wall layers with bounds", async () => {
+  const { buildSpaceHologramModel } = await importSourceModule("space/minimap/minimapModel.ts");
+  const root = new THREE.Group();
+  root.add(namedBox("MAP_FLOOR_MAIN", [0, 0, 0], 4));
+  root.add(namedBox("MAP_STAIR_MAIN", [5, 0.5, 0], 1));
+  root.add(namedBox("MAP_WALL_MAIN", [0, 3, 0], 1));
+  root.updateMatrixWorld(true);
+
+  const model = buildSpaceHologramModel(root);
   assert.ok(model, "model should build");
 
-  const unitBox = new THREE.BoxGeometry(1, 1, 1).getAttribute("position").count;
-  const bigBox = new THREE.BoxGeometry(2, 2, 2).getAttribute("position").count;
-  assert.equal(model.layers.floor?.getAttribute("position").count, bigBox, "floor 层只有 STRUCT_FLOOR_A");
-  assert.equal(model.layers.wall?.getAttribute("position").count, unitBox, "wall 层只有 ARCH_WALL_A");
+  const boxPositions = new THREE.BoxGeometry(1, 1, 1).getAttribute("position").count;
   assert.equal(
-    model.layers.other?.getAttribute("position").count,
-    unitBox * 2,
-    "other 层为 GLASS_ + METAL_ALUMINUM_",
+    model.layers.floor?.getAttribute("position").count,
+    boxPositions * 2,
+    "floor 层 = MAP_FLOOR_ + MAP_STAIR_",
   );
+  assert.equal(model.layers.wall?.getAttribute("position").count, boxPositions, "wall 层 = MAP_WALL_");
+  assert.equal(model.layers.other, null, "无未命名网格时 other 层为空");
 
   assert.ok(model.radius > 0);
-  const center = model.center;
-  assert.ok(Math.abs(center.x - 3) < 3.5, "center 落在保留网格的几何范围内(不含 x=40 隐藏块)");
-  assert.ok(center.x < 10, "隐藏/剔除网格不应拉偏包围球");
+  assert.ok(model.center.y > 0 && model.center.y < 3.5, "center 在几何范围内");
 
-  assert.ok(model.inkGeometry, "ink shell exists for stylize architecture");
-  const inkPositions = model.inkGeometry.getAttribute("position").count;
-  assert.equal(inkPositions, 8, "单个 box 的焊接墨线壳为 8 顶点");
+  assert.ok(model.inkGeometry, "全息网格整体生成墨线壳");
+  assert.equal(model.inkGeometry.getAttribute("position").count, 8 * 3, "3 个 box 各焊成 8 顶点");
 
   for (const geometry of Object.values(model.layers)) geometry?.dispose();
   model.inkGeometry.dispose();
+});
+
+test("hologram build returns null when the GLB has no meshes", async () => {
+  const { buildSpaceHologramModel } = await importSourceModule("space/minimap/minimapModel.ts");
+  assert.equal(buildSpaceHologramModel(new THREE.Group()), null);
+});
+
+test("world mapper aligns centers and scales by bounding-sphere radius", async () => {
+  const { createSpaceMinimapWorldMapper } = await importSourceModule("space/minimap/minimapModel.ts");
+  const worldBounds = new THREE.Box3(new THREE.Vector3(-10, 0, -10), new THREE.Vector3(10, 20, 10));
+  const mapCenter = new THREE.Vector3(100, 50, -30);
+  const mapper = createSpaceMinimapWorldMapper(worldBounds, mapCenter, 5);
+
+  const center = mapper([0, 10, 0]);
+  assert.ok(Math.abs(center[0] - 100) < 1e-9 && Math.abs(center[1] - 50) < 1e-9 && Math.abs(center[2] + 30) < 1e-9, "世界盒中心映射到地图中心");
+
+  const corner = mapper([10, 20, 10]);
+  const dist = Math.hypot(corner[0] - 100, corner[1] - 50, corner[2] + 30);
+  assert.ok(Math.abs(dist - 5) < 1e-6, "世界盒包围球顶点恰好落到地图半径上");
 });
 
 test("layer classification separates walkable floors from walls and structure", async () => {
@@ -88,13 +107,27 @@ test("layer classification separates walkable floors from walls and structure", 
   assert.equal(resolveSpaceMinimapLayer("ARCH_BEAM_A"), "other");
   assert.equal(resolveSpaceMinimapLayer("GLASS_SKYLIGHT_A"), "other");
   assert.equal(resolveSpaceMinimapLayer("METAL_ALUMINUM_RAIL_A"), "other");
+  assert.equal(resolveSpaceMinimapLayer("MAP_FLOOR_MAIN"), "floor");
+  assert.equal(resolveSpaceMinimapLayer("MAP_STAIR_MAIN"), "floor");
+  assert.equal(resolveSpaceMinimapLayer("MAP_WALL_MAIN"), "wall");
 });
 
-test("model build returns null when nothing matches the prefixes", () => {
+test("architecture bounds cover visible prefixed meshes and skip hidden ones", async () => {
+  const { computeSpaceArchitectureBounds } = await importSourceModule("space/minimap/minimapModel.ts");
+  const bounds = computeSpaceArchitectureBounds(buildSyntheticGallery());
+  assert.ok(bounds, "bounds should compute");
+  assert.ok(bounds.min.x <= -0.5 && bounds.max.x >= 7, "覆盖保留网格的 x 范围");
+  assert.ok(bounds.max.x < 20, "x=40 的隐藏块不参与包围盒");
+  assert.equal(computeSpaceArchitectureBounds(new THREE.Group()), null);
+});
+
+test("architecture collection returns empty when nothing matches the prefixes", () => {
   const root = new THREE.Group();
   root.add(namedBox("COL_only", [0, 0, 0]));
   root.updateMatrixWorld(true);
-  assert.equal(buildSpaceMinimapModel(root), null);
+  const { holo, ink } = collectSpaceMinimapSources(root);
+  assert.equal(holo.length, 0);
+  assert.equal(ink.length, 0);
 });
 
 test("azimuth mapping is the identity (heading-up follows player yaw)", () => {

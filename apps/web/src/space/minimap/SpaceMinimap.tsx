@@ -22,12 +22,18 @@ import {
   SPACE_MINIMAP_AZIMUTH_LAMBDA,
   spaceMinimapAzimuthForYaw,
 } from "./minimapCamera";
-import { buildSpaceMinimapModel } from "./minimapModel";
+import {
+  buildSpaceHologramModel,
+  computeSpaceArchitectureBounds,
+  createSpaceMinimapWorldMapper,
+  SPACE_HOLOGRAM_GLB_URL,
+} from "./minimapModel";
 
 /**
  * 右上角全息小地图:独立 canvas + 独立 WebGPU/WebGL2 渲染器(叠层先例:
  * work-focus overlay canvas),不进入主 Canvas 的 R3F/后处理管线。
- * 模型为纯白 basic 材质 + 分层透明度(楼板实、墙体虚,层层叠加出体积),
+ * 显示模型 = 减面 GLB(space_hologram_map.glb),纯白 basic + 分层透明度
+ * (楼板实、墙体虚,层层叠加出体积);玩家点经主场景建筑包围盒映射进地图局部坐标。
  * 正交相机 heading-up 跟随玩家 yaw、仰角轻微跟随 pitch,
  * 橙色信号点以 depthTest:false 穿透墙体标记玩家位置(旷野之息式 xray dot)。
  */
@@ -77,7 +83,8 @@ function SpaceMinimapCanvas({
   onFailed: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const gltf = useGLTF(GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH);
+  const galleryGltf = useGLTF(GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH);
+  const holoGltf = useGLTF(SPACE_HOLOGRAM_GLB_URL, false);
   const activeRef = useRef(active);
   useEffect(() => {
     activeRef.current = active;
@@ -87,12 +94,17 @@ function SpaceMinimapCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const model = buildSpaceMinimapModel(gltf.scene);
+    const model = buildSpaceHologramModel(holoGltf.scene);
     if (!model) {
-      if (import.meta.env.DEV) console.warn("[SpaceMinimap] no architecture meshes collected");
+      if (import.meta.env.DEV) console.warn("[SpaceMinimap] hologram GLB has no meshes");
       onFailed();
       return;
     }
+    // 玩家点坐标映射:主场景建筑包围盒 → 全息 GLB 局部框。
+    const worldBounds = computeSpaceArchitectureBounds(galleryGltf.scene);
+    const mapWorldPose = worldBounds
+      ? createSpaceMinimapWorldMapper(worldBounds, model.center, model.radius)
+      : null;
 
     const scene = new THREE.Scene();
     scene.name = "space_minimap_scene";
@@ -228,9 +240,10 @@ function SpaceMinimapCanvas({
 
       fitSpaceMinimapCamera(camera, model.center, model.radius, azimuthRad, viewportAspect, elevationRad);
 
-      if (pose) {
+      if (pose && mapWorldPose) {
         dot.visible = true;
-        dot.position.set(pose.position[0], pose.position[1] + dotRadius * 0.6, pose.position[2]);
+        const [mapX, mapY, mapZ] = mapWorldPose(pose.position);
+        dot.position.set(mapX, mapY + dotRadius * 0.6, mapZ);
       } else {
         dot.visible = false;
       }
@@ -251,7 +264,7 @@ function SpaceMinimapCanvas({
       model.inkGeometry?.dispose();
       // 共享资源不随地图释放:墨线材质为主场景模块级缓存。
     };
-  }, [gltf.scene, onFailed, poseRef]);
+  }, [galleryGltf.scene, holoGltf.scene, onFailed, poseRef]);
 
   return <canvas ref={canvasRef} className="space-minimap__canvas" />;
 }
