@@ -81,6 +81,9 @@ function createStillnessSensor(): SpaceQuestSensor {
   let stillSince: number | null = null;
   return (event, nowMs) => {
     if (event.type === "stillness-reset") {
+      // lastPose 也必须清掉:否则下一帧未移动时走“未移动”分支,stillSince 永远为 null,
+      // 计时永不重启(ESC/失焦后原地站再久也无法完成)。
+      lastPose = null;
       stillSince = null;
       return false;
     }
@@ -131,8 +134,14 @@ function createWorkGazeSensor(): SpaceQuestSensor {
     }
     if (event.type !== "work-targeted") return false;
     if (event.exhibitId && event.exhibitId === targetId) {
-      // 同一目标持续;丢失在宽限期内恢复不算中断
-      lostAtMs = null;
+      // 同目标归来:必须先在此时判定宽限——丢失期间没有后续事件,
+      // 宽限过期只能在“归来”这一刻结算;超过宽限则重开计时。
+      if (lostAtMs !== null) {
+        if (nowMs - lostAtMs > WORK_GAZE_LOSS_GRACE_MS) {
+          gazeSince = nowMs;
+        }
+        lostAtMs = null;
+      }
       return gazeSince !== null && nowMs - gazeSince >= WORK_GAZE_HOLD_MS;
     }
     if (event.exhibitId && event.exhibitId !== targetId) {

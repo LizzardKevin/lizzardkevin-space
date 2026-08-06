@@ -14,11 +14,13 @@ import { formatSpaceResumeLocalDate } from "../spaceDailyResume.ts";
 
 /**
  * SPACE 自由探索提示 store(演进自原 quest store)。
- * 阶段机:disabled →(新手引导完成)→ armed →(进入下坡走廊)→ active(抽取 4 项)。
- * 会话内模块单例:Focus/Profile/DevStories 往返不重抽;刷新或从 Lobby 重新进入时
- * 经 notifySessionRestart 重置为 armed(下一次进走廊重新抽取)。
- * 无持久化、无 React state 高频写入:pose 事件由调用方以 ≤10Hz 节流后 dispatch,
- * 仅在状态实际变化时通知订阅者。
+ * 阶段机:disabled →(新手引导完成)→ armed →(进入下坡走廊,或 resume 位姿已在走廊之后)→ active(抽取/恢复 4 项)。
+ * 会话内模块单例:Focus/Profile/DevStories 往返不重抽。
+ * 持久化:任务与完成态按 daily resume 同款模式写入 localStorage(spaceExplorationV1,
+ * 同天有效,ID 校验),刷新后恢复;Lobby 重进重抽经 notifySessionRestart ——
+ * 注意:当前 app 的 lobby 切换是单向的(lobby→entered),页面内没有回 Lobby 的路径,
+ * 因此该接口是“已测试、待接线”的产品语义;在真正的回 Lobby 路径出现前不会触发。
+ * pose 事件由调用方以 ≤10Hz 节流后 dispatch,仅在状态实际变化时通知订阅者。
  */
 
 export type SpaceExplorationPhase = "disabled" | "armed" | "active";

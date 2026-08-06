@@ -117,6 +117,18 @@ test("let_the_room_settle: 静止 60 秒完成;移动/转头/外部重置均清�
   sensor({ type: "stillness-reset" }, (now += 100));
   for (let i = 0; i < 200; i++) sensor(pose(0, 0), (now += 100));
   assert.equal(sensor(pose(0, 0), now), false, "外部重置后 20s 不得完成");
+
+  // Grok 复现路径:reset 后原地不动,计时必须能重启并再次完成
+  sensor = createSpaceQuestSensor("let_the_room_settle");
+  now = 1_000;
+  sensor(pose(0, 0), now);
+  for (let i = 0; i < 100; i++) sensor(pose(0, 0), (now += 100)); // 10s 静止
+  sensor({ type: "stillness-reset" }, (now += 100));
+  let restarted = false;
+  for (let i = 0; i < Math.ceil(STILLNESS_HOLD_MS / 100) + 2 && !restarted; i++) {
+    restarted = sensor(pose(0, 0), (now += 100));
+  }
+  assert.ok(restarted, "reset 后原地站满 60s 必须再次完成");
 });
 
 test("three_encounters: 按唯一 exhibit ID 计数,重复不计", () => {
@@ -152,14 +164,23 @@ test("dont_look_away: 同一目标持续 30s 完成;丢失超宽限或打开作�
   }
   assert.ok(done, "宽限内恢复,累计不清零");
 
-  // 丢失超宽限 → 重置
+  // 丢失超宽限(静默数秒后归来)→ 必须重新累计满 30s,不得吃掉中断前进度
   sensor = createSpaceQuestSensor("dont_look_away");
   now = 1_000;
   sensor({ type: "work-targeted", exhibitId: "x" }, now);
-  for (let i = 0; i < 100; i++) sensor({ type: "work-targeted", exhibitId: "x" }, (now += 100));
-  sensor({ type: "work-targeted", exhibitId: null }, (now += 100));
-  sensor({ type: "work-targeted", exhibitId: "x" }, (now += WORK_GAZE_LOSS_GRACE_MS + 200));
-  for (let i = 0; i < 100; i++) assert.equal(sensor({ type: "work-targeted", exhibitId: "x" }, (now += 100)), false, "重置后重新计时,10s 不得完成");
+  for (let i = 0; i < 100; i++) sensor({ type: "work-targeted", exhibitId: "x" }, (now += 100)); // 看 10s
+  sensor({ type: "work-targeted", exhibitId: null }, (now += 100)); // 目标丢失
+  now += 2_000; // 静默 2s(无事件,远超 250ms 宽限)
+  sensor({ type: "work-targeted", exhibitId: "x" }, now); // 同目标归来
+  // 若宽限未结算,此时再累计 20s 就会完成(吃掉中断前 10s);正确行为是重新计满 30s
+  for (let i = 0; i < 200; i++) {
+    assert.equal(sensor({ type: "work-targeted", exhibitId: "x" }, (now += 100)), false, "超宽限后归来,前 20s 不得完成");
+  }
+  done = false;
+  for (let i = 0; i < 110 && !done; i++) {
+    done = sensor({ type: "work-targeted", exhibitId: "x" }, (now += 100));
+  }
+  assert.ok(done, "重新累计满 30s 后才完成");
 
   // 打开作品 → 重置
   sensor = createSpaceQuestSensor("dont_look_away");

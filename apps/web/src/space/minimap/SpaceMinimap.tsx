@@ -268,6 +268,7 @@ function SpaceMinimapCanvas({
       });
     };
 
+    const pieceByName = new Map(pieceEntries.map((entry) => [entry.name, entry]));
     let renderer: WebGPURenderer | null = null;
     let disposed = false;
     let rafId = 0;
@@ -353,7 +354,7 @@ function SpaceMinimapCanvas({
         }
       }
       for (const [name, tween] of pieceTweens) {
-        const entry = pieceEntries.find((candidate) => candidate.name === name);
+        const entry = pieceByName.get(name);
         if (!entry) {
           pieceTweens.delete(name);
           continue;

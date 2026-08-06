@@ -2339,8 +2339,6 @@ button {
   }
 }
 
-/* --- SPACE 探索目标 + 全息小地图:无框悬浮件(z-index 9:高于 canvas 装饰层,低于 topbar 下拉) --- */
-
 /* --- SPACE 探索提示 + 全息小地图:无框悬浮件(z-index 9:高于 canvas 装饰层,低于 topbar 下拉) --- */
 
 .space-quests {
