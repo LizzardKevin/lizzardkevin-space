@@ -12,27 +12,36 @@ import { publicAssetUrl } from "../../platform/publicAssets.ts";
 /**
  * SPACE 全息小地图的模型与坐标。两条模型来源路径并存,由 SPACE_MINIMAP_SOURCE 切换:
  *
- * - "strip"(当前启用):运行时从 useGLTF 缓存的 space_main 场景剥离建筑壳。
- *   流程:按命名前缀(ARCH_/PLASTER_/STRUCT_/METAL_ALUMINUM_/GLASS_)收集可见网格
- *   (COL_/EXHIBITS_/灯具/spawn 与主场景已隐藏的重复面自然排除)→ 逐网格克隆
- *   position+index 并 applyMatrix4 到世界空间 → 按 resolveSpaceMinimapLayer 分
+ * - "strip": 运行时从 useGLTF 缓存的 space_main 场景剥离建筑壳。
+ *   流程:按命名前缀(ARCH_/PLASTER_/STRUCT_)收集可见网格并排除细节族
+ *   (COL_/EXHIBITS_/GLASS_/METAL_/灯具/spawn 与主场景已隐藏的重复面自然排除)→
+ *   逐网格克隆 position+index 并 applyMatrix4 到世界空间 → 按 resolveSpaceMinimapLayer 分
  *   floor/wall/other 三层分别 mergeGeometries 合并 → 包围盒/包围球取自合并结果;
  *   墨线壳只对 stylize 建筑面(排除地面/楼梯)用 createInkShellGeometry 生成。
  *   模型在世界坐标系内,玩家点直接用 pose.position,无需映射。
  *
- * - "hologram":独立减面 GLB(space_hologram_map.glb,Codex 从 Blender 导出,
- *   499KB / 1.4 万顶点,MAP_FLOOR/MAP_WALL/MAP_STAIR 三个网格,局部归一坐标)。
- *   直接分层合并;玩家点经 computeSpaceArchitectureBounds(主场景建筑包围盒)
- *   与 createSpaceMinimapWorldMapper(中心对齐 + 半径均匀缩放)映射进地图局部坐标。
- *   渲染负载最低,但需要美术侧同步维护该 GLB。
+ * - "hologram"(当前启用):离线生成的剥离 GLB(apps/web/public/models/
+ *   space_minimap_strip.glb,由 `npm run minimap:generate` 用同一套剥离管线产出,
+ *   保留世界坐标)。直接分层合并,玩家点同样直读 pose.position。
+ *   渲染/启动开销最低;展厅模型更新后需重跑生成脚本同步。
+ *   (历史:Codex 手工减面的 space_hologram_map.glb 为局部归一坐标,曾用
+ *   computeSpaceArchitectureBounds + createSpaceMinimapWorldMapper 做世界盒映射;
+ *   该文件已弃用删除,映射函数保留备用。)
  */
-export const SPACE_MINIMAP_SOURCE: "strip" | "hologram" = "strip";
+export const SPACE_MINIMAP_SOURCE: "strip" | "hologram" = "hologram";
 
-/** Bump when replacing space_hologram_map.glb so dev/browser reloads geometry. */
-export const SPACE_HOLOGRAM_GLB_REVISION = "20260806-holo1";
-export const SPACE_HOLOGRAM_GLB_URL = publicAssetUrl(
-  `/models/space_hologram_map.glb?v=${SPACE_HOLOGRAM_GLB_REVISION}`,
+/** Bump when regenerating space_minimap_strip.glb so dev/browser reloads geometry. */
+export const SPACE_MINIMAP_GLB_REVISION = "20260806-strip1";
+export const SPACE_MINIMAP_GLB_URL = publicAssetUrl(
+  `/models/space_minimap_strip.glb?v=${SPACE_MINIMAP_GLB_REVISION}`,
 );
+
+/**
+ * 由 scripts/generate-space-minimap-glb.mjs 生成的 GLB 保留展厅世界坐标,
+ * 玩家点直接用 pose.position,不需要包围盒映射。
+ * 若未来换成局部归一坐标的 GLB,把它置 false 并恢复世界盒映射。
+ */
+export const SPACE_MINIMAP_GLB_WORLD_ALIGNED = true;
 
 /** 主场景里参与“建筑包围盒”估计的命名前缀(与全息 GLB 的体块口径一致)。 */
 export const SPACE_MINIMAP_INCLUDE_PREFIXES = [

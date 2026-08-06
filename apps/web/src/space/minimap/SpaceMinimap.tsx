@@ -27,16 +27,18 @@ import {
   buildSpaceMinimapModel,
   computeSpaceArchitectureBounds,
   createSpaceMinimapWorldMapper,
-  SPACE_HOLOGRAM_GLB_URL,
+  SPACE_MINIMAP_GLB_URL,
+  SPACE_MINIMAP_GLB_WORLD_ALIGNED,
   SPACE_MINIMAP_SOURCE,
 } from "./minimapModel";
 
 /**
  * 右上角全息小地图:独立 canvas + 独立 WebGPU/WebGL2 渲染器(叠层先例:
  * work-focus overlay canvas),不进入主 Canvas 的 R3F/后处理管线。
- * 显示模型 = 减面 GLB(space_hologram_map.glb),纯白 basic + 分层透明度
- * (楼板实、墙体虚,层层叠加出体积);玩家点经主场景建筑包围盒映射进地图局部坐标。
- * 正交相机 heading-up 跟随玩家 yaw、仰角轻微跟随 pitch,
+ * 显示模型 = 离线生成的剥离 GLB(space_minimap_strip.glb,世界坐标,
+ * `npm run minimap:generate` 与运行时 strip 同一套管线);纯白 basic + 分层透明度
+ * (楼板实、墙体虚,层层叠加出体积);玩家点直读 pose.position。
+ * 正交相机 heading-up 跟随玩家 yaw、仰角随 pitch 轻微反向跟随,
  * 橙色信号点以 depthTest:false 穿透墙体标记玩家位置(旷野之息式 xray dot)。
  */
 
@@ -86,7 +88,7 @@ function SpaceMinimapCanvas({
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const galleryGltf = useGLTF(GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH);
-  const holoGltf = useGLTF(SPACE_HOLOGRAM_GLB_URL, false);
+  const holoGltf = useGLTF(SPACE_MINIMAP_GLB_URL, false);
   const activeRef = useRef(active);
   useEffect(() => {
     activeRef.current = active;
@@ -105,10 +107,10 @@ function SpaceMinimapCanvas({
       onFailed();
       return;
     }
-    // 玩家点坐标:strip 路径模型就在世界坐标系,直接用 pose;
-    // hologram 路径是局部归一 GLB,需经主场景建筑包围盒映射。
+    // 玩家点坐标:strip 路径与生成的 GLB 都在世界坐标系,直接用 pose;
+    // 仅当 GLB 为局部归一坐标时才需要世界盒映射。
     const worldBounds =
-      SPACE_MINIMAP_SOURCE === "hologram"
+      SPACE_MINIMAP_SOURCE === "hologram" && !SPACE_MINIMAP_GLB_WORLD_ALIGNED
         ? computeSpaceArchitectureBounds(galleryGltf.scene)
         : null;
     const mapWorldPose = worldBounds

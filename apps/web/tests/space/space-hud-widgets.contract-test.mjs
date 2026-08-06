@@ -93,17 +93,21 @@ assert.ok(
   "全息 GLB 直载 + 世界包围盒映射必须是独立可测函数",
 );
 assert.ok(
-  minimap.includes("SPACE_HOLOGRAM_GLB_URL") && minimap.includes("SPACE_MINIMAP_SOURCE"),
+  minimap.includes("SPACE_MINIMAP_GLB_URL") && minimap.includes("SPACE_MINIMAP_SOURCE"),
   "地图模型来源必须经 SPACE_MINIMAP_SOURCE 显式切换",
 );
 assert.ok(
   minimapModel.includes("buildSpaceMinimapModel") &&
     minimapModel.includes("buildSpaceHologramModel"),
-  "运行时剥离与减面 GLB 两条实现路径必须并存保留",
+  "运行时剥离与离线 GLB 两条实现路径必须并存保留",
 );
 assert.ok(
-  existsSync(projectPath("apps/web/public/models/space_hologram_map.glb")),
-  "space_hologram_map.glb 必须随代码一并提交",
+  existsSync(projectPath("apps/web/public/models/space_minimap_strip.glb")),
+  "由 minimap:generate 生成的 space_minimap_strip.glb 必须随代码一并提交",
+);
+assert.ok(
+  packageJson.scripts["minimap:generate"] === "node scripts/generate-space-minimap-glb.mjs",
+  "展厅更新后同步小地图的生成脚本必须注册",
 );
 assert.ok(minimap.includes("depthTest: false"), "玩家点必须穿透墙体(BOTW 式 xray dot)");
 assert.match(minimapModel, /"ARCH_"/);

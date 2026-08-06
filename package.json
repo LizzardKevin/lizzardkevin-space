@@ -51,7 +51,8 @@
     "test:runtime-boundaries": "node apps/web/tests/space/runtime-boundaries.contract-test.mjs",
     "test:boot": "node --test apps/web/tests/boot/space-boot-reducer.test.mjs apps/web/tests/boot/space-boot-runtime.test.mjs apps/web/tests/rendering/renderer-surface-reconciliation.test.mjs",
     "github:push": "bash scripts/github-bootstrap.sh",
-    "test:dependency-security": "node --test apps/web/tests/release/dependency-security.contract-test.mjs"
+    "test:dependency-security": "node --test apps/web/tests/release/dependency-security.contract-test.mjs",
+    "minimap:generate": "node scripts/generate-space-minimap-glb.mjs"
   },
   "devDependencies": {
     "ffmpeg-static": "^5.3.0",
