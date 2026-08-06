@@ -1798,6 +1798,12 @@ button {
   background-size: 22px 22px;
 }
 
+.space-onboarding-focus__dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .space-onboarding-focus__blank {
   position: absolute;
   inset: 0;
@@ -1832,10 +1838,11 @@ button {
 
 .space-onboarding-focus__title {
   font-family: Didot, "Bodoni MT", "Times New Roman", serif;
-  font-size: clamp(40px, 6vw, 96px);
+  font-size: clamp(32px, 4.6vw, 88px);
   font-weight: 900;
   line-height: 1.05;
   color: #ececed;
+  white-space: nowrap;
 }
 
 .space-onboarding-focus__body {
@@ -1845,6 +1852,67 @@ button {
   letter-spacing: 0.02em;
   line-height: 1.7;
   color: #a8a9ad;
+}
+
+/* FocusDemo 顶部导航条:与 /works 顶栏同族(分段、底线、等宽小字) */
+.space-onboarding-focus__topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  height: 56px;
+  border-bottom: 1px solid rgba(213, 214, 216, 0.14);
+  pointer-events: none;
+}
+
+.space-onboarding-focus__brand {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-right: 1px solid rgba(213, 214, 216, 0.14);
+  color: #ececed;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.space-onboarding-focus__topbar .focus-return-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 20px;
+  border: 0;
+  border-left: 1px solid rgba(213, 214, 216, 0.14);
+  background: transparent;
+  color: #d5d6d8;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.space-onboarding-focus__topbar .focus-return-button:hover {
+  color: #ef8b61;
+  background: rgba(239, 139, 97, 0.08);
+}
+
+.space-onboarding-focus__topbar .focus-return-button__prefix {
+  color: rgba(168, 169, 173, 0.75);
+}
+
+.space-onboarding-focus__topbar .focus-return-button__space {
+  color: #ececed;
+  font-weight: 650;
+  text-transform: uppercase;
 }
 
 .space-onboarding-focus__exitHint {

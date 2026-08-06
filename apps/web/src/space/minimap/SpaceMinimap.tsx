@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -13,6 +14,7 @@ import { useGLTF } from "@react-three/drei";
 import type { WebGPURenderer } from "three/webgpu";
 import { createWebGPURenderer } from "../../rendering/createWebGPURenderer";
 import { GALLERY_GLB_URL, GLTF_DRACO_DECODER_PATH } from "../../scenes/gallery/galleryConfig";
+import { spaceExplorationStore } from "../quests/spaceQuests";
 import type { SpacePlayerPose } from "../spaceDailyResume";
 import { readSpaceReducedMotionPreference } from "../spaceMotionPolicy";
 import { SPACE_VISUAL_TOKENS } from "../spaceVisualTokens";
@@ -412,13 +414,23 @@ export function SpaceMinimap({
   // 必须稳定:内联箭头每次渲染都是新身份,会把 SpaceMinimapCanvas 的
   // 重型 effect(建模 + 初始化渲染器)反复拆建——表现为点击/悬停时画面卡顿、地图闪烁。
   const handleFailed = useCallback(() => setFailed(true), []);
+  // 出现逻辑与探索提示一致:进入下坡走廊(阶段 active)才出现;
+  // 且渲染器只在首次激活后初始化——不在新手引导/冷启动期创建第二个 WebGPU 上下文。
+  const exploration = useSyncExternalStore(spaceExplorationStore.subscribe, spaceExplorationStore.getState);
+  const shown = visible && exploration.phase === "active";
+  const [activated, setActivated] = useState(false);
+  // 首次激活(render 期派生,非 effect)才初始化渲染器;之后保持挂载避免拆建。
+  if (shown && !activated) setActivated(true);
+
   if (failed) return null;
 
   return (
-    <div className="space-minimap" data-visible={visible || undefined} aria-hidden={!visible}>
+    <div className="space-minimap" data-visible={shown || undefined} aria-hidden={!shown}>
       <SpaceMinimapErrorBoundary onFailed={handleFailed}>
         <Suspense fallback={null}>
-          <SpaceMinimapCanvas poseRef={poseRef} active={visible} onFailed={handleFailed} />
+          {activated ? (
+            <SpaceMinimapCanvas poseRef={poseRef} active={shown} onFailed={handleFailed} />
+          ) : null}
         </Suspense>
       </SpaceMinimapErrorBoundary>
     </div>
