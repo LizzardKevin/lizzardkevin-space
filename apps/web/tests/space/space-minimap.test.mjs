@@ -32,6 +32,9 @@ function buildSyntheticGallery() {
   root.add(namedBox("STRUCT_FLOOR_A", [6, 0, 0], 2));
   root.add(namedBox("GLASS_SKYLIGHT_A", [0, 6, 0]));
   root.add(namedBox("METAL_ALUMINUM_RAIL_A", [0, 0, 6]));
+  root.add(namedBox("ARCH_STAIR_PLASTER_WHITE_001", [0, 0, -2]));
+  root.add(namedBox("ARCH_CEILING_PLASTER_WHITE_001", [0, 7, 0]));
+  root.add(namedBox("ARCH_WALL_PLASTER_WHITE_013", [2, 6, 0]));
   const hiddenArchitecture = namedBox("ARCH_WALL_HIDDEN", [40, 0, 0]);
   hiddenArchitecture.visible = false;
   root.add(hiddenArchitecture);
@@ -42,9 +45,9 @@ function buildSyntheticGallery() {
   return root;
 }
 
-test("collection keeps visible architecture/glass/metal and drops colliders, exhibits, lights, hidden meshes", () => {
+test("collection keeps visible architecture and drops colliders, exhibits, lights, detail families, hidden meshes", () => {
   const { holo, ink } = collectSpaceMinimapSources(buildSyntheticGallery());
-  assert.equal(holo.length, 4, "ARCH_ + STRUCT_ + GLASS_ + METAL_ALUMINUM_ kept");
+  assert.equal(holo.length, 2, "ARCH_WALL_A + STRUCT_FLOOR_A;GLASS_/METAL_/楼梯/顶盖不进 strip 模型");
   assert.equal(ink.length, 1, "只有 stylize 且非地面/楼梯的建筑面进墨线(ARCH_WALL_A)");
 });
 
@@ -120,11 +123,7 @@ test("strip build merges prefixed meshes into layered world-space geometries", a
   const boxPositions = new THREE.BoxGeometry(1, 1, 1).getAttribute("position").count;
   assert.equal(model.layers.floor?.getAttribute("position").count, boxPositions, "floor 层只有 STRUCT_FLOOR_A");
   assert.equal(model.layers.wall?.getAttribute("position").count, boxPositions, "wall 层只有 ARCH_WALL_A");
-  assert.equal(
-    model.layers.other?.getAttribute("position").count,
-    boxPositions * 2,
-    "other 层为 GLASS_ + METAL_ALUMINUM_",
-  );
+  assert.equal(model.layers.other, null, "细节族与玻璃/金属被排除后 other 层为空");
   assert.ok(model.radius > 0);
   assert.ok(model.center.x < 10, "隐藏/剔除网格不应拉偏包围球");
   assert.ok(model.inkGeometry, "stylize 建筑面生成墨线壳");

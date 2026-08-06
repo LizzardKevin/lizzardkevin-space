@@ -11,15 +11,18 @@
 零资产管线,模型直接来自 `useGLTF` 缓存的主场景(世界坐标):
 
 1. **收集**(`collectSpaceMinimapSources`):遍历缓存场景,仅保留可见且名字命中
-   `ARCH_ / PLASTER_ / STRUCT_ / METAL_ALUMINUM_ / GLASS_` 前缀的网格。
-   `COL_` 碰撞体、`EXHIBITS_` 展品、灯具、spawn 标记自然不命中前缀;
-   主场景 `prepareGalleryScene` 已隐藏的 z-fight 重复面也随 `visible=false` 跳过。
+   `ARCH_ / PLASTER_ / STRUCT_` 前缀的网格,并排除地图缩尺下读作"三角破面"的
+   细节族(`SPACE_MINIMAP_STRIP_EXCLUDE_PATTERNS`:`*_CEILING_*` 顶盖(开顶读楼层)、
+   `ARCH_STAIR_PLASTER_WHITE_*` 楼梯细部、以及主场景墨线豁免的坡面灰泥系列
+   `ARCH_WALL_PLASTER_WHITE_013..022`)。`COL_` 碰撞体、`EXHIBITS_` 展品、
+   `GLASS_`/`METAL_ALUMINUM_`/灯具/spawn 不命中前缀;主场景 `prepareGalleryScene`
+   已隐藏的 z-fight 重复面也随 `visible=false` 跳过。
 2. **世界空间化**(`toSpaceMinimapWorldGeometry`):每个网格只克隆
    `position + index`(材质全部丢弃),`applyMatrix4(matrixWorld)` 到世界空间;
    非索引几何补顺序索引,保证 `mergeGeometries` 可用。
 3. **分层合并**(`resolveSpaceMinimapLayer`):按名字分三层 —
    `STRUCT/ARCH_FLOOR_*` 与 `*_STAIR_*` → `floor`;`PLASTER_`、含 `_WALL_`/`_CEILING_` → `wall`;
-   其余(含 `METAL_ALUMINUM_`、`GLASS_`)→ `other`。每层各自合并成单一几何,
+   其余 → `other`(当前过滤口径下通常为空)。每层各自合并成单一几何,
    删除 normal(纯白 basic 材质不需要光照),合并包围盒得 center/radius。
 4. **墨线壳**:只对 `getGalleryMaterialStyleAction(name) === "stylize"` 且不在
    地面/楼梯排除清单的面生成,`createInkShellGeometry(sources, 0.08)`(比主场景

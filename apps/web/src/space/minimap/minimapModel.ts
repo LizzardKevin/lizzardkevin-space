@@ -39,8 +39,16 @@ export const SPACE_MINIMAP_INCLUDE_PREFIXES = [
   "ARCH_",
   "PLASTER_",
   "STRUCT_",
-  "METAL_ALUMINUM_",
-  "GLASS_",
+] as const;
+
+/**
+ * 剥离路径的细节排除:斜天窗格栅/坡面灰泥条在地图缩尺下读作“三角破面”,
+ * 主场景墨线豁免名单里的坡面系列同样排除;顶盖整体不画(开顶读楼层,类 BOTW)。
+ */
+export const SPACE_MINIMAP_STRIP_EXCLUDE_PATTERNS = [
+  /^(?:ARCH|STRUCT)_CEILING_/,
+  /^(?:ARCH|STRUCT)_STAIR_PLASTER_WHITE_/,
+  ...GALLERY_INK.exemptPatterns,
 ] as const;
 
 /** 墨线宽度(地图局部坐标;全息 GLB 与主场景同尺度,沿用主场景读感加粗值)。 */
@@ -83,6 +91,7 @@ export function collectSpaceMinimapSources(root: THREE.Object3D): {
     const mesh = obj as THREE.Mesh;
     if (!mesh.isMesh || !mesh.visible) return;
     if (!matchesSpaceMinimapPrefix(mesh.name)) return;
+    if (SPACE_MINIMAP_STRIP_EXCLUDE_PATTERNS.some((pattern) => pattern.test(mesh.name))) return;
     const source: SpaceMinimapSource = {
       name: mesh.name,
       geometry: mesh.geometry,
