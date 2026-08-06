@@ -13,6 +13,7 @@ import { OrbitControls, useGLTF } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { GLTF_DRACO_DECODER_PATH } from "../../scenes/gallery/galleryConfig";
 import { applyTreeHabitatSharedMaterials } from "../../scenes/exhibits/exhibitMaterialOverrides";
+import { spaceExplorationStore } from "../../space/quests/spaceQuests";
 
 /**
  * 作品详情页内嵌 3D 查看器：只依赖 focusGlbUrl + 公共 draco 解码路径，
@@ -175,6 +176,51 @@ class StageErrorBoundary extends Component<
   }
 }
 
+/**
+ * 探索提示「ANOTHER ANGLE」:识别有效拖拽(松开时累计移动 >12px 或方位角变化 >5°),
+ * 单击不产生事件。探针挂在 Canvas 内,读 OrbitControls 方位角。
+ */
+function StageDragProbe({ exhibitId }: { exhibitId: string }) {
+  const gl = useThree((state) => state.gl);
+  const controls = useThree((state) => state.controls) as OrbitControlsImpl | null;
+
+  useEffect(() => {
+    const element = gl.domElement;
+    let drag: { azimuth: number; travel: number } | null = null;
+
+    const onPointerDown = () => {
+      drag = { azimuth: controls?.getAzimuthalAngle() ?? 0, travel: 0 };
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!drag) return;
+      drag.travel += Math.hypot(event.movementX, event.movementY);
+    };
+    const onPointerUp = () => {
+      if (!drag) return;
+      const deltaDeg =
+        (Math.abs((controls?.getAzimuthalAngle() ?? drag.azimuth) - drag.azimuth) * 180) / Math.PI;
+      if (drag.travel > 12 || deltaDeg > 5) {
+        spaceExplorationStore.dispatch(
+          { type: "work-model-dragged", exhibitId, rotationDeltaDeg: deltaDeg },
+          Date.now(),
+        );
+      }
+      drag = null;
+    };
+
+    element.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    return () => {
+      element.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [gl, controls, exhibitId]);
+
+  return null;
+}
+
 export function WorkModelViewer({
   exhibitId,
   url,
@@ -210,6 +256,7 @@ export function WorkModelViewer({
           <StageModel key={url} exhibitId={exhibitId} url={url} onFrame={handleFrame} />
           <StageLighting />
           <StageCameraSync frame={frame} />
+          <StageDragProbe exhibitId={exhibitId} />
           <OrbitControls
             makeDefault
             enableDamping

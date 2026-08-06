@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8" /><title>space-minimap-export</title></head>
+  <body>
+    <!-- 仅供 scripts/generate-space-minimap-glb.mjs 在 headless Chrome 里加载;
+         同源承载 tools/export-space-minimap.ts 模块,并把导出函数挂到 window。 -->
+    <script type="module">
+      import { buildSpaceMinimapGlbBase64 } from "./export-space-minimap.ts";
+      window.buildSpaceMinimapGlbBase64 = buildSpaceMinimapGlbBase64;
+      window.__minimapExportReady = true;
+    </script>
+  </body>
+</html>

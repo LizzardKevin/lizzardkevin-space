@@ -5,6 +5,10 @@ import { PlaybackBar } from "../media/PlaybackBar";
 import { WebGPUUnavailable } from "../rendering/WebGPUUnavailable";
 import { SpaceMovementDebugOverlay } from "../scenes/debug/SpaceMovementDebugOverlay";
 import { useTranslation } from "react-i18next";
+import type { RefObject } from "react";
+import { SpaceQuestHud } from "./quests/SpaceQuestHud";
+import { SpaceMinimap } from "./minimap/SpaceMinimap";
+import type { SpacePlayerPose } from "./spaceDailyResume";
 
 type SpaceHudProps = {
   entered: boolean;
@@ -26,6 +30,9 @@ type SpaceHudProps = {
   bootFailed: boolean;
   bootError: string | null;
   onRetryBoot: () => void;
+  poseRef: RefObject<SpacePlayerPose | null>;
+  onboardingCompleted: boolean;
+  routeBlocked: boolean;
 };
 
 function JumpHint({ message, visible }: { message: string; visible: boolean }) {
@@ -76,8 +83,19 @@ export function SpaceHud({
   bootFailed,
   bootError,
   onRetryBoot,
+  poseRef,
+  onboardingCompleted,
+  routeBlocked,
 }: SpaceHudProps) {
   const { t } = useTranslation();
+  // 探索目标与全息地图:onboarding 结束、无遮盖层、路由未被接管时才展示。
+  const widgetsVisible =
+    entered &&
+    !overlayOpen &&
+    !focusOpen &&
+    onboardingCompleted &&
+    !routeBlocked &&
+    !rendererFailed;
   return (
     <>
       <SpaceCursorOverlay
@@ -90,6 +108,8 @@ export function SpaceHud({
       <Toast message={toastMessage} durationMs={toastDurationMs} onDone={onToastDone} />
       <JumpHint message={jumpHintMessage} visible={jumpHintVisible} />
       <ProjectorControlsHint visible={projectorHintVisible} />
+      <SpaceQuestHud visible={widgetsVisible} />
+      <SpaceMinimap poseRef={poseRef} visible={widgetsVisible} />
       {pointerLocked ? (
         <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} />
       ) : null}

@@ -28,7 +28,11 @@ import {
 } from "../space/spaceDailyResume";
 import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
+import { spaceExplorationStore } from "../space/quests/spaceQuests";
 import type { SpaceBootController } from "../boot/useSpaceBootController";
+
+/** 探索提示的 pose 事件节流:≤10Hz,不进 React state。 */
+const SPACE_EXPLORATION_POSE_INTERVAL_MS = 100;
 
 const JUMP_HINT_VISIBLE_MS = 5000;
 const SPACE_DAILY_RESUME_SAVE_INTERVAL_MS = 1000;
@@ -109,6 +113,7 @@ export function SpaceDesktopExperience({
   const initialResumePose = sessionResumePose ?? dailyResumePose;
   const [devFocusExhibitId] = useState<string | null>(() => readDevFocusExhibitId(searchParams));
   const [onboardingCompleted, setOnboardingCompleted] = useState(initialResumePose !== null);
+  const lastExplorationPoseAtRef = useRef(0);
   const latestSpacePoseRef = useRef<SpacePlayerPose | null>(initialResumePose);
   const lastDailyResumeSaveAtRef = useRef(0);
   const lastSessionPoseSaveAtRef = useRef(0);
@@ -188,10 +193,64 @@ export function SpaceDesktopExperience({
   });
   const canSaveDailyResume = entered && dailyResumeSavingEnabled && !focusSurfaceOpen;
 
+  // 探索提示:新手引导完成 → armed;从 Lobby 重新进入 → 重置待重抽
+  useEffect(() => {
+    if (onboardingCompleted) spaceExplorationStore.notifyOnboardingCompleted();
+  }, [onboardingCompleted]);
+
+  const prevEnteredRef = useRef(entered);
+  const hasEnteredOnceRef = useRef(false);
+  useEffect(() => {
+    if (entered && !prevEnteredRef.current) {
+      // 仅“从 Lobby 返回后再进”才算会话重开;页面加载后的首次进入不打断恢复状态。
+      if (hasEnteredOnceRef.current) spaceExplorationStore.notifySessionRestart();
+      hasEnteredOnceRef.current = true;
+    }
+    prevEnteredRef.current = entered;
+  }, [entered]);
+
+  // 静止任务的外部重置:失焦 / 打开 Overlay 或 Focus / 解除控制
+  useEffect(() => {
+    const reset = () => spaceExplorationStore.dispatch({ type: "stillness-reset" }, Date.now());
+    window.addEventListener("blur", reset);
+    return () => window.removeEventListener("blur", reset);
+  }, []);
+
+  useEffect(() => {
+    if (overlay.isOverlayOpen || focusSurfaceOpen || !pointerLocked) {
+      spaceExplorationStore.dispatch({ type: "stillness-reset" }, Date.now());
+    }
+  }, [overlay.isOverlayOpen, focusSurfaceOpen, pointerLocked]);
+
+  // 展品注视目标(仅展品,不含投影仪)
+  useEffect(() => {
+    spaceExplorationStore.dispatch(
+      {
+        type: "work-targeted",
+        exhibitId:
+          exhibitTarget?.interactionKind === "exhibit" ? exhibitTarget.exhibitId : null,
+      },
+      Date.now(),
+    );
+  }, [exhibitTarget]);
+
   const handleSpacePoseSample = useCallback(
     (pose: SpacePlayerPose) => {
       latestSpacePoseRef.current = pose;
       const nowMs = Date.now();
+      if (nowMs - lastExplorationPoseAtRef.current >= SPACE_EXPLORATION_POSE_INTERVAL_MS) {
+        lastExplorationPoseAtRef.current = nowMs;
+        spaceExplorationStore.maybeActivateAt(pose.position);
+        spaceExplorationStore.dispatch(
+          {
+            type: "pose-sampled",
+            position: pose.position,
+            yawRad: pose.yawRad,
+            pitchRad: pose.pitchRad,
+          },
+          nowMs,
+        );
+      }
       if (nowMs - lastSessionPoseSaveAtRef.current >= SPACE_DAILY_RESUME_SAVE_INTERVAL_MS) {
         writeSpaceSessionPose(undefined, pose);
         lastSessionPoseSaveAtRef.current = nowMs;
@@ -273,6 +332,7 @@ export function SpaceDesktopExperience({
       flushSync(() => {
         setExhibitTarget(null);
       });
+      spaceExplorationStore.dispatch({ type: "work-opened", exhibitId: found.exhibitId }, Date.now());
       onNavigateToWork(found.exhibitId);
       if (document.pointerLockElement) {
         document.exitPointerLock();
@@ -335,6 +395,9 @@ export function SpaceDesktopExperience({
   }, [suppressNextExhibitClick]);
 
   const handleJumpNotice = useCallback((messageKey: SpaceJumpNoticeKey) => {
+    if (messageKey === "space.jumpUnlocked") {
+      spaceExplorationStore.dispatch({ type: "jump-unlocked" }, Date.now());
+    }
     setJumpHintKey(messageKey);
     setJumpHintVisible(true);
   }, []);
@@ -391,6 +454,9 @@ export function SpaceDesktopExperience({
               onToastDone={() => setToast(null)}
               rendererFailed={error !== null}
               rendererLoading={loading}
+              poseRef={latestSpacePoseRef}
+              onboardingCompleted={onboardingCompleted}
+              routeBlocked={routeBlocked}
               loadedItems={
                 bootState.items.loaded + bootState.items.failed + bootState.items.deferred
               }

@@ -1573,7 +1573,7 @@ button {
 .space-movement-debug {
   position: fixed;
   left: 14px;
-  top: 14px;
+  bottom: 14px;
   z-index: 28;
   width: min(390px, calc(100vw - 28px));
   padding: 10px 12px;
@@ -2336,5 +2336,149 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .desktop-route-loading__indicator {
     animation: none;
+  }
+}
+
+/* --- SPACE 探索提示 + 全息小地图:无框悬浮件(z-index 9:高于 canvas 装饰层,低于 topbar 下拉) --- */
+
+.space-quests {
+  position: fixed;
+  top: 68px;
+  left: 40px;
+  z-index: 9;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms;
+}
+
+.space-quests[data-visible] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.space-quests__frame {
+  position: relative;
+  min-width: 200px;
+  max-width: 340px;
+  padding: 2px 0;
+}
+
+.space-quests__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: var(--space-brand-teal);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 2px rgb(23 40 42 / 0.85),
+    0 0 14px rgb(23 40 42 / 0.5);
+}
+
+.space-quests__count {
+  color: var(--space-paper);
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.space-quests__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.space-quests__row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--space-paper);
+  opacity: 0.65;
+  font-size: 15px;
+  line-height: 1.35;
+  text-shadow:
+    0 1px 2px rgb(23 40 42 / 0.85),
+    0 0 12px rgb(23 40 42 / 0.55);
+}
+
+.space-quests__label {
+  transition: opacity 180ms ease;
+}
+
+/* 未完成:8px 空心方格 */
+.space-quests__check {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--space-paper);
+  box-sizing: border-box;
+  background: transparent;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+/* 完成:方格填充项目橙;文字粗体 35% 透明;不删除线、不重排、不隐藏 */
+.space-quests__row[data-done] {
+  opacity: 1;
+}
+
+.space-quests__row[data-done] .space-quests__check {
+  background: var(--space-signal);
+  border-color: var(--space-signal);
+}
+
+.space-quests__row[data-done] .space-quests__label {
+  opacity: 0.35;
+  font-weight: 700;
+}
+
+/* 全息小地图:无框无底无字,只有悬浮模型本体 */
+.space-minimap {
+  position: fixed;
+  top: 42px;
+  right: 40px;
+  z-index: 9;
+  width: min(376px, 25.6vw);
+  aspect-ratio: 1 / 1;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms;
+}
+
+.space-minimap[data-visible] {
+  /* 整体再做一层削弱:材质透明之外,组件级淡出,退到场景氛围里 */
+  opacity: 0.62;
+  visibility: visible;
+  transform: none;
+}
+
+.space-minimap__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-quests,
+  .space-quests__label,
+  .space-quests__check,
+  .space-minimap {
+    transition: none;
   }
 }

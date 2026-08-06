@@ -14,6 +14,21 @@ export const runtimeResourceAugmentation = {
       rendererUnavailableTitle: "Renderer unavailable",
       rendererUnavailableBody: "Unable to initialize a WebGPU or WebGL2 renderer.",
       retry: "Retry",
+      exploration: {
+        label: "EXPLORE",
+        tasks: {
+          leave_the_floor: "LEAVE THE FLOOR",
+          the_long_way: "THE LONG WAY",
+          whats_above: "WHAT'S ABOVE",
+          whats_below: "WHAT'S BELOW",
+          let_the_room_settle: "LET THE ROOM SETTLE",
+          three_encounters: "THREE ENCOUNTERS",
+          dont_look_away: "DON'T LOOK AWAY",
+          another_angle: "ANOTHER ANGLE",
+          next_scene: "NEXT SCENE",
+          beyond_the_barrier: "BEYOND THE BARRIER",
+        },
+      },
     },
   },
   zh: {
@@ -26,6 +41,21 @@ export const runtimeResourceAugmentation = {
       rendererUnavailableTitle: "渲染器不可用",
       rendererUnavailableBody: "无法初始化 WebGPU 或 WebGL2 渲染器。",
       retry: "重试",
+      exploration: {
+        label: "探索",
+        tasks: {
+          leave_the_floor: "离开地面",
+          the_long_way: "漫长路径",
+          whats_above: "头顶有什么",
+          whats_below: "脚下有什么",
+          let_the_room_settle: "等待空间安静",
+          three_encounters: "三次相遇",
+          dont_look_away: "别移开视线",
+          another_angle: "另一个角度",
+          next_scene: "下一幕",
+          beyond_the_barrier: "屏障之后",
+        },
+      },
     },
   },
 } as const;
