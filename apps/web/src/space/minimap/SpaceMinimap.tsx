@@ -1,6 +1,7 @@
 import {
   Component,
   Suspense,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -407,13 +408,16 @@ export function SpaceMinimap({
   visible: boolean;
 }) {
   const [failed, setFailed] = useState(false);
+  // 必须稳定:内联箭头每次渲染都是新身份,会把 SpaceMinimapCanvas 的
+  // 重型 effect(建模 + 初始化渲染器)反复拆建——表现为点击/悬停时画面卡顿、地图闪烁。
+  const handleFailed = useCallback(() => setFailed(true), []);
   if (failed) return null;
 
   return (
     <div className="space-minimap" data-visible={visible || undefined} aria-hidden={!visible}>
-      <SpaceMinimapErrorBoundary onFailed={() => setFailed(true)}>
+      <SpaceMinimapErrorBoundary onFailed={handleFailed}>
         <Suspense fallback={null}>
-          <SpaceMinimapCanvas poseRef={poseRef} active={visible} onFailed={() => setFailed(true)} />
+          <SpaceMinimapCanvas poseRef={poseRef} active={visible} onFailed={handleFailed} />
         </Suspense>
       </SpaceMinimapErrorBoundary>
     </div>
