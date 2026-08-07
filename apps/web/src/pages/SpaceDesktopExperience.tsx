@@ -26,9 +26,13 @@ import {
   writeSpaceDailyResume,
   type SpacePlayerPose,
 } from "../space/spaceDailyResume";
-import { readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
+import { clearSpaceSessionPose, readSpaceSessionPose, writeSpaceSessionPose } from "../space/spaceSessionPose";
 import { flushSpacePoseOnPageHide } from "../space/spacePosePageHide";
 import { spaceExplorationStore } from "../space/quests/spaceQuests";
+import {
+  fetchExhibitContentSummary,
+  pickExhibitLocalizedText,
+} from "../space/exhibitContentSummary";
 import type { SpaceBootController } from "../boot/useSpaceBootController";
 
 /** 探索提示的 pose 事件节流:≤10Hz,不进 React state。 */
@@ -53,6 +57,9 @@ type SpaceToastState = {
 function readInitialDailyResumePose(params: URLSearchParams) {
   if (params.get(SPACE_DAILY_RESUME_RESET_PARAM) === "1") {
     clearSpaceDailyResume();
+    // 会话位姿(sessionStorage)同样决定 onboardingCompleted;只清 daily resume
+    // 无法真正重走 onboarding,必须一并清掉。
+    clearSpaceSessionPose();
     return null;
   }
   return readSpaceDailyResume();
@@ -88,7 +95,7 @@ export function SpaceDesktopExperience({
   } = boot;
   const attemptId = bootState.attemptId;
   const [exhibitTarget, setExhibitTarget] = useState<ExhibitTarget | null>(null);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [manifestResult, setManifestResult] = useState<{
     attemptId: number;
     exhibits: ExhibitManifestItem[];
@@ -233,6 +240,36 @@ export function SpaceDesktopExperience({
       Date.now(),
     );
   }, [exhibitTarget]);
+
+  // 悬停展品的 title/subtitle:按需拉 content.json;目标丢失/更换在渲染期过滤
+  const [exhibitHint, setExhibitHint] = useState<{
+    exhibitId: string;
+    title: string;
+    subtitle: string;
+  } | null>(null);
+  useEffect(() => {
+    const target = exhibitTarget?.interactionKind === "exhibit" ? exhibitTarget : null;
+    if (!target) return;
+    let cancelled = false;
+    const language = i18n.resolvedLanguage ?? i18n.language;
+    fetchExhibitContentSummary(target.exhibitId).then((summary) => {
+      if (cancelled || !summary) return;
+      setExhibitHint({
+        exhibitId: target.exhibitId,
+        title: pickExhibitLocalizedText(summary.title, language),
+        subtitle: pickExhibitLocalizedText(summary.subtitle, language),
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [exhibitTarget, i18n.resolvedLanguage, i18n.language]);
+  const exhibitHintForTarget =
+    exhibitHint &&
+    exhibitTarget?.interactionKind === "exhibit" &&
+    exhibitHint.exhibitId === exhibitTarget.exhibitId
+      ? exhibitHint
+      : null;
 
   const handleSpacePoseSample = useCallback(
     (pose: SpacePlayerPose) => {
@@ -457,6 +494,7 @@ export function SpaceDesktopExperience({
               poseRef={latestSpacePoseRef}
               onboardingCompleted={onboardingCompleted}
               routeBlocked={routeBlocked}
+              exhibitHint={exhibitHintForTarget}
               loadedItems={
                 bootState.items.loaded + bootState.items.failed + bootState.items.deferred
               }

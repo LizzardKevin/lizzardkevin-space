@@ -70,6 +70,29 @@ assert.doesNotMatch(chrome, /spaceWordSourceRect/, "topbar no longer captures sp
 assert.doesNotMatch(desktop, /location\.state/, "desktop routes no longer read location state");
 assert.match(workPage, /\buseParams\b|exhibitId/);
 
+// works 详情页:双击空白返回 SPACE(壳层 opt-in;ESC 与双击共用 leaveToSpace → 指针锁恢复路径)
+assert.match(shell, /blankDoubleClickToSpace\?:\s*boolean/, "shell must expose blankDoubleClickToSpace opt-in");
+assert.match(
+  shell,
+  /const onDoubleClick = \(event: MouseEvent\) => \{[\s\S]*?leaveToSpace\(\{\s*immediate:\s*true\s*\}\);[\s\S]*?addEventListener\("dblclick", onDoubleClick\)/,
+  "shell must hand blank double-clicks to SPACE synchronously while user activation is live",
+);
+assert.match(
+  shell,
+  /options\?\.fromEscape\s*\|\|\s*options\?\.immediate\s*\|\|\s*prefersReducedMotion\(\)[\s\S]*?onNavigateToSpace/,
+  "immediate returns must bypass the GSAP completion callback before invoking the pointer-lock coordinator",
+);
+assert.match(
+  shell,
+  /target\.closest\([\s\S]*?a, button, input, select, textarea, video, canvas, img[\s\S]*?\.ark-top, \.ark-footer/,
+  "blank double-click must ignore interactive elements and page chrome",
+);
+assert.match(shell, /data-ark-lightbox/, "blank double-click must yield while the lightbox is open");
+assert(
+  (workPage.match(/blankDoubleClickToSpace/g) ?? []).length >= 2,
+  "work detail page must enable blankDoubleClickToSpace on both shell branches (loading + ready)",
+);
+
 const files = [];
 const pending = [sourceRoot];
 while (pending.length) {

@@ -111,26 +111,18 @@ test("space onboarding demo hit area targets the visible text instead of the tra
   );
 });
 
-test("space onboarding resolves localized PNG assets from current language", async () => {
+test("space onboarding signs are live text with keycaps and interactive tone config", async () => {
   const config = await importSourceModule("scenes/onboarding/spaceOnboardingConfig.ts");
-  const moveSign = config.SPACE_ONBOARDING_SIGNS.move;
 
-  assert.equal(
-    config.resolveSpaceOnboardingSignImageSrc(moveSign, "en"),
-    "/onboarding/space-onboarding-move-en.png",
-  );
-  assert.equal(
-    config.resolveSpaceOnboardingSignImageSrc(moveSign, "en-US"),
-    "/onboarding/space-onboarding-move-en.png",
-  );
-  assert.equal(
-    config.resolveSpaceOnboardingSignImageSrc(moveSign, "zh"),
-    "/onboarding/space-onboarding-move.png",
-  );
-  assert.equal(
-    config.resolveSpaceOnboardingSignImageSrc(moveSign, undefined),
-    "/onboarding/space-onboarding-move.png",
-  );
+  for (const sign of Object.values(config.SPACE_ONBOARDING_SIGNS)) {
+    assert.ok(!("imageSrc" in sign), `${sign.id} must not reference a PNG asset`);
+    assert.ok(typeof sign.textKey === "string" && sign.textKey.startsWith("space.onboarding."));
+  }
+  assert.deepEqual(config.SPACE_ONBOARDING_SIGNS.move.keycaps, ["W", "A", "S", "D"]);
+  assert.deepEqual(config.SPACE_ONBOARDING_SIGNS.esc.keycaps, ["Esc"]);
+  assert.equal(config.SPACE_ONBOARDING_SIGNS.look.tone, "interactive");
+  assert.equal(config.SPACE_ONBOARDING_SIGNS.demo.tone, "interactive");
+  assert.equal(config.SPACE_ONBOARDING_SIGNS.notice.tone, undefined, "被动说明牌不带目标标记");
 });
 
 test("space onboarding sign timing constants match the approved queue timings", async () => {
@@ -138,7 +130,7 @@ test("space onboarding sign timing constants match the approved queue timings", 
 
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_ENTER_MS, 500);
   assert.equal(visibility.SPACE_ONBOARDING_NOTICE_ENTER_MS, 260);
-  assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_MS, 950);
+  assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_MS, 320);
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_DISSOLVE_LEAD_M, 0.45);
   assert.equal(visibility.SPACE_ONBOARDING_SIGN_NEXT_DELAY_MS, 100);
   assert.equal(visibility.SPACE_ONBOARDING_NOTICE_COMPLETE_FALLBACK_MS, 0);

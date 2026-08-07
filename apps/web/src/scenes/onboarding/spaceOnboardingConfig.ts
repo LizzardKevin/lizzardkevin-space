@@ -1,5 +1,4 @@
 import { EYE_OFFSET } from "../gallery/resolveGallerySpawn.ts";
-import { publicAssetUrl } from "../../platform/publicAssets.ts";
 
 export const SPACE_ONBOARDING_DEMO_EXHIBIT_ID = "space_onboarding_demo";
 export const SPACE_ONBOARDING_LOOK_HIT_ID = "space_onboarding_look_target";
@@ -16,27 +15,19 @@ export type SpaceOnboardingStepId =
 
 export type SpaceOnboardingSignStepId = Exclude<SpaceOnboardingStepId, "focus">;
 
+/**
+ * 导览字牌(2026-08 重设计):HTML 活字,与探索 HUD 同一套字体/配色语言
+ * (paper 文本 + 墨色投影;interactive 目标加 signal 左侧竖条;按键步骤附 keycap 行)。
+ */
 export type SpaceOnboardingSign = {
   id: SpaceOnboardingSignStepId;
   textKey: string;
-  imageSrc: string;
-  imageWidthPx: number;
-  imageHeightPx: number;
-  displayWidthPx: number;
-  hitSizeM: [number, number];
   position: [number, number, number];
+  hitSizeM: [number, number];
+  tone?: "interactive";
+  keycaps?: readonly string[];
   className?: string;
 };
-
-export function resolveSpaceOnboardingSignImageSrc(
-  sign: Pick<SpaceOnboardingSign, "imageSrc">,
-  language?: string | null,
-) {
-  const imageSrc = !language?.toLowerCase().startsWith("en")
-    ? sign.imageSrc
-    : sign.imageSrc.replace(/\.png$/, "-en.png");
-  return publicAssetUrl(imageSrc);
-}
 
 export const SPACE_ONBOARDING_SPAWN: [number, number, number] = [-0.51, 36.897, -48.32];
 export const SPACE_ONBOARDING_EYE_LEVEL_Y = Number((SPACE_ONBOARDING_SPAWN[1] + EYE_OFFSET).toFixed(2));
@@ -51,10 +42,6 @@ export const SPACE_ONBOARDING_SIGNS: Record<SpaceOnboardingSignStepId, SpaceOnbo
   notice: {
     id: "notice",
     textKey: "space.onboarding.notice",
-    imageSrc: "/onboarding/space-onboarding-notice.png",
-    imageWidthPx: 1500,
-    imageHeightPx: 360,
-    displayWidthPx: 620,
     hitSizeM: [4.1, 0.95],
     position: [-0.55, SPACE_ONBOARDING_EYE_LEVEL_Y, -45.9],
     className: "space-onboarding-sign--notice",
@@ -62,53 +49,37 @@ export const SPACE_ONBOARDING_SIGNS: Record<SpaceOnboardingSignStepId, SpaceOnbo
   move: {
     id: "move",
     textKey: "space.onboarding.move",
-    imageSrc: "/onboarding/space-onboarding-move.png",
-    imageWidthPx: 1107,
-    imageHeightPx: 280,
-    displayWidthPx: 423,
     hitSizeM: [2.65, 0.66],
     position: [-0.55, SPACE_ONBOARDING_EYE_LEVEL_Y, -43.9],
+    keycaps: ["W", "A", "S", "D"],
   },
   look: {
     id: "look",
     textKey: "space.onboarding.look",
-    imageSrc: "/onboarding/space-onboarding-look.png",
-    imageWidthPx: 1176,
-    imageHeightPx: 280,
-    displayWidthPx: 454,
     hitSizeM: [2.75, 0.68],
     position: [-2.55, SPACE_ONBOARDING_EYE_LEVEL_Y, -41.8],
+    tone: "interactive",
     className: "space-onboarding-sign--side",
   },
   demo: {
     id: "demo",
     textKey: "space.onboarding.demo",
-    imageSrc: "/onboarding/space-onboarding-demo.png",
-    imageWidthPx: 1267,
-    imageHeightPx: 280,
-    displayWidthPx: 495,
     hitSizeM: [2.65, 0.62],
     position: [-0.55, SPACE_ONBOARDING_EYE_LEVEL_Y, -39.6],
+    tone: "interactive",
     className: "space-onboarding-sign--demo",
   },
   esc: {
     id: "esc",
     textKey: "space.onboarding.esc",
-    imageSrc: "/onboarding/space-onboarding-esc.png",
-    imageWidthPx: 875,
-    imageHeightPx: 280,
-    displayWidthPx: 359,
     hitSizeM: [2.1, 0.62],
     position: [1.85, SPACE_ONBOARDING_EYE_LEVEL_Y, -35.8],
+    keycaps: ["Esc"],
     className: "space-onboarding-sign--side",
   },
   relock: {
     id: "relock",
     textKey: "space.onboarding.relock",
-    imageSrc: "/onboarding/space-onboarding-relock.png",
-    imageWidthPx: 1359,
-    imageHeightPx: 280,
-    displayWidthPx: 530,
     hitSizeM: [3.35, 0.66],
     position: [1.85, SPACE_ONBOARDING_EYE_LEVEL_Y, -35.8],
     className: "space-onboarding-sign--side",
@@ -116,10 +87,6 @@ export const SPACE_ONBOARDING_SIGNS: Record<SpaceOnboardingSignStepId, SpaceOnbo
   done: {
     id: "done",
     textKey: "space.onboarding.done",
-    imageSrc: "/onboarding/space-onboarding-done.png",
-    imageWidthPx: 1206,
-    imageHeightPx: 280,
-    displayWidthPx: 470,
     hitSizeM: [2.95, 0.66],
     position: [-0.55, SPACE_ONBOARDING_EYE_LEVEL_Y, -33.6],
   },

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusDoubleClickHandler } from "../../exhibits/focusDoubleClick";
+import { DotGridAttractCanvas } from "../../scroll/DotGridAttractCanvas";
 
 export function SpaceOnboardingFocusDemo({
   onBeginDismiss,
@@ -54,17 +55,24 @@ export function SpaceOnboardingFocusDemo({
       className={`space-onboarding-focus${visible ? " space-onboarding-focus--visible" : ""}${dimOn ? " space-onboarding-focus--dim" : ""}`}
       data-cursor-tone="light"
     >
-      <button
-        type="button"
-        className={`focus-return-button${visible ? " focus-return-button--visible" : ""}`}
-        aria-label={t("focus.returnLabel")}
-        data-cursor="interactive"
-        data-cursor-tone="light"
-        onClick={() => requestClose()}
-      >
-        <span className="focus-return-button__prefix">{t("focus.returnPrefix")}</span>
-        <span className="focus-return-button__space">space</span>
-      </button>
+      {/* 与 /works 作品页同族:可交互点阵底(指针吸引) */}
+      <DotGridAttractCanvas className="space-onboarding-focus__dots" accentColor="#ef8b61" />
+
+      {/* 顶部导航条:品牌 + 返回,沿用共享返回按钮语言 */}
+      <div className="space-onboarding-focus__topbar" data-cursor-tone="light">
+        <span className="space-onboarding-focus__brand">LIZZARDKEVIN SPACE</span>
+        <button
+          type="button"
+          className={`focus-return-button${visible ? " focus-return-button--visible" : ""}`}
+          aria-label={t("focus.returnLabel")}
+          data-cursor="interactive"
+          data-cursor-tone="light"
+          onClick={() => requestClose()}
+        >
+          <span className="focus-return-button__prefix">{t("focus.returnPrefix")}</span>
+          <span className="focus-return-button__space">space</span>
+        </button>
+      </div>
 
       <button
         type="button"

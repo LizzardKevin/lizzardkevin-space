@@ -75,3 +75,15 @@ export function writeSpaceSessionPose(
     // Semantic pose restoration is optional and must never interrupt SPACE.
   }
 }
+
+type ClearableSpaceSessionStorage = Pick<Storage, "getItem" | "setItem" | "removeItem"> | null | undefined;
+
+export function clearSpaceSessionPose(
+  storage: ClearableSpaceSessionStorage = defaultSessionStorage() as ClearableSpaceSessionStorage,
+) {
+  try {
+    storage?.removeItem(SPACE_SESSION_POSE_STORAGE_KEY);
+  } catch {
+    // Silent reset: replaying onboarding should never interrupt SPACE.
+  }
+}

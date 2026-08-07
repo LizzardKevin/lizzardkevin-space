@@ -112,6 +112,7 @@ export function ScrollPageShell({
   switchTarget,
   miniTitle,
   miniTitleAfterId,
+  blankDoubleClickToSpace = false,
   onNavigateToSpace,
   children,
 }: {
@@ -124,6 +125,8 @@ export function ScrollPageShell({
   /** 滚过 miniTitleAfterId 后左上常驻的迷你标题（works 展品名） */
   miniTitle?: string;
   miniTitleAfterId?: string;
+  /** 双击页面空白处返回 SPACE（works 详情页启用）；交互元素不触发 */
+  blankDoubleClickToSpace?: boolean;
   onNavigateToSpace: SpaceReturnHandler;
   children: ReactNode;
 }) {
@@ -144,35 +147,61 @@ export function ScrollPageShell({
   useScrollTriggerRefresh(scroller);
 
   const leaveToSpace = useCallback(
-    (options?: { fromEscape?: boolean }) => {
+    (options?: { fromEscape?: boolean; immediate?: boolean }) => {
       if (leavingRef.current) return;
       leavingRef.current = true;
-      // ESC：立刻回 SPACE 并接管指针锁；延迟会导致首击落在展品上又进作品页
-      if (options?.fromEscape || prefersReducedMotion()) {
-        onNavigateToSpace(options);
+      const returnOptions = options?.fromEscape ? { fromEscape: true } : undefined;
+      // ESC 与受信任的页面手势：立刻回 SPACE 并接管指针锁；延迟会丢失浏览器的用户激活。
+      if (options?.fromEscape || options?.immediate || prefersReducedMotion()) {
+        onNavigateToSpace(returnOptions);
         return;
       }
       const root = pageRef.current;
       if (!root) {
-        onNavigateToSpace(options);
+        onNavigateToSpace(returnOptions);
         return;
       }
       const chrome = root.querySelectorAll<HTMLElement>(".ark-top, .ark-footer");
       if (chrome.length === 0) {
-        onNavigateToSpace(options);
+        onNavigateToSpace(returnOptions);
         return;
       }
       gsap.to(chrome, {
         autoAlpha: 0,
         duration: 0.12,
         ease: "power1.out",
-        onComplete: () => onNavigateToSpace(options),
+        onComplete: () => onNavigateToSpace(returnOptions),
       });
     },
     [onNavigateToSpace],
   );
 
   useEscapeToSpace(leaveToSpace);
+
+  // 双击空白返回 SPACE:仅启用的页面(works 详情);链接/按钮/媒体/图片/顶底栏不算空白。
+  // dblclick 自带用户激活；同步交给 DesktopApp，确保指针锁请求仍在同一手势内。
+  useEffect(() => {
+    if (!blankDoubleClickToSpace) return undefined;
+    const root = pageRef.current;
+    if (!root) return undefined;
+    const onDoubleClick = (event: MouseEvent) => {
+      if (event.defaultPrevented) return;
+      if (document.querySelector("[data-ark-lightbox]")) return;
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest(
+          "a, button, input, select, textarea, video, canvas, img, [role='button'], .ark-top, .ark-footer",
+        )
+      ) {
+        return;
+      }
+      event.preventDefault();
+      leaveToSpace({ immediate: true });
+    };
+    root.addEventListener("dblclick", onDoubleClick);
+    return () => root.removeEventListener("dblclick", onDoubleClick);
+  }, [blankDoubleClickToSpace, leaveToSpace]);
 
   const handleSwitch = useCallback(() => {
     if (!switchTarget) return;
