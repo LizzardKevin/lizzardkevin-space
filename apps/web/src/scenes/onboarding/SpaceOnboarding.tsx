@@ -1,20 +1,12 @@
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import {
-  SPACE_ONBOARDING_DEMO_EXHIBIT_ID,
-  SPACE_ONBOARDING_DEMO_HIT_POSITION,
-  SPACE_ONBOARDING_DEMO_HIT_SIZE,
-  SPACE_ONBOARDING_DONE_VISIBLE_MS,
-  SPACE_ONBOARDING_LOOK_HIT_ID,
-  SPACE_ONBOARDING_LOOK_HIT_POSITION,
-  SPACE_ONBOARDING_LOOK_HIT_SIZE,
-  SPACE_ONBOARDING_NOTICE_VISIBLE_MS,
+  SPACE_ONBOARDING_COMPLETE_FADE_MS,
   SPACE_ONBOARDING_SIGNS,
   type SpaceOnboardingSign,
-  type SpaceOnboardingSignStepId,
 } from "./spaceOnboardingConfig.ts";
 import {
   createInitialSpaceOnboardingState,
@@ -22,45 +14,25 @@ import {
   type SpaceOnboardingEvent,
   type SpaceOnboardingState,
 } from "./spaceOnboardingState.ts";
-import {
-  createInitialSpaceOnboardingSignQueueState,
-  enterMsForSign,
-  isSpaceOnboardingNoticeClose,
-  updateSpaceOnboardingSignQueue,
-  type SpaceOnboardingVisibleSign,
-  type SpaceOnboardingSignQueueState,
-} from "./spaceOnboardingSignVisibility.ts";
-import { useRegisterExhibitInteractionRef } from "../exhibits/exhibitInteractionRegistry";
 
-function activeSignIdForState(state: SpaceOnboardingState): SpaceOnboardingSignStepId | null {
-  if (state.completed || state.step === "focus") return null;
-  return state.step;
-}
-
-/**
- * 导览字牌:HTML 活字(探索 HUD 同款 paper/teal/signal 语言),随 i18n 即时切换。
- */
 function SpaceOnboardingSignText({
   sign,
-  status,
+  active,
+  exiting,
 }: {
   sign: SpaceOnboardingSign;
-  status: SpaceOnboardingVisibleSign["status"];
+  active: boolean;
+  exiting: boolean;
 }) {
   const { t } = useTranslation();
-  const style = {
-    "--space-onboarding-enter-ms": `${enterMsForSign(sign.id)}ms`,
-  } as CSSProperties;
   const className = [
     "space-onboarding-sign",
-    sign.className ?? "",
-    sign.tone === "interactive" ? "space-onboarding-sign--interactive" : "",
-    status === "enter" ? "space-onboarding-sign--entering" : "",
-    sign.id === "relock" ? "space-onboarding-sign--swapping" : "",
-    status === "exiting" ? "space-onboarding-sign--exiting" : "",
+    active ? "space-onboarding-sign--active" : "",
+    exiting ? "space-onboarding-sign--exiting" : "",
   ]
     .filter(Boolean)
     .join(" ");
+
   return (
     <Html
       position={sign.position}
@@ -71,7 +43,7 @@ function SpaceOnboardingSignText({
       zIndexRange={[38, 0]}
       style={{ pointerEvents: "none", userSelect: "none" }}
     >
-      <div className={className} style={style}>
+      <div className={className}>
         <span className="space-onboarding-sign__text">{t(sign.textKey)}</span>
         {sign.keycaps ? (
           <span className="space-onboarding-sign__keycaps" aria-hidden>
@@ -89,41 +61,19 @@ function SpaceOnboardingSignText({
 
 export function SpaceOnboarding({
   enabled,
-  pointerLocked,
-  focusDemoVisible,
   onCompleted,
 }: {
   enabled: boolean;
-  pointerLocked: boolean;
-  focusDemoVisible: boolean;
   onCompleted?: () => void;
 }) {
   const camera = useThree((state) => state.camera);
   const [onboardingState, setOnboardingState] =
     useState<SpaceOnboardingState>(createInitialSpaceOnboardingState);
-  const [signQueue, setSignQueue] = useState<SpaceOnboardingSignQueueState>(
-    createInitialSpaceOnboardingSignQueueState,
-  );
   const stateRef = useRef(onboardingState);
   const moveStartZRef = useRef<number | null>(null);
+  const lookStartQuaternionRef = useRef<THREE.Quaternion | null>(null);
   const completedCallbackFiredRef = useRef(false);
-  const previousFocusVisibleRef = useRef(focusDemoVisible);
-  const previousPointerLockedRef = useRef(pointerLocked);
-  const lookHitMeshRef = useRef<THREE.Mesh>(null);
-  const demoHitMeshRef = useRef<THREE.Mesh>(null);
-  const raycaster = useMemo(() => new THREE.Raycaster(), []);
-  const raycastCenter = useMemo(() => new THREE.Vector2(0, 0), []);
-
-  const demoHitUserData = useMemo(
-    () => ({
-      exhibitId: SPACE_ONBOARDING_DEMO_EXHIBIT_ID,
-    }),
-    [],
-  );
-  const lookHitUserData = useMemo(
-    () => ({ onboardingTargetId: SPACE_ONBOARDING_LOOK_HIT_ID }),
-    [],
-  );
+  const onCompletedRef = useRef(onCompleted);
 
   const dispatch = useCallback((event: SpaceOnboardingEvent) => {
     setOnboardingState((current) => {
@@ -135,81 +85,30 @@ export function SpaceOnboarding({
 
   useEffect(() => {
     stateRef.current = onboardingState;
-    if (onboardingState.step !== "move") {
-      moveStartZRef.current = null;
+    if (onboardingState.step === "look" && lookStartQuaternionRef.current === null) {
+      lookStartQuaternionRef.current = camera.quaternion.clone();
     }
   }, [camera, onboardingState]);
 
   useEffect(() => {
-    const wasVisible = previousFocusVisibleRef.current;
-    if (focusDemoVisible && !wasVisible) dispatch({ type: "demoOpened" });
-    if (!focusDemoVisible && wasVisible) dispatch({ type: "demoClosed" });
-    previousFocusVisibleRef.current = focusDemoVisible;
-  }, [dispatch, focusDemoVisible]);
-
-  useEffect(() => {
-    const wasLocked = previousPointerLockedRef.current;
-    if (!pointerLocked && wasLocked) dispatch({ type: "escUnlocked" });
-    if (pointerLocked && !wasLocked) dispatch({ type: "relocked" });
-    previousPointerLockedRef.current = pointerLocked;
-  }, [dispatch, pointerLocked]);
-
-  useEffect(() => {
-    if (onboardingState.step !== "done" || onboardingState.completed) return;
-    const timer = window.setTimeout(
-      () => dispatch({ type: "doneViewed" }),
-      SPACE_ONBOARDING_DONE_VISIBLE_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [dispatch, onboardingState.completed, onboardingState.step]);
-
-  useEffect(() => {
-    if (onboardingState.step !== "notice" || onboardingState.completed) return;
-    const timer = window.setTimeout(
-      () => dispatch({ type: "noticeViewed" }),
-      SPACE_ONBOARDING_NOTICE_VISIBLE_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [dispatch, onboardingState.completed, onboardingState.step]);
+    onCompletedRef.current = onCompleted;
+  }, [onCompleted]);
 
   useEffect(() => {
     if (!onboardingState.completed || completedCallbackFiredRef.current) return;
-    completedCallbackFiredRef.current = true;
-    onCompleted?.();
-  }, [onCompleted, onboardingState.completed]);
+    const timer = window.setTimeout(() => {
+      completedCallbackFiredRef.current = true;
+      onCompletedRef.current?.();
+    }, SPACE_ONBOARDING_COMPLETE_FADE_MS);
+    return () => window.clearTimeout(timer);
+  }, [onboardingState.completed]);
 
   useFrame(() => {
     if (!enabled) return;
     const current = stateRef.current;
-    const nowMs = performance.now();
-
-    if (demoHitMeshRef.current) {
-      demoHitMeshRef.current.quaternion.copy(camera.quaternion);
-    }
-
-    setSignQueue((currentQueue) =>
-      updateSpaceOnboardingSignQueue(currentQueue, {
-        activeSignId: activeSignIdForState(current),
-        cameraZ: camera.position.z,
-        nowMs,
-      }),
-    );
-
-    if (current.completed) return;
-
-    if (current.step === "notice") {
-      if (isSpaceOnboardingNoticeClose(camera.position.z)) {
-        dispatch({ type: "noticeViewed" });
-      }
-      return;
-    }
 
     if (current.step === "move") {
-      const moveSignVisible = signQueue.signs.some((sign) => sign.id === "move");
-      if (!moveSignVisible) return;
-      if (moveStartZRef.current === null) {
-        moveStartZRef.current = camera.position.z;
-      }
+      moveStartZRef.current ??= camera.position.z;
       dispatch({
         type: "moveProgress",
         distanceM: Math.max(0, camera.position.z - moveStartZRef.current),
@@ -218,69 +117,26 @@ export function SpaceOnboarding({
     }
 
     if (current.step === "look") {
-      if (!lookHitMeshRef.current) {
-        return;
-      }
-      raycaster.setFromCamera(raycastCenter, camera);
-      if (raycaster.intersectObject(lookHitMeshRef.current, false).length > 0) {
-        dispatch({ type: "lookTargeted" });
-      }
+      lookStartQuaternionRef.current ??= camera.quaternion.clone();
+      dispatch({
+        type: "lookChanged",
+        radians: lookStartQuaternionRef.current.angleTo(camera.quaternion),
+      });
     }
   });
-
-  const showLookHit = onboardingState.step === "look";
-  const showDemoHit = onboardingState.step === "demo";
-  useRegisterExhibitInteractionRef(demoHitMeshRef, enabled && showDemoHit);
 
   if (!enabled) return null;
 
   return (
     <group name="space_onboarding">
-      {signQueue.signs.map((visibleSign) => (
+      {Object.values(SPACE_ONBOARDING_SIGNS).map((sign) => (
         <SpaceOnboardingSignText
-          key={
-            visibleSign.id === "esc" || visibleSign.id === "relock"
-              ? "esc-relock"
-              : visibleSign.id
-          }
-          sign={SPACE_ONBOARDING_SIGNS[visibleSign.id]}
-          status={visibleSign.status}
+          key={sign.id}
+          sign={sign}
+          active={!onboardingState.completed && onboardingState.step === sign.id}
+          exiting={onboardingState.completed && sign.id === "look"}
         />
       ))}
-      {showLookHit ? (
-        <mesh
-          ref={lookHitMeshRef}
-          name="space_onboarding_look_hit"
-          position={SPACE_ONBOARDING_LOOK_HIT_POSITION}
-          userData={lookHitUserData}
-        >
-          <boxGeometry args={SPACE_ONBOARDING_LOOK_HIT_SIZE} />
-          <meshBasicMaterial
-            color="#ffffff"
-            transparent
-            opacity={0}
-            depthWrite={false}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      ) : null}
-      {showDemoHit ? (
-        <mesh
-          ref={demoHitMeshRef}
-          name="space_onboarding_demo_hit"
-          position={SPACE_ONBOARDING_DEMO_HIT_POSITION}
-          userData={demoHitUserData}
-        >
-          <planeGeometry args={SPACE_ONBOARDING_DEMO_HIT_SIZE} />
-          <meshBasicMaterial
-            color="#ffffff"
-            transparent
-            opacity={0}
-            depthWrite={false}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      ) : null}
     </group>
   );
 }

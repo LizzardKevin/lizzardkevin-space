@@ -1,6 +1,6 @@
 /**
  * SPACE 自由探索提示:任务池与随机抽取。
- * 池共 20 个槽位、当前启用 11 项(暂空槽位不进入运行时池)。
+ * 池共 20 个槽位、当前启用 9 项(暂空槽位不进入运行时池)。
  * 每次新会话从四类中各随机抽 1 项,共 4 项,再打乱显示顺序。
  */
 
@@ -14,7 +14,6 @@ export const SPACE_EXPLORATION_CATEGORIES = [
 export type SpaceExplorationCategory = (typeof SPACE_EXPLORATION_CATEGORIES)[number];
 
 export type SpaceExplorationTaskId =
-  | "leave_the_floor"
   | "the_long_way"
   | "whats_above"
   | "whats_below"
@@ -30,9 +29,8 @@ export type SpaceExplorationTaskDef = Readonly<{
   category: SpaceExplorationCategory;
 }>;
 
-/** 当前启用池:10 项(规格四张任务表各 2/3/3/2 项;槽位预留 20)。 */
+/** 当前启用池:9 项(规格四张任务表各 1/3/3/2 项;槽位预留 20)。 */
 export const SPACE_EXPLORATION_POOL: readonly SpaceExplorationTaskDef[] = [
-  { id: "leave_the_floor", category: "movement" },
   { id: "the_long_way", category: "movement" },
   { id: "whats_above", category: "observation" },
   { id: "whats_below", category: "observation" },

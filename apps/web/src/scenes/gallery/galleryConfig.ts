@@ -6,8 +6,11 @@ export const ENABLE_GALLERY_GLB = true;
 /** Set true after placing public/media/art_01.jpg (or update GALLERY_WALL_ART.imageUrl). */
 export const ENABLE_GALLERY_WALL_ART = false;
 
-/** Fallback spawn before GLB resolves (overwritten once gallery loads). */
-export const GALLERY_SPAWN: [number, number, number] = [-0.51, 36.897, -48.318];
+/** Move the authored spawn marker to the midpoint of the opening corridor at runtime. */
+export const GALLERY_SPAWN_FORWARD_OFFSET_M = 11.3;
+
+/** Fallback spawn before GLB resolves (matches the offset authored marker). */
+export const GALLERY_SPAWN: [number, number, number] = [-0.51, 36.897, -37.018];
 
 /**
  * First desktop view direction from the resolved spawn marker.

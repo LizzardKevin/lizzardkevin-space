@@ -13,12 +13,9 @@ import type { SpacePlayerPose } from "./spaceDailyResume";
 type SpaceHudProps = {
   entered: boolean;
   overlayOpen: boolean;
-  focusOpen: boolean;
   pointerLocked: boolean;
   isHovering: boolean;
   crosshairPulseNonce: number;
-  jumpHintMessage: string;
-  jumpHintVisible: boolean;
   projectorHintVisible: boolean;
   toastMessage: string | null;
   toastDurationMs: number;
@@ -35,11 +32,6 @@ type SpaceHudProps = {
   routeBlocked: boolean;
   exhibitHint: { exhibitId: string; title: string; subtitle: string } | null;
 };
-
-function JumpHint({ message, visible }: { message: string; visible: boolean }) {
-  if (!visible || !message) return null;
-  return <div className="jump-hint">{message}</div>;
-}
 
 function ProjectorControlsHint({ visible }: { visible: boolean }) {
   const { t } = useTranslation();
@@ -67,12 +59,9 @@ function SpaceBootFailure({ error, onRetry }: { error: string | null; onRetry: (
 export function SpaceHud({
   entered,
   overlayOpen,
-  focusOpen,
   pointerLocked,
   isHovering,
   crosshairPulseNonce,
-  jumpHintMessage,
-  jumpHintVisible,
   projectorHintVisible,
   toastMessage,
   toastDurationMs,
@@ -94,7 +83,6 @@ export function SpaceHud({
   const widgetsVisible =
     entered &&
     !overlayOpen &&
-    !focusOpen &&
     onboardingCompleted &&
     !routeBlocked &&
     !rendererFailed;
@@ -104,18 +92,16 @@ export function SpaceHud({
         enabled
         entered={entered}
         overlayOpen={overlayOpen}
-        focusOpen={focusOpen}
       />
       <SpaceMovementDebugOverlay />
       <Toast message={toastMessage} durationMs={toastDurationMs} onDone={onToastDone} />
-      <JumpHint message={jumpHintMessage} visible={jumpHintVisible} />
       <ProjectorControlsHint visible={projectorHintVisible} />
       <SpaceQuestHud visible={widgetsVisible} />
       <SpaceMinimap poseRef={poseRef} visible={widgetsVisible} />
       {pointerLocked ? (
         <Crosshair isHovering={isHovering} pulseNonce={crosshairPulseNonce} />
       ) : null}
-      {pointerLocked && !focusOpen && exhibitHint ? (
+      {pointerLocked && exhibitHint ? (
         <div className="space-exhibit-hint" key={exhibitHint.exhibitId}>
           <span className="space-exhibit-hint__title">{exhibitHint.title}</span>
           {exhibitHint.subtitle ? (
@@ -123,7 +109,7 @@ export function SpaceHud({
           ) : null}
         </div>
       ) : null}
-      <PlaybackBar elevated={focusOpen} />
+      <PlaybackBar />
       {rendererFailed ? <WebGPUUnavailable /> : null}
       {rendererLoading ? (
         <div

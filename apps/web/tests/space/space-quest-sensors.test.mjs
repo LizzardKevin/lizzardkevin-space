@@ -223,10 +223,9 @@ test("next_scene: 事件源过滤初始画面后,第一次真实切换即完成"
   );
 });
 
-test("beyond_the_barrier / leave_the_floor: 对应事件到达即完成", () => {
+test("beyond_the_barrier: closed-zone event completes the task", () => {
   assert.equal(
     createSpaceQuestSensor("beyond_the_barrier")({ type: "closed-zone-hint-shown", zoneId: "z1" }, 0),
     true,
   );
-  assert.equal(createSpaceQuestSensor("leave_the_floor")({ type: "jump-unlocked" }, 0), true);
 });

@@ -70,11 +70,10 @@ assert(
   "ExhibitRaycast should test registered real exhibit meshes, not every object in the scene",
 );
 assert(
-  files.desktop.includes("const spaceRenderPaused = focusSurfaceOpen || routeBlocked") &&
-    files.desktop.includes("paused={spaceRenderPaused}") &&
+  files.desktop.includes("paused={routeBlocked}") &&
     files.canvasHost.includes('frameloop={paused ? "never" : "always"}') &&
     files.canvasHost.includes("paused ? \" space-canvasWrap--disabled\" : \"\""),
-  "SPACE Canvas must pause its render loop while Focus, LizzardKevin, or DevStories overlays are open",
+  "SPACE Canvas must pause its render loop while a routed surface owns the screen",
 );
 assert(
   !files.sceneExhibitPlacement.includes("exhibitInteractionRoot") &&
@@ -102,10 +101,8 @@ assert.match(
   /0 0/,
   "projector Q/E hint should use a glowing glyph outline",
 );
-const jumpHintRule = cssRule(files.css, ".jump-hint");
-assert.equal(declarationValue(jumpHintRule, "background"), "transparent");
-assert.equal(declarationValue(jumpHintRule, "border"), "0");
-assert.match(declarationValue(jumpHintRule, "text-shadow"), /0 0/);
+assert(!files.css.includes(".jump-hint"), "the retired jump notice must not leave CSS behind");
+assert(!files.hud.includes("JumpHint"), "the retired jump notice must not remain mounted in the HUD");
 const toastRule = cssRule(files.css, ".space-toast");
 assert.equal(declarationValue(toastRule, "background"), "transparent");
 assert.equal(declarationValue(toastRule, "border"), "0");

@@ -1392,11 +1392,6 @@ button {
   pointer-events: none;
 }
 
-.playback-bar--focus-center {
-  bottom: 48px;
-  left: 50%;
-}
-
 .playback-bar__times {
   display: flex;
   justify-content: space-between;
@@ -1467,30 +1462,6 @@ button {
 
 .crosshair--active::after {
   opacity: 1;
-}
-
-.jump-hint {
-  position: fixed;
-  left: 50%;
-  top: calc(50% - 30px);
-  z-index: 21;
-  pointer-events: none;
-  user-select: none;
-  padding: 6px 8px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--space-paper);
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1;
-  -webkit-text-stroke: 0.3px rgba(243, 240, 231, 0.46);
-  text-shadow:
-    0 0 4px rgba(243, 240, 231, 0.82),
-    0 0 12px rgba(103, 194, 190, 0.64),
-    0 1px 8px rgba(16, 25, 26, 0.9);
-  white-space: nowrap;
-  transform: translateX(-50%);
 }
 
 .projector-controls-hint {
@@ -1648,10 +1619,8 @@ button {
   animation: spaceCursorClickPulse 360ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 导览字牌:HTML 活字,与探索 HUD 同语言(paper 文本 + 墨色投影 + signal 目标条);
-   无 glow、无雾层、无无限漂浮——进入即收束,退出短淡出。 */
+/* 长廊轻提示:两块世界空间活字，只在 move/look 步骤间淡入淡出。 */
 .space-onboarding-sign {
-  --space-onboarding-enter-ms: 500ms;
   position: relative;
   display: inline-flex;
   flex-direction: column;
@@ -1669,6 +1638,11 @@ button {
     0 1px 2px rgb(23 40 42 / 0.85),
     0 0 14px rgb(23 40 42 / 0.55),
     0 0 10px rgba(185, 220, 255, 0.32);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 320ms ease,
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .space-onboarding-sign__text {
@@ -1693,64 +1667,14 @@ button {
   text-transform: uppercase;
 }
 
-/* 需要对准/点击的目标牌:signal 左侧竖条,和探索 HUD 的当前任务标记同族 */
-.space-onboarding-sign--interactive {
-  padding-left: 16px;
-}
-
-.space-onboarding-sign--interactive::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 1px;
-  bottom: 1px;
-  width: 3px;
-  background: var(--space-signal);
-}
-
-.space-onboarding-sign--entering {
-  animation: spaceOnboardingTextEnter var(--space-onboarding-enter-ms) cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.space-onboarding-sign--swapping {
-  animation: spaceOnboardingTextSwap 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.space-onboarding-sign--active {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .space-onboarding-sign--exiting {
-  animation: spaceOnboardingTextExit 140ms ease forwards;
-}
-
-@keyframes spaceOnboardingTextEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes spaceOnboardingTextSwap {
-  0% {
-    opacity: 0.1;
-    transform: translateY(3px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes spaceOnboardingTextExit {
-  0% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .space-temp-blocker-notice {
@@ -1776,158 +1700,6 @@ button {
 .space-temp-blocker-notice--active {
   opacity: 1;
   transform: translate3d(0, 0, 0);
-}
-
-/* FocusDemo:与 /works 作品页同族(dark 底 + 网点底图 + 衬线大标题 + 等宽信息行) */
-.space-onboarding-focus {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: auto;
-  background: #1b1b1e;
-  opacity: 0;
-  transition: opacity 240ms ease;
-}
-
-.space-onboarding-focus--visible {
-  opacity: 1;
-}
-
-.space-onboarding-focus--dim {
-  background-color: #1b1b1e;
-  background-image: radial-gradient(rgba(213, 214, 216, 0.07) 1px, transparent 1.3px);
-  background-size: 22px 22px;
-}
-
-.space-onboarding-focus__dots {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.space-onboarding-focus__blank {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #d5d6d8;
-  cursor: default;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
-}
-
-.space-onboarding-focus__artifact {
-  display: grid;
-  justify-items: center;
-  gap: 14px;
-  max-width: min(620px, 76vw);
-  text-align: center;
-  pointer-events: none;
-  user-select: none;
-}
-
-.space-onboarding-focus__eyebrow {
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0.18em;
-  color: var(--space-brand-teal);
-}
-
-.space-onboarding-focus__title {
-  font-family: Didot, "Bodoni MT", "Times New Roman", serif;
-  font-size: clamp(32px, 4.6vw, 88px);
-  font-weight: 900;
-  line-height: 1.05;
-  color: #ececed;
-  white-space: nowrap;
-}
-
-.space-onboarding-focus__body {
-  max-width: 460px;
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  line-height: 1.7;
-  color: #a8a9ad;
-}
-
-/* FocusDemo 顶部导航条:与 /works 顶栏同族(分段、底线、等宽小字) */
-.space-onboarding-focus__topbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  height: 56px;
-  border-bottom: 1px solid rgba(213, 214, 216, 0.14);
-  pointer-events: none;
-}
-
-.space-onboarding-focus__brand {
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  border-right: 1px solid rgba(213, 214, 216, 0.14);
-  color: #ececed;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.space-onboarding-focus__topbar .focus-return-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 20px;
-  border: 0;
-  border-left: 1px solid rgba(213, 214, 216, 0.14);
-  background: transparent;
-  color: #d5d6d8;
-  font-family: inherit;
-  font-size: 13px;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  pointer-events: auto;
-  transition:
-    color 160ms ease,
-    background-color 160ms ease;
-}
-
-.space-onboarding-focus__topbar .focus-return-button:hover {
-  color: #ef8b61;
-  background: rgba(239, 139, 97, 0.08);
-}
-
-.space-onboarding-focus__topbar .focus-return-button__prefix {
-  color: rgba(168, 169, 173, 0.75);
-}
-
-.space-onboarding-focus__topbar .focus-return-button__space {
-  color: #ececed;
-  font-weight: 650;
-  text-transform: uppercase;
-}
-
-.space-onboarding-focus__exitHint {
-  position: fixed;
-  left: 50%;
-  bottom: 40px;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  color: rgba(168, 169, 173, 0.55);
-  pointer-events: none;
-  user-select: none;
-  transform: translateX(-50%);
 }
 
 .exhibit-target-label {
@@ -2222,6 +1994,7 @@ button {
     animation: none !important;
   }
 
+  .space-onboarding-sign,
   .space-cursor-layer,
   .space-cursor-dot,
   .space-cursor-halo,

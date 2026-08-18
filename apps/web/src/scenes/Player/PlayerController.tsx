@@ -38,14 +38,12 @@ import {
 } from "../../space/spaceMotionPolicy";
 
 type RigidBodyRef = React.ElementRef<typeof RigidBody>;
-export type SpaceJumpNoticeKey = "space.jumpQuiet" | "space.jumpUnlocked";
 
 const WALK_SPEED = 2.45;
 const SPRINT_SPEED = FOOTSTEP_SPRINT_SPEED;
 const JUMP_HEIGHT_M = 0.4;
 const JUMP_DURATION_SCALE = 0.8;
 const JUMP_GRAVITY_SCALE = 1 / (JUMP_DURATION_SCALE * JUMP_DURATION_SCALE);
-const JUMP_ATTEMPT_UNLOCK_COUNT = 5;
 /** Higher = reaches target speed faster when starting / changing direction. */
 const MOVE_ACCEL = 11;
 /** Higher = stops faster when keys are released. */
@@ -69,13 +67,11 @@ function initialLookAtFromSpawn(spawn: [number, number, number]): [number, numbe
 export function PlayerController({
   enabled,
   spawn,
-  onJumpNotice,
   initialPose,
   onPoseSample,
 }: {
   enabled: boolean;
   spawn?: [number, number, number];
-  onJumpNotice: (messageKey: SpaceJumpNoticeKey) => void;
   initialPose?: SpacePlayerPose | null;
   onPoseSample?: (pose: SpacePlayerPose) => void;
 }) {
@@ -97,11 +93,8 @@ export function PlayerController({
   const idlePhase = useRef(0);
   const idleRef = useRef(0);
   const enabledRef = useRef(enabled);
-  const onJumpNoticeRef = useRef(onJumpNotice);
   const onPoseSampleRef = useRef(onPoseSample);
   const spawnKeyRef = useRef<string | null>(null);
-  const jumpAttemptCountRef = useRef(0);
-  const jumpUnlockedRef = useRef(false);
   const pendingJumpRef = useRef(false);
   const jumpedThisAirRef = useRef(false);
   const landingStepArmedRef = useRef(false);
@@ -131,10 +124,6 @@ export function PlayerController({
     enabledRef.current = enabled;
     if (!enabled) lookRotationDebugRef.current = null;
   }, [enabled]);
-
-  useEffect(() => {
-    onJumpNoticeRef.current = onJumpNotice;
-  }, [onJumpNotice]);
 
   useEffect(() => {
     onPoseSampleRef.current = onPoseSample;
@@ -189,21 +178,7 @@ export function PlayerController({
       if (e.code !== "Space") return;
       e.preventDefault();
       if (e.repeat) return;
-
-      if (jumpUnlockedRef.current) {
-        pendingJumpRef.current = true;
-        return;
-      }
-
-      jumpAttemptCountRef.current += 1;
-      if (jumpAttemptCountRef.current === 1) {
-        onJumpNoticeRef.current("space.jumpQuiet");
-      }
-      if (jumpAttemptCountRef.current === JUMP_ATTEMPT_UNLOCK_COUNT) {
-        jumpUnlockedRef.current = true;
-        pendingJumpRef.current = true;
-        onJumpNoticeRef.current("space.jumpUnlocked");
-      }
+      pendingJumpRef.current = true;
     };
 
     window.addEventListener("keydown", onKeyDown);

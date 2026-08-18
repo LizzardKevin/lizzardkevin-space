@@ -3,21 +3,13 @@ import { flushSync } from "react-dom";
 import type { ExhibitTarget } from "../exhibits/exhibitTarget";
 import { loadManifest } from "../exhibits/manifest";
 import type { ExhibitManifestItem } from "../exhibits/manifest";
-import type { SpaceJumpNoticeKey } from "../scenes/Player/PlayerController";
 import type { ProjectorSlideCommand, ProjectorSlideDirection } from "../scenes/projector/projectorSlides";
-import { SPACE_ONBOARDING_DEMO_EXHIBIT_ID } from "../scenes/onboarding/spaceOnboardingConfig";
-import { SpaceOnboardingFocusDemo } from "../scenes/onboarding/SpaceOnboardingFocusDemo";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { SpaceCanvasHost } from "../space/SpaceCanvasHost";
 import { SpaceHud } from "../space/SpaceHud";
 
-import {
-  SPACE_POINTER_LOCK_FAILED_EVENT,
-  engageSpaceFirstPerson,
-  resumeSpaceFirstPersonAfterEscape,
-  resumeSpaceFirstPersonWithCursorReturn,
-} from "../space/requestSpacePointerLock";
+import { SPACE_POINTER_LOCK_FAILED_EVENT } from "../space/requestSpacePointerLock";
 import { isPermanentPointerLockFailure } from "../space/pointerLockFailure";
 import {
   clearSpaceDailyResume,
@@ -38,7 +30,6 @@ import type { SpaceBootController } from "../boot/useSpaceBootController";
 /** 探索提示的 pose 事件节流:≤10Hz,不进 React state。 */
 const SPACE_EXPLORATION_POSE_INTERVAL_MS = 100;
 
-const JUMP_HINT_VISIBLE_MS = 5000;
 const SPACE_DAILY_RESUME_SAVE_INTERVAL_MS = 1000;
 const SPACE_DAILY_RESUME_RESET_PARAM = "resetSpaceOnboarding";
 const SPACE_DEBUG_FOCUS_PARAM = "debugFocus";
@@ -103,15 +94,10 @@ export function SpaceDesktopExperience({
   const manifest = manifestResult?.attemptId === attemptId ? manifestResult.exhibits : null;
   const [toast, setToast] = useState<SpaceToastState | null>(null);
   const [crosshairPulseNonce, setCrosshairPulseNonce] = useState(0);
-  const [suppressNextExhibitClick, setSuppressNextExhibitClick] = useState(false);
-  const [jumpHintKey, setJumpHintKey] = useState<SpaceJumpNoticeKey | null>(null);
-  const [jumpHintVisible, setJumpHintVisible] = useState(false);
   const [projectorSlideCommand, setProjectorSlideCommand] =
     useState<ProjectorSlideCommand | null>(null);
   const [pointerLocked, setPointerLocked] = useState(false);
   const [pointerLockUnavailable, setPointerLockUnavailable] = useState(false);
-  const [onboardingFocusOpen, setOnboardingFocusOpen] = useState(false);
-  const [onboardingFocusClosing, setOnboardingFocusClosing] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [dailyResumePose] = useState<SpacePlayerPose | null>(() =>
     readInitialDailyResumePose(searchParams),
@@ -145,12 +131,6 @@ export function SpaceDesktopExperience({
     window.addEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, onPointerLockFailed);
     return () => window.removeEventListener(SPACE_POINTER_LOCK_FAILED_EVENT, onPointerLockFailed);
   }, []);
-
-  useEffect(() => {
-    if (!jumpHintVisible) return;
-    const timer = window.setTimeout(() => setJumpHintVisible(false), JUMP_HINT_VISIBLE_MS);
-    return () => window.clearTimeout(timer);
-  }, [jumpHintVisible, jumpHintKey]);
 
   useEffect(() => {
     const update = () => setPointerLocked(document.pointerLockElement !== null);
@@ -191,14 +171,11 @@ export function SpaceDesktopExperience({
     return () => window.clearTimeout(timer);
   }, [devFocusExhibitId, manifest, onNavigateToWork]);
 
-  const onboardingFocusVisible = onboardingFocusOpen || onboardingFocusClosing;
-  const focusSurfaceOpen = onboardingFocusVisible;
-  const spaceRenderPaused = focusSurfaceOpen || routeBlocked;
   const dailyResumeSavingEnabled = shouldSaveSpaceDailyResume({
     onboardingCompleted,
     restoredFromDailyResume: dailyResumePose !== null,
   });
-  const canSaveDailyResume = entered && dailyResumeSavingEnabled && !focusSurfaceOpen;
+  const canSaveDailyResume = entered && dailyResumeSavingEnabled;
 
   // 探索提示:新手引导完成 → armed;从 Lobby 重新进入 → 重置待重抽
   useEffect(() => {
@@ -216,7 +193,7 @@ export function SpaceDesktopExperience({
     prevEnteredRef.current = entered;
   }, [entered]);
 
-  // 静止任务的外部重置:失焦 / 打开 Overlay 或 Focus / 解除控制
+  // 静止任务的外部重置:失焦 / 打开 Overlay / 解除控制
   useEffect(() => {
     const reset = () => spaceExplorationStore.dispatch({ type: "stillness-reset" }, Date.now());
     window.addEventListener("blur", reset);
@@ -224,10 +201,10 @@ export function SpaceDesktopExperience({
   }, []);
 
   useEffect(() => {
-    if (overlay.isOverlayOpen || focusSurfaceOpen || !pointerLocked) {
+    if (overlay.isOverlayOpen || !pointerLocked) {
       spaceExplorationStore.dispatch({ type: "stillness-reset" }, Date.now());
     }
-  }, [overlay.isOverlayOpen, focusSurfaceOpen, pointerLocked]);
+  }, [overlay.isOverlayOpen, pointerLocked]);
 
   // 展品注视目标(仅展品,不含投影仪)
   useEffect(() => {
@@ -320,43 +297,8 @@ export function SpaceDesktopExperience({
     return () => window.removeEventListener("pagehide", saveBeforePageHide);
   }, [dailyResumeSavingEnabled]);
 
-  const handleBeginDismissOnboardingFocus = useCallback(
-    (opts?: { fromEscape?: boolean }) => {
-      flushSync(() => {
-        if (!opts?.fromEscape) {
-          setSuppressNextExhibitClick(true);
-        }
-        setOnboardingFocusOpen(false);
-        setOnboardingFocusClosing(true);
-      });
-      if (overlay.isOverlayOpen) return;
-      if (opts?.fromEscape) {
-        resumeSpaceFirstPersonAfterEscape({ entered, overlayOpen: overlay.isOverlayOpen });
-        return;
-      }
-      if (entered) resumeSpaceFirstPersonWithCursorReturn();
-      else engageSpaceFirstPerson({ entered, overlayOpen: false });
-    },
-    [entered, overlay.isOverlayOpen],
-  );
-
-  const handleFinishDismissOnboardingFocus = useCallback(() => {
-    setOnboardingFocusClosing(false);
-  }, []);
-
   const handleFocusExhibit = useCallback(
     (id: string) => {
-      if (id === SPACE_ONBOARDING_DEMO_EXHIBIT_ID) {
-        flushSync(() => {
-          setExhibitTarget(null);
-          setOnboardingFocusClosing(false);
-          setOnboardingFocusOpen(true);
-        });
-        if (document.pointerLockElement) {
-          document.exitPointerLock();
-        }
-        return;
-      }
       if (manifest === null) {
         setToast({ key: "space.exhibitLoading" });
         return;
@@ -378,16 +320,14 @@ export function SpaceDesktopExperience({
     [manifest, onNavigateToWork],
   );
 
-  const isHovering = exhibitTarget !== null && !focusSurfaceOpen;
+  const isHovering = exhibitTarget !== null;
   const pointerControlsEnabled =
     entered &&
     !overlay.isOverlayOpen &&
-    !focusSurfaceOpen &&
     !pointerLockUnavailable;
   const controlsEnabled =
     entered &&
     !overlay.isOverlayOpen &&
-    !focusSurfaceOpen &&
     !pointerLockUnavailable;
   const onboardingEnabled =
     entered && !pointerLockUnavailable && dailyResumePose === null && !onboardingCompleted;
@@ -427,25 +367,13 @@ export function SpaceDesktopExperience({
     setCrosshairPulseNonce((n) => n + 1);
   }, [controlsEnabled]);
 
-  const handleConsumeSuppressedClick = useCallback(() => {
-    if (suppressNextExhibitClick) setSuppressNextExhibitClick(false);
-  }, [suppressNextExhibitClick]);
-
-  const handleJumpNotice = useCallback((messageKey: SpaceJumpNoticeKey) => {
-    if (messageKey === "space.jumpUnlocked") {
-      spaceExplorationStore.dispatch({ type: "jump-unlocked" }, Date.now());
-    }
-    setJumpHintKey(messageKey);
-    setJumpHintVisible(true);
-  }, []);
-  const jumpHintMessage = jumpHintKey ? t(jumpHintKey) : "";
   const toastMessage = toast ? (toast.values ? t(toast.key, toast.values) : t(toast.key)) : null;
 
   return (
     <>
       <SpaceCanvasHost
         boot={boot}
-        paused={spaceRenderPaused}
+        paused={routeBlocked}
         initialPose={initialResumePose}
         latestPoseRef={latestSpacePoseRef}
         onCanvasReady={onCanvasReady}
@@ -459,32 +387,18 @@ export function SpaceDesktopExperience({
           projectorCommand: projectorSlideCommand,
           onFocusExhibit: handleFocusExhibit,
           onEmptyClick: handleEmptyClick,
-          suppressNextClick: suppressNextExhibitClick,
-          onConsumeSuppressedClick: handleConsumeSuppressedClick,
-          onJumpNotice: handleJumpNotice,
           onboardingEnabled,
-          pointerLocked,
-          onboardingFocusVisible,
           onPoseSample: handleSpacePoseSample,
           onOnboardingCompleted: () => setOnboardingCompleted(true),
         }}
         renderSurfaces={({ error, loading }) => (
           <>
-            {onboardingFocusVisible ? (
-              <SpaceOnboardingFocusDemo
-                onBeginDismiss={handleBeginDismissOnboardingFocus}
-                onClose={handleFinishDismissOnboardingFocus}
-              />
-            ) : null}
             <SpaceHud
               entered={entered}
               overlayOpen={overlay.isOverlayOpen}
-              focusOpen={focusSurfaceOpen}
               pointerLocked={pointerLocked}
               isHovering={isHovering}
               crosshairPulseNonce={crosshairPulseNonce}
-              jumpHintMessage={jumpHintMessage}
-              jumpHintVisible={jumpHintVisible}
               projectorHintVisible={projectorHintVisible}
               toastMessage={toastMessage}
               toastDurationMs={toast?.key === "space.pointerLockFailed" ? 5200 : 2200}

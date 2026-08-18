@@ -83,12 +83,10 @@ export function SpaceCursorOverlay({
   enabled,
   entered,
   overlayOpen,
-  focusOpen,
 }: {
   enabled: boolean;
   entered: boolean;
   overlayOpen: boolean;
-  focusOpen: boolean;
 }) {
   const [pos, setPos] = useState(() => ({
     x: typeof window === "undefined" ? 0 : window.innerWidth / 2,
@@ -104,7 +102,6 @@ export function SpaceCursorOverlay({
 
   const altHeldRef = useRef(false);
   const overlayOpenRef = useRef(overlayOpen);
-  const focusOpenRef = useRef(focusOpen);
   const enteredRef = useRef(entered);
   const returnTimerRef = useRef<number | null>(null);
   const syncTimerRef = useRef<number | null>(null);
@@ -121,23 +118,8 @@ export function SpaceCursorOverlay({
     overlayOpenRef.current = overlayOpen;
     if (overlayOpen) {
       unlockSyncPendingRef.current = false;
-      return;
-    }
-    if (!focusOpenRef.current && !document.pointerLockElement) {
-      setMode("default");
     }
   }, [overlayOpen]);
-
-  useEffect(() => {
-    focusOpenRef.current = focusOpen;
-    if (focusOpen) {
-      unlockSyncPendingRef.current = false;
-      return;
-    }
-    if (!overlayOpenRef.current && !document.pointerLockElement) {
-      setMode("default");
-    }
-  }, [focusOpen]);
 
   useEffect(() => {
     enteredRef.current = entered;
@@ -161,7 +143,7 @@ export function SpaceCursorOverlay({
         setSyncingToSystem(false);
         return;
       }
-      if (wasPointerLockedRef.current && enteredRef.current && !overlayOpenRef.current && !focusOpenRef.current) {
+      if (wasPointerLockedRef.current && enteredRef.current && !overlayOpenRef.current) {
         wasPointerLockedRef.current = false;
         unlockSyncPendingRef.current = true;
         setPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
@@ -279,7 +261,7 @@ export function SpaceCursorOverlay({
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (!isAltKey(e)) return;
-      if (!enteredRef.current || overlayOpenRef.current || focusOpenRef.current) return;
+      if (!enteredRef.current || overlayOpenRef.current) return;
       e.preventDefault();
       if (altHeldRef.current) return;
       altHeldRef.current = true;
@@ -291,7 +273,7 @@ export function SpaceCursorOverlay({
       if (!altHeldRef.current) return;
       e.preventDefault();
       altHeldRef.current = false;
-      if (!enteredRef.current || overlayOpenRef.current || focusOpenRef.current) return;
+      if (!enteredRef.current || overlayOpenRef.current) return;
       resumeSpaceFirstPerson();
       requestReturn({ target: "center" });
     };
@@ -314,7 +296,6 @@ export function SpaceCursorOverlay({
   }, [enabled, requestReturn]);
 
   const visible = enabled && (!pointerLocked || returning);
-  const effectiveCursorTone = focusOpen ? "light" : cursorTone;
   const style = useMemo(
     () =>
       ({
@@ -326,12 +307,12 @@ export function SpaceCursorOverlay({
 
   if (!enabled) return null;
 
-  const effectiveSyncingToSystem = syncingToSystem && !overlayOpen && !focusOpen;
+  const effectiveSyncingToSystem = syncingToSystem && !overlayOpen;
 
   return (
     <div
       aria-hidden
-      className={`space-cursor-layer space-cursor-layer--tone-${effectiveCursorTone}${visible ? " space-cursor-layer--visible" : ""}${entered ? "" : " space-cursor-layer--entry"}`}
+      className={`space-cursor-layer space-cursor-layer--tone-${cursorTone}${visible ? " space-cursor-layer--visible" : ""}${entered ? "" : " space-cursor-layer--entry"}`}
       style={style}
     >
       <div

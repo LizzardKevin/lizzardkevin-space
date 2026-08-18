@@ -17,7 +17,6 @@ export const runtimeResourceAugmentation = {
       exploration: {
         label: "EXPLORE",
         tasks: {
-          leave_the_floor: "LEAVE THE FLOOR",
           the_long_way: "THE LONG WAY",
           whats_above: "WHAT'S ABOVE",
           whats_below: "WHAT'S BELOW",
@@ -44,7 +43,6 @@ export const runtimeResourceAugmentation = {
       exploration: {
         label: "探索",
         tasks: {
-          leave_the_floor: "离开地面",
           the_long_way: "漫长路径",
           whats_above: "头顶有什么",
           whats_below: "脚下有什么",

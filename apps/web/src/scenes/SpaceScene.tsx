@@ -6,7 +6,7 @@ import { ExhibitTargetLabel } from "../exhibits/ExhibitTargetLabel";
 import { ExhibitRaycast } from "./exhibits/ExhibitRaycast";
 import { ExhibitInteractionRegistryProvider } from "./exhibits/ExhibitInteractionRegistryProvider";
 import { GuardedPointerLockControls } from "./controls/GuardedPointerLockControls";
-import { PlayerController, type SpaceJumpNoticeKey } from "./Player/PlayerController";
+import { PlayerController } from "./Player/PlayerController";
 import { ENABLE_GALLERY_GLB, ENABLE_GALLERY_WALL_ART, GALLERY_WALL_ART } from "./gallery/galleryConfig";
 import { GalleryModel } from "./gallery/GalleryModel";
 import { GallerySpawnProvider } from "./gallery/GallerySpawnProvider";
@@ -34,12 +34,7 @@ function SpaceSceneContent({
   projectorCommand,
   onFocusExhibit,
   onEmptyClick,
-  suppressNextClick,
-  onConsumeSuppressedClick,
-  onJumpNotice,
   onboardingEnabled,
-  pointerLocked,
-  onboardingFocusVisible,
   initialPose,
   onPoseSample,
   onOnboardingCompleted,
@@ -60,12 +55,7 @@ function SpaceSceneContent({
   projectorCommand: ProjectorSlideCommand | null;
   onFocusExhibit: (exhibitId: string) => void;
   onEmptyClick: () => void;
-  suppressNextClick: boolean;
-  onConsumeSuppressedClick: () => void;
-  onJumpNotice: (messageKey: SpaceJumpNoticeKey) => void;
   onboardingEnabled: boolean;
-  pointerLocked: boolean;
-  onboardingFocusVisible: boolean;
   initialPose?: SpacePlayerPose | null;
   onPoseSample?: (pose: SpacePlayerPose) => void;
   onOnboardingCompleted?: () => void;
@@ -91,7 +81,7 @@ function SpaceSceneContent({
           quality={quality}
           profile={profile}
           projectorExhibits={projectorExhibits}
-          projectorInteractive={controlsEnabled && !onboardingEnabled}
+          projectorInteractive={controlsEnabled}
           projectorCommand={projectorCommand}
         />
       ) : null}
@@ -136,7 +126,6 @@ function SpaceSceneContent({
       <PlayerController
         enabled={controlsEnabled}
         spawn={ENABLE_GALLERY_GLB ? spawn : undefined}
-        onJumpNotice={onJumpNotice}
         initialPose={initialPose}
         onPoseSample={onPoseSample}
       />
@@ -149,16 +138,12 @@ function SpaceSceneContent({
       <ExhibitHoverHighlight target={controlsEnabled ? exhibitTarget : null} />
       <SpaceOnboarding
         enabled={onboardingEnabled}
-        pointerLocked={pointerLocked}
-        focusDemoVisible={onboardingFocusVisible}
         onCompleted={onOnboardingCompleted}
       />
       <ExhibitRaycast
         onTargetChange={onTargetChange}
         onFocusExhibit={onFocusExhibit}
         onEmptyClick={onEmptyClick}
-        suppressNextClick={suppressNextClick}
-        onConsumeSuppressedClick={onConsumeSuppressedClick}
         enabled={controlsEnabled}
       />
     </ExhibitInteractionRegistryProvider>
@@ -180,12 +165,7 @@ export function SpaceScene({
   projectorCommand,
   onFocusExhibit,
   onEmptyClick,
-  suppressNextClick,
-  onConsumeSuppressedClick,
-  onJumpNotice,
   onboardingEnabled,
-  pointerLocked,
-  onboardingFocusVisible,
   initialPose,
   onPoseSample,
   onOnboardingCompleted,
@@ -206,12 +186,7 @@ export function SpaceScene({
   projectorCommand: ProjectorSlideCommand | null;
   onFocusExhibit: (exhibitId: string) => void;
   onEmptyClick: () => void;
-  suppressNextClick: boolean;
-  onConsumeSuppressedClick: () => void;
-  onJumpNotice: (messageKey: SpaceJumpNoticeKey) => void;
   onboardingEnabled: boolean;
-  pointerLocked: boolean;
-  onboardingFocusVisible: boolean;
   initialPose?: SpacePlayerPose | null;
   onPoseSample?: (pose: SpacePlayerPose) => void;
   onOnboardingCompleted?: () => void;
@@ -236,12 +211,7 @@ export function SpaceScene({
           projectorCommand={projectorCommand}
           onFocusExhibit={onFocusExhibit}
           onEmptyClick={onEmptyClick}
-          suppressNextClick={suppressNextClick}
-          onConsumeSuppressedClick={onConsumeSuppressedClick}
-          onJumpNotice={onJumpNotice}
           onboardingEnabled={onboardingEnabled}
-          pointerLocked={pointerLocked}
-          onboardingFocusVisible={onboardingFocusVisible}
           initialPose={initialPose}
           onPoseSample={onPoseSample}
           onOnboardingCompleted={onOnboardingCompleted}
@@ -268,12 +238,7 @@ export function SpaceScene({
       projectorCommand={projectorCommand}
       onFocusExhibit={onFocusExhibit}
       onEmptyClick={onEmptyClick}
-      suppressNextClick={suppressNextClick}
-      onConsumeSuppressedClick={onConsumeSuppressedClick}
-      onJumpNotice={onJumpNotice}
       onboardingEnabled={onboardingEnabled}
-      pointerLocked={pointerLocked}
-      onboardingFocusVisible={onboardingFocusVisible}
       initialPose={initialPose}
       onPoseSample={onPoseSample}
       onOnboardingCompleted={onOnboardingCompleted}

@@ -1,4 +1,5 @@
 import {
+  SPACE_ONBOARDING_LOOK_RADIANS,
   SPACE_ONBOARDING_MOVE_DISTANCE_M,
   type SpaceOnboardingStepId,
 } from "./spaceOnboardingConfig.ts";
@@ -9,23 +10,11 @@ export type SpaceOnboardingState = {
 };
 
 export type SpaceOnboardingEvent =
-  | { type: "noticeViewed" }
   | { type: "moveProgress"; distanceM: number }
-  | { type: "lookChanged"; radians: number }
-  | { type: "lookTargeted" }
-  | { type: "demoGateReached" }
-  | { type: "demoOpened" }
-  | { type: "demoClosed" }
-  | { type: "escUnlocked" }
-  | { type: "relocked" }
-  | { type: "doneViewed" };
+  | { type: "lookChanged"; radians: number };
 
 export function createInitialSpaceOnboardingState(): SpaceOnboardingState {
-  return { step: "notice", completed: false };
-}
-
-function next(step: SpaceOnboardingStepId): SpaceOnboardingState {
-  return { step, completed: false };
+  return { step: "move", completed: false };
 }
 
 export function reduceSpaceOnboardingState(
@@ -34,39 +23,17 @@ export function reduceSpaceOnboardingState(
 ): SpaceOnboardingState {
   if (state.completed) return state;
 
-  switch (state.step) {
-    case "notice":
-      if (event.type === "noticeViewed") return next("move");
-      return state;
-
-    case "move":
-      if (event.type === "moveProgress" && event.distanceM >= SPACE_ONBOARDING_MOVE_DISTANCE_M) {
-        return next("look");
-      }
-      return state;
-
-    case "look":
-      if (event.type === "lookTargeted") return next("demo");
-      return state;
-
-    case "demo":
-      if (event.type === "demoOpened") return next("focus");
-      return state;
-
-    case "focus":
-      if (event.type === "demoClosed") return next("esc");
-      return state;
-
-    case "esc":
-      if (event.type === "escUnlocked") return next("relock");
-      return state;
-
-    case "relock":
-      if (event.type === "relocked") return next("done");
-      return state;
-
-    case "done":
-      if (event.type === "doneViewed") return { step: "done", completed: true };
-      return state;
+  if (state.step === "move") {
+    return event.type === "moveProgress" && event.distanceM >= SPACE_ONBOARDING_MOVE_DISTANCE_M
+      ? { step: "look", completed: false }
+      : state;
   }
+
+  if (state.step === "look") {
+    return event.type === "lookChanged" && event.radians >= SPACE_ONBOARDING_LOOK_RADIANS
+      ? { step: "complete", completed: true }
+      : state;
+  }
+
+  return state;
 }

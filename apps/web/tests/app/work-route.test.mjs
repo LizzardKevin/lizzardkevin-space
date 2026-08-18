@@ -16,10 +16,11 @@ test("work route validation uses the lightweight exhibit index", () => {
 });
 
 test("the work route index derives from generated labels without importing 3D runtime", () => {
-  const generatedIds = Object.keys(generatedExhibitLabels).filter((id) => id !== "space_onboarding_demo");
+  const generatedIds = Object.keys(generatedExhibitLabels);
   assert.deepEqual(knownExhibitIds, generatedIds);
   const source = readFileSync(new URL("../../src/content/lightweightExhibitIndex.ts", import.meta.url), "utf8");
   assert.match(source, /generatedExhibitLabels/);
+  assert.doesNotMatch(source, /NON_EXHIBIT_LABEL_IDS|space_onboarding_demo/);
   for (const forbidden of ["three", "@react-three/fiber", "@react-three/rapier", ".glb", "SpaceHost"]) {
     assert.equal(source.includes(forbidden), false);
   }

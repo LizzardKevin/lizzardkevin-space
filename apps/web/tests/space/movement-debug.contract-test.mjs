@@ -13,7 +13,22 @@ assert(
 );
 assert(files.player.includes("const PLAYER_PHYSICS_TIME_STEP = 1 / 60;"), "player movement must use the fixed physics timestep");
 assert(files.player.includes("const dt = PLAYER_PHYSICS_TIME_STEP;"), "player movement must not use render-frame dt for physics");
-assert(files.player.includes("const JUMP_ATTEMPT_UNLOCK_COUNT = 5;"), "jump easter egg should unlock after five attempts");
+assert(
+  files.player.includes('if (e.code !== "Space") return;') &&
+    files.player.includes("pendingJumpRef.current = true;"),
+  "the first Space keydown must queue a jump attempt",
+);
+for (const retiredJumpToken of [
+  "JUMP_ATTEMPT_UNLOCK_COUNT",
+  "jumpAttemptCountRef",
+  "jumpUnlockedRef",
+  "SpaceJumpNoticeKey",
+  "onJumpNotice",
+  "space.jumpQuiet",
+  "space.jumpUnlocked",
+]) {
+  assert(!files.player.includes(retiredJumpToken), `player must retire ${retiredJumpToken}`);
+}
 assert(!files.player.includes("dtRef"), "player movement must not cache dynamic render dt for physics steps");
 assert(!files.player.includes("Math.min(dt, 0.05)"), "player movement must not clamp render dt for physics movement");
 assert(

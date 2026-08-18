@@ -5,7 +5,6 @@ import type { ExhibitManifestItem } from "../exhibits/manifest";
 import { GalleryRenderPipeline } from "../rendering/GalleryRenderPipeline";
 import type { RendererProfile } from "../rendering/rendererProfile";
 import { SpaceScene } from "../scenes/SpaceScene";
-import type { SpaceJumpNoticeKey } from "../scenes/Player/PlayerController";
 import { GalleryAtmosphere } from "../scenes/gallery/GalleryAtmosphere";
 import {
   ENABLE_GALLERY_RUNTIME_SHADOWS,
@@ -44,12 +43,7 @@ export type SpaceSessionProps = {
   projectorCommand: ProjectorSlideCommand | null;
   onFocusExhibit: (exhibitId: string) => void;
   onEmptyClick: () => void;
-  suppressNextClick: boolean;
-  onConsumeSuppressedClick: () => void;
-  onJumpNotice: (messageKey: SpaceJumpNoticeKey) => void;
   onboardingEnabled: boolean;
-  pointerLocked: boolean;
-  onboardingFocusVisible: boolean;
   initialPose: SpacePlayerPose | null;
   onPoseSample: (pose: SpacePlayerPose) => void;
   onOnboardingCompleted: () => void;

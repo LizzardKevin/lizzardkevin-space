@@ -12,9 +12,5 @@ export const generatedExhibitLabels = {
   "arch_3d_printing_architecture": {
     "en": "3D Printing Architecture",
     "zh": "3D Printing Architecture"
-  },
-  "space_onboarding_demo": {
-    "en": "SPACE GUIDE",
-    "zh": "SPACE 引导"
   }
 };

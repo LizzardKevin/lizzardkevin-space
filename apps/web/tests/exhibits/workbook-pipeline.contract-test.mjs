@@ -11,6 +11,8 @@ const WORKBOOK_PATH = projectPath("docs/assets/space-exhibit-index.xlsx");
 const GENERATOR_PATH = projectPath("scripts/generate-space-content.mjs");
 const DEV_STORIES_PATH = projectPath("apps/web/src/generated/devStories.generated.ts");
 const PROFILE_PATH = projectPath("apps/web/src/generated/profile.generated.ts");
+const I18N_PATH = projectPath("apps/web/src/generated/i18nResources.generated.ts");
+const EXHIBIT_LABELS_PATH = projectPath("apps/web/src/generated/exhibitLabels.generated.ts");
 const START_LOBBY_TEXT_PATH = projectPath(
   "apps/web/src/generated/startLobbyExhibitText.generated.ts",
 );
@@ -67,4 +69,27 @@ test("StartLobby gets separate bilingual title and subtitle entries from exhibit
       );
     }
   }
+});
+
+test("corridor copy generation contains only move and look onboarding keys", () => {
+  const i18n = fs.readFileSync(I18N_PATH, "utf8");
+  const labels = fs.readFileSync(EXHIBIT_LABELS_PATH, "utf8");
+  const generator = fs.readFileSync(GENERATOR_PATH, "utf8");
+
+  assert.match(i18n, /"move": "Use WASD to move"/);
+  assert.match(i18n, /"look": "Move the mouse to look"/);
+  assert.match(i18n, /"look": "移动鼠标控制视角"/);
+  for (const retired of ["jumpQuiet", "jumpUnlocked"]) {
+    assert.doesNotMatch(i18n, new RegExp(retired), `generated i18n must retire ${retired}`);
+  }
+  assert.doesNotMatch(i18n, /Aim at an exhibit|准星对准展品/);
+  const onboardingSections = [...i18n.matchAll(/"onboarding": \{([\s\S]*?)\n        \}/g)];
+  assert.equal(onboardingSections.length, 2);
+  for (const [, section] of onboardingSections) {
+    for (const retired of ["notice", "demo", "focusTitle", "focusBody", "focusExit", "esc", "relock", "done"]) {
+      assert.doesNotMatch(section, new RegExp(`"${retired}"`), `onboarding i18n must retire ${retired}`);
+    }
+  }
+  assert.doesNotMatch(labels, /space_onboarding_demo/);
+  assert.doesNotMatch(generator, /exhibitLabels\.space_onboarding_demo/);
 });

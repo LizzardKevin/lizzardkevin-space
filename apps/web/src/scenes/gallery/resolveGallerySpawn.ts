@@ -1,5 +1,9 @@
 import * as THREE from "three";
-import { GALLERY_OUTSIDE_SPAWN_DROP } from "./galleryConfig.ts";
+import {
+  GALLERY_INITIAL_LOOK_DIRECTION,
+  GALLERY_OUTSIDE_SPAWN_DROP,
+  GALLERY_SPAWN_FORWARD_OFFSET_M,
+} from "./galleryConfig.ts";
 
 export const EYE_OFFSET = 0.7;
 export const PLAYER_CAPSULE_HALF_HEIGHT = 0.65;
@@ -337,9 +341,11 @@ export function resolveGallerySpawn(root: THREE.Object3D): [number, number, numb
   if (marker) {
     const p = new THREE.Vector3();
     marker.getWorldPosition(p);
-    const floorTopY = floorTopFromSpawnAnchorRay(root, p.x, p.y, p.z) ?? floorTopUnder(root, p.x, p.z) ?? p.y;
+    const x = p.x + GALLERY_INITIAL_LOOK_DIRECTION[0] * GALLERY_SPAWN_FORWARD_OFFSET_M;
+    const z = p.z + GALLERY_INITIAL_LOOK_DIRECTION[2] * GALLERY_SPAWN_FORWARD_OFFSET_M;
+    const floorTopY = floorTopFromSpawnAnchorRay(root, x, p.y, z) ?? floorTopUnder(root, x, z) ?? p.y;
     const y = bodyYOnFloor(floorTopY);
-    if (isSpawnClear(p.x, y, p.z, innerBoxes, outer)) return [p.x, y, p.z];
+    if (isSpawnClear(x, y, z, innerBoxes, outer)) return [x, y, z];
   }
 
   const fromFloors = findClearSpawn(root);

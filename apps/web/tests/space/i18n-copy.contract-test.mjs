@@ -38,11 +38,6 @@ for (const [sourceName, source, keys] of [
     ["space.rendererUnavailableTitle", "space.rendererUnavailableBody"],
   ],
   [
-    "PlayerController",
-    player,
-    ["space.jumpQuiet", "space.jumpUnlocked"],
-  ],
-  [
     "PlaybackBar",
     playback,
     ["media.playbackProgress"],
@@ -118,18 +113,23 @@ for (const hardcoded of [
 }
 
 assert(!desktop.includes("setToast(t("), "SPACE toasts must store i18n keys, not translated strings");
-assert(!desktop.includes("setJumpHintMessage"), "SPACE jump hints must store i18n keys, not translated strings");
 assert(
   desktop.includes("const toastMessage = toast ?") &&
-    desktop.includes("t(toast.key") &&
-    desktop.includes("const jumpHintMessage = jumpHintKey ? t(jumpHintKey)"),
-  "SPACE transient messages must render through the current i18n language",
+    desktop.includes("t(toast.key"),
+  "SPACE toasts must render through the current i18n language",
 );
-assert(
-  player.includes("export type SpaceJumpNoticeKey") &&
-    player.includes('onJumpNoticeRef.current("space.jumpQuiet")') &&
-    player.includes('onJumpNoticeRef.current("space.jumpUnlocked")'),
-  "PlayerController must emit jump notice i18n keys instead of translated copy",
-);
+for (const retiredJumpToken of [
+  "SpaceJumpNoticeKey",
+  "onJumpNotice",
+  "jumpHintKey",
+  "jumpHintVisible",
+  "space.jumpQuiet",
+  "space.jumpUnlocked",
+]) {
+  assert(!player.includes(retiredJumpToken), `PlayerController must retire ${retiredJumpToken}`);
+  assert(!desktop.includes(retiredJumpToken), `SpaceDesktopExperience must retire ${retiredJumpToken}`);
+  assert(!hud.includes(retiredJumpToken), `SpaceHud must retire ${retiredJumpToken}`);
+}
+assert(!hud.includes("JumpHint"), "SpaceHud must not keep the retired jump notice surface");
 
 console.log("space i18n copy contract tests passed");

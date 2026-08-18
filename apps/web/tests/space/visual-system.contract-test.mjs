@@ -214,7 +214,7 @@ for (const selector of [
 
 assert.match(
   css,
-  /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.space-onboarding-sign,[\s\S]*?animation: none !important;[\s\S]*?\.space-cursor-dot,[\s\S]*?\.crosshair,[\s\S]*?transition: none;/,
+  /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.space-onboarding-sign,[\s\S]*?animation: none !important;[\s\S]*?\.space-onboarding-sign,[\s\S]*?\.space-cursor-dot,[\s\S]*?\.crosshair,[\s\S]*?transition: none;/,
 );
 
 console.log("SPACE visual system contract tests passed");

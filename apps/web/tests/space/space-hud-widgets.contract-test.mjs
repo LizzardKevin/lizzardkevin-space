@@ -30,7 +30,7 @@ for (const widget of ["SpaceQuestHud", "SpaceMinimap"]) {
   assert.ok(hud.includes(widget), `SpaceHud must mount ${widget}`);
 }
 assert.match(hud, /widgetsVisible/, "两个 widget 共享同一个可见性门");
-for (const gate of ["onboardingCompleted", "routeBlocked", "focusOpen", "rendererFailed"]) {
+for (const gate of ["onboardingCompleted", "routeBlocked", "rendererFailed"]) {
   assert.ok(hud.includes(gate), `SpaceHud visibility gate must include ${gate}`);
 }
 
@@ -45,10 +45,12 @@ for (const hook of [
   assert.ok(desktop.includes(hook), `SpaceDesktopExperience must dispatch ${hook}`);
 }
 assert.match(desktop, /SPACE_EXPLORATION_POSE_INTERVAL_MS\s*=\s*100/, "pose 事件必须节流到 10Hz");
-assert.ok(
-  desktop.includes('messageKey === "space.jumpUnlocked"'),
-  "leave_the_floor 必须复用既有 jump notice",
-);
+for (const retiredJumpToken of ["leave_the_floor", "jump-unlocked", "space.jumpUnlocked"]) {
+  assert.ok(!desktop.includes(retiredJumpToken), `desktop must retire ${retiredJumpToken}`);
+  assert.ok(!selection.includes(retiredJumpToken), `selection must retire ${retiredJumpToken}`);
+  assert.ok(!sensors.includes(retiredJumpToken), `sensors must retire ${retiredJumpToken}`);
+  assert.ok(!i18n.includes(retiredJumpToken), `i18n must retire ${retiredJumpToken}`);
+}
 assert.ok(desktop.includes("poseRef={latestSpacePoseRef}"), "pose ref 必须透传给 SpaceHud");
 assert.ok(!desktop.includes("questStore"), "旧 quest store 引用必须清干净");
 
@@ -91,7 +93,6 @@ assert.ok(questHud.includes('"space.exploration.label"'), "HUD 标题走 i18n");
 assert.ok(questHud.includes("space.exploration.tasks."), "任务名走 i18n 动态键");
 for (const copy of [
   "EXPLORE",
-  "LEAVE THE FLOOR",
   "THE LONG WAY",
   "WHAT'S ABOVE",
   "LET THE ROOM SETTLE",
@@ -100,7 +101,6 @@ for (const copy of [
   "ANOTHER ANGLE",
   "NEXT SCENE",
   "BEYOND THE BARRIER",
-  "离开地面",
   "漫长路径",
   "屏障之后",
 ]) {

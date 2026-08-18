@@ -434,8 +434,6 @@ function buildOutputs(rows) {
       zh: shortTitle.zh || title.zh,
     }];
   }));
-  exhibitLabels.space_onboarding_demo = { en: "SPACE GUIDE", zh: "SPACE 引导" };
-
   const startLobbyExhibitText = {
     en: exhibitRows.flatMap((row) => [
       { exhibitId: row.id, kind: "title", text: required(row, "title_en") },

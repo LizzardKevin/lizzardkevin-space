@@ -33,7 +33,7 @@ assert.match(coordinator, /routeBlocked/);
 assert.match(coordinator, /setRoutePaused\(pauseMainAudio\)/);
 assert(!coordinator.includes("usePlayback"), "route coordinator must not subscribe to unstable playback API state");
 assert.match(audioDirector, /setRoutePaused\(paused:\s*boolean\)/);
-assert.match(experience, /paused=\{spaceRenderPaused\}/);
+assert.match(experience, /paused=\{routeBlocked\}/);
 assert.match(canvasHost, /frameloop=\{paused\s*\?\s*["']never["']\s*:\s*["']always["']\}/);
 assert.match(experience, /routeBlocked/);
 assert.match(experience, /onNavigateToWork/);

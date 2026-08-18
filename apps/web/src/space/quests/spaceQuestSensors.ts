@@ -10,7 +10,6 @@ import type { SpaceExplorationTaskId } from "./spaceQuestSelection.ts";
 
 export type SpaceExplorationEvent =
   | { type: "pose-sampled"; position: [number, number, number]; yawRad: number; pitchRad: number }
-  | { type: "jump-unlocked" }
   | { type: "work-targeted"; exhibitId: string | null }
   | { type: "work-opened"; exhibitId: string }
   | { type: "work-model-dragged"; exhibitId: string; rotationDeltaDeg: number }
@@ -185,8 +184,6 @@ function createOnceOnEventSensor(type: SpaceExplorationEvent["type"]): SpaceQues
 
 export function createSpaceQuestSensor(taskId: SpaceExplorationTaskId): SpaceQuestSensor {
   switch (taskId) {
-    case "leave_the_floor":
-      return createOnceOnEventSensor("jump-unlocked");
     case "the_long_way":
       return createLongWaySensor();
     case "whats_above":

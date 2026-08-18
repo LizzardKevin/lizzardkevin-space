@@ -42,7 +42,7 @@ function seekFraction(duration: number, clientX: number, rect: DOMRect) {
   return (x / rect.width) * duration;
 }
 
-export function PlaybackBar({ elevated = false }: { elevated?: boolean }) {
+export function PlaybackBar() {
   const { t } = useTranslation();
   const { state, seekTo } = usePlayback();
   const [mounted, setMounted] = useState(false);
@@ -143,7 +143,7 @@ export function PlaybackBar({ elevated = false }: { elevated?: boolean }) {
 
   return (
     <div
-      className={`playback-bar ${visibilityClass}${elevated ? " playback-bar--focus-center" : ""}`}
+      className={`playback-bar ${visibilityClass}`}
       style={{ transitionDuration: `${PLAYBACK_BAR_REVEAL_MS}ms` }}
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}

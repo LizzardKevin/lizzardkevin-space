@@ -27,15 +27,11 @@ export function ExhibitRaycast({
   onTargetChange,
   onFocusExhibit,
   onEmptyClick,
-  suppressNextClick,
-  onConsumeSuppressedClick,
   enabled,
 }: {
   onTargetChange: (target: ExhibitTarget | null) => void;
   onFocusExhibit: (exhibitId: string) => void;
   onEmptyClick: () => void;
-  suppressNextClick: boolean;
-  onConsumeSuppressedClick: () => void;
   enabled: boolean;
 }) {
   const { camera, gl, scene } = useThree();
@@ -46,22 +42,12 @@ export function ExhibitRaycast({
   const onTargetChangeRef = useRef(onTargetChange);
   const onFocusExhibitRef = useRef(onFocusExhibit);
   const onEmptyClickRef = useRef(onEmptyClick);
-  const suppressNextClickRef = useRef(suppressNextClick);
-  const onConsumeSuppressedClickRef = useRef(onConsumeSuppressedClick);
 
   useEffect(() => {
     onTargetChangeRef.current = onTargetChange;
     onFocusExhibitRef.current = onFocusExhibit;
     onEmptyClickRef.current = onEmptyClick;
-    suppressNextClickRef.current = suppressNextClick;
-    onConsumeSuppressedClickRef.current = onConsumeSuppressedClick;
-  }, [
-    onTargetChange,
-    onFocusExhibit,
-    onEmptyClick,
-    suppressNextClick,
-    onConsumeSuppressedClick,
-  ]);
+  }, [onTargetChange, onFocusExhibit, onEmptyClick]);
 
   const raycaster = useMemo(() => {
     const caster = new THREE.Raycaster();
@@ -176,11 +162,6 @@ export function ExhibitRaycast({
       // ESC 回 SPACE 后指针锁恢复前：吞掉左键，避免误进作品详情
       if (isPendingEscapePointerLockRecovery()) return;
       const id = lastFocused.current;
-      if (suppressNextClickRef.current) {
-        suppressNextClickRef.current = false;
-        onConsumeSuppressedClickRef.current();
-        return;
-      }
       if (id) onFocusExhibitRef.current(id);
       else onEmptyClickRef.current();
     };
