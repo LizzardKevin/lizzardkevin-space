@@ -5,6 +5,7 @@ import {
   clamp,
   float,
   instancedBufferAttribute,
+  mix,
   modelViewMatrix,
   modelWorldMatrix,
   sin,
@@ -46,8 +47,8 @@ export function createParticleUniforms() {
     /** 光标附近的额外粒径放大系数:1 + cursorSizeGain × falloff,0.15 即最多放大到 1.15×。 */
     cursorSizeGain: uniform(0.15),
     /**
-     * 点粒径(世界单位直径)。0.05 为标定起点:按包围球取景的典型距离下
-     * 约为常见点云 demo 的 2 倍粒径,待目视确认后用 ?size= 调整。
+     * 点粒径(世界单位直径)。渲染闭环按"平均粒子间距 × 0.5"自动写入
+     * (Tree Habitat ≈0.05,即标定值);小模型自动收小,不再按固定世界单位放大。
      */
     pointSizeBase: uniform(0.05),
     /** 粒径补偿系数(默认 1);DPR 本身由材质内建 screenDPR 处理,不要在此重复计入。 */
@@ -79,6 +80,13 @@ export function createParticleUniforms() {
      * 由渲染闭环按"平均相邻粒子间距去零头的 2 倍"估算写入:∛(包围盒体积/点数) 截断到一位有效数 ×2。
      */
     cursorJitterAmp: uniform(0),
+    /**
+     * 解构 morph 进度 0..1:0=模型形态,1=环境散布(alts 目标)。
+     * 由渲染闭环 setMorphProgress 写入;位置 mix 与亮度衰减都由它驱动。
+     */
+    morphProgress: uniform(0),
+    /** morph 完成态的整体亮度系数(ambient 点场更稀疏,默认压到 0.55 避免喧宾夺主)。 */
+    ambientDim: uniform(0.55),
   };
 }
 
@@ -93,11 +101,14 @@ export type ParticleAttributeArrays = {
   rands: Float32Array;
   /** 每点亮度衰减 0..1(模型点为 1,地面点为径向衰减),N。 */
   fades: Float32Array;
+  /** 每点解构(ambient)目标位置 xyz 交错,3N;morphProgress=1 时的落点。 */
+  alts: Float32Array;
 };
 
 /**
- * 灰阶亮度合成:法线 lambert + 深度衰减 + 微闪 + 人浪 + 光标增亮。
- * 光标只加亮度,绝不影响位置;唯一位移是人浪的极小 y 起伏。
+ * 灰阶亮度合成:法线 lambert + 深度衰减 + 微闪 + 人浪 + 光标增亮,再按 morphProgress 压暗。
+ * 位移来源:人浪的极小 y 起伏、光标圆域内的可逆抖动,以及 morphProgress 驱动的
+ * 模型→ambient 解构 mix(光标 falloff 始终基于 morph 前位置)。
  */
 export function createParticlePointsMaterial(
   uniforms: ParticleUniforms,
@@ -122,9 +133,14 @@ export function createParticlePointsMaterial(
     new InstancedBufferAttribute(arrays.fades, 1),
     "float",
   );
+  const positionAlt = instancedBufferAttribute<"vec3">(
+    new InstancedBufferAttribute(arrays.alts, 3),
+    "vec3",
+  );
 
   // 世界系基准位置(人浪相位用它,自转时波形在空间稳定;不能用 positionWorld —
   // 那条链取的是 sprite 面片角点 attribute,不是实例位置)。
+  // 人浪相位刻意用 morph 前位置:morph 过程中各点相位不随位置推移,波形不会整体滚动。
   const worldBase = modelWorldMatrix.mul(vec4(instancePosition, 1.0)).xyz;
   const wavePhase = worldBase.x.div(uniforms.waveLength).sub(uniforms.time.mul(uniforms.waveSpeed));
   const wave = sin(wavePhase); // -1..1
@@ -168,7 +184,9 @@ export function createParticlePointsMaterial(
       .add(twinkle)
       .add(waveGlow)
       .add(cursorBoost)
-      .mul(instanceFade),
+      .mul(instanceFade)
+      // 解构到 ambient 时整体压暗(ambientDim),避免稀疏环境点场亮过模型本体。
+      .mul(mix(float(1.0), uniforms.ambientDim, uniforms.morphProgress)),
     0.0,
     1.0,
   );
@@ -187,14 +205,18 @@ export function createParticlePointsMaterial(
     jitterDir.mul(uniforms.cursorJitterAmp.mul(cursorFalloff).mul(jitterFlutter)),
   );
 
+  // 解构 morph:morphProgress 0→1 时从模型位置滑向 ambient 目标。
+  // 光标 falloff/增亮/微放大/抖动都基于 morph 前位置(displaced/jittered)计算,保持不变。
+  const finalPos = mix(jittered, positionAlt, uniforms.morphProgress);
+
+  // 亮度在顶点级计算,经 varying 进 fragment(面片四角同值,无插值误差)。
   const material = new PointsNodeMaterial();
-  material.positionNode = jittered;
+  material.positionNode = finalPos;
   // 世界单位直径 × 标定补偿;内建链再乘 screenDPR 并按 (0.5 × 视口高 / -viewZ) 做透视衰减。
   // 光标附近额外微放大(默认最多 1.15×),只改尺寸、不动位置。
   material.sizeNode = uniforms.pointSizeBase
     .mul(uniforms.pixelRatio)
     .mul(float(1.0).add(uniforms.cursorSizeGain.mul(cursorFalloff)));
-  // 亮度在顶点级计算,经 varying 进 fragment(面片四角同值,无插值误差)。
   material.colorNode = vec3(varying(brightness, "v_particleBrightness"));
   // 圆形点:alphaToCoverage + MSAA(createWebGPURenderer antialias:true);无 MSAA 时退化为方点,仍不透明。
   // 注意 three Material 的 alphaToCoverage 默认是 false,必须显式开启。

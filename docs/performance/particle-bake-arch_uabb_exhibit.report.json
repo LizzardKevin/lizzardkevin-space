@@ -1,0 +1,35 @@
+{
+  "formatVersion": 1,
+  "input": {
+    "path": "apps/web/public/exhibits/arch_uabb_exhibit/focus_arch_uabb_exhibit.glb",
+    "sha256": "c8050fcaa134658fb1a667a940ec67aa8c34efc4a6ccdcee099429f66cccd837",
+    "bytes": 6090288
+  },
+  "output": {
+    "path": "apps/web/public/particles/arch_uabb_exhibit.particles.bin",
+    "sha256": "729798cdc969e0922c0d1047823df4e8bcb024a850581d3aa716b02ca00d45c8",
+    "bytes": 1400036
+  },
+  "seed": 1234,
+  "pointCount": 50000,
+  "bounds": {
+    "min": [
+      -23.127588272094727,
+      21.973392486572266,
+      -5.1321635246276855
+    ],
+    "max": [
+      -16.39360237121582,
+      24.33189582824707,
+      1.3189938068389893
+    ]
+  },
+  "meshCount": 1,
+  "primitiveCount": 2,
+  "excludedNodes": [],
+  "degenerateTriangles": 5,
+  "warnings": [
+    "5 degenerate triangle(s) with area < 1e-12 were skipped"
+  ],
+  "generatedAt": "2026-09-02T11:09:33.268Z"
+}

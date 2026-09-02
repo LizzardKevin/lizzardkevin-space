@@ -58,9 +58,9 @@ assert.deepEqual(
   runtimeMarkupOwners
     .filter(({ source }) => /<Canvas\b/.test(source))
     .map(({ path }) => path)
-    .filter((path) => path !== "pages/works/WorkModelViewer.tsx" && !path.endsWith("StartLobby.tsx")),
+    .filter((path) => !path.endsWith("StartLobby.tsx")),
   ["space/SpaceCanvasHost.tsx"],
-  "only the main host may own a persistent Canvas; the work-page model viewer and a future mutually exclusive lobby are local exceptions",
+  "only the main host may own a persistent Canvas; a future mutually exclusive lobby is a local exception",
 );
 
 for (const [name, source] of [

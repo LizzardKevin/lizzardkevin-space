@@ -8,7 +8,9 @@ import {
   createParticleUniforms,
   type ParticleUniforms,
 } from "./particlePointsMaterial.ts";
-import { createGroundPointField } from "./groundPointField.ts";
+import { createGroundPointField, mulberry32 } from "./groundPointField.ts";
+import { createAmbientPointField, AMBIENT_DEFAULTS } from "./ambientPointField.ts";
+import { mergeModelAndGround } from "./mergeParticleArrays.ts";
 import type { PointsNodeMaterial } from "three/webgpu";
 
 const CAMERA_FOV = 45;
@@ -18,6 +20,9 @@ const CURSOR_LERP_PER_SEC = 8;
 const PARALLAX_LERP_PER_SEC = 3;
 /** 基础俯仰角:约 8.5°,镜头略俯视模型中心。 */
 const BASE_ELEVATION = Math.atan(0.15);
+/** 静态降级点场的模型段点数与 rands 种子。 */
+const FALLBACK_POINT_COUNT = 25_000;
+const FALLBACK_RAND_SEED = 0x5eed03;
 
 /**
  * 普通 canvas 上的点云渲染闭环(SpaceMinimap 先例,不经 R3F)。
@@ -40,11 +45,17 @@ export class ParticlePointsRenderer {
   private parallaxAzimuth = 0;
   private parallaxElevation = BASE_ELEVATION;
   private baseDistance = 0;
+  private baseRadius = 1;
   /** 视差角上限(rad):方位默认 30°,俯仰 15°。 */
   parallaxMaxAzimuth = MathUtils.degToRad(30);
   parallaxMaxElevation = MathUtils.degToRad(15);
   /** 程序化粒子地面开关(默认开)。 */
   groundEnabled = true;
+  /**
+   * 视觉中心水平偏移(占包围球半径的比例):>0 时点云在画面中向右移,
+   * 给左侧标题栏让位(WorkDetail 用);默认 0 = 居中(标定页)。
+   */
+  viewOffsetFactor = 0;
 
   async init(
     canvas: HTMLCanvasElement,
@@ -96,24 +107,23 @@ export class ParticlePointsRenderer {
       ? createGroundPointField(min[1] - cy - 0.01)
       : null;
     const modelCount = data.pointCount;
-    const groundCount = ground?.pointCount ?? 0;
-    const totalCount = modelCount + groundCount;
-    const positions = new Float32Array(totalCount * 3);
-    const normals = new Float32Array(totalCount * 3);
-    const rands = new Float32Array(totalCount);
-    const fades = new Float32Array(totalCount);
-    positions.set(centeredPositions);
-    normals.set(data.normals);
-    rands.set(data.rands);
-    fades.fill(1, 0, modelCount);
-    if (ground) {
-      positions.set(ground.positions, modelCount * 3);
-      normals.set(ground.normals, modelCount * 3);
-      rands.set(ground.rands, modelCount);
-      fades.set(ground.fades, modelCount);
-    }
+    // 模型点的解构目标 = ambient 大范围散布(确定性,与数据一同只生成一次)。
+    const ambient = createAmbientPointField(modelCount);
+    const merged = mergeModelAndGround(
+      { positions: centeredPositions, normals: data.normals, rands: data.rands },
+      modelCount,
+      ground,
+      ambient,
+    );
+    const totalCount = merged.totalCount;
 
-    const material = createParticlePointsMaterial(this.uniforms, { positions, normals, rands, fades });
+    const material = createParticlePointsMaterial(this.uniforms, {
+      positions: merged.positions,
+      normals: merged.normals,
+      rands: merged.rands,
+      fades: merged.fades,
+      alts: merged.alts,
+    });
     const points = new Sprite(material);
     points.count = totalCount;
     // 实例位置在着色器里注入,sprite 自身包围球覆盖不到整片点云。
@@ -129,6 +139,7 @@ export class ParticlePointsRenderer {
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
     const distance = (radius * FRAME_PADDING) / Math.tan(Math.min(vFov, hFov) / 2);
     this.baseDistance = distance;
+    this.baseRadius = radius;
     this.updateCameraPose();
     this.camera.near = Math.max(distance / 100, 0.05);
     this.camera.far = distance * 10;
@@ -143,6 +154,49 @@ export class ParticlePointsRenderer {
     const spacing = Math.cbrt(volume / data.pointCount);
     const order = 10 ** Math.floor(Math.log10(spacing));
     this.uniforms.cursorJitterAmp.value = 2 * ((Math.floor((spacing / order) * 10) / 10) * order);
+
+    // 粒径按模型自适应:平均粒子间距 × 0.5(Tree Habitat ≈0.05,即标定值;
+    // 小模型不再按固定世界单位被放大成一片糊)。
+    this.uniforms.pointSizeBase.value = spacing * 0.5;
+
+    // 新数据落地 = 组装态,重置解构进度(setFallbackField 之后再次拿到真实缓存的场景)。
+    this.uniforms.morphProgress.value = 0;
+  }
+
+  /** 解构 morph 进度 0..1(clamp;只写 uniform,0=模型形态,1=ambient 散布)。 */
+  setMorphProgress(value: number): void {
+    this.uniforms.morphProgress.value = MathUtils.clamp(value, 0, 1);
+  }
+
+  /** morph 完成态整体亮度系数(见材质 ambientDim)。 */
+  setAmbientDim(value: number): void {
+    this.uniforms.ambientDim.value = value;
+  }
+
+  /**
+   * 无粒子缓存时的静态降级:纯 ambient 散布 + 程序化地面。
+   * 构造 positions=ambient 的伪数据走正常 setParticleData 路径
+   * (alts 由 setParticleData 用同一种子再生成,与 positions 逐字节一致),
+   * 然后直接把 morphProgress 置 1,呈现解构完成态。
+   */
+  setFallbackField(pointCount: number = FALLBACK_POINT_COUNT): void {
+    const ambient = createAmbientPointField(pointCount);
+    const rand = mulberry32(FALLBACK_RAND_SEED);
+    const normals = new Float32Array(pointCount * 3);
+    const rands = new Float32Array(pointCount);
+    for (let i = 0; i < pointCount; i += 1) {
+      normals[i * 3 + 1] = 1; // 朝上,lambert 取中档亮度。
+      rands[i] = rand();
+    }
+    this.setParticleData({
+      pointCount,
+      boundsMin: [-AMBIENT_DEFAULTS.extentXz, AMBIENT_DEFAULTS.yMin, -AMBIENT_DEFAULTS.extentXz],
+      boundsMax: [AMBIENT_DEFAULTS.extentXz, AMBIENT_DEFAULTS.yMax, AMBIENT_DEFAULTS.extentXz],
+      positions: ambient.positions,
+      normals,
+      rands,
+    });
+    this.uniforms.morphProgress.value = 1;
   }
 
   /** 每帧推进:time 累加、光标平滑、视差镜头,然后渲染一帧。dt 单位秒。 */
@@ -173,15 +227,17 @@ export class ParticlePointsRenderer {
     this.renderer?.render(this.scene, this.camera);
   }
 
-  /** 按当前视差角把球面坐标写到相机,始终看向模型中心(原点)。 */
+  /** 按当前视差角把球面坐标写到相机;viewOffsetFactor 让点云在画面中右移,始终看向偏移后的焦点。 */
   private updateCameraPose(): void {
     const spherical = new Spherical(
       this.baseDistance,
       Math.PI / 2 - this.parallaxElevation,
       this.parallaxAzimuth,
     );
+    const offset = this.viewOffsetFactor * this.baseRadius;
     this.camera.position.setFromSpherical(spherical);
-    this.camera.lookAt(0, 0, 0);
+    this.camera.position.x -= offset;
+    this.camera.lookAt(-offset, 0, 0);
   }
 
   /** 光标 NDC(-1..1),y 向上。 */

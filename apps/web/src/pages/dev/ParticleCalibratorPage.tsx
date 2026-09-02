@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { loadParticleCache } from "../../particles/particleCacheLoader.ts";
+import { loadParticleCache, particleCacheUrlFor } from "../../particles/particleCacheLoader.ts";
 import { ParticlePointsRenderer } from "../../particles/ParticlePointsRenderer.ts";
 
 type HudState = {
@@ -193,9 +193,23 @@ export default function ParticleCalibratorPage() {
         if (disposed) return;
         const hook = initialParamsRef.current;
         renderer.groundEnabled = hook.ground !== 0;
-        const data = await loadParticleCache();
+        const data = await loadParticleCache(particleCacheUrlFor("arch_treehabitat"));
         if (disposed) return;
         renderer.setParticleData(data);
+        // 初始 query 参数在 renderer 就绪后统一应用(参数 effect 在挂载时先于 renderer 创建,
+        // 直接带 query 进入时不生效;这里补齐,且要覆盖 setParticleData 的自适应粒径)。
+        if (hook.size !== null) renderer.uniforms.pointSizeBase.value = hook.size;
+        if (hook.waveAmp !== null) renderer.uniforms.waveAmp.value = hook.waveAmp;
+        if (hook.waveSpeed !== null) renderer.uniforms.waveSpeed.value = hook.waveSpeed;
+        if (hook.twAmp !== null) renderer.uniforms.twinkleAmp.value = hook.twAmp;
+        if (hook.cursorGain !== null) renderer.uniforms.cursorGain.value = hook.cursorGain;
+        if (hook.cursorRadius !== null) renderer.uniforms.cursorRadius.value = hook.cursorRadius;
+        if (hook.cursorSize !== null) renderer.uniforms.cursorSizeGain.value = hook.cursorSize;
+        if (hook.depthAmp !== null) renderer.uniforms.depthFadeAmp.value = hook.depthAmp;
+        if (hook.jitter !== null) renderer.uniforms.cursorJitterAmp.value = hook.jitter;
+        if (hook.parallax !== null) {
+          renderer.parallaxMaxAzimuth = (Math.abs(hook.parallax) * Math.PI) / 180;
+        }
         setHud((prev) => ({ ...prev, pointCount: data.pointCount }));
         onResize();
         startLoop();

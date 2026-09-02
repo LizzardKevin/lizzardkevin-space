@@ -101,13 +101,11 @@ assert.equal(existsSync(projectPath("scripts/inject-space-main-anchors.mjs")), f
 
 const spaceDesktopExperience = readProjectFile("apps/web/src/pages/SpaceDesktopExperience.tsx");
 const spaceCanvasHost = readProjectFile("apps/web/src/space/SpaceCanvasHost.tsx");
-const workModelViewer = readProjectFile("apps/web/src/pages/works/WorkModelViewer.tsx");
 const galleryModel = readProjectFile("apps/web/src/scenes/gallery/GalleryModel.tsx");
 const sceneExhibitPlacement = readProjectFile("apps/web/src/scenes/exhibits/SceneExhibitPlacement.tsx");
 const spaceScene = readProjectFile("apps/web/src/scenes/SpaceScene.tsx");
 assert.match(spaceDesktopExperience, /loadExhibits/);
-assert.match(workModelViewer, /applyTreeHabitatSharedMaterials/);
-assert.match(workModelViewer, /exhibitId={exhibitId}|exhibitId,\s*url/);
+assert.match(sceneExhibitPlacement, /applyTreeHabitatSharedMaterials/);
 assert.match(spaceDesktopExperience, /manifestResolved/);
 assert.match(spaceCanvasHost, /onExhibitReady={handleExhibitReady}/);
 assert.match(sceneExhibitPlacement, /onExhibitDeferred/);

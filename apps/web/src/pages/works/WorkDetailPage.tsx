@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArkGlassTile } from "../../components/ArkGlassTile";
 import { generatedExhibitLabels } from "../../generated/exhibitLabels.generated";
@@ -23,15 +23,13 @@ import { gsap } from "../../scroll/scrollGsap";
 import "../../styles/scroll-lightbox.css";
 import { useWorkDetail } from "./useWorkDetail";
 import { useDragScroll } from "./useDragScroll";
-import { WorkModelViewer } from "./WorkModelViewer";
+import { WorkParticleHost } from "./WorkParticleHost";
 
 /**
  * /works/:exhibitId 作品详情页：通用数据驱动、条件分节。
  * 每个分节按数据存在性渲染，缺什么跳什么；未来新增展品走
  * xlsx → content:generate 管线即零代码生效。详见计划 §6.3 渲染矩阵。
  */
-
-type WorkCopy = ReturnType<typeof getScrollPagesCopy>["work"];
 
 /** hero 标题下滚时缩小淡出（与壳层 mini-title 接力吸附左上）。 */
 function useHeroTitleShrink(
@@ -78,62 +76,6 @@ function sectionNo(hasVideo: boolean, base: number): string {
   return String(hasVideo ? base + 1 : base).padStart(2, "0");
 }
 
-function WorkStage({
-  exhibitId,
-  type,
-  focusGlbUrl,
-  videoUrl,
-  posterUrl,
-  copy,
-}: {
-  exhibitId: string;
-  type: string;
-  focusGlbUrl: string;
-  videoUrl?: string;
-  posterUrl?: string;
-  copy: WorkCopy;
-}) {
-  const [modelReady, setModelReady] = useState(false);
-  const [modelFailed, setModelFailed] = useState(false);
-  const handleReady = useCallback(() => setModelReady(true), []);
-  const handleError = useCallback(() => setModelFailed(true), []);
-
-  const canShowModel = type === "model3d" && Boolean(focusGlbUrl) && !modelFailed;
-
-  return (
-    <div className="ark-wstage" id="work-stage">
-      {canShowModel ? (
-        <>
-          {!modelReady ? (
-            <div className="ark-wstage__status">{copy.modelLoading}…</div>
-          ) : null}
-          <WorkModelViewer
-            key={exhibitId}
-            exhibitId={exhibitId}
-            url={focusGlbUrl}
-            onReady={handleReady}
-            onError={handleError}
-          />
-        </>
-      ) : videoUrl ? (
-        <video
-          className="ark-wstage__media"
-          src={videoUrl}
-          controls
-          playsInline
-          preload="metadata"
-        />
-      ) : posterUrl ? (
-        <img className="ark-wstage__media" src={posterUrl} alt="" />
-      ) : null}
-      <span className="ark-wstage__badge">
-        {copy.typeLabels[type] ?? type.toUpperCase()}
-        {modelFailed ? ` · ${copy.modelFailed}` : ""}
-      </span>
-    </div>
-  );
-}
-
 export default function WorkDetailPage({
   onNavigateToSpace,
 }: {
@@ -146,31 +88,31 @@ export default function WorkDetailPage({
   const galleryRef = useDragScroll<HTMLDivElement>();
   const heroTitleRef = useRef<HTMLDivElement | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+  // 粒子宿主失败按展品 id 记录：切到下一个展品（同路由换参数）时自动重置重试。
+  const [particleFailedId, setParticleFailedId] = useState<string | null>(null);
+  const handleParticleError = useCallback(
+    (message: string) => {
+      if (import.meta.env.DEV) console.warn("[WorkDetailPage] particle host failed:", message);
+      setParticleFailedId(exhibitId ?? null);
+    },
+    [exhibitId],
+  );
 
   const anchors: ScrollPageAnchor[] = useMemo(() => {
     if (state.status !== "ready") return [];
-    const list: ScrollPageAnchor[] = [{ id: "work-stage", label: "STG" }];
+    const list: ScrollPageAnchor[] = [];
     if (state.content?.overview) list.push({ id: "work-overview", label: "OVW" });
     if (state.exhibit.media?.videoUrl) list.push({ id: "work-video", label: "VID" });
-    const images = state.exhibit.media?.imageUrls ?? [];
-    const hasModel = state.exhibit.type === "model3d" && Boolean(state.exhibit.focusGlbUrl);
-    const stageUsesPoster = !hasModel && !state.exhibit.media?.videoUrl && images.length > 0;
-    const galleryImages = stageUsesPoster ? images.slice(1) : images;
-    if (galleryImages.length >= 1) list.push({ id: "work-gallery", label: "IMG" });
+    if ((state.exhibit.media?.imageUrls ?? []).length >= 1) {
+      list.push({ id: "work-gallery", label: "IMG" });
+    }
     if (state.content?.storyHtml) list.push({ id: "work-story", label: "STY" });
     return list;
   }, [state]);
 
   const ready = state.status === "ready";
   const galleryImageCount =
-    state.status === "ready"
-      ? (() => {
-          const images = state.exhibit.media?.imageUrls ?? [];
-          const hasModel = state.exhibit.type === "model3d" && Boolean(state.exhibit.focusGlbUrl);
-          const stageUsesPoster = !hasModel && !state.exhibit.media?.videoUrl && images.length > 0;
-          return (stageUsesPoster ? images.slice(1) : images).length;
-        })()
-      : 0;
+    state.status === "ready" ? (state.exhibit.media?.imageUrls ?? []).length : 0;
   useScrubSections(
     [
       { selector: ".ark-wgallery", drift: 48, minHeightRatio: 0.4 },
@@ -181,6 +123,17 @@ export default function WorkDetailPage({
   useHeroTitleShrink(heroTitleRef, "work-hero", [ready, exhibitId]);
   useGalleryEntrance(galleryRef, galleryImageCount >= 2, [ready, exhibitId]);
 
+  // dev-only 测试钩子:?wpGoto=<sectionId> 直接跳到目标分节(无头截图/调试用)。
+  useEffect(() => {
+    if (!import.meta.env.DEV || !ready) return;
+    const target = new URLSearchParams(window.location.search).get("wpGoto");
+    if (!target) return;
+    const timer = window.setTimeout(() => {
+      document.getElementById(target)?.scrollIntoView({ behavior: "instant", block: "start" });
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [ready, exhibitId]);
+
   if (!exhibitId || state.status === "not-found") return <NotFound />;
 
   if (state.status === "loading") {
@@ -189,6 +142,7 @@ export default function WorkDetailPage({
         accent="yellow"
         pageCode={copy.work.pageCode}
         anchors={[]}
+        background="none"
         blankDoubleClickToSpace
         onNavigateToSpace={onNavigateToSpace}
       >
@@ -205,10 +159,9 @@ export default function WorkDetailPage({
   const { exhibit, content, works, index } = state;
   const images = exhibit.media?.imageUrls ?? [];
   const videoUrl = exhibit.media?.videoUrl;
-  const hasModel = exhibit.type === "model3d" && Boolean(exhibit.focusGlbUrl);
-  // 舞台已占用首图（无模型时）→ 画廊展示余下图片；有模型则画廊展示全部。
-  const stageUsesPoster = !hasModel && !videoUrl && images.length > 0;
-  const galleryImages = stageUsesPoster ? images.slice(1) : images;
+  // model3d 展品的展台由全页粒子点云承担；粒子失败时回退 video/poster 静态块。
+  const particleFailed = particleFailedId === exhibitId;
+  const showParticles = exhibit.type === "model3d" && !particleFailed;
 
   const title = resolveWorkTitle(exhibitId, content, language);
   const subtitle = content?.subtitle;
@@ -224,12 +177,18 @@ export default function WorkDetailPage({
       accent="yellow"
       pageCode={copy.work.pageCode}
       anchors={anchors}
+      background="none"
       footerMeta={[exhibitId, `${index + 1} / ${works.length}`]}
       miniTitle={title}
       miniTitleAfterId="work-hero"
       blankDoubleClickToSpace
       onNavigateToSpace={onNavigateToSpace}
     >
+      {showParticles ? (
+        <WorkParticleHost key={exhibitId} exhibitId={exhibitId} onError={handleParticleError} />
+      ) : null}
+      {/* 粒子背景下的去框体样式作用域(display:contents 不改变布局) */}
+      <div className="ark-work-page" style={{ display: "contents" }}>
       <section className="ark-hero" id="work-hero">
         <p className="ark-hero__eyebrow">
           {copy.work.eyebrow} / {exhibitId.replace(/_/g, " ").toUpperCase()}
@@ -252,17 +211,25 @@ export default function WorkDetailPage({
         <span className="ark-hero__scrollHint">{copy.scrollHint}</span>
       </section>
 
-      {hasModel || videoUrl || images.length > 0 ? (
-        <div className="ark-wstage-zone">
-          <WorkStage
-            exhibitId={exhibitId}
-            type={exhibit.type}
-            focusGlbUrl={exhibit.focusGlbUrl}
-            videoUrl={videoUrl}
-            posterUrl={images[0]}
-            copy={copy.work}
-          />
-        </div>
+      {particleFailed && (videoUrl || images.length > 0) ? (
+        <section className="ark-section">
+          <p className="ark-wgallery__hint" style={{ marginBottom: "2vh" }}>
+            {copy.work.modelFailed}
+          </p>
+          <div className="ark-wvideo">
+            {videoUrl ? (
+              <video
+                className="ark-wvideo__player"
+                src={videoUrl}
+                controls
+                playsInline
+                preload="metadata"
+              />
+            ) : (
+              <img className="ark-wvideo__player" src={images[0]} alt={title} />
+            )}
+          </div>
+        </section>
       ) : null}
 
       {content?.overview ? (
@@ -302,7 +269,7 @@ export default function WorkDetailPage({
         </section>
       ) : null}
 
-      {galleryImages.length >= 2 ? (
+      {images.length >= 2 ? (
         <div className="ark-wgallery-zone">
           <section className="ark-wgallery" id="work-gallery">
             <div className="ark-wgallery__head">
@@ -310,7 +277,7 @@ export default function WorkDetailPage({
               <span className="ark-wgallery__hint">{copy.work.dragHint} ↔</span>
             </div>
             <div className="ark-wgallery__track" ref={galleryRef}>
-              {galleryImages.map((url, i) => (
+              {images.map((url, i) => (
                 <figure className="ark-wgallery__item" key={url}>
                   <img
                     src={url}
@@ -327,15 +294,15 @@ export default function WorkDetailPage({
             </div>
           </section>
         </div>
-      ) : galleryImages.length === 1 ? (
+      ) : images.length === 1 ? (
         <section className="ark-wgallery" id="work-gallery">
           <div className="ark-wgallery__single">
             <img
-              src={galleryImages[0]}
+              src={images[0]}
               alt={title}
               loading="lazy"
               draggable={false}
-              onClick={() => setSelectedImage({ src: galleryImages[0], alt: title })}
+              onClick={() => setSelectedImage({ src: images[0], alt: title })}
               style={{ cursor: "zoom-in" }}
             />
           </div>
@@ -395,6 +362,7 @@ export default function WorkDetailPage({
           </Link>
         </nav>
       ) : null}
+      </div>
     </ScrollPageShell>
   );
 }

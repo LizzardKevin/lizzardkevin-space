@@ -41,16 +41,18 @@ assert.doesNotMatch(renderer, /setUsage\(/, "renderer must not call setUsage");
 assert.doesNotMatch(renderer, /new\s+(?:THREE\.)?BufferGeometry\b/, "renderer must not build BufferGeometry per frame");
 assert.doesNotMatch(renderer, /needsUpdate\s*=\s*true/, "renderer must not flag attribute re-uploads");
 
-// 粒子 bin URL 只允许出现在 loader(eager shell 不得直接引用)。
-assert.match(loader, /\/particles\/arch_treehabitat\.particles\.bin/);
+// 粒子缓存 URL 由 loader 的 particleCacheUrlFor 工厂统一生成;
+// 以引号/反引号开头的 /particles/ 字面路径只许留在 loader 模块内
+// (调用方一律走工厂;import 说明符里的 ../../particles/ 是模块路径,不算 URL 字面量)。
+assert.match(loader, /particleCacheUrlFor/);
 const urlReferrers = walkSource(sourceRoot)
   .filter((path) => /\.[jt]sx?$/.test(path))
-  .filter((path) => readFileSync(path, "utf8").includes("arch_treehabitat.particles.bin"))
+  .filter((path) => /["'`]\/particles\//.test(readFileSync(path, "utf8")))
   .map((path) => path.slice(sourceRoot.length + 1).replaceAll("\\", "/"));
 assert.deepEqual(
   urlReferrers,
   ["particles/particleCacheLoader.ts"],
-  "particle cache URL must stay inside the loader module",
+  "particle cache URL literals must stay inside the loader module",
 );
 assert.doesNotMatch(desktop, /\/particles\//, "eager shell must not reference the particle bin");
 

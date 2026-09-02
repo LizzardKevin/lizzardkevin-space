@@ -11,8 +11,8 @@ const GROUND_RADIUS = 60;
 const GROUND_POINT_COUNT = 25_000;
 const GROUND_SEED = 0x5eed01;
 
-/** mulberry32:与标定页/采样器同款的确定性 PRNG。 */
-function mulberry32(seed: number) {
+/** mulberry32:与标定页/采样器同款的确定性 PRNG(ambient 点场也共用它,勿再复制)。 */
+export function mulberry32(seed: number) {
   let state = seed >>> 0;
   return () => {
     state = (state + 0x6d2b79f5) >>> 0;

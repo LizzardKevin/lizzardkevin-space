@@ -97,11 +97,13 @@
   left: 0;
   top: 0;
   z-index: 101;
-  width: 6px;
-  height: 6px;
+  width: 12px;
+  height: 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.66);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--ark-accent) 45%, transparent);
+  background: rgba(255, 255, 255, 0.22);
+  /* 指针本身的提示色 outline(随各页 --ark-accent 变化) */
+  border: 1.5px solid color-mix(in srgb, var(--ark-accent) 75%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--ark-accent) 40%, transparent);
   pointer-events: none;
   opacity: 0;
   transition: opacity 160ms ease, width 180ms ease, height 180ms ease,
@@ -1030,74 +1032,13 @@
 
 /* ---------- /works/:id ---------- */
 
-/* 所有 works 顶层模块共享同一版心与 gutter 内距，可见左右边缘严格对齐。
-   舞台 zone 同时是吸附区间：sticky 在自定义滚动容器内原生工作。 */
-.ark-wstage-zone {
-  position: relative;
-  width: 100%;
-  max-width: var(--ark-content-frame);
-  margin: 6vh auto 0;
-  padding-inline: var(--ark-gutter);
-  height: 190vh;
-}
-
-.ark-wstage {
-  position: sticky;
-  top: 12vh;
-  width: 100%;
-  height: 74vh;
-  min-height: 420px;
-  overflow: hidden;
-}
-
+/* 所有 works 顶层模块共享同一版心与 gutter 内距，可见左右边缘严格对齐。 */
 .ark-wgallery-zone {
   position: relative;
   width: 100%;
   max-width: var(--ark-content-frame);
   margin-inline: auto;
   padding-inline: var(--ark-gutter);
-}
-
-.ark-wstage__canvas {
-  position: absolute;
-  inset: 0;
-}
-
-.ark-wstage__status {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: grid;
-  place-items: center;
-  font-family: var(--ark-mono);
-  font-size: 12px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ark-faint);
-  background: var(--ark-bg-deep);
-}
-
-.ark-wstage__badge {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  z-index: 4;
-  font-family: var(--ark-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ark-dim);
-  background: rgba(20, 20, 22, 0.72);
-  border: 1px solid var(--ark-line);
-  padding: var(--ark-gap-1) var(--ark-gap-2);
-}
-
-.ark-wstage__media {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .ark-wgallery {
@@ -1387,6 +1328,71 @@
   color: var(--ark-bright);
   font-family: var(--ark-sans);
   font-weight: 700;
+}
+
+/* ---------- WorkDetail 粒子背景:去框体 + 玻璃导航重排(仅 .ark-work-page 作用域) ---------- */
+
+/* Hero 版式:内容从底部锚定改为左上——标题在顶栏下方左区,数据带收在其下方左侧 */
+.ark-work-page .ark-hero {
+  justify-content: flex-start;
+  padding-top: calc(var(--ark-topbar-h) + 7vh);
+}
+
+/* 标题与副标题限宽左栏并略收字号,避让画面中央的粒子模型 */
+.ark-work-page .ark-hero__title {
+  max-width: 40vw;
+  font-size: clamp(40px, 5.4vw, 96px);
+}
+
+.ark-work-page .ark-hero__subtitle {
+  max-width: min(40vw, 62ch);
+}
+
+.ark-work-page .ark-hero__meta {
+  max-width: 640px;
+}
+
+/* 分节序号:去框,保留 accent 等宽数字 */
+.ark-work-page .ark-section-head__number {
+  border: none;
+  padding: 0;
+}
+
+/* 标签 chips:去框,accent 中点分隔,靠留白成组 */
+.ark-work-page .ark-chip {
+  border: none;
+  padding: 5px 0;
+}
+
+.ark-work-page .ark-chip-row { gap: 6px; }
+
+.ark-work-page .ark-chip + .ark-chip::before {
+  content: "·";
+  color: var(--ark-accent);
+  margin-right: 6px;
+}
+
+/* 数据带:去格线,只留顶部一条细规线,靠留白分栏 */
+.ark-work-page .ark-datastrip {
+  border: none;
+  border-top: 1px solid var(--ark-line);
+}
+
+.ark-work-page .ark-datastrip__item {
+  border: none;
+  padding: 16px 24px 16px 0;
+}
+
+/* 上一件/下一件:保留雾化玻璃质感,大卡片改为单行细条 */
+.ark-work-page .ark-wnav__glass .ark-glass-tile__pad {
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--ark-gap-3);
+  padding: var(--ark-gap-3) var(--ark-gap-4);
+}
+
+.ark-work-page .ark-wnav__title {
+  font-size: clamp(17px, 1.8vw, 24px);
 }
 
 /* ---------- 响应式守卫（桌面优先，窄屏不破版） ---------- */

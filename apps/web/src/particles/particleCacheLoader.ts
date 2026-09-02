@@ -9,7 +9,20 @@ import { publicAssetUrl } from "../platform/publicAssets.ts";
  *   36..  pointCount × 7 × f32:px,py,pz,nx,ny,nz,rand
  * 离线采样器:scripts/bake-particle-visual-cache.mjs。
  */
-export const PARTICLE_CACHE_URL = publicAssetUrl("/particles/arch_treehabitat.particles.bin");
+
+const EXHIBIT_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+
+/**
+ * 按展品 id 拼粒子缓存 URL(经 publicAssetUrl 套部署 base)。
+ * 例:particleCacheUrlFor("arch_treehabitat") → /particles/arch_treehabitat.particles.bin。
+ * exhibitId 只允许 [A-Za-z0-9_-],防止路径注入。
+ */
+export function particleCacheUrlFor(exhibitId: string): string {
+  if (!EXHIBIT_ID_PATTERN.test(exhibitId)) {
+    throw new Error(`Invalid particle cache exhibit id: "${exhibitId}"`);
+  }
+  return publicAssetUrl(`/particles/${exhibitId}.particles.bin`);
+}
 
 const MAGIC = "PVB1";
 const FORMAT_VERSION = 1;
@@ -28,7 +41,7 @@ export type ParticleCacheData = Readonly<{
   rands: Float32Array;
 }>;
 
-export async function loadParticleCache(url: string = PARTICLE_CACHE_URL): Promise<ParticleCacheData> {
+export async function loadParticleCache(url: string): Promise<ParticleCacheData> {
   let response: Response;
   try {
     response = await fetch(url);

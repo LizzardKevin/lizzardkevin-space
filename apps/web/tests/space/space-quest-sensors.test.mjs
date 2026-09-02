@@ -205,15 +205,6 @@ test("dont_look_away: 目标只在进入时通知一次,持续注视由 pose 采
   assert.ok(done, "ExhibitRaycast 不重复通知稳定目标时,pose 流仍必须推进 30s 注视计时");
 });
 
-test("another_angle: 单击不产生事件;有效拖拽事件直接完成", () => {
-  const sensor = createSpaceQuestSensor("another_angle");
-  assert.equal(sensor({ type: "work-targeted", exhibitId: "x" }, 1_000), false, "单击/注视不算拖拽");
-  assert.equal(
-    sensor({ type: "work-model-dragged", exhibitId: "x", rotationDeltaDeg: 6 }, 1_100),
-    true,
-  );
-});
-
 test("next_scene: 事件源过滤初始画面后,第一次真实切换即完成", () => {
   const sensor = createSpaceQuestSensor("next_scene");
   assert.equal(
