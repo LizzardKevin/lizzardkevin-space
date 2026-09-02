@@ -5,6 +5,8 @@ export const APP_ROUTE_PATHS = {
   work: "/works/:exhibitId",
   profile: "/profile",
   devStories: "/devstories",
+  /** dev-only:DesktopApp 里以 import.meta.env.DEV 门控注册,production 落 NotFound。 */
+  devParticleCalibrator: "/dev/particle-calibrator",
 } as const;
 
 export type AppRoute =
@@ -12,6 +14,7 @@ export type AppRoute =
   | { kind: "work"; exhibitId: string }
   | { kind: "profile" }
   | { kind: "devstories" }
+  | { kind: "dev-particle-calibrator" }
   | { kind: "space-alias" }
   | { kind: "profile-alias" }
   | { kind: "not-found" };
@@ -32,6 +35,7 @@ export function resolveAppRoute(pathname: string): AppRoute {
   }
   if (pathname === APP_ROUTE_PATHS.profile) return { kind: "profile" };
   if (pathname === APP_ROUTE_PATHS.devStories) return { kind: "devstories" };
+  if (pathname === APP_ROUTE_PATHS.devParticleCalibrator) return { kind: "dev-particle-calibrator" };
   if (pathname === "/space") return { kind: "space-alias" };
   if (pathname === "/lizzardkevin") return { kind: "profile-alias" };
   return { kind: "not-found" };

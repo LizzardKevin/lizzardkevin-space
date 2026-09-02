@@ -43,6 +43,7 @@ const DesktopTopBar = lazy(() =>
 );
 const ArchiveHub = lazy(() => import("../pages/archive/ArchiveHub"));
 const WorkDetailPage = lazy(() => import("../pages/works/WorkDetailPage"));
+const ParticleCalibratorPage = lazy(() => import("../pages/dev/ParticleCalibratorPage"));
 
 function DesktopRouteLoading() {
   return (
@@ -221,6 +222,16 @@ export default function DesktopApp() {
                 </Suspense>
               }
             />
+            {import.meta.env.DEV ? (
+              <Route
+                path="/dev/particle-calibrator"
+                element={
+                  <Suspense fallback={<DesktopRouteLoading />}>
+                    <ParticleCalibratorPage />
+                  </Suspense>
+                }
+              />
+            ) : null}
             <Route path="/space" element={<SpaceAliasRoute />} />
             <Route path="/lizzardkevin" element={<ProfileAliasRoute />} />
             <Route path="*" element={<NotFound />} />
