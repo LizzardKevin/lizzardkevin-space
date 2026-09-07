@@ -109,6 +109,11 @@ async function withMockedPointerLockBrowser(requestPointerLockWithRawFallback, r
       ...detail,
       type,
     });
+    const dispatchDocumentEvent = (type, detail = {}) => {
+      for (const listener of [...(listeners.get(`document:${type}`) ?? [])]) {
+        listener({ ...detail, type });
+      }
+    };
     const runTimer = (timerId) => {
       const timer = timers[timerId - 1];
       if (!timer || timer.cancelled || timer.ran) return false;
@@ -123,7 +128,9 @@ async function withMockedPointerLockBrowser(requestPointerLockWithRawFallback, r
       activeTimerCount: () => timers.filter((timer) => !timer.cancelled && !timer.ran).length,
       canvas,
       cursorReturns,
+      dispatchDocumentEvent,
       dispatchWindowEvent,
+      document: globals.document,
       events,
       listenerCount: (type) => listeners.get(type)?.size ?? 0,
       microtasks,
@@ -323,6 +330,101 @@ test("ordinary Escape keyup issues one correlated pointer-lock request", async (
 
       assert.equal(pointerLockCalls.length, 1);
       assert.deepEqual(events.map((event) => event.detail.requestId), [701]);
+      assert.equal(listenerCount("keyup"), 0);
+      assert.equal(listenerCount("blur"), 0);
+      assert.equal(listenerCount("pagehide"), 0);
+    },
+  );
+});
+
+test("a rejected Escape keyup request is retried on each pointerdown until the lock holds", async () => {
+  const pointerLockCalls = [];
+  await withMockedPointerLockBrowser(
+    (canvas, onError) => {
+      pointerLockCalls.push(canvas);
+      onError("mock rejection");
+    },
+    ({ dispatchWindowEvent, events, listenerCount, pointerLock, runAllTimers }) => {
+      pointerLock.resumeSpaceFirstPersonAfterEscape(
+        { entered: true, overlayOpen: false },
+        801,
+      );
+      dispatchWindowEvent("keyup", { key: "Escape" });
+      // Chrome 拒绝 ESC keyup 当帧的请求(无用户激活):此时武装 pointerdown 兜底。
+      assert.equal(pointerLockCalls.length, 1);
+      assert.equal(pointerLock.isPendingEscapePointerLockRecovery(), true);
+      assert.equal(listenerCount("pointerdown"), 1);
+
+      dispatchWindowEvent("pointerdown", { button: 0 });
+      assert.equal(pointerLockCalls.length, 2, "a real pointer gesture retries the lock");
+      assert.equal(
+        pointerLock.isPendingEscapePointerLockRecovery(),
+        true,
+        "pending keeps guarding exhibit clicks until the lock actually holds",
+      );
+
+      dispatchWindowEvent("pointerdown", { button: 0 });
+      assert.equal(pointerLockCalls.length, 3, "each real gesture retries while pending");
+      runAllTimers();
+      assert.deepEqual(
+        events.map((event) => event.detail.requestId),
+        [801, 801, 801],
+        "every correlated failure stays on the same request id",
+      );
+      assert.equal(pointerLock.isPendingEscapePointerLockRecovery(), false);
+      dispatchWindowEvent("pointerdown", { button: 0 });
+      assert.equal(pointerLockCalls.length, 3, "an expired fallback never retries");
+      assert.equal(listenerCount("keyup"), 0);
+      assert.equal(listenerCount("pointerdown"), 0);
+      assert.equal(listenerCount("blur"), 0);
+      assert.equal(listenerCount("pagehide"), 0);
+    },
+  );
+});
+
+test("a successful lock during Escape recovery disarms the pointerdown fallback", async () => {
+  const pointerLockCalls = [];
+  await withMockedPointerLockBrowser(
+    (canvas) => pointerLockCalls.push(canvas),
+    ({ canvas, dispatchDocumentEvent, dispatchWindowEvent, document, listenerCount, pointerLock, runAllTimers }) => {
+      pointerLock.resumeSpaceFirstPersonAfterEscape(
+        { entered: true, overlayOpen: false },
+        901,
+      );
+      dispatchWindowEvent("keyup", { key: "Escape" });
+      assert.equal(pointerLockCalls.length, 1);
+      assert.equal(listenerCount("pointerdown"), 1);
+
+      document.pointerLockElement = canvas;
+      dispatchDocumentEvent("pointerlockchange");
+      assert.equal(pointerLock.isPendingEscapePointerLockRecovery(), false);
+      assert.equal(listenerCount("pointerdown"), 0, "lock success disarms the fallback");
+
+      dispatchWindowEvent("pointerdown", { button: 0 });
+      runAllTimers();
+      assert.equal(pointerLockCalls.length, 1, "no redundant request once the lock is held");
+    },
+  );
+});
+
+test("the Escape pointerdown fallback expires bounded when the user never clicks", async () => {
+  const pointerLockCalls = [];
+  await withMockedPointerLockBrowser(
+    (canvas) => pointerLockCalls.push(canvas),
+    ({ dispatchWindowEvent, listenerCount, pointerLock, runAllTimers }) => {
+      pointerLock.resumeSpaceFirstPersonAfterEscape(
+        { entered: true, overlayOpen: false },
+        1001,
+      );
+      dispatchWindowEvent("keyup", { key: "Escape" });
+      assert.equal(listenerCount("pointerdown"), 1);
+
+      runAllTimers();
+      assert.equal(pointerLock.isPendingEscapePointerLockRecovery(), false);
+      assert.equal(listenerCount("pointerdown"), 0);
+
+      dispatchWindowEvent("pointerdown", { button: 0 });
+      assert.equal(pointerLockCalls.length, 1, "an expired fallback never retries");
       assert.equal(listenerCount("keyup"), 0);
       assert.equal(listenerCount("blur"), 0);
       assert.equal(listenerCount("pagehide"), 0);

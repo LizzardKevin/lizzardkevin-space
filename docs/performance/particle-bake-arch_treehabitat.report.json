@@ -1,0 +1,35 @@
+{
+  "formatVersion": 1,
+  "input": {
+    "path": "apps/web/public/exhibits/arch_treehabitat/focus_arch_treehabitat.glb",
+    "sha256": "d2abc677df51bdc7932d0f0d08a46e7dd014a4a8d2c08aad4e57ed759cc17cb1",
+    "bytes": 6208028
+  },
+  "output": {
+    "path": "apps/web/public/particles/arch_treehabitat.particles.bin",
+    "sha256": "852902e8366032c96c120102067c68f85f72c65a3ba1615b3c502191a33684a4",
+    "bytes": 1400036
+  },
+  "seed": 1234,
+  "pointCount": 50000,
+  "bounds": {
+    "min": [
+      -13.946386337280273,
+      22.226776123046875,
+      -6.774160385131836
+    ],
+    "max": [
+      -11.270594596862793,
+      30.593393325805664,
+      -4.523151397705078
+    ]
+  },
+  "meshCount": 1,
+  "primitiveCount": 2,
+  "excludedNodes": [],
+  "degenerateTriangles": 5295,
+  "warnings": [
+    "5295 degenerate triangle(s) with area < 1e-12 were skipped"
+  ],
+  "generatedAt": "2026-09-02T08:26:05.845Z"
+}

@@ -244,7 +244,7 @@ export function createSpaceExplorationStore({
 }
 
 /**
- * 会话级单例:SPACE HUD、投影仪、阻挡提示、作品页模型查看器都向它投递事件。
+ * 会话级单例:SPACE HUD、投影仪、阻挡提示都向它投递事件。
  * 模块状态随页面刷新自然重置;路由往返不重建。
  */
 export const spaceExplorationStore = createSpaceExplorationStore();

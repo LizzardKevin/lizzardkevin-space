@@ -21,7 +21,7 @@ const shell = source("scroll/ScrollPageShell.tsx");
 const globalCss = source("styles/global.css");
 
 assert.match(main, /<BrowserRouter\s+basename=\{normalizeRouterBasename\(import\.meta\.env\.BASE_URL\)\}>/);
-for (const path of ['"/"', '"/works/:exhibitId"', '"/profile"', '"/devstories"']) {
+for (const path of ['"/"', '"/works/:exhibitId"', '"/profile"', '"/devstories"', '"/dev/particle-calibrator"']) {
   assert(routeConfig.includes(path), `shared route contract must declare ${path}`);
 }
 assert.match(routes, /function\s+SpaceAliasRoute[\s\S]*?<Navigate\s+replace\s+to=["']\/["']/);

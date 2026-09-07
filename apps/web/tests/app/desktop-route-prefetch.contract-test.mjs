@@ -179,6 +179,7 @@ assert.deepEqual(dynamicSpecifiers(desktop), [
   "../desktop/DesktopTopBar",
   "../pages/archive/ArchiveHub",
   "../pages/works/WorkDetailPage",
+  "../pages/dev/ParticleCalibratorPage",
 ]);
 assert.match(desktop, /startedHost=\{[\s\S]*?spaceStarted\s*\?\s*\([\s\S]*?<SpaceHost/);
 assert.match(desktop, /path=["']\/works\/:exhibitId["'][\s\S]*?<Suspense\s+fallback=\{<DesktopRouteLoading\s*\/>\}>\s*<WorkDetailPage/);

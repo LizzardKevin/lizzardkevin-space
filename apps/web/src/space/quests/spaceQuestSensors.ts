@@ -12,7 +12,6 @@ export type SpaceExplorationEvent =
   | { type: "pose-sampled"; position: [number, number, number]; yawRad: number; pitchRad: number }
   | { type: "work-targeted"; exhibitId: string | null }
   | { type: "work-opened"; exhibitId: string }
-  | { type: "work-model-dragged"; exhibitId: string; rotationDeltaDeg: number }
   | { type: "projector-slide-changed"; slideId: string }
   | { type: "closed-zone-hint-shown"; zoneId: string }
   | { type: "stillness-reset" };
@@ -196,9 +195,6 @@ export function createSpaceQuestSensor(taskId: SpaceExplorationTaskId): SpaceQue
       return createEncountersSensor();
     case "dont_look_away":
       return createWorkGazeSensor();
-    case "another_angle":
-      // 事件源已按"有效拖拽"(>5° 或 >12px)过滤,单击不会产生该事件
-      return createOnceOnEventSensor("work-model-dragged");
     case "next_scene":
       return createProjectorSlideSensor();
     case "beyond_the_barrier":

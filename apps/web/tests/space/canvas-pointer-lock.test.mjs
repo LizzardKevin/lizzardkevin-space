@@ -159,8 +159,10 @@ test("scroll page return delegates to the DesktopApp pointer-lock resume chain e
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonAfterEscape/g) ?? []).length, 1);
   assert.equal((navigateBody.match(/resumeSpaceFirstPersonWithCursorReturn/g) ?? []).length, 1);
   assert.equal((escapeBody.match(/addEventListener\(["']keyup["']/g) ?? []).length, 1);
-  // expiry + post-keyup lock-success cleanup window
+  // expiry + post-keyup pointerdown-fallback window(兜底保持到锁定成功或有界过期)
   assert.equal((escapeBody.match(/setTimeout/g) ?? []).length, 2);
+  // ESC 在 Chrome 不构成用户激活:keyup 请求会被拒,必须武装 pointerdown 兜底补请求。
+  assert.equal((escapeBody.match(/addEventListener\(["']pointerdown["']/g) ?? []).length, 1);
   assert.match(escapeBody, /addEventListener\(["']blur["']/);
   assert.match(escapeBody, /addEventListener\(["']pagehide["']/);
   assert.match(escapeBody, /pointerlockchange/);

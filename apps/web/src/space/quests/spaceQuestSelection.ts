@@ -1,6 +1,6 @@
 /**
  * SPACE 自由探索提示:任务池与随机抽取。
- * 池共 20 个槽位、当前启用 9 项(暂空槽位不进入运行时池)。
+ * 池共 20 个槽位、当前启用 8 项(暂空槽位不进入运行时池)。
  * 每次新会话从四类中各随机抽 1 项,共 4 项,再打乱显示顺序。
  */
 
@@ -20,7 +20,6 @@ export type SpaceExplorationTaskId =
   | "let_the_room_settle"
   | "three_encounters"
   | "dont_look_away"
-  | "another_angle"
   | "next_scene"
   | "beyond_the_barrier";
 
@@ -29,7 +28,7 @@ export type SpaceExplorationTaskDef = Readonly<{
   category: SpaceExplorationCategory;
 }>;
 
-/** 当前启用池:9 项(规格四张任务表各 1/3/3/2 项;槽位预留 20)。 */
+/** 当前启用池:8 项(四类各 1/3/2/2 项;槽位预留 20)。 */
 export const SPACE_EXPLORATION_POOL: readonly SpaceExplorationTaskDef[] = [
   { id: "the_long_way", category: "movement" },
   { id: "whats_above", category: "observation" },
@@ -37,7 +36,6 @@ export const SPACE_EXPLORATION_POOL: readonly SpaceExplorationTaskDef[] = [
   { id: "let_the_room_settle", category: "observation" },
   { id: "three_encounters", category: "works" },
   { id: "dont_look_away", category: "works" },
-  { id: "another_angle", category: "works" },
   { id: "next_scene", category: "interaction" },
   { id: "beyond_the_barrier", category: "interaction" },
 ];

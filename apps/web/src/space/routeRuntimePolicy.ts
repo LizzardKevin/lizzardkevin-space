@@ -1,4 +1,10 @@
-export type SpaceRouteKind = "space" | "work" | "profile" | "devstories" | "not-found";
+export type SpaceRouteKind =
+  | "space"
+  | "work"
+  | "profile"
+  | "devstories"
+  | "dev-particle-calibrator"
+  | "not-found";
 
 export function resolveSpaceRouteRuntimePolicy(route: SpaceRouteKind) {
   const routeBlocked = route !== "space";

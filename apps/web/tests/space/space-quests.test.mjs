@@ -64,8 +64,8 @@ test("active 前 dispatch 无效;完成后幂等;快照不可变", () => {
 
   activateStore(store, 3);
   const ids = store.getState().tasks.map((t) => t.id);
+  // 只保留一次事件即完成的瞬时任务;three_encounters 需 3 个唯一 ID,属累计型,不在此列
   const eventFor = {
-    three_encounters: { type: "work-opened", exhibitId: "a" },
     next_scene: { type: "projector-slide-changed", slideId: "s1" },
     beyond_the_barrier: { type: "closed-zone-hint-shown", zoneId: "z" },
   };

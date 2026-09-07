@@ -1,0 +1,35 @@
+{
+  "formatVersion": 1,
+  "input": {
+    "path": "apps/web/public/exhibits/arch_3d_printing_architecture/focus_arch_3d_printing_architecture.glb",
+    "sha256": "255dab828ec5705e9d1e9577968ee303b203b6f9e2b8187fa0303ac9583ee3da",
+    "bytes": 7265956
+  },
+  "output": {
+    "path": "apps/web/public/particles/arch_3d_printing_architecture.particles.bin",
+    "sha256": "d0ed035ed2db8b84cc283b784752295c2e9b0173d33475f8f9f0eab8335fb003",
+    "bytes": 1400036
+  },
+  "seed": 1234,
+  "pointCount": 50000,
+  "bounds": {
+    "min": [
+      -13.12374496459961,
+      29.976774215698242,
+      -15.853509902954102
+    ],
+    "max": [
+      -11.98884391784668,
+      30.380247116088867,
+      -15.211134910583496
+    ]
+  },
+  "meshCount": 1,
+  "primitiveCount": 2,
+  "excludedNodes": [],
+  "degenerateTriangles": 1547,
+  "warnings": [
+    "1547 degenerate triangle(s) with area < 1e-12 were skipped"
+  ],
+  "generatedAt": "2026-09-02T11:09:33.476Z"
+}

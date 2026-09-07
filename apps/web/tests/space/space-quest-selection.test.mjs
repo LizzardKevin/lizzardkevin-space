@@ -9,11 +9,12 @@ const {
   SPACE_EXPLORATION_POOL,
 } = await importSourceModule("space/quests/spaceQuestSelection.ts");
 
-test("当前启用任务池 9 项且不含已移除的跳跃解锁任务", () => {
-  assert.equal(SPACE_EXPLORATION_POOL.length, 9);
+test("当前启用任务池 8 项且不含已移除的任务", () => {
+  assert.equal(SPACE_EXPLORATION_POOL.length, 8);
   const ids = new Set(SPACE_EXPLORATION_POOL.map((task) => task.id));
   assert.equal(ids.size, SPACE_EXPLORATION_POOL.length, "无重复 ID");
   assert.equal(ids.has("leave_the_floor"), false);
+  assert.equal(ids.has("another_angle"), false);
 });
 
 test("池覆盖全部四类,暂空槽位不存在于运行时池", () => {

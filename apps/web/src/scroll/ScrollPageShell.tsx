@@ -113,6 +113,7 @@ export function ScrollPageShell({
   miniTitle,
   miniTitleAfterId,
   blankDoubleClickToSpace = false,
+  background = "dotgrid",
   onNavigateToSpace,
   children,
 }: {
@@ -127,6 +128,8 @@ export function ScrollPageShell({
   miniTitleAfterId?: string;
   /** 双击页面空白处返回 SPACE（works 详情页启用）；交互元素不触发 */
   blankDoubleClickToSpace?: boolean;
+  /** 背景层：默认点阵；"none" 时不挂 DotGrid（works 详情页背景由全页粒子点云承担） */
+  background?: "dotgrid" | "none";
   onNavigateToSpace: SpaceReturnHandler;
   children: ReactNode;
 }) {
@@ -273,10 +276,12 @@ export function ScrollPageShell({
   return (
     <ScrollPageContext.Provider value={contextValue}>
       <div className="ark-page" data-accent={accent} ref={pageRef}>
-        <DotGridAttractCanvas
-          className="ark-dotgrid-canvas"
-          accentColor={PAGE_ACCENT_COLORS[accent]}
-        />
+        {background === "dotgrid" ? (
+          <DotGridAttractCanvas
+            className="ark-dotgrid-canvas"
+            accentColor={PAGE_ACCENT_COLORS[accent]}
+          />
+        ) : null}
         <CursorDot />
         <header className="ark-top">
           <div className="ark-top__brand">

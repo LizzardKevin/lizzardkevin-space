@@ -17,7 +17,6 @@ const selection = readSourceFile("space/quests/spaceQuestSelection.ts");
 const sensors = readSourceFile("space/quests/spaceQuestSensors.ts");
 const projector = readSourceFile("scenes/projector/SpaceProjectorInstallation.tsx");
 const tempBlocker = readSourceFile("scenes/gallery/TempBlockerNotices.tsx");
-const workViewer = readSourceFile("pages/works/WorkModelViewer.tsx");
 const minimap = readSourceFile("space/minimap/SpaceMinimap.tsx");
 const minimapModel = readSourceFile("space/minimap/minimapModel.ts");
 const minimapCamera = readSourceFile("space/minimap/minimapCamera.ts");
@@ -83,10 +82,9 @@ assert.ok(
   "抽取与传感器不直接读写存储",
 );
 
-// --- 事件源:投影实际切换 / 阻挡提示实际显示 / 模型有效拖拽 ---
+// --- 事件源:投影实际切换 / 阻挡提示实际显示 ---
 assert.ok(projector.includes('"projector-slide-changed"'), "投影必须在画面真正切换后投递事件");
 assert.ok(tempBlocker.includes('"closed-zone-hint-shown"'), "阻挡提示必须在真正显示时投递事件");
-assert.ok(workViewer.includes('"work-model-dragged"'), "作品页必须识别有效拖拽后投递事件");
 
 // --- HUD 文案:i18n runtime 增量,只显示暗示性名称 ---
 assert.ok(questHud.includes('"space.exploration.label"'), "HUD 标题走 i18n");
@@ -98,7 +96,6 @@ for (const copy of [
   "LET THE ROOM SETTLE",
   "THREE ENCOUNTERS",
   "DON'T LOOK AWAY",
-  "ANOTHER ANGLE",
   "NEXT SCENE",
   "BEYOND THE BARRIER",
   "漫长路径",
