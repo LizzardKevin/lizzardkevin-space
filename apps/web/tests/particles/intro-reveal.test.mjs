@@ -217,7 +217,7 @@ test("scatter-state opacity: circle mask stays separate from global alpha", () =
   // 散开态 50%:opacityNode = 圆 mask × mix(1, 0.5, morphProgress) × 入场淡入。
   assert.match(
     material,
-    /opacityNode\s*=\s*smoothstep\(float\(0\.5\),\s*float\(0\.32\)[\s\S]*?\.mul\(mix\(float\(1\.0\),\s*float\(0\.5\),\s*uniforms\.morphProgress\)\)/,
+    /opacityNode\s*=\s*smoothstep\(float\(0\.32\),\s*float\(0\.5\)[\s\S]*?\.oneMinus\(\)[\s\S]*?\.mul\(mix\(float\(1\.0\),\s*float\(0\.5\),\s*uniforms\.morphProgress\)\)/,
     "opacityNode must multiply the circle mask by mix(1, 0.5, morphProgress)",
   );
   assert.match(material, /alphaToCoverage\s*=\s*true/, "MSAA coverage dithering must stay enabled");

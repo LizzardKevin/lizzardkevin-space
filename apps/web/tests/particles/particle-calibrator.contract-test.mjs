@@ -26,13 +26,13 @@ assert.doesNotMatch(page, /<Canvas\b/, "calibrator must use a plain canvas, not 
 // dev-only 路由:Route 注册必须被 import.meta.env.DEV 门控(production 落 NotFound)。
 assert.match(
   desktop,
-  /import\.meta\.env\.DEV\s*\?\s*\(\s*<Route\s+path=["']\/dev\/particle-calibrator["']/,
+  /ParticleCalibratorPage\s*\?\s*\(\s*<Route\s+path=["']\/dev\/particle-calibrator["']/,
   "particle calibrator route must be gated by import.meta.env.DEV",
 );
 assert.match(
   desktop,
-  /lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/dev\/ParticleCalibratorPage["']\)\)/,
-  "calibrator page must load behind a lazy boundary",
+  /const ParticleCalibratorPage = import\.meta\.env\.DEV\s*\?\s*lazy\(\(\)\s*=>\s*import\(["']\.\.\/pages\/dev\/ParticleCalibratorPage["']\)\)\s*:\s*null/,
+  "the calibrator lazy import itself must be compile-time gated out of production",
 );
 
 // 渲染闭环不得每帧重建/重写缓冲:初始化后不再碰 attribute。
@@ -40,6 +40,20 @@ assert.doesNotMatch(renderer, /\.setAttribute\(/, "renderer must not call setAtt
 assert.doesNotMatch(renderer, /setUsage\(/, "renderer must not call setUsage");
 assert.doesNotMatch(renderer, /new\s+(?:THREE\.)?BufferGeometry\b/, "renderer must not build BufferGeometry per frame");
 assert.doesNotMatch(renderer, /needsUpdate\s*=\s*true/, "renderer must not flag attribute re-uploads");
+
+// StrictMode 会在 canvas 仍连接 DOM 时执行 effect cleanup；异步 init 若随后才完成，
+// 必须由 renderer 自身识别 owner 已 dispose，并立即释放迟到的 backend。
+assert.match(renderer, /private disposed = false/, "renderer must track owner disposal during async init");
+assert.match(
+  renderer,
+  /if \(this\.disposed\) \{[\s\S]*?candidateRenderer\.dispose\(\)[\s\S]*?initialization cancelled/,
+  "a renderer resolved after dispose must be released instead of retained",
+);
+assert.match(
+  renderer,
+  /dispose\(\): void \{\s*this\.disposed = true/,
+  "dispose must cancel an in-flight renderer initialization",
+);
 
 // 粒子缓存 URL 由 loader 的 particleCacheUrlFor 工厂统一生成;
 // 以引号/反引号开头的 /particles/ 字面路径只许留在 loader 模块内

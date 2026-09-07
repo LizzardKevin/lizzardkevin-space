@@ -54,6 +54,19 @@ assert(existsSync(assetsDir), "dist/assets must exist. Run npm run build first."
 const assetFiles = readdirSync(assetsDir).filter((file) => file.endsWith(".js"));
 const rapierChunks = assetFiles.filter((file) => /^rapier-vendor-[\w.-]+\.js$/.test(file));
 
+assert.equal(
+  assetFiles.some((file) => /^ParticleCalibratorPage-[\w.-]+\.js$/.test(file)),
+  false,
+  "production build must not emit the dev-only particle calibrator route chunk",
+);
+for (const file of assetFiles) {
+  assert.equal(
+    readText(join(assetsDir, file)).includes("DEV / particle calibrator"),
+    false,
+    `production asset ${file} must not contain the dev-only particle calibrator`,
+  );
+}
+
 assert.equal(rapierChunks.length, 1, "rapier-vendor must remain a single independent JS chunk");
 
 const modulePreloadMatches = [...indexHtml.matchAll(/<link\b[^>]*rel="modulepreload"[^>]*href="([^"]+\.js)"[^>]*>/g)];

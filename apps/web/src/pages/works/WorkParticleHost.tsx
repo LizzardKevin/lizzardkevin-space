@@ -32,6 +32,7 @@ export function WorkParticleHost({
     let disposed = false;
     let rafId = 0;
     let running = false;
+    let tornDown = false;
     let lastMs: number | null = null;
     let morphTrigger: ScrollTrigger | null = null;
     // dev-only:?wpPerf=1 时每 2s 输出平均帧耗时(rAF 间隔),辅助真机滚动 60fps 验证。
@@ -87,6 +88,18 @@ export function WorkParticleHost({
     };
     const onResize = () => {
       renderer.resize(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
+    };
+    const teardown = () => {
+      if (tornDown) return;
+      tornDown = true;
+      disposed = true;
+      stopLoop();
+      morphTrigger?.kill();
+      morphTrigger = null;
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("resize", onResize);
+      renderer.dispose();
     };
 
     const boot = async () => {
@@ -164,6 +177,7 @@ export function WorkParticleHost({
         if (disposed) return;
         const message = error instanceof Error ? error.message : String(error);
         if (import.meta.env.DEV) console.warn("[WorkParticleHost] init failed:", error);
+        teardown();
         setFailed(true);
         onError?.(message);
       }
@@ -174,15 +188,7 @@ export function WorkParticleHost({
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("resize", onResize);
 
-    return () => {
-      disposed = true;
-      stopLoop();
-      morphTrigger?.kill();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("resize", onResize);
-      renderer.dispose();
-    };
+    return () => teardown();
   }, [exhibitId, onReady, onError]);
 
   if (failed) return null;

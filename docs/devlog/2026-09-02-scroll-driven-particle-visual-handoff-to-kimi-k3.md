@@ -1,8 +1,8 @@
 # Thread Handoff: Codex → Kimi K3（滚动驱动点云视觉系统）
 
-时间：2026-09-02（Asia/Shanghai）  
-仓库：`LizzardKevin/lizzardkevin-space`  
-交接目的：让 Kimi K3 基于本轮已经批准的设计，先制作 Tree Habitat 单模型点云视觉标定 Demo，再按分阶段顺序推进 WorkDetail、Profile 与 DevStories。  
+时间：2026-09-02（Asia/Shanghai）
+仓库：`LizzardKevin/lizzardkevin-space`
+交接目的：让 Kimi K3 基于本轮已经批准的设计，先制作 Tree Habitat 单模型点云视觉标定 Demo，再按分阶段顺序推进 WorkDetail、Profile 与 DevStories。
 当前状态：**设计讨论完成；尚未实现、尚未安装依赖、尚未修改正式 3D 资产、尚未 commit / merge / push。**
 
 ---

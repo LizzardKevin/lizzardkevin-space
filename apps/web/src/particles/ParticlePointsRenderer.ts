@@ -38,6 +38,7 @@ export class ParticlePointsRenderer {
 
   private renderer: WebGPURenderer | null = null;
   private resolution: RendererResolution | null = null;
+  private disposed = false;
   private readonly scene = new Scene();
   private readonly camera = new PerspectiveCamera(CAMERA_FOV, 1, 0.1, 1000);
   private points: Sprite | null = null;
@@ -86,17 +87,26 @@ export class ParticlePointsRenderer {
     canvas: HTMLCanvasElement,
     onResolved?: (resolution: RendererResolution) => void,
   ): Promise<RendererResolution> {
+    if (this.disposed) throw new Error("Particle renderer initialization cancelled after dispose");
     let resolved: RendererResolution | null = null;
-    this.renderer = await createWebGPURenderer({
+    const candidateRenderer = await createWebGPURenderer({
       canvas,
       alpha: true,
       onResolved: (resolution) => {
         resolved = resolution;
-        this.resolution = resolution;
-        onResolved?.(resolution);
       },
     });
-    if (!resolved) throw new Error("Particle renderer initialization did not resolve a backend");
+    if (this.disposed) {
+      candidateRenderer.dispose();
+      throw new Error("Particle renderer initialization cancelled after dispose");
+    }
+    if (!resolved) {
+      candidateRenderer.dispose();
+      throw new Error("Particle renderer initialization did not resolve a backend");
+    }
+    this.renderer = candidateRenderer;
+    this.resolution = resolved;
+    onResolved?.(resolved);
     return resolved;
   }
 
@@ -350,6 +360,7 @@ export class ParticlePointsRenderer {
   }
 
   dispose(): void {
+    this.disposed = true;
     if (this.points) {
       this.scene.remove(this.points);
       this.points = null;

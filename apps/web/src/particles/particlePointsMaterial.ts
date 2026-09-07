@@ -277,7 +277,8 @@ export function createParticlePointsMaterial(
   material.alphaToCoverage = true;
   // mask 与整体透明度分开乘:圆 mask(边缘) × 散开态透明度(成形 1 → 散开 0.5,
   // 中间值经 MSAA 覆盖抖动呈现半透明)× 入场淡入(未生成前不可见)。
-  material.opacityNode = smoothstep(float(0.5), float(0.32), uv().sub(vec2(0.5)).length())
+  material.opacityNode = smoothstep(float(0.32), float(0.5), uv().sub(vec2(0.5)).length())
+    .oneMinus()
     .mul(mix(float(1.0), float(0.5), uniforms.morphProgress))
     .mul(smoothstep(float(0.0), float(0.4), introT));
   material.transparent = false;
