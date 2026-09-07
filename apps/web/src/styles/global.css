@@ -1689,6 +1689,7 @@ button {
   display: flex;
   gap: 0;
   padding: 0 4px;
+  background: rgb(20 24 26 / 0.92);
   pointer-events: auto;
 }
 
@@ -1737,7 +1738,7 @@ button {
   margin-left: 10px;
   border: 0;
   border-radius: 0;
-  background: transparent;
+  background: rgb(20 24 26 / 0.92);
   color: var(--space-paper);
   cursor: pointer;
   filter: none;
@@ -1885,14 +1886,7 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .topbar__button,
   .mobile-site,
-  .mobile-site::before,
-  .mobile-touch-glow,
-  .mobile-site__scroll,
-  .mobile-stage,
-  .mobile-stage__slice,
-  .mobile-stage__dot,
-  .mobile-panelShade,
-  .mobile-panel {
+  .mobile-site::before {
     animation: none;
     transition: none;
   }

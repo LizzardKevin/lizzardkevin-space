@@ -29,7 +29,7 @@ import { WorkEdgeNav } from "./WorkEdgeNav";
  * /works/:exhibitId 作品详情页:两段式结构——
  * a 段 hero(标题/简介/粒子模型展台),b 段 #work-media(视频 + 图集等多媒体材料)。
  * 无多媒体数据时 b 段隐藏,解构 morph 锚点在宿主内退化为页尾。
- * 内容数据照常加载(useWorkDetail/content.json),story/spec/overview 不渲染。
+ * 项目简介与年份/角色来自 content.json；媒体保留独立阅读段。
  */
 
 /** hero 标题下滚时缩小淡出（与壳层 mini-title 接力吸附左上）。 */
@@ -200,7 +200,7 @@ export default function WorkDetailPage({
       anchors={anchors}
       rememberScroll
       background="none"
-      footerMeta={[exhibitId, `${index + 1} / ${works.length}`]}
+      footerMeta={[title, `${index + 1} / ${works.length}`]}
       miniTitle={title}
       miniTitleAfterId="work-hero"
       blankDoubleClickToSpace
@@ -223,7 +223,7 @@ export default function WorkDetailPage({
       >
       <section className="ark-hero" id="work-hero">
         <p className="ark-hero__eyebrow">
-          {copy.work.eyebrow} / {exhibitId.replace(/_/g, " ").toUpperCase()}
+          {copy.work.eyebrow}
         </p>
         <div ref={heroTitleRef}>
           <MosaicTitle text={title} className="ark-hero__title" as="h1" />
@@ -231,15 +231,9 @@ export default function WorkDetailPage({
         {subtitle ? <p className="ark-hero__subtitle">{subtitle}</p> : null}
         <DataStrip
           className="ark-hero__meta"
-          items={[
-            { label: "EXHIBIT", value: exhibitId },
-            {
-              label: "TYPE",
-              value: copy.work.typeLabels[exhibit.type] ?? exhibit.type.toUpperCase(),
-            },
-            { label: "INDEX", value: `${index + 1} / ${works.length}` },
-          ]}
+          items={(content?.metadata ?? []).filter(item => ["Year", "Role", "年份", "角色"].includes(item.label))}
         />
+        {content?.overview ? <p className="ark-work-summary">{content.overview}</p> : null}
         <span className="ark-hero__scrollHint">{copy.scrollHint}</span>
       </section>
 
@@ -312,6 +306,12 @@ export default function WorkDetailPage({
                 <div className="ark-wgallery__track" ref={galleryRef}>
                   {/* 自动流:内容按份复制实现无缝循环,复制份仅视觉用(aria-hidden) */}
                   {Array.from({ length: galleryCopies }, (_, copyIndex) =>
+                    images.map((url, i) => (
+                      <figure
+                        className="ark-wgallery__item"
+                        key={`${copyIndex}:${url}`}
+                        aria-hidden={copyIndex > 0 || undefined}
+                      >
                         <button
                           type="button"
                           className="ark-wgallery__zoom"
@@ -322,23 +322,23 @@ export default function WorkDetailPage({
                             setSelectedImage({ exhibitId, src: url, alt: `${title} — ${i + 1}` });
                           }}
                         >
-                    images.map((url, i) => (
-                      <figure
-                        className="ark-wgallery__item"
-                        key={`${copyIndex}:${url}`}
-                        aria-hidden={copyIndex > 0 || undefined}
-                      >
                         <img
-                        </button>
                           src={url}
                           alt={`${title} — ${i + 1}`}
                           loading="lazy"
                           draggable={false}
                           style={{ cursor: "zoom-in" }}
                         />
+                        </button>
                       </figure>
                     )),
                   )}
+                </div>
+              </section>
+            </div>
+          ) : images.length === 1 ? (
+            <section className="ark-wgallery" id="work-gallery">
+              <div className="ark-wgallery__single">
                 <button
                   type="button"
                   className="ark-wgallery__zoom"
@@ -348,20 +348,14 @@ export default function WorkDetailPage({
                     setSelectedImage({ exhibitId, src: images[0], alt: title });
                   }}
                 >
-                </div>
-              </section>
-            </div>
-          ) : images.length === 1 ? (
-            <section className="ark-wgallery" id="work-gallery">
-              <div className="ark-wgallery__single">
                 <img
-                </button>
                   src={images[0]}
                   alt={title}
                   loading="lazy"
                   draggable={false}
                   style={{ cursor: "zoom-in" }}
                 />
+                </button>
               </div>
             </section>
           ) : null}

@@ -44,7 +44,7 @@ assert(files.mobileExperience.includes("LizzardKevin's"), "mobile header must in
 assert(files.mobileExperience.includes("Space"), "mobile header must include the Space title");
 assert(files.mobileExperience.includes("$ space-cli boot --mode mobile"), "mobile boot view must include the space-cli boot command");
 assert(files.mobileExperience.includes("loading terminal session..."), "mobile boot view must include terminal loading copy");
-assert(files.mobileExperience.includes("BOOT_MIN_DURATION_MS = 3000"), "mobile boot minimum duration must be 3000ms");
+assert(files.mobileExperience.includes("BOOT_MIN_DURATION_MS = 0"), "mobile boot must not add an artificial minimum delay");
 assert(files.mobileExperience.includes("BOOT_MAX_DURATION_MS = 10000"), "mobile boot maximum duration must be 10000ms");
 assert(files.mobileExperience.includes("FONT_LOAD_MAX_RETRIES = 3"), "mobile font loading must retry at most three times");
 assert(files.mobileExperience.includes("fontStatus"), "mobile boot must track font loading status");

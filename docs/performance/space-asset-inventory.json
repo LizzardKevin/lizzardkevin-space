@@ -12,15 +12,15 @@
   "totals": {
     "assets": {
       "files": 95,
-      "bytes": 208831842
+      "bytes": 208832282
     },
     "publicShipping": {
       "files": 92,
-      "bytes": 175067496
+      "bytes": 175067776
     },
     "sourceOnly": {
       "files": 14,
-      "bytes": 103580236
+      "bytes": 103580396
     },
     "imageDecodedExposure": {
       "files": 44,
@@ -132,7 +132,7 @@
       },
       "focus/work": {
         "files": 41,
-        "bytes": 73683777
+        "bytes": 73684057
       },
       "mobile/cold": {
         "files": 5,
@@ -144,7 +144,7 @@
       },
       "source-only": {
         "files": 14,
-        "bytes": 103580236
+        "bytes": 103580396
       }
     },
     "byType": {
@@ -158,7 +158,7 @@
       },
       "data/interface": {
         "files": 10,
-        "bytes": 43464
+        "bytes": 43744
       },
       "documentation/license": {
         "files": 5,
@@ -190,7 +190,7 @@
       },
       "workbook/data-source": {
         "files": 1,
-        "bytes": 118884
+        "bytes": 119044
       }
     }
   },
@@ -575,8 +575,8 @@
       "path": "apps/web/public/exhibits/arch_treehabitat/content.json",
       "type": "data/interface",
       "phase": "focus/work",
-      "bytes": 4490,
-      "sha256": "b6c278ea533245409edba4b7fb7230ce969c9a0f387b5809f9b576bfbd5f6728",
+      "bytes": 4756,
+      "sha256": "519a39b69e2ccdd9b5b36be3d61c65a9146b8a72db3f5eed5ee09e9c289fe3e0",
       "public": true,
       "sourceOnly": false,
       "shipping": true,
@@ -1102,8 +1102,8 @@
       "path": "apps/web/public/exhibits/arch_uabb_exhibit/content.json",
       "type": "data/interface",
       "phase": "focus/work",
-      "bytes": 4633,
-      "sha256": "6ea5e6233cdb071b00e7232926c427c9727f869111d78446112f51237e1569c7",
+      "bytes": 4647,
+      "sha256": "02368fde5f5b324aadf7144fc1e921d4549a7f463c14766508504ed6e10f7d52",
       "public": true,
       "sourceOnly": false,
       "shipping": true,
@@ -1822,8 +1822,8 @@
       "path": "docs/assets/space-exhibit-index.xlsx",
       "type": "workbook/data-source",
       "phase": "source-only",
-      "bytes": 118884,
-      "sha256": "a3f855c62681b973014734055e460d3125c6c9f6bd3a71de1b85bcdedb9fef58",
+      "bytes": 119044,
+      "sha256": "6138c97d40cd3ecf3a67f5aaa9bfc5899fe83bfedd47330e890ea4f6f77b77bd",
       "public": false,
       "sourceOnly": true,
       "shipping": false,
@@ -1834,8 +1834,8 @@
     "available": true,
     "manifest": null,
     "entrypoints": [
-      "apps/web/dist/assets/index-CUuwBWN_.css",
-      "apps/web/dist/assets/index-q0gaIV03.js"
+      "apps/web/dist/assets/index-BP5Ijlo6.css",
+      "apps/web/dist/assets/index-Buu5K96J.js"
     ],
     "files": [
       {
@@ -1847,28 +1847,36 @@
         "sha256": "bad4c2b485c66bc76c9aaf1923a987e55673007afa13150af9e66d299c26a198"
       },
       {
-        "path": "apps/web/dist/assets/ArchiveHub-CZc3WEX8.js",
+        "path": "apps/web/dist/assets/ArchiveHub-CCcT4oz-.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 64207,
-        "gzipBytes": 25058,
-        "sha256": "2cdeb8ecc8823d320d607212ce6b5dcaa0b34f738e60bd86192d20a88d12380e"
+        "bytes": 58855,
+        "gzipBytes": 23038,
+        "sha256": "08f20082b522baeac2199ae5f64b265bc78b32146a5bc4ea3b5d2cb627a06369"
       },
       {
-        "path": "apps/web/dist/assets/DesktopApp-Ce1DIREj.js",
+        "path": "apps/web/dist/assets/DesktopApp-SjPp8kfe.js",
         "type": "javascript",
         "phase": "shared/app-shell",
         "bytes": 10323,
-        "gzipBytes": 3488,
-        "sha256": "27d5328eba9d14f154215d706c5d5eac401c96698b294920171a73a7116b58f6"
+        "gzipBytes": 3484,
+        "sha256": "04543751f6fa692d73779168336807476e939b5c15ec61102798424a10961e8e"
       },
       {
-        "path": "apps/web/dist/assets/DesktopTopBar-BpSPSrRy.js",
+        "path": "apps/web/dist/assets/DesktopTopBar-QqwjGJsr.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 2971,
-        "gzipBytes": 1119,
-        "sha256": "4b4f999c1348f39a78a41c45bec905505cdfb4c292a6a11cb73a87e712033a91"
+        "gzipBytes": 1120,
+        "sha256": "7ab01b3ac480d1d9b2b74736d13fb753e36e066c580e5eadab0e762285d5649c"
+      },
+      {
+        "path": "apps/web/dist/assets/MobileApp-BH1E9xji.js",
+        "type": "javascript",
+        "phase": "mobile/cold",
+        "bytes": 47048,
+        "gzipBytes": 15692,
+        "sha256": "0ba7c4a48c555d248537b07a8ca4601adb1d5b74d7f3906f43a969e30947c0d9"
       },
       {
         "path": "apps/web/dist/assets/MobileApp-BJx_-ILK.css",
@@ -1879,36 +1887,28 @@
         "sha256": "2464b024cd33f11a6aa77446a53fd5cf128d475314cc12d60ea8b05cb9ea9920"
       },
       {
-        "path": "apps/web/dist/assets/MobileApp-CoL5_HsY.js",
-        "type": "javascript",
-        "phase": "mobile/cold",
-        "bytes": 48992,
-        "gzipBytes": 16451,
-        "sha256": "59b25c219f68aee379b5e2da7bbf58806b2422a1d2300a3bdf45eb9b5f85cbae"
-      },
-      {
-        "path": "apps/web/dist/assets/MosaicTitle-DecTQuRI.js",
+        "path": "apps/web/dist/assets/MosaicTitle-Cg-pa98K.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 150879,
-        "gzipBytes": 55919,
-        "sha256": "6a6f8881d5b171724d6d5f56e2803d6ff1cf8332d2dbf72b808a2e6d3f9eed76"
+        "bytes": 150763,
+        "gzipBytes": 55960,
+        "sha256": "4c21e0ee2c21db1c91d1cd5763e43c3142ed7c2cac4cb7206ceac2e39edfd409"
       },
       {
-        "path": "apps/web/dist/assets/SpaceHost-BWa68LI4.js",
+        "path": "apps/web/dist/assets/SpaceHost-D6ywKadu.js",
         "type": "javascript",
         "phase": "boot/world",
-        "bytes": 85897,
-        "gzipBytes": 28141,
-        "sha256": "fae0cf18d96c1531f718bb25c4ff29fa6f4ea878df5eb2f8901e71ec86aef5e6"
+        "bytes": 85266,
+        "gzipBytes": 28139,
+        "sha256": "504884c7a3bf94f075b573dde69e6ab379103ea9d1ff015f4460f4799677eb2d"
       },
       {
-        "path": "apps/web/dist/assets/SpacePage-CNUmIk4S.js",
+        "path": "apps/web/dist/assets/SpacePage-Cc4StIGi.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 21611,
         "gzipBytes": 8449,
-        "sha256": "d6a0721fe901f6119b6ec3dadba511054f23773add52b6c3da204f69df301b3c"
+        "sha256": "e06c8ea26ef22013cf8630e81b6a5b3b76beba18f683ad194084cbed4fbe3782"
       },
       {
         "path": "apps/web/dist/assets/SpacePage-lzKvgVV4.css",
@@ -1919,36 +1919,36 @@
         "sha256": "dbebc1eb11c8b365abc2f484aba8e08f4bd4253e95ab08c3a821358415c52083"
       },
       {
-        "path": "apps/web/dist/assets/WorkDetailPage-CJfI2QyA.css",
-        "type": "stylesheet",
-        "phase": "shared/other",
-        "bytes": 4487,
-        "gzipBytes": 1320,
-        "sha256": "c1f1dce613f0ea57ce38bf738d86c3683aae6976332d31e77c3a9989a5a55069"
-      },
-      {
-        "path": "apps/web/dist/assets/WorkDetailPage-cz1gu26h.js",
+        "path": "apps/web/dist/assets/WorkDetailPage-CrBihABz.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 29643,
-        "gzipBytes": 10660,
-        "sha256": "3ab56ffad6968c53b1657b6ec8832a14ffcbc8aea2c6a81f0065d47b5f45050a"
+        "bytes": 32418,
+        "gzipBytes": 11538,
+        "sha256": "d203683c82eedc2af88449d3473cd1fb9805ca442d29eb94958b035987ca9e77"
       },
       {
-        "path": "apps/web/dist/assets/appRoutes-Bsd7MJTf.js",
+        "path": "apps/web/dist/assets/WorkDetailPage-Dp38V2e-.css",
+        "type": "stylesheet",
+        "phase": "shared/other",
+        "bytes": 5314,
+        "gzipBytes": 1510,
+        "sha256": "3a7869aba6f736b82cbd6c9ff46142a55e5f66d2bbe8fd26623f0fa52be36fb4"
+      },
+      {
+        "path": "apps/web/dist/assets/appRoutes-CKPxvaGi.js",
         "type": "javascript",
         "phase": "shared/app-shell",
         "bytes": 634,
-        "gzipBytes": 384,
-        "sha256": "830d3cc858b47274e894458bdb890eac386d529073e7c07a4c12204f6038bb1a"
+        "gzipBytes": 385,
+        "sha256": "9a2b1a9bb49ba80d7251d7c2be850fa1bea861e0cdb9957fcea0bf842cfbc9bf"
       },
       {
-        "path": "apps/web/dist/assets/createWebGPURenderer-CZUltQHV.js",
+        "path": "apps/web/dist/assets/createWebGPURenderer-CBwwOhZ2.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 5538,
         "gzipBytes": 2617,
-        "sha256": "d7bd93aa2b1d91b898e70ab87c2d8fb9c9c00595f71d45ccb03d794b2698741a"
+        "sha256": "eb5fe5f4e1c615339d257eb685e66d5f93591b00a47e73693fbedfb49cac2d83"
       },
       {
         "path": "apps/web/dist/assets/helvetiker_bold.typeface-DtA4BcQz.json",
@@ -1959,20 +1959,20 @@
         "sha256": "bd68159ee0b8d10fe24b9daa2e32f19686f9d8269a79dc8d44203a66298bfa2f"
       },
       {
-        "path": "apps/web/dist/assets/index-CUuwBWN_.css",
+        "path": "apps/web/dist/assets/index-BP5Ijlo6.css",
         "type": "stylesheet",
         "phase": "shared/app-shell",
-        "bytes": 59516,
-        "gzipBytes": 11348,
-        "sha256": "2d9174f0104a6ddfd5d1735d029d00d25e3003de3eb6f8cfcb1e815e8d4d5fe2"
+        "bytes": 58455,
+        "gzipBytes": 11206,
+        "sha256": "538b4ee3f01b02732da77d7118b4ead625a6cf533037582bc2b40e49a4bc047f"
       },
       {
-        "path": "apps/web/dist/assets/index-q0gaIV03.js",
+        "path": "apps/web/dist/assets/index-Buu5K96J.js",
         "type": "javascript",
         "phase": "shared/app-shell",
-        "bytes": 148976,
-        "gzipBytes": 46256,
-        "sha256": "42a2740e3ed78788aa47121837f24f79c07be79087ae95367802d2a4bb087dc5"
+        "bytes": 149036,
+        "gzipBytes": 46271,
+        "sha256": "3d84f714109388ce8bb5c6ab620b96534140a315c71da4a15d66e1c44213f501"
       },
       {
         "path": "apps/web/dist/assets/rapier-vendor-D4dnSEhk.js",
@@ -2143,12 +2143,12 @@
         "sha256": "1b2fcca9a4773ffccf89d0dd806dc9a5451db6e7fc800c56f5b4823fd75872c0"
       },
       {
-        "path": "apps/web/dist/assets/useTranslation-DlJ3ffyh.js",
+        "path": "apps/web/dist/assets/useTranslation-rM05gtnf.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 3929,
-        "gzipBytes": 1681,
-        "sha256": "3050fe6524bcaf1e75fea3f1480a3d19ae2d5b59a990fe6cfc3385d8762c9cae"
+        "gzipBytes": 1682,
+        "sha256": "2d54b1120360b2becab1f9dd2ea9661bae0a7b30ec4df201e40500905bd7f21e"
       },
       {
         "path": "apps/web/dist/assets/vite-preload-helper-CwQZjUKM.js",
@@ -2163,22 +2163,22 @@
         "type": "html",
         "phase": "shared/other",
         "bytes": 992,
-        "gzipBytes": 571,
-        "sha256": "5a7ceaa2a80e6e7960ceaf64f4614e1a9354cbc2740f697727bfb135d9df81c0"
+        "gzipBytes": 569,
+        "sha256": "526fa8686763cda00a7e791b1827f3f1598f8f4919c8327f638f2b28df8cd8e0"
       }
     ],
     "totals": {
       "files": 41,
-      "bytes": 4768079,
-      "gzipBytes": 1575079,
+      "bytes": 4762637,
+      "gzipBytes": 1573277,
       "byPhase": {
         "boot/world": {
           "files": 2,
-          "bytes": 164664
+          "bytes": 164033
         },
         "mobile/cold": {
           "files": 2,
-          "bytes": 51493
+          "bytes": 49549
         },
         "rapier/build-chunk": {
           "files": 1,
@@ -2186,11 +2186,11 @@
         },
         "shared/app-shell": {
           "files": 5,
-          "bytes": 409095
+          "bytes": 408094
         },
         "shared/other": {
           "files": 31,
-          "bytes": 1881953
+          "bytes": 1880087
         }
       }
     }

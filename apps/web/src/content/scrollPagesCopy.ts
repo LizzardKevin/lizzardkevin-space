@@ -67,12 +67,12 @@ const zh: ScrollPagesCopy = {
   profile: {
     pageCode: "PROFILE / 个人档案",
     eyebrow: "个人档案 PERSONAL ARCHIVE",
-    linksTitle: "链接 LINKS",
+    linksTitle: "联系我",
     rolesLabel: "身份",
     sectionsLabel: "档案分节",
     detailLabel: "细节 DETAILS",
-    fillLabel: "归档笔记 ARCHIVE NOTES",
-    spaceUseLabel: "SPACE 中的形态 IN SPACE",
+    fillLabel: "代表项目",
+    spaceUseLabel: "设计方法",
   },
   devStories: {
     pageCode: "DEV STORIES / 开发日志",
@@ -118,12 +118,12 @@ const en: ScrollPagesCopy = {
   profile: {
     pageCode: "PROFILE",
     eyebrow: "PERSONAL ARCHIVE",
-    linksTitle: "LINKS",
+    linksTitle: "CONTACT",
     rolesLabel: "ROLES",
     sectionsLabel: "SECTIONS",
     detailLabel: "DETAILS",
-    fillLabel: "ARCHIVE NOTES",
-    spaceUseLabel: "IN SPACE",
+    fillLabel: "SELECTED WORK",
+    spaceUseLabel: "DESIGN APPROACH",
   },
   devStories: {
     pageCode: "DEV STORIES",

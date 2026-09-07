@@ -1072,6 +1072,7 @@
 .ark-wgallery__item {
   flex: 0 0 auto;
   width: min(68vw, 880px);
+  height: 72vh;
   border: 1px solid var(--ark-line);
   background: var(--ark-bg-deep);
 }
@@ -1079,7 +1080,7 @@
 .ark-wgallery__item img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   max-height: 72vh;
   object-fit: contain;
   user-select: none;
@@ -1110,6 +1111,11 @@
   height: auto;
   max-height: 76vh;
   background: #000;
+}
+
+video.ark-wvideo__player {
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
 }
 
 /* ---------- 底栏 ---------- */
@@ -1237,6 +1243,7 @@
 .ark-work-page .ark-hero {
   justify-content: flex-start;
   padding-top: calc(var(--ark-topbar-h) + 7vh);
+  padding-left: max(112px, 4.5vw);
 }
 
 /* 标题与副标题限宽左栏并略收字号,避让画面中央的粒子模型 */
@@ -1307,4 +1314,23 @@
   .ark-footer__cta { transition: none; }
   .ark-switchstrip,
   .ark-minititle { transition: none; }
+}
+.ark-work-summary {
+  max-width: min(42vw, 62ch);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.8;
+  color: #d1d2d4;
+}
+
+#profile-hero, #devstories-hero { min-height: 76vh; }
+#profile-hero .ark-hero__title { font-size: clamp(40px, 5.8vw, 94px); overflow-wrap: anywhere; }
+.ark-linelist li, .ark-dentry__panel li { font-size: 16px; font-weight: 400; line-height: 1.85; color: #c9cbce; }
+.work-edge-nav__hint { display: block; color: #eee; font: 14px/1.5 var(--ark-mono); white-space: nowrap; }
+.work-edge-nav__edge[data-phase="idle"] .work-edge-nav__arrow,
+.work-edge-nav__edge[data-phase="idle"] .work-edge-nav__title { visibility: hidden; }
+.ark-work-page .ark-wgallery__head { align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .ark-work-summary { max-width: 80vw; }
+  .ark-work-page .ark-hero__title, .ark-work-page .ark-hero__subtitle { max-width: 78vw; }
 }

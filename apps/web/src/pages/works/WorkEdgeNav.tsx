@@ -179,7 +179,7 @@ function WorkEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: WorkEdg
       }
 
       // idle 且 reduced-motion 时停 rAF;hover 解密仍由 ensureLoop 拉起
-      if (phaseValue !== "idle" || !prefersReducedMotion()) {
+      if (phaseValue !== "idle") {
         rafId = requestAnimationFrame(tick);
       }
     };
@@ -240,8 +240,9 @@ function WorkEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: WorkEdg
       to={workRoute(target.id)}
       className={`work-edge-nav__edge work-edge-nav__edge--${side}`}
       data-phase={phase}
-      aria-label={target.title}
+      aria-label={`${target.hint}: ${target.title}`}
     >
+      <span className="work-edge-nav__hint">{side === "left" ? "← " : ""}{target.hint}{side === "right" ? " →" : ""}</span>
       <span className="work-edge-nav__title" aria-hidden="true">
         {titleChars.map((char, index) => (
           <span

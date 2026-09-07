@@ -3,7 +3,6 @@ import { ArkGlassTile } from "../../components/ArkGlassTile";
 import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
-import { useScrubSections } from "../../scroll/useScrubSections";
 import { useSectionReadProgress } from "../../scroll/useSectionReadProgress";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
@@ -19,10 +18,6 @@ export function ProfileContent() {
   const profile = useMemo(() => getLizzardKevinProfile(language), [language]);
   const { identity, links, sections } = profile;
 
-  useScrubSections(
-    [{ selector: ".ark-psection__body", drift: 56 }],
-    [sections],
-  );
   useSectionReadProgress(".ark-psection", ".ark-psection__railBar", [sections]);
 
   return (
@@ -84,7 +79,7 @@ export function ProfileContent() {
                 </div>
               </Reveal>
             ) : null}
-            {section.spaceUse ? (
+            {section.spaceUse && section.spaceUse !== section.summary ? (
               <Reveal>
                 <div>
                   <p className="ark-psection__blockLabel">{copy.profile.spaceUseLabel}</p>

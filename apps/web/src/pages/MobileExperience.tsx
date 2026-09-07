@@ -23,7 +23,7 @@ import {
 import { publicAssetUrl } from "../platform/publicAssets.ts";
 import type { MobileRouteView } from "../mobile/mobileRouteView";
 
-const BOOT_MIN_DURATION_MS = 3000;
+const BOOT_MIN_DURATION_MS = 0;
 const BOOT_MAX_DURATION_MS = 10000;
 const FONT_LOAD_MAX_RETRIES = 3;
 const FONT_LOAD_RETRY_DELAY_MS = 360;
@@ -174,7 +174,7 @@ function applyTerminalScrollState(root: HTMLElement | null, scrollTop: number) {
   root.style.setProperty("--terminal-nav-top", `${headerHeight}px`);
   root.style.setProperty("--terminal-shell-top", `${headerHeight + navHeight}px`);
   root.style.setProperty("--terminal-content-scroll-y", `${contentScrollY}px`);
-  root.style.setProperty("--terminal-nav-scroll-y", `${navScrollY}px`);
+  root.style.setProperty("--terminal-nav-scroll-y", "0px");
 }
 
 function getFoldExpanded(foldState: TerminalFoldState, foldId: string) {
@@ -201,8 +201,8 @@ export function MobileExperience({
   const docSwipeFrameRef = useRef<number | null>(null);
   const suppressSwipeClickRef = useRef(false);
   const [bootLanguage] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
-  const [localActiveTab, setActiveTab] = useState<MobileTabId | null>(null);
-  const [foldState, setFoldState] = useState<TerminalFoldState>({});
+  const [localActiveTab, setActiveTab] = useState<MobileTabId | null>("projects");
+  const [foldState, setFoldState] = useState<TerminalFoldState>({ "projects:Education": true });
   const [localSelectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [viewLoadKey, setViewLoadKey] = useState(0);
   const [language, setLanguageState] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
@@ -824,7 +824,7 @@ function ProjectsView({
                 className="mobile-project-line"
                 onClick={() => onSelectProject(project.id)}
               >
-                <span>{project.id}</span>
+                <span aria-hidden="true">↗</span>
                 <strong>{project.title}</strong>
                 <small>{project.indexLabel}</small>
               </button>
@@ -856,7 +856,6 @@ function ProjectDetailView({
         <button type="button" className="mobile-terminal-back" onClick={onBack}>
           cd ..
         </button>
-        <div className="mobile-terminal-command">$ open {project.id}</div>
         <header className="mobile-project-detail__header">
           <span>{project.indexLabel}</span>
           <h1>{project.title}</h1>
@@ -870,9 +869,7 @@ function ProjectDetailView({
           ) : null}
           <p>{project.summary[language]}</p>
         </header>
-        <div className="mobile-project-detail__media" aria-label={`${project.title} ${copy.projectDetails.media}`}>
-          <span>{project.mediaKind}</span>
-          <strong>{project.mediaStatus[language]}</strong>
+        {project.imageUrls?.length ? <div className="mobile-project-detail__media" aria-label={`${project.title} ${copy.projectDetails.media}`}>
           {project.imageUrls?.length ? (
             <div className="mobile-project-detail__imageRail">
               {project.imageUrls?.map((url, index) => (
@@ -886,7 +883,7 @@ function ProjectDetailView({
               ))}
             </div>
           ) : null}
-        </div>
+        </div> : null}
         {story ? <p className="mobile-project-detail__story">{project.story?.[language]}</p> : null}
         <dl className="mobile-project-detail__notes">
           <div>
@@ -1010,7 +1007,7 @@ function ContactDocument({ copy }: { copy: typeof mobileTerminalCopy.en.contact 
       </div>
       <div className="mobile-contact-lines">
         {copy.lines.map((line) => (
-          <div key={line.label}>
+          <div key={`${line.label}:${line.values.map(value => value.text).join("|")}`}>
             <span>{line.label}</span>
             {line.values.map((value) => (
               value.href ? (

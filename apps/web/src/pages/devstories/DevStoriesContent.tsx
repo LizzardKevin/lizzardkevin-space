@@ -3,7 +3,6 @@ import { ArkGlassTile } from "../../components/ArkGlassTile";
 import { getDevStories } from "../../content/devStories";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
-import { useScrubSections } from "../../scroll/useScrubSections";
 import { useSectionReadProgress } from "../../scroll/useSectionReadProgress";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
@@ -21,13 +20,6 @@ export function DevStoriesContent() {
   const firstPeriod = stories[0]?.period ?? "";
   const lastPeriod = stories[stories.length - 1]?.period ?? "";
 
-  useScrubSections(
-    [
-      { selector: ".ark-dentry__main", drift: 48, minHeightRatio: 0.3 },
-      { selector: ".ark-dentry__grid", drift: 40, minHeightRatio: 0.3 },
-    ],
-    [stories],
-  );
   useSectionReadProgress(".ark-dentry", ".ark-dentry__railBar", [stories]);
 
   return (
@@ -35,6 +27,7 @@ export function DevStoriesContent() {
       <section className="ark-hero" id="devstories-hero">
         <p className="ark-hero__eyebrow">{copy.devStories.eyebrow}</p>
         <MosaicTitle text="Dev Stories" className="ark-hero__title" as="h1" />
+        <p className="ark-hero__subtitle">{language === "zh" ? "这些手记记录了 SPACE 的早期开发与架构取舍，内容截至 2026 年 7 月 15 日。" : "Notes on the early development and architecture of SPACE, recorded through July 15, 2026."}</p>
         <DataStrip
           className="ark-hero__meta"
           items={[

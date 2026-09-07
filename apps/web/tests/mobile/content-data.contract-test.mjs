@@ -21,24 +21,19 @@ const mobileTabsSlice = mobileData.slice(mobileData.indexOf("export const mobile
 assert(!mobileTabsSlice.includes("summary:"), "mobile tab data must not carry tab summaries");
 assert(mobileData.includes("mobileTerminalCopy"), "mobile data must export localized mobile terminal copy");
 assert(mobileData.includes("soul:") && mobileData.includes("contact:"), "localized copy must include Soul and Contact content");
-assert(mobileData.includes("LizzardKevin is an architecture-trained creative technologist"), "English Soul.md copy must exist");
-assert(mobileData.includes('name: "Wang Tianyi"'), "English Contact.md must use the requested name");
-assert(mobileData.includes('name: "王天奕"'), "Chinese Contact.md must translate the name");
-assert(mobileData.includes('AI Visual Creator/ Architect/ Photographer/ Bassist'), "English Contact.md must use the requested role line");
-assert(mobileData.includes('AI视觉创作者 / 建筑师 / 摄影师 / 贝斯手'), "Chinese Contact.md must translate the role line");
-assert(mobileData.includes("+86 13682600019"), "Contact.md must include the requested phone number");
-assert(mobileData.includes("lizzardkevin@gmail.com"), "Contact.md must include the requested email");
-assert(mobileData.includes('label: "contact"'), "Contact.md must keep lowercase contact title");
-assert(mobileData.includes('label: "location"'), "Contact.md must keep lowercase location title");
-assert(mobileData.includes('label: "github"'), "Contact.md must keep lowercase github title");
-assert(mobileData.includes('label: "practice"'), "Contact.md must keep lowercase practice title");
-assert(mobileData.includes('text: "Shenzhen, China"'), "English Contact.md must include Shenzhen, China");
-assert(mobileData.includes('text: "深圳，中国"'), "Chinese Contact.md must translate the location value");
-assert(mobileData.includes('text: "lizzardkevin"'), "Contact.md must include the requested GitHub handle");
-assert(mobileData.includes("(spatial + visual + AI) x Creativity"), "English Contact.md must include the requested practice formula");
-assert(mobileData.includes("(空间 + 视觉 + AI) x 创造力"), "Chinese Contact.md must translate the practice formula");
-assert(mobileData.includes("mobile terminal only gives brief index. Desktop opens full SPACE experience."), "English Contact.md must include the requested desktop note");
-assert(mobileData.includes("移动端 terminal 只提供简要索引。桌面端会打开完整的 SPACE 体验。"), "Chinese Contact.md must translate the desktop note");
+// Content facts are verified against the shared production-generated profile.
+const { generatedMobileTerminalCopy: copy, generatedMobileProjectItems: projects } = await import('../../src/generated/mobileArchive.generated.ts');
+const { generatedProfileByLanguage: profile } = await import('../../src/generated/profile.generated.ts');
+for (const language of ['en', 'zh']) {
+  assert.equal(copy[language].contact.name, profile[language].identity.displayName);
+  assert.equal(copy[language].soul.bio, profile[language].identity.bio);
+  assert.deepEqual(copy[language].soul.sections.map(s=>s.summary), profile[language].sections.map(s=>s.summary));
+  for (const email of ['lizzardkevin@gmail.com', 'lizzardkevin@qq.com']) {
+    assert(copy[language].contact.lines.some(line=>line.values.some(value=>value.href === 'mailto:'+email)));
+  }
+}
+assert(projects.every(project=>!/^project-\d+$/.test(project.id)), 'unwritten placeholders must not be public');
+assert(projects.filter(project=>project.mediaKind==='text').every(project=>!project.imageUrls), 'text studies must not invent media');
 assert(mobileData.includes('command: "$ cat Skills.md"'), "localized terminal commands must keep English file syntax");
 assert(!mobileData.includes("$ cat 技能.md"), "localized copy must not use Chinese pseudo terminal commands");
 assert(!mobileData.includes("$ 查看"), "localized copy must not translate shell commands into Chinese");
@@ -53,7 +48,7 @@ for (const oldId of ['"archives"', '"expertise"', '"about"']) {
 }
 
 const projectIdMatches = mobileData.match(/id:\s*"project-/g) ?? [];
-assert.ok(projectIdMatches.length >= 10, "mobile projects must define at least ten placeholder projects");
+assert.equal(projectIdMatches.length, 0, "placeholder projects must stay author-side");
 
 for (const projectField of ["summary", "signal", "spaceLayer", "archiveNote", "mediaStatus"]) {
   const matches = mobileData.match(new RegExp(`${projectField}:\\s*\\{\\s*en:\\s*"`, "g")) ?? [];
@@ -63,7 +58,7 @@ for (const projectField of ["summary", "signal", "spaceLayer", "archiveNote", "m
   );
 }
 
-for (const stageLabel of ["Education", "Professional Practice", "Personal Archive", "Explore"]) {
+for (const stageLabel of ["Education", "Professional Practice"]) {
   assert(mobileData.includes(`stageLabel: "${stageLabel}"`), `mobile projects must include ${stageLabel} stage label`);
 }
 
@@ -128,7 +123,7 @@ assert(!mobileData.includes("Prompt systems"), "mobile skill copy must remove ol
 assert(!mobileData.includes("Three.js thinking"), "mobile skill copy must remove old placeholder skill label Three.js thinking");
 assert(!mobileData.includes("Archive writing"), "mobile skill copy must remove old placeholder skill label Archive writing");
 
-for (const soulSection of ["Education", "Professional Practice", "Persona", "Rule"]) {
+for (const soulSection of ["Education", "Professional practice", "Photography", "Music / Band"]) {
   assert(mobileData.includes(`title: "${soulSection}"`), `Soul.md sections must include ${soulSection}`);
 }
 
@@ -167,12 +162,12 @@ assert(files.mobileExperience.includes("project.imageUrls?.map"), "Project detai
 assert(files.mobileExperience.includes("project.signal[language]"), "Project signals must be selected by current language");
 assert(files.mobileExperience.includes("project.spaceLayer[language]"), "Project SPACE layer copy must be selected by current language");
 assert(files.mobileExperience.includes("project.archiveNote[language]"), "Project archive notes must be selected by current language");
-assert(files.mobileExperience.includes("project.mediaStatus[language]"), "Project media status must be selected by current language");
+assert(files.mobileExperience.includes("project.imageUrls?.length ? <div"), "media blocks require actual images");
 assert(files.mobileExperience.includes("<details open"), "mobile terminal documents must render native open details folds");
 assert(files.mobileExperience.includes("<summary"), "mobile terminal documents must render native summary controls");
 assert(files.mobileExperience.includes("function TerminalFold"), "foldable terminal subsections must use a controlled TerminalFold component");
 assert(files.mobileExperience.includes("type TerminalFoldState = Record<string, boolean>"), "fold expanded state must be tracked above individual fold components");
-assert(files.mobileExperience.includes("const [foldState, setFoldState] = useState<TerminalFoldState>({})"), "fold expanded state must persist while switching between mobile tabs");
+assert(files.mobileExperience.includes("const [foldState, setFoldState] = useState<TerminalFoldState>({ \"projects:Education\": true })"), "fold expanded state must persist while switching between mobile tabs");
 assert(files.mobileExperience.includes("function getFoldExpanded"), "folds must read remembered expanded state through a shared helper");
 assert(files.mobileExperience.includes("return foldState[foldId] ?? false"), "folds must default to collapsed when they have not been opened before");
 assert(files.mobileExperience.includes("onFoldExpandedChange"), "Projects, Skills.md, and Soul.md must receive a shared fold state updater");
