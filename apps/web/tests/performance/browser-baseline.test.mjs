@@ -124,3 +124,66 @@ test("shipping asset comparison ignores build chunks but rejects byte or hash dr
     { pass: false, violations: ["apps/web/public/a.glb"] },
   );
 });
+
+test("selected-work transfer classification includes particle caches on every deployment base", async () => {
+  const { isSelectedWorkRequest, classifyRequestUrl } = await import(harnessUrl);
+  for (const base of ["http://localhost", "https://example.com/lizzardkevin-space"]) {
+    for (const path of ["/particles/arch_treehabitat.particles.bin?v=1", "/exhibits/arch_treehabitat/content.json", "/exhibits/arch_treehabitat/img/1.webp", "/exhibits/arch_treehabitat/focus_tree.glb"]) {
+      assert.equal(isSelectedWorkRequest(`${base}${path}`), true, path);
+    }
+    assert.equal(isSelectedWorkRequest(`${base}/particles/arch_uabb.particles.bin`), false);
+    assert.equal(isSelectedWorkRequest(`${base}/particles/arch_treehabitat.particles.bin.other`), false);
+    assert.deepEqual(classifyRequestUrl(`${base}/particles/arch_treehabitat.particles.bin`), {
+      threeDimensional: true, preEnterForbidden: true, persistentCore: false,
+    });
+  }
+});
+
+test("desktop journey targets the current archive and work pages with route return controls", () => {
+  const source = readFileSync(harness, "utf8");
+  assert.doesNotMatch(source, /focus-overlay|focus-media-dot|focus-return-button|frosted-split|\.nth\(/);
+  assert.equal(source.match(/await waitForWorkParticleState\(audit\.page\)/g)?.length, 2);
+  assert.match(source, /name: "LizzardKevin", exact: true/);
+  assert.match(source, /name: "DevStories", exact: true/);
+  assert.match(source, /waitForSelector\("\.ark-hub"/);
+  assert.equal(source.match(/waitForSelector\("#work-hero"/g)?.length, 2);
+  assert.equal(source.match(/waitForSelector\("#work-gallery img"/g)?.length, 2);
+  assert.equal(source.match(/name: \/Back to SPACE\|返回 SPACE\//g)?.length, 2);
+});
+
+test("split Three core vendor chunks remain forbidden on cold content and mobile", async () => {
+  const { classifyRequestUrl } = await import(harnessUrl);
+  assert.equal(classifyRequestUrl("https://example.com/lizzardkevin-space/assets/three-core-vendor-abc123.js").threeDimensional, true);
+});
+
+test("work readiness wait stays pending until an explicit renderer success or fallback", async () => {
+  const { readWorkParticleState, waitForWorkParticleState } = await import(harnessUrl);
+  const previousDocument = globalThis.document;
+  let ready = false, failed = false;
+  globalThis.document = { querySelector: (selector) => selector.includes('"failed"') ? failed : ready };
+  try {
+    assert.equal(readWorkParticleState(), null);
+    let resolveSignal;
+    const signal = new Promise((resolve) => { resolveSignal = resolve; });
+    let completed = false;
+    const waiting = waitForWorkParticleState({
+      async waitForFunction(predicate, argument, options) {
+        assert.equal(argument, null);
+        assert.equal(options.timeout, 90_000);
+        assert.equal(predicate(), null);
+        await signal;
+        return { jsonValue: async () => predicate() };
+      },
+    }).then((state) => { completed = true; return state; });
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(completed, false, "a mounted work page does not imply particle readiness");
+    ready = true;
+    resolveSignal();
+    assert.equal(await waiting, "ready");
+    ready = false;
+    failed = true;
+    assert.equal(readWorkParticleState(), "failed");
+  } finally {
+    globalThis.document = previousDocument;
+  }
+});

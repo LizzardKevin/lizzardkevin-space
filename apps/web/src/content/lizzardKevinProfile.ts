@@ -39,7 +39,3 @@ const lizzardKevinProfileByLanguage = generatedProfileByLanguage as Record<Suppo
 export function getLizzardKevinProfile(language: SupportedLanguage): ProfileBundle {
   return lizzardKevinProfileByLanguage[language] ?? lizzardKevinProfileByLanguage.en;
 }
-
-export const lizzardKevinIdentity = lizzardKevinProfileByLanguage.zh.identity;
-export const lizzardKevinLinks = lizzardKevinProfileByLanguage.zh.links;
-export const lizzardKevinSections = lizzardKevinProfileByLanguage.zh.sections;

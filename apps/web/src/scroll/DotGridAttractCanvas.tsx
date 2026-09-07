@@ -111,7 +111,7 @@ export function DotGridAttractCanvas({
     const scrollEl = scrollCandidate instanceof HTMLElement ? scrollCandidate : null;
     let scrollTop = scrollEl ? scrollEl.scrollTop : 0;
 
-    // 指针状态（lerp 平滑，手感与 dotGridPointer.ts 一致）
+    // 指针状态（lerp 平滑）
     let pointerSeen = false;
     let targetX = -400;
     let targetY = -400;

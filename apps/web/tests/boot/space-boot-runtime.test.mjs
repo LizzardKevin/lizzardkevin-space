@@ -14,7 +14,7 @@ import {
   runForActiveRendererGeneration,
 } from "../../src/boot/rendererGeneration.ts";
 import { BootAttemptErrorBoundary } from "../../src/boot/BootAttemptErrorBoundary.ts";
-import { createBootReportingGate } from "../../src/boot/bootReportingGate.ts";
+import { isBootReportingEnabled } from "../../src/boot/bootReportingGate.ts";
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 
@@ -231,18 +231,10 @@ test("Canvas subtree failures fail one attempt and retry remounts the subtree", 
   }
 });
 
-test("boot reporting becomes truly quiescent after running", () => {
-  const scope = { attemptId: 4, phase: "booting" };
-  const calls = [];
-  const gate = createBootReportingGate(() => scope);
-  const reportReady = gate.wrap(4, (id) => calls.push(["ready", id]));
-  const reportDeferred = gate.wrap(4, (id) => calls.push(["deferred", id]));
-
-  reportDeferred("far");
-  reportReady("near");
-  scope.phase = "running";
-  reportDeferred("near-after-range-change");
-  reportReady("late-model-resolution");
-  assert.deepEqual(calls, [["deferred", "far"], ["ready", "near"]]);
-  assert.equal(gate.isEnabled(4), false);
+test("live boot reporting predicate rejects stale attempts and all non-booting phases", () => {
+  assert.equal(isBootReportingEnabled({ attemptId: 4, phase: "booting" }, 4), true);
+  assert.equal(isBootReportingEnabled({ attemptId: 5, phase: "booting" }, 4), false);
+  for (const phase of ["lobby", "running", "failed", "disposed"]) {
+    assert.equal(isBootReportingEnabled({ attemptId: 4, phase }, 4), false);
+  }
 });

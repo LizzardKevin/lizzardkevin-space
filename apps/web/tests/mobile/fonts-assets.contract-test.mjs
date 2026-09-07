@@ -28,6 +28,7 @@ for (const fontPath of [
 const sarasaDirectory = projectPath("apps/web/public/fonts/sarasa-mono-sc");
 assert(!existsSync(sarasaDirectory), "Sarasa font directory must be removed to release mobile bundle space");
 
-assert(files.profile.includes("lizzardKevinSections"), "profile sections must remain available for desktop profile reuse");
+assert(files.profile.includes("getLizzardKevinProfile"), "desktop profile must expose its localized bundle getter");
+assert(files.profile.includes("sections: ProfileSection[]"), "localized desktop profile bundle must retain its sections");
 
 console.log("mobile fonts and assets contract tests passed");

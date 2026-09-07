@@ -80,39 +80,6 @@ function parseTags(tags: unknown, language: SupportedLanguage): string[] | undef
   return items.length > 0 ? Array.from(new Set(items)) : undefined;
 }
 
-export async function loadExhibitContent(
-  exhibitId: string,
-  language: SupportedLanguage = "en",
-): Promise<ExhibitContent | null> {
-  try {
-    const res = await fetch(exhibitContentUrl(exhibitId), { cache: "no-cache" });
-    if (!res.ok) return null;
-    const data = (await res.json()) as unknown;
-    if (!isRecord(data)) {
-      return null;
-    }
-    const title = parseLocalizedString(data.title, language);
-    const overview = parseLocalizedString(data.overview, language);
-    const storyHtml = parseLocalizedString(data.storyHtml, language);
-    if (!title || !overview || !storyHtml) return null;
-
-    const content: ExhibitContent = {
-      title,
-      overview,
-      storyHtml,
-    };
-    const subtitle = parseLocalizedString(data.subtitle, language);
-    if (subtitle) content.subtitle = subtitle;
-    const tags = parseTags(data.tags, language);
-    if (tags) content.tags = tags;
-    const metadata = parseMetadata(data.metadata, language);
-    if (metadata) content.metadata = metadata;
-    return content;
-  } catch {
-    return null;
-  }
-}
-
 /**
  * 宽松版加载器：字段逐个独立解析，缺哪个跳哪个。
  * 供作品详情滚动页使用——内容稀疏的展品也应尽量呈现已有信息，

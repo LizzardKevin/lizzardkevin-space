@@ -1,6 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger } from "../../scroll/scrollGsap";
 import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getDevStories } from "../../content/devStories";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
@@ -12,8 +11,6 @@ import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { scrollBusJumpTo } from "../../scroll/scrollBus";
 import { ProfileContent } from "../profile/ProfileContent";
 import { DevStoriesContent } from "../devstories/DevStoriesContent";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export type ArchiveHubTab = "profile" | "devstories";
 

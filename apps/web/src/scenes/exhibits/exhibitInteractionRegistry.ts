@@ -3,7 +3,6 @@ import {
   useContext,
   useEffect,
   useSyncExternalStore,
-  type RefObject,
 } from "react";
 import * as THREE from "three";
 
@@ -68,16 +67,4 @@ export function useRegisterExhibitInteractionTarget(
     if (!enabled || !target) return;
     return registry.registerTarget(target);
   }, [enabled, registry, target]);
-}
-
-export function useRegisterExhibitInteractionRef<T extends THREE.Object3D>(
-  targetRef: RefObject<T | null>,
-  enabled = true,
-) {
-  const registry = useExhibitInteractionRegistry();
-
-  useEffect(() => {
-    if (!enabled || !targetRef.current) return;
-    return registry.registerTarget(targetRef.current);
-  }, [enabled, registry, targetRef]);
 }

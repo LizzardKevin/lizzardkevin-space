@@ -127,9 +127,6 @@ export const GALLERY_INK = {
   exemptPatterns: [/^ARCH_WALL_PLASTER_WHITE_0(?:1[3-9]|2[0-2])/],
 };
 
-/** Require WebGPURenderer for the 3D gallery (no WebGL post-processing fallback). */
-export const ENABLE_GALLERY_WEBGPU = true;
-
 /** 2K/30fps budget: WebGPU native antialias is the lightest AA path for the main walking canvas. */
 export const ENABLE_GALLERY_RENDERER_ANTIALIAS = true;
 

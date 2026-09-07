@@ -231,7 +231,7 @@ export default function WorkDetailPage({
       </section>
 
       {particleFailed ? (
-        <section className="ark-section">
+        <section className="ark-section" data-work-particle-state="failed">
           <p className="ark-wgallery__hint" style={{ marginBottom: "2vh" }}>
             {copy.work.modelFailed}
           </p>

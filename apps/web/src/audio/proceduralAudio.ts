@@ -107,24 +107,3 @@ export function playProceduralFootstep(gain: number) {
     g.disconnect();
   };
 }
-
-/** 展品占位：短促柔和和弦，提示「请替换 demo 音频文件」。 */
-export function playProceduralExhibitPreview(gain: number) {
-  const ctx = getCtx();
-  const freqs = [220, 277.18, 329.63];
-  const now = ctx.currentTime;
-  const dur = 2.8;
-  freqs.forEach((f, i) => {
-    const osc = ctx.createOscillator();
-    osc.type = "sine";
-    osc.frequency.value = f;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0, now);
-    g.gain.linearRampToValueAtTime(gain * 0.22, now + 0.35 + i * 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    osc.connect(g);
-    g.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + dur + 0.05);
-  });
-}

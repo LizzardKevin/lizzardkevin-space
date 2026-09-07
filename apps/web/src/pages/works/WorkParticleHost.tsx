@@ -27,6 +27,7 @@ export function WorkParticleHost({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
+    canvas.dataset.workParticleState = "pending";
 
     const renderer = new ParticlePointsRenderer();
     let disposed = false;
@@ -144,6 +145,7 @@ export function WorkParticleHost({
             onUpdate: (self) => renderer.setMorphProgress(self.progress),
           });
         }
+        canvas.dataset.workParticleState = "ready";
         onReady?.();
         // dev-only 测试钩子:?wpMorph=0..1 强制解构进度;?px=&py= 固定光标 NDC;
         // ?wpIntro=0 跳过入场揭示,?wpIntro=0..1 定点落地 introProgress(无头截图/调试用,
@@ -196,6 +198,7 @@ export function WorkParticleHost({
   return (
     <canvas
       ref={canvasRef}
+      data-work-particle-state="pending"
       aria-hidden="true"
       style={{
         position: "fixed",

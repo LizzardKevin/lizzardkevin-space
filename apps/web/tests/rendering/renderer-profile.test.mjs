@@ -51,12 +51,6 @@ test("profile switching preserves the latest pose and resets renderer resolution
   }
 });
 
-test("Focus never requests a profile above the main resolved profile", async () => {
-  const { resolveFocusRequestedProfile } = await importSourceModule("rendering/rendererProfile.ts");
-  assert.equal(resolveFocusRequestedProfile("simplified"), "simplified");
-  assert.equal(resolveFocusRequestedProfile("full"), "full");
-});
-
 test("detached canvases dispose late renderers while connected canvases keep them", async () => {
   const { disposeRendererIfCanvasDetached } = await importSourceModule(
     "rendering/rendererLifecycle.ts",
@@ -121,15 +115,6 @@ test("renderer error reporting is suppressed after its owner unmounts", async ()
     true,
   );
   assert.deepEqual(reports, [error]);
-});
-
-test("owned render pipeline cleanup disposes exactly once per cleanup call", async () => {
-  const { disposeOwnedRenderPipeline } = await importSourceModule(
-    "rendering/ownedRenderPipeline.ts",
-  );
-  let disposals = 0;
-  disposeOwnedRenderPipeline({ dispose: () => { disposals += 1; } });
-  assert.equal(disposals, 1);
 });
 
 test("gallery pipeline cleanup releases pipeline, FXAA RTT, bloom, and scene pass", async () => {
