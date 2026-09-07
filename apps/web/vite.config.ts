@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -6,6 +7,11 @@ const KNOWN_LAZY_VENDOR_WARNING_LIMIT_KB = 3300
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   /** 相对路径，便于解压后用本地静态服务器直接打开 */
   base: "./",
   build: {

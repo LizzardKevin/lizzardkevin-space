@@ -10,6 +10,10 @@
     "apps/web"
   ],
   "scripts": {
+    "canvasui:search": "npx --yes shadcn@latest search @canvas-ui --cwd apps/web",
+    "canvasui:view": "npx --yes shadcn@latest view --cwd apps/web",
+    "canvasui:preview": "npx --yes shadcn@latest add --dry-run --cwd apps/web",
+    "canvasui:add": "npx --yes shadcn@latest add --cwd apps/web",
     "content:generate": "node scripts/generate-space-content.mjs && npm run exhibits:cache",
     "content:check": "node scripts/generate-space-content.mjs --check",
     "predev": "npm run content:generate",

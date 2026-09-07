@@ -32,3 +32,10 @@ npm run package:test # 本地试玩 zip → release/
 ## 内容维护（本地）
 
 改 GLB / JSON / 网页内容数据后先执行 `npm run verify:quick`；涉及构建、路由、部署入口或静态资源路径时再执行 `npm run build:chunks`。DevStories 的维护方式见 [`docs/devstories.md`](docs/devstories.md)。
+
+## 按需视觉效果
+
+[Canvas UI 接入指南](docs/design/canvas-ui-integration.md)记录了 ASCII、模型粒子和滚动效果的
+选型、命令、浏览器降级及许可证边界。Registry 已配置，效果按需安装，尚未挂载到页面。
+可直接向 agent 提出“用 Canvas UI 的某个效果改这个区域”；先用
+`npm run canvasui:search -- --query particle` 搜索，再用 `canvasui:preview` 检查变更。
