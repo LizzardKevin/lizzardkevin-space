@@ -14,7 +14,7 @@ import {
 } from "./startLobbyGlyphPhysics.ts";
 
 export const START_LOBBY_BARRAGE_MAX_DPR = 1.25;
-export const START_LOBBY_BARRAGE_FRAME_MS = 1000 / 30;
+export const START_LOBBY_BARRAGE_FRAME_MS = 1000 / 60;
 
 const FIELD_COLOR = "#69827e";
 const FIELD_DOT_COLOR = "rgba(24, 43, 45, 0.18)";

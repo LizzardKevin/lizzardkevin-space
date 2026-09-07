@@ -1,5 +1,5 @@
 import "../runtime/suppressThirdPartyDeprecationWarnings";
-import { Suspense, useCallback, useEffect, useMemo, useRef, type RefObject } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import {
   createRoot,
   extend,
@@ -21,12 +21,23 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import helvetikerFontUrl from "three/examples/fonts/helvetiker_bold.typeface.json?url";
 import { resolveStartLobbyTilt } from "./startLobbyHandoff";
 import {
+  START_LOBBY_INTRO_ASSEMBLED_CLOCK_S,
+  START_LOBBY_INTRO_LETTER_STAGGER_MS,
+  START_LOBBY_INTRO_SPACE_DELAY_MS,
+  type LobbyShatterClock,
+} from "./startLobbyIntroShatter";
+import {
+  injectLobbyShatterMaterial,
+  prepareLobbyShatterGeometry,
+} from "./startLobbyShatterMaterial";
+import {
   createStartLobbyRootOwner,
   type StartLobbyRootOwner,
 } from "./startLobbyRootOwner";
 import { releaseStartLobbyRouteRenderer } from "./startLobbyRendererRelease";
 import { syncStartLobbyViewport } from "./startLobbyViewport";
 import { StartLobbyBarrage, type StartLobbyBarrageHandle } from "./StartLobbyBarrage";
+import { StartLobbyIntro } from "./StartLobbyIntro";
 import "./startLobby.css";
 
 extend({
@@ -69,19 +80,44 @@ function createCenteredTextGeometry(text: string, font: Font, size: number, dept
   return geometry;
 }
 
-function LobbyWord({ text, size, y }: { text: string; size: number; y: number }) {
+type LobbyWordReady = (word: string) => void;
+
+const START_LOBBY_WORD_COUNT = 2;
+
+function LobbyWord({
+  text,
+  size,
+  y,
+  shatterClock,
+  wordDelayMs = 0,
+  onReady,
+}: {
+  text: string;
+  size: number;
+  y: number;
+  shatterClock: LobbyShatterClock;
+  wordDelayMs?: number;
+  onReady(): void;
+}) {
   const font = useLoader(FontLoader, helvetikerFontUrl);
   const geometry = useMemo(
-    () => createCenteredTextGeometry(text, font, size, 0.32),
-    [font, size, text],
+    () =>
+      prepareLobbyShatterGeometry(createCenteredTextGeometry(text, font, size, 0.32), {
+        seed: 11,
+        wordDelayMs,
+      }),
+    [font, size, text, wordDelayMs],
   );
 
   useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => onReady(), [onReady]);
+
+  const onBeforeCompile = useMemo(() => injectLobbyShatterMaterial(shatterClock), [shatterClock]);
 
   return (
     <mesh geometry={geometry} position={[0, y, 0]}>
-      <meshToonMaterial attach="material-0" color="#f3f0e7" />
-      <meshToonMaterial attach="material-1" color="#182b2d" />
+      <meshToonMaterial attach="material-0" color="#f3f0e7" transparent onBeforeCompile={onBeforeCompile} />
+      <meshToonMaterial attach="material-1" color="#182b2d" transparent onBeforeCompile={onBeforeCompile} />
     </mesh>
   );
 }
@@ -92,12 +128,18 @@ function LobbyEvenlySpacedWord({
   letterGap,
   pairGapAdjustments,
   y,
+  shatterClock,
+  wordDelayMs = 0,
+  onReady,
 }: {
   text: string;
   size: number;
   letterGap: number;
   pairGapAdjustments?: Readonly<Record<string, number>>;
   y: number;
+  shatterClock: LobbyShatterClock;
+  wordDelayMs?: number;
+  onReady(): void;
 }) {
   const font = useLoader(FontLoader, helvetikerFontUrl);
   const letters = useMemo(() => {
@@ -121,9 +163,15 @@ function LobbyEvenlySpacedWord({
       const width = widths[index] ?? size;
       const x = cursor + width / 2;
       cursor += width + (gaps[index] ?? 0);
-      return { geometry, x };
+      return {
+        geometry: prepareLobbyShatterGeometry(geometry, {
+          seed: 23 + index * 101,
+          wordDelayMs: wordDelayMs + index * START_LOBBY_INTRO_LETTER_STAGGER_MS,
+        }),
+        x,
+      };
     });
-  }, [font, letterGap, pairGapAdjustments, size, text]);
+  }, [font, letterGap, pairGapAdjustments, size, text, wordDelayMs]);
 
   useEffect(
     () => () => {
@@ -131,42 +179,72 @@ function LobbyEvenlySpacedWord({
     },
     [letters],
   );
+  useEffect(() => onReady(), [onReady]);
+
+  const onBeforeCompile = useMemo(() => injectLobbyShatterMaterial(shatterClock), [shatterClock]);
 
   return (
     <group position={[0, y, 0]}>
       {letters.map(({ geometry, x }, index) => (
         <mesh key={`${text}-${index}`} geometry={geometry} position={[x, 0, 0]}>
-          <meshToonMaterial attach="material-0" color="#f3f0e7" />
-          <meshToonMaterial attach="material-1" color="#182b2d" />
+          <meshToonMaterial attach="material-0" color="#f3f0e7" transparent onBeforeCompile={onBeforeCompile} />
+          <meshToonMaterial attach="material-1" color="#182b2d" transparent onBeforeCompile={onBeforeCompile} />
         </mesh>
       ))}
     </group>
   );
 }
 
-function LobbyTypography({ artRef }: { artRef: RefObject<Group | null> }) {
+function LobbyTypography({
+  artRef,
+  shatterClock,
+  onWordReady,
+}: {
+  artRef: RefObject<Group | null>;
+  shatterClock: LobbyShatterClock;
+  onWordReady: LobbyWordReady;
+}) {
+  const handleTitleReady = useCallback(() => onWordReady("title"), [onWordReady]);
+  const handleSpaceReady = useCallback(() => onWordReady("space"), [onWordReady]);
   return (
     <group ref={artRef} rotation={[-0.025, 0.035, 0]}>
-      <LobbyWord text="LIZZARDKEVIN" size={0.38} y={0.58} />
+      <LobbyWord
+        text="LIZZARDKEVIN"
+        size={0.38}
+        y={0.58}
+        shatterClock={shatterClock}
+        onReady={handleTitleReady}
+      />
       <LobbyEvenlySpacedWord
         text="SPACE"
         size={1.24}
         letterGap={0.1}
         pairGapAdjustments={{ PA: -0.08, AC: -0.07 }}
         y={-0.72}
+        shatterClock={shatterClock}
+        wordDelayMs={START_LOBBY_INTRO_SPACE_DELAY_MS}
+        onReady={handleSpaceReady}
       />
     </group>
   );
 }
 
-function LobbyScene({ artRef }: { artRef: RefObject<Group | null> }) {
+function LobbyScene({
+  artRef,
+  shatterClock,
+  onWordReady,
+}: {
+  artRef: RefObject<Group | null>;
+  shatterClock: LobbyShatterClock;
+  onWordReady: LobbyWordReady;
+}) {
   return (
     <>
       <fog attach="fog" args={["#69827e", 8, 18]} />
       <ambientLight intensity={1.9} />
       <directionalLight position={[-3, 5, 7]} intensity={2.4} />
       <Suspense fallback={null}>
-        <LobbyTypography artRef={artRef} />
+        <LobbyTypography artRef={artRef} shatterClock={shatterClock} onWordReady={onWordReady} />
       </Suspense>
     </>
   );
@@ -186,6 +264,26 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
   const disposedRef = useRef(false);
   const initPromiseRef = useRef<Promise<void> | null>(null);
   const fadeReleaseRef = useRef<(() => void) | null>(null);
+  // reduced-motion 不播 intro:时钟直接停在聚合终态,标题静止完整。
+  const shatterClockRef = useRef<LobbyShatterClock>({
+    value: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? START_LOBBY_INTRO_ASSEMBLED_CLOCK_S
+      : 0,
+  });
+  const [introMounted, setIntroMounted] = useState(
+    () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  const [introActive, setIntroActive] = useState(introMounted);
+  const [typographyReady, setTypographyReady] = useState(false);
+  const readyWordsRef = useRef<Set<string>>(new Set());
+  const handleIntroSettled = useCallback(() => setIntroActive(false), []);
+  const handleIntroExited = useCallback(() => setIntroMounted(false), []);
+  const handleWordReady = useCallback((word: string) => {
+    const readyWords = readyWordsRef.current;
+    if (readyWords.has(word)) return;
+    readyWords.add(word);
+    if (readyWords.size >= START_LOBBY_WORD_COUNT) setTypographyReady(true);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -232,7 +330,13 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
         })
         .then((configuredRoot) => {
           if (!effectMountedRef.current || releaseStartedRef.current) return;
-          const store = configuredRoot.render(<LobbyScene artRef={artRef} />);
+          const store = configuredRoot.render(
+            <LobbyScene
+              artRef={artRef}
+              shatterClock={shatterClockRef.current}
+              onWordReady={handleWordReady}
+            />,
+          );
           storeRef.current = store;
           const bounds = containerRef.current?.getBoundingClientRect();
           if (bounds) syncStartLobbyViewport(store, bounds.width, bounds.height);
@@ -248,7 +352,7 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
       effectMountedRef.current = false;
       rootOwner.scheduleUnmount();
     };
-  }, []);
+  }, [handleWordReady]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -316,6 +420,7 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
       ref={containerRef}
       className="start-lobby"
       data-disposing={disposing ? "true" : "false"}
+      data-intro={introActive && !disposing ? "active" : "settled"}
       onPointerMove={(event) => applyPointerTilt(event.clientX, event.clientY)}
       onPointerDown={(event) => applyPointerTilt(event.clientX, event.clientY)}
       onPointerLeave={resetPointerTilt}
@@ -327,6 +432,15 @@ export default function StartLobby({ disposing, onTrustedEnter, onDisposed }: St
       <h1 className="start-lobby__accessible-title">LizzardKevin Space</h1>
       <StartLobbyBarrage ref={barrageRef} />
       <canvas ref={canvasRef} className="start-lobby__canvas" aria-hidden="true" />
+      {introMounted && !disposing ? (
+        <StartLobbyIntro
+          ready={typographyReady}
+          clockRef={shatterClockRef}
+          storeRef={storeRef}
+          onSettled={handleIntroSettled}
+          onExited={handleIntroExited}
+        />
+      ) : null}
       <button
         className="start-lobby__enter"
         type="button"

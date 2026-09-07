@@ -59,7 +59,10 @@ test("StartLobby uses real extruded text and the approved restrained palette", (
   assert.match(source, /helvetiker_bold\.typeface\.json\?url/);
   assert.match(source, /LIZZARDKEVIN/);
   assert.match(source, /SPACE/);
-  assert.match(source, /<LobbyWord text="LIZZARDKEVIN" size=\{0\.38\} y=\{0\.58\} \/>/);
+  assert.match(
+    source,
+    /<LobbyWord[\s\S]*?text="LIZZARDKEVIN"[\s\S]*?size=\{0\.38\}[\s\S]*?y=\{0\.58\}[\s\S]*?\/>/,
+  );
   assert.match(
     source,
     /<LobbyEvenlySpacedWord[\s\S]*?text="SPACE"[\s\S]*?letterGap=\{0\.1\}[\s\S]*?pairGapAdjustments=\{\{ PA: -0\.08, AC: -0\.07 \}\}[\s\S]*?\/>/,
@@ -107,6 +110,40 @@ test("StartLobby hides the native cursor while the barrage owns the visible poin
   assert.match(barrage, /context\.fill\(\)/);
 });
 
+test("StartLobby intro shatters the 3D text model itself instead of sampling 2D type", () => {
+  const source = readSource("lobby/StartLobby.tsx");
+  const intro = readSource("lobby/StartLobbyIntro.tsx");
+  const shatter = readSource("lobby/startLobbyShatterMaterial.ts");
+  const css = readSource("lobby/startLobby.css");
+
+  // 3D 标题逐面爆炸:几何预写逐面 attribute,材质注入 uShatterClock,demand 渲染逐帧 invalidate。
+  assert.match(source, /prepareLobbyShatterGeometry/);
+  assert.match(source, /injectLobbyShatterMaterial/);
+  assert.match(source, /START_LOBBY_INTRO_ASSEMBLED_CLOCK_S/);
+  assert.match(shatter, /uShatterClock/);
+  assert.match(shatter, /aFaceCenter/);
+  assert.match(shatter, /aScatter/);
+  assert.match(shatter, /#include <beginnormal_vertex>/);
+  assert.match(shatter, /#include <begin_vertex>/);
+  assert.match(shatter, /vShatterAlpha/);
+  assert.match(intro, /\.invalidate\s*\(/);
+  assert.match(intro, /pointerdown/);
+
+  // 不再有 2D 文字点阵采样:intro 只剩白场 wipe DOM 覆盖层 + 时钟驱动。
+  assert.doesNotMatch(intro, /fillText|getImageData|createElement\(\s*["']canvas["']\)/);
+  assert.equal(
+    existsSync(sourceUrl("lobby/startLobbyIntroSplatter.ts")),
+    false,
+    "the 2D text splatter sampler must be gone",
+  );
+  assert.match(css, /\.start-lobby__intro-wipe/);
+  assert.doesNotMatch(
+    css,
+    /\.start-lobby\[data-intro="active"\]\s+\.start-lobby__canvas[^{]*\{[^}]*opacity:\s*0/,
+    "the 3D title must stay visible while the intro assembles it",
+  );
+});
+
 test("StartLobby limits input work and becomes static for reduced motion", () => {
   const source = readSource("lobby/StartLobby.tsx");
   const handoff = readSource("lobby/startLobbyHandoff.ts");
@@ -131,7 +168,7 @@ test("StartLobby layers a performance-bounded glyph barrage behind transparent 3
   assert.match(barrage, /generatedStartLobbyExhibitText/);
   assert.match(barrage, /START_LOBBY_STREAM_COUNT/);
   assert.match(barrage, /START_LOBBY_BARRAGE_MAX_DPR\s*=\s*1\.25/);
-  assert.match(barrage, /START_LOBBY_BARRAGE_FRAME_MS\s*=\s*1000\s*\/\s*30/);
+  assert.match(barrage, /START_LOBBY_BARRAGE_FRAME_MS\s*=\s*1000\s*\/\s*60/);
   assert.match(barrage, /START_LOBBY_FONT_SCALE\s*=\s*1\.25/);
   assert.match(barrage, /POINTER_DOT_FIELD_RADIUS_PX\s*=\s*300/);
   assert.match(barrage, /POINTER_DOT_MAX_PULL_PX\s*=\s*30/);
