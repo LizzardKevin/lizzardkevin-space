@@ -1,5 +1,6 @@
-import { InstancedBufferAttribute, Vector2 } from "three";
+import { Color, InstancedBufferAttribute, Vector2 } from "three";
 import { PointsNodeMaterial } from "three/webgpu";
+import { INTRO_HEIGHT_WEIGHT, INTRO_RAND_JITTER, INTRO_REVEAL_WINDOW } from "./introReveal.ts";
 import {
   cameraProjectionMatrix,
   clamp,
@@ -87,6 +88,21 @@ export function createParticleUniforms() {
     morphProgress: uniform(0),
     /** morph 完成态的整体亮度系数(ambient 点场更稀疏,默认压到 0.55 避免喧宾夺主)。 */
     ambientDim: uniform(0.55),
+    /**
+     * 入场揭示进度 0..1:0=全隐,1=全显,远→近波浪由 shader 按视距深度推进。
+     * 默认 1(标定页等非入场场景直接呈现);宿主在 setParticleData 后调 startIntro()
+     * 置 0 并由渲染闭环按 dt 推进,播完置 1 后不再写。
+     */
+    introProgress: uniform(1),
+    /** 入场生成色(页面提示黄 #e8d44d):单点生成瞬间着色,随后混回灰阶白。 */
+    introColor: uniform(new Color(0xe8d44d)),
+    /**
+     * 入场高度归一化区间(局部 y,含地面下限到模型顶):intro reveal 的
+     * "从下往上"轴按 (y − introYMin) / (introYMax − introYMin) 归一化。
+     * 由渲染闭环 setParticleData 写入,此处只是占位初值(退化为全 0..1 区间)。
+     */
+    introYMin: uniform(0),
+    introYMax: uniform(1),
   };
 }
 
@@ -209,7 +225,40 @@ export function createParticlePointsMaterial(
   // 光标 falloff/增亮/微放大/抖动都基于 morph 前位置(displaced/jittered)计算,保持不变。
   const finalPos = mix(jittered, positionAlt, uniforms.morphProgress);
 
-  // 亮度在顶点级计算,经 varying 进 fragment(面片四角同值,无插值误差)。
+  // 入场揭示(introReveal.ts 的 shader 镜像):排序键 = 深度项(morph 后位置的视距深度
+  // 归一化,复用 depthFade 区间 = 视距∓包围球半径;远点先出)与高度项(morph 后位置 y 按
+  // introYMin/introYMax 归一化;低点先出)按 INTRO_HEIGHT_WEIGHT 等权混合,rand 抖动打散切片;
+  // 单点在 INTRO_REVEAL_WINDOW 进度窗内完成 隐藏→黄→白。introProgress=1 时 introT≡1,
+  // 透明度系数为 1、黄色权重为 0,表现与未启用入场完全一致。
+  const introViewPosition = modelViewMatrix.mul(vec4(finalPos, 1.0));
+  const introDepthNorm = clamp(
+    introViewPosition.z
+      .negate()
+      .sub(uniforms.depthFadeNear)
+      .div(uniforms.depthFadeFar.sub(uniforms.depthFadeNear)),
+    0.0,
+    1.0,
+  );
+  const introHeightNorm = clamp(
+    finalPos.y.sub(uniforms.introYMin).div(uniforms.introYMax.sub(uniforms.introYMin)),
+    0.0,
+    1.0,
+  );
+  const introOrder = float(1.0)
+    .sub(introDepthNorm)
+    .mul(float(1 - INTRO_HEIGHT_WEIGHT))
+    .add(introHeightNorm.mul(float(INTRO_HEIGHT_WEIGHT)));
+  const introThreshold = introOrder
+    .mul(float(1 - INTRO_RAND_JITTER))
+    .add(instanceRand.mul(float(INTRO_RAND_JITTER)))
+    .mul(float(1 - INTRO_REVEAL_WINDOW));
+  // reveal 进度与亮度同在顶点级计算,经 varying 进 fragment(面片四角同值,无插值误差)。
+  const brightnessV = varying(brightness, "v_particleBrightness");
+  const introT = varying(
+    clamp(uniforms.introProgress.sub(introThreshold).div(float(INTRO_REVEAL_WINDOW)), 0.0, 1.0),
+    "v_particleIntroT",
+  );
+
   const material = new PointsNodeMaterial();
   material.positionNode = finalPos;
   // 世界单位直径 × 标定补偿;内建链再乘 screenDPR 并按 (0.5 × 视口高 / -viewZ) 做透视衰减。
@@ -217,11 +266,20 @@ export function createParticlePointsMaterial(
   material.sizeNode = uniforms.pointSizeBase
     .mul(uniforms.pixelRatio)
     .mul(float(1.0).add(uniforms.cursorSizeGain.mul(cursorFalloff)));
-  material.colorNode = vec3(varying(brightness, "v_particleBrightness"));
-  // 圆形点:alphaToCoverage + MSAA(createWebGPURenderer antialias:true);无 MSAA 时退化为方点,仍不透明。
+  // 生成瞬间着提示黄(乘 0.5+brightness,微闪/人浪在黄色阶段照常调制),随后混回灰阶白。
+  material.colorNode = mix(
+    vec3(brightnessV),
+    uniforms.introColor.mul(float(0.5).add(brightnessV)),
+    smoothstep(float(0.25), float(1.0), introT).oneMinus(),
+  );
+  // 圆形点:alphaToCoverage + MSAA(createWebGPURenderer antialias:true);无 MSAA 时退化为方点。
   // 注意 three Material 的 alphaToCoverage 默认是 false,必须显式开启。
   material.alphaToCoverage = true;
-  material.opacityNode = smoothstep(float(0.5), float(0.32), uv().sub(vec2(0.5)).length());
+  // mask 与整体透明度分开乘:圆 mask(边缘) × 散开态透明度(成形 1 → 散开 0.5,
+  // 中间值经 MSAA 覆盖抖动呈现半透明)× 入场淡入(未生成前不可见)。
+  material.opacityNode = smoothstep(float(0.5), float(0.32), uv().sub(vec2(0.5)).length())
+    .mul(mix(float(1.0), float(0.5), uniforms.morphProgress))
+    .mul(smoothstep(float(0.0), float(0.4), introT));
   material.transparent = false;
   material.depthWrite = true;
   material.depthTest = true;

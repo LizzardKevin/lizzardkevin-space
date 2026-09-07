@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArkGlassTile } from "../../components/ArkGlassTile";
+import { useParams } from "react-router-dom";
 import { generatedExhibitLabels } from "../../generated/exhibitLabels.generated";
 import { formatExhibitIdFallback, type ExhibitContent } from "../../exhibits/exhibitContent";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
-import { workRoute } from "../../app/routeConfig";
 import { NotFound } from "../../app/appRoutes";
 import {
   ScrollPageShell,
@@ -18,17 +16,20 @@ import { useGalleryEntrance } from "../../scroll/useGalleryEntrance";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { ImageLightbox } from "../../scroll/ImageLightbox";
-import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
+import { DataStrip, SectionHeader } from "../../scroll/primitives";
 import { gsap } from "../../scroll/scrollGsap";
 import "../../styles/scroll-lightbox.css";
 import { useWorkDetail } from "./useWorkDetail";
 import { useDragScroll } from "./useDragScroll";
+import { useGalleryAutoFlow } from "./useGalleryAutoFlow";
 import { WorkParticleHost } from "./WorkParticleHost";
+import { WorkEdgeNav } from "./WorkEdgeNav";
 
 /**
- * /works/:exhibitId 作品详情页：通用数据驱动、条件分节。
- * 每个分节按数据存在性渲染，缺什么跳什么；未来新增展品走
- * xlsx → content:generate 管线即零代码生效。详见计划 §6.3 渲染矩阵。
+ * /works/:exhibitId 作品详情页:两段式结构——
+ * a 段 hero(标题/简介/粒子模型展台),b 段 #work-media(视频 + 图集等多媒体材料)。
+ * 无多媒体数据时 b 段隐藏,解构 morph 锚点在宿主内退化为页尾。
+ * 内容数据照常加载(useWorkDetail/content.json),story/spec/overview 不渲染。
  */
 
 /** hero 标题下滚时缩小淡出（与壳层 mini-title 接力吸附左上）。 */
@@ -71,7 +72,7 @@ function resolveWorkTitle(
   return label?.[language] ?? label?.en ?? formatExhibitIdFallback(exhibitId);
 }
 
-/** 有视频分节时编号整体后移一位（01 overview → 02 video → …）。 */
+/** 媒体段内编号:有视频时图集后移一位(01 video → 02 gallery,无视频时图集 01)。 */
 function sectionNo(hasVideo: boolean, base: number): string {
   return String(hasVideo ? base + 1 : base).padStart(2, "0");
 }
@@ -85,7 +86,11 @@ export default function WorkDetailPage({
   const language = usePageLanguage();
   const copy = getScrollPagesCopy(language);
   const state = useWorkDetail(exhibitId, language);
-  const galleryRef = useDragScroll<HTMLDivElement>();
+  // 图集:拖拽 + 自动流(marquee)。环绕周期由自动流测量后经 ref 回流给拖拽 hook。
+  const galleryWrapPeriodRef = useRef(0);
+  const { ref: galleryRef, interaction: galleryInteraction } = useDragScroll<HTMLDivElement>({
+    getWrapPeriod: () => galleryWrapPeriodRef.current,
+  });
   const heroTitleRef = useRef<HTMLDivElement | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
   // 粒子宿主失败按展品 id 记录：切到下一个展品（同路由换参数）时自动重置重试。
@@ -100,19 +105,24 @@ export default function WorkDetailPage({
 
   const anchors: ScrollPageAnchor[] = useMemo(() => {
     if (state.status !== "ready") return [];
-    const list: ScrollPageAnchor[] = [];
-    if (state.content?.overview) list.push({ id: "work-overview", label: "OVW" });
-    if (state.exhibit.media?.videoUrl) list.push({ id: "work-video", label: "VID" });
-    if ((state.exhibit.media?.imageUrls ?? []).length >= 1) {
-      list.push({ id: "work-gallery", label: "IMG" });
-    }
-    if (state.content?.storyHtml) list.push({ id: "work-story", label: "STY" });
-    return list;
+    const hasMedia =
+      Boolean(state.exhibit.media?.videoUrl) ||
+      (state.exhibit.media?.imageUrls ?? []).length > 0;
+    return hasMedia ? [{ id: "work-media", label: "MED" }] : [];
   }, [state]);
 
   const ready = state.status === "ready";
   const galleryImageCount =
     state.status === "ready" ? (state.exhibit.media?.imageUrls ?? []).length : 0;
+  // 自动流:hover/拖拽/惯性/页面隐藏/lightbox 打开时暂停,惯性结束恢复;
+  // reduced-motion 与 ?wpGalleryFlow=0 下关闭(单份渲染、静态可拖)。
+  const galleryCopies = useGalleryAutoFlow({
+    trackRef: galleryRef,
+    itemCount: galleryImageCount,
+    interaction: galleryInteraction,
+    paused: selectedImage !== null,
+    wrapPeriodRef: galleryWrapPeriodRef,
+  });
   useScrubSections(
     [
       { selector: ".ark-wgallery", drift: 48, minHeightRatio: 0.4 },
@@ -159,18 +169,17 @@ export default function WorkDetailPage({
   const { exhibit, content, works, index } = state;
   const images = exhibit.media?.imageUrls ?? [];
   const videoUrl = exhibit.media?.videoUrl;
+  const hasMedia = Boolean(videoUrl) || images.length > 0;
   // model3d 展品的展台由全页粒子点云承担；粒子失败时回退 video/poster 静态块。
   const particleFailed = particleFailedId === exhibitId;
   const showParticles = exhibit.type === "model3d" && !particleFailed;
 
   const title = resolveWorkTitle(exhibitId, content, language);
   const subtitle = content?.subtitle;
-  const metadata = content?.metadata ?? [];
-  const tags = content?.tags ?? [];
 
+  // 上一件/下一件由 WorkEdgeNav(固定左右边缘、decrypt 揭示)承担。
   const prevWork = works.length > 1 ? works[(index - 1 + works.length) % works.length] : null;
   const nextWork = works.length > 1 ? works[(index + 1) % works.length] : null;
-  const navTitle = (id: string) => resolveWorkTitle(id, null, language);
 
   return (
     <ScrollPageShell
@@ -185,10 +194,20 @@ export default function WorkDetailPage({
       onNavigateToSpace={onNavigateToSpace}
     >
       {showParticles ? (
-        <WorkParticleHost key={exhibitId} exhibitId={exhibitId} onError={handleParticleError} />
+        <WorkParticleHost key={`particles-${exhibitId}`} exhibitId={exhibitId} onError={handleParticleError} />
+      ) : null}
+      {prevWork && nextWork ? (
+        <WorkEdgeNav
+          key={`edge-${exhibitId}`}
+          prev={{ id: prevWork.exhibitId, title: resolveWorkTitle(prevWork.exhibitId, null, language), hint: copy.work.prevWork }}
+          next={{ id: nextWork.exhibitId, title: resolveWorkTitle(nextWork.exhibitId, null, language), hint: copy.work.nextWork }}
+        />
       ) : null}
       {/* 粒子背景下的去框体样式作用域(display:contents 不改变布局) */}
-      <div className="ark-work-page" style={{ display: "contents" }}>
+      <div
+        className="ark-work-page"
+        style={{ display: "contents" }}
+      >
       <section className="ark-hero" id="work-hero">
         <p className="ark-hero__eyebrow">
           {copy.work.eyebrow} / {exhibitId.replace(/_/g, " ").toUpperCase()}
@@ -211,13 +230,13 @@ export default function WorkDetailPage({
         <span className="ark-hero__scrollHint">{copy.scrollHint}</span>
       </section>
 
-      {particleFailed && (videoUrl || images.length > 0) ? (
+      {particleFailed ? (
         <section className="ark-section">
           <p className="ark-wgallery__hint" style={{ marginBottom: "2vh" }}>
             {copy.work.modelFailed}
           </p>
-          <div className="ark-wvideo">
-            {videoUrl ? (
+          {videoUrl ? (
+            <div className="ark-wvideo">
               <video
                 className="ark-wvideo__player"
                 src={videoUrl}
@@ -225,87 +244,84 @@ export default function WorkDetailPage({
                 playsInline
                 preload="metadata"
               />
-            ) : (
+            </div>
+          ) : images.length > 0 ? (
+            <div className="ark-wvideo">
               <img className="ark-wvideo__player" src={images[0]} alt={title} />
-            )}
-          </div>
-        </section>
-      ) : null}
-
-      {content?.overview ? (
-        <section className="ark-section" id="work-overview">
-          <Reveal>
-            <SectionHeader number="01" title={copy.work.overviewLabel} />
-          </Reveal>
-          <Reveal>
-            <p className="ark-psection__summary" style={{ marginTop: "3vh" }}>
-              {content.overview}
-            </p>
-          </Reveal>
-          {tags.length > 0 ? (
-            <div style={{ marginTop: "3vh" }}>
-              <TagRow tags={tags} />
             </div>
           ) : null}
         </section>
       ) : null}
 
-      {videoUrl ? (
-        <section className="ark-section" id="work-video">
-          <Reveal>
-            <SectionHeader number="02" title={copy.work.videoLabel} />
-          </Reveal>
-          <Reveal>
-            <div className="ark-wvideo" style={{ marginTop: "3vh" }}>
-              <video
-                className="ark-wvideo__player"
-                src={videoUrl}
-                controls
-                playsInline
-                preload="metadata"
-              />
-            </div>
-          </Reveal>
-        </section>
-      ) : null}
-
-      {images.length >= 2 ? (
-        <div className="ark-wgallery-zone">
-          <section className="ark-wgallery" id="work-gallery">
-            <div className="ark-wgallery__head">
-              <SectionHeader number={sectionNo(Boolean(videoUrl), 2)} title={copy.work.galleryLabel} />
-              <span className="ark-wgallery__hint">{copy.work.dragHint} ↔</span>
-            </div>
-            <div className="ark-wgallery__track" ref={galleryRef}>
-              {images.map((url, i) => (
-                <figure className="ark-wgallery__item" key={url}>
-                  <img
-                    src={url}
-                    alt={`${title} — ${i + 1}`}
-                    loading="lazy"
-                    draggable={false}
-                    onClick={() =>
-                      setSelectedImage({ src: url, alt: `${title} — ${i + 1}` })
-                    }
-                    style={{ cursor: "zoom-in" }}
+      {/* b 段:项目多媒体材料(视频 + 图集合并为一个 #work-media 分节);
+          无多媒体数据的作品隐藏该段,粒子宿主的解构 morph 锚点退化为页尾。 */}
+      {hasMedia ? (
+        <section className="ark-wmedia" id="work-media">
+          {videoUrl ? (
+            <section className="ark-section" id="work-video">
+              <Reveal>
+                <SectionHeader number="01" title={copy.work.videoLabel} />
+              </Reveal>
+              <Reveal>
+                <div className="ark-wvideo" style={{ marginTop: "3vh" }}>
+                  <video
+                    className="ark-wvideo__player"
+                    src={videoUrl}
+                    controls
+                    playsInline
+                    preload="metadata"
                   />
-                </figure>
-              ))}
+                </div>
+              </Reveal>
+            </section>
+          ) : null}
+
+          {images.length >= 2 ? (
+            <div className="ark-wgallery-zone">
+              <section className="ark-wgallery" id="work-gallery">
+                <div className="ark-wgallery__head">
+                  <SectionHeader number={sectionNo(Boolean(videoUrl), 1)} title={copy.work.galleryLabel} />
+                  <span className="ark-wgallery__hint">{copy.work.dragHint} ↔</span>
+                </div>
+                <div className="ark-wgallery__track" ref={galleryRef}>
+                  {/* 自动流:内容按份复制实现无缝循环,复制份仅视觉用(aria-hidden) */}
+                  {Array.from({ length: galleryCopies }, (_, copyIndex) =>
+                    images.map((url, i) => (
+                      <figure
+                        className="ark-wgallery__item"
+                        key={`${copyIndex}:${url}`}
+                        aria-hidden={copyIndex > 0 || undefined}
+                      >
+                        <img
+                          src={url}
+                          alt={`${title} — ${i + 1}`}
+                          loading="lazy"
+                          draggable={false}
+                          onClick={() =>
+                            setSelectedImage({ src: url, alt: `${title} — ${i + 1}` })
+                          }
+                          style={{ cursor: "zoom-in" }}
+                        />
+                      </figure>
+                    )),
+                  )}
+                </div>
+              </section>
             </div>
-          </section>
-        </div>
-      ) : images.length === 1 ? (
-        <section className="ark-wgallery" id="work-gallery">
-          <div className="ark-wgallery__single">
-            <img
-              src={images[0]}
-              alt={title}
-              loading="lazy"
-              draggable={false}
-              onClick={() => setSelectedImage({ src: images[0], alt: title })}
-              style={{ cursor: "zoom-in" }}
-            />
-          </div>
+          ) : images.length === 1 ? (
+            <section className="ark-wgallery" id="work-gallery">
+              <div className="ark-wgallery__single">
+                <img
+                  src={images[0]}
+                  alt={title}
+                  loading="lazy"
+                  draggable={false}
+                  onClick={() => setSelectedImage({ src: images[0], alt: title })}
+                  style={{ cursor: "zoom-in" }}
+                />
+              </div>
+            </section>
+          ) : null}
         </section>
       ) : null}
 
@@ -315,52 +331,6 @@ export default function WorkDetailPage({
           alt={selectedImage.alt}
           onClose={() => setSelectedImage(null)}
         />
-      ) : null}
-
-      {content?.storyHtml ? (
-        <section className="ark-section" id="work-story">
-          <Reveal>
-            <SectionHeader number={sectionNo(Boolean(videoUrl), 3)} title={copy.work.storyLabel} />
-          </Reveal>
-          <Reveal>
-            <div
-              className="ark-wstory"
-              style={{ marginTop: "3vh" }}
-              dangerouslySetInnerHTML={{ __html: content.storyHtml }}
-            />
-          </Reveal>
-        </section>
-      ) : null}
-
-      {metadata.length > 0 ? (
-        <section className="ark-section" id="work-spec">
-          <Reveal>
-            <SectionHeader number={sectionNo(Boolean(videoUrl), 4)} title={copy.work.specLabel} />
-          </Reveal>
-          <div className="ark-wspec" style={{ marginTop: "3vh" }}>
-            <DataStrip
-              items={metadata.map((item) => ({ label: item.label, value: item.value }))}
-            />
-            {tags.length > 0 ? <TagRow tags={tags} /> : <span />}
-          </div>
-        </section>
-      ) : null}
-
-      {prevWork && nextWork ? (
-        <nav className="ark-wnav" aria-label="EXHIBITS">
-          <Link className="ark-wnav__link" to={workRoute(prevWork.exhibitId)}>
-            <ArkGlassTile className="ark-wnav__glass" variant="nav">
-              <span className="ark-wnav__dir">← {copy.work.prevWork}</span>
-              <span className="ark-wnav__title">{navTitle(prevWork.exhibitId)}</span>
-            </ArkGlassTile>
-          </Link>
-          <Link className="ark-wnav__link ark-wnav__link--next" to={workRoute(nextWork.exhibitId)}>
-            <ArkGlassTile className="ark-wnav__glass" variant="nav">
-              <span className="ark-wnav__dir">{copy.work.nextWork} →</span>
-              <span className="ark-wnav__title">{navTitle(nextWork.exhibitId)}</span>
-            </ArkGlassTile>
-          </Link>
-        </nav>
       ) : null}
       </div>
     </ScrollPageShell>

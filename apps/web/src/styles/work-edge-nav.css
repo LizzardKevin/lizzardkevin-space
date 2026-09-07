@@ -1,0 +1,178 @@
+/* 作品页边缘导航:距视口左右缘 16px、垂直居中的常驻密文箭头,hover 解密出作品名。
+   去框体设计:无底框、无边框、无缘侧 accent 棱条——密文字符与解密标题直接浮在
+   页面上,可读性靠深色文字光晕 + accent 点亮,不用玻璃拟态也不用色块衬底。
+   idle 时按随机节奏在箭杆行短暂显词("上一件/下一件"=PREV/NEXT),accent 色点亮。 */
+
+.work-edge-nav {
+  position: fixed;
+  inset: 0;
+  z-index: 22; /* 内容区之上,顶栏(101)/lightbox(100)之下 */
+  pointer-events: none;
+  font-family: var(--ark-mono, "Ubuntu Mono Web", ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.work-edge-nav__edge {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 14px;
+  pointer-events: auto;
+  text-decoration: none;
+  color: var(--ark-dim, #a8a9ad);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* DOM 顺序为 [标题, 箭头]:左缘 row-reverse 使箭头贴左缘、标题向右排;
+   右缘自然序,标题向左排、箭头贴右缘。两侧自贴边 0 内移 16px,不再咬边。 */
+.work-edge-nav__edge--left {
+  left: 16px;
+  flex-direction: row-reverse;
+}
+
+.work-edge-nav__edge--right {
+  right: 16px;
+}
+
+.work-edge-nav__edge:focus-visible {
+  outline: 2px solid var(--work-edge-nav-accent, var(--ark-accent, #e8d44d));
+  outline-offset: 3px;
+}
+
+/* ---- 密文箭头:7 行 × 11 列位图,字符级低频闪烁由 JS 驱动,容器级呼吸在 CSS ---- */
+
+.work-edge-nav__arrow {
+  display: block;
+  white-space: pre;
+  font-size: 10px;
+  line-height: 1.25;
+  letter-spacing: 0.12em;
+  opacity: 0.9;
+  /* 无衬底浮字:深色光晕压在粒子点云上仍可读 */
+  text-shadow:
+    0 1px 10px rgba(0, 0, 0, 0.72),
+    0 0 3px rgba(0, 0, 0, 0.6);
+  transition: opacity 180ms ease;
+}
+
+.work-edge-nav__arrowRow {
+  display: block;
+}
+
+.work-edge-nav__arrowCell {
+  display: inline;
+}
+
+/* idle 显词:箭杆行落位格短暂显示"上一件/下一件"(PREV/NEXT),accent 点亮回密文前的高亮 */
+.work-edge-nav__arrowCell[data-hint="true"] {
+  color: var(--work-edge-nav-accent, var(--ark-accent, #e8d44d));
+  text-shadow:
+    0 1px 10px rgba(0, 0, 0, 0.72),
+    0 0 8px
+      color-mix(in srgb, var(--work-edge-nav-accent, var(--ark-accent, #e8d44d)) 38%, transparent);
+}
+
+.work-edge-nav__edge[data-phase="idle"] .work-edge-nav__arrow {
+  animation: workEdgeNavArrowPulse 2.8s ease-in-out infinite;
+}
+
+.work-edge-nav__edge[data-phase="decrypting"] .work-edge-nav__arrow,
+.work-edge-nav__edge[data-phase="revealed"] .work-edge-nav__arrow,
+.work-edge-nav__edge[data-phase="encrypting"] .work-edge-nav__arrow {
+  opacity: 0;
+}
+
+@keyframes workEdgeNavArrowPulse {
+  0%,
+  100% {
+    opacity: 0.92;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ---- 标题:原地显隐(绝对定位叠在箭头同侧),字符按 data-state 分明暗;不做位移动画 ---- */
+
+.work-edge-nav__title {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: block;
+  white-space: nowrap;
+  max-width: min(46vw, 560px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  /* 无衬底浮字:深色光晕兜底,accent  glow 在其上叠加 */
+  text-shadow:
+    0 1px 12px rgba(0, 0, 0, 0.78),
+    0 0 3px rgba(0, 0, 0, 0.66);
+  transition: opacity 220ms ease;
+}
+
+.work-edge-nav__edge--left .work-edge-nav__title { left: 14px; }
+
+.work-edge-nav__edge--right .work-edge-nav__title { right: 14px; text-align: right; }
+
+.work-edge-nav__edge[data-phase="decrypting"] .work-edge-nav__title,
+.work-edge-nav__edge[data-phase="revealed"] .work-edge-nav__title,
+.work-edge-nav__edge[data-phase="encrypting"] .work-edge-nav__title {
+  opacity: 1;
+}
+
+.work-edge-nav__char[data-state="cipher"] {
+  color: var(--ark-faint, rgba(168, 169, 173, 0.55));
+}
+
+.work-edge-nav__char[data-state="lit"] {
+  color: var(--ark-bright, #ececed);
+}
+
+/* 贴缘一侧的首个已揭示字符用 accent 色定位(左缘=首字符,右缘=末字符) */
+.work-edge-nav__edge--left .work-edge-nav__char[data-state="lit"]:first-child,
+.work-edge-nav__edge--right .work-edge-nav__char[data-state="lit"]:last-child {
+  color: var(--work-edge-nav-accent, var(--ark-accent, #e8d44d));
+}
+
+.work-edge-nav__edge:hover .work-edge-nav__char[data-state="lit"],
+.work-edge-nav__edge:focus-visible .work-edge-nav__char[data-state="lit"] {
+  text-shadow:
+    0 1px 12px rgba(0, 0, 0, 0.78),
+    0 0 9px
+      color-mix(in srgb, var(--work-edge-nav-accent, var(--ark-accent, #e8d44d)) 42%, transparent);
+}
+
+/* ---- 响应式与动效降级 ---- */
+
+@media (max-width: 720px) {
+  .work-edge-nav__edge {
+    padding: 12px 10px;
+  }
+  .work-edge-nav__title {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+  .work-edge-nav__edge[data-phase="decrypting"] .work-edge-nav__title,
+  .work-edge-nav__edge[data-phase="revealed"] .work-edge-nav__title,
+  .work-edge-nav__edge[data-phase="encrypting"] .work-edge-nav__title {
+    max-width: 58vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-edge-nav__arrow,
+  .work-edge-nav__title {
+    transition: none;
+  }
+  .work-edge-nav__edge[data-phase="idle"] .work-edge-nav__arrow {
+    animation: none;
+  }
+}

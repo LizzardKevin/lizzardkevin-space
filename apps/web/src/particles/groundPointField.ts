@@ -1,15 +1,21 @@
 /**
  * 程序化粒子地面(纯平圆盘),运行时确定性生成,不占用离线缓存格式。
  *
- * 设计:半径固定 60 世界单位(≈5× 视距、7× 模型高),远边贴近视线水平线;
+ * 设计:半径随取景视距归一化(radius = 视距 × GROUND_RADIUS_VIEW_FACTOR,
+ * Tree Habitat 现状 60/12.6 ≈ 4.76),圆盘角大小因此跨作品恒定,远边贴近视线水平线;
+ * 点数恒定 25k——角大小恒定时屏幕空间密度 = 点数/角面积,跨作品天然一致
+ * (若按世界面积补点数反而会打破屏幕密度一致性);粒径沿用模型点规则
+ * (模型间距 × 0.5),模型间距与视距同比例缩放,屏幕上相对密度同样一致。
  * 径向密度中心密远处疏(r = R × rand^0.75),每点 fades 径向衰减 (1-r/R)^1.2,
  * 远缘溶解进黑底,视觉"无限"但点集有限。圆盘以模型中心为圆心,
- * 视差转动(±30°)下左右下三边缘覆盖不变。
+ * 几何随视距自相似缩放,视差转动(±30°)下左右下三边缘覆盖不变。
  */
 
 const GROUND_RADIUS = 60;
 const GROUND_POINT_COUNT = 25_000;
 const GROUND_SEED = 0x5eed01;
+/** 地面半径 / 取景视距:标定自 Tree Habitat(60 ÷ 12.588 ≈ 4.767)。 */
+const GROUND_RADIUS_VIEW_FACTOR = 4.76;
 
 /** mulberry32:与标定页/采样器同款的确定性 PRNG(ambient 点场也共用它,勿再复制)。 */
 export function mulberry32(seed: number) {
@@ -62,3 +68,8 @@ export const GROUND_DEFAULTS = {
   radius: GROUND_RADIUS,
   pointCount: GROUND_POINT_COUNT,
 } as const;
+
+/** 归一化地面半径:视距 × 4.76(Tree Habitat 标定值),小负数/零防护到 0。 */
+export function groundRadiusForViewDistance(viewDistance: number): number {
+  return Math.max(viewDistance, 0) * GROUND_RADIUS_VIEW_FACTOR;
+}

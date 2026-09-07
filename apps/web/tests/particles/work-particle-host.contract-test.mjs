@@ -24,9 +24,30 @@ assert.doesNotMatch(page, /WorkModelViewer|OrbitControls/);
 // 作品页按展品挂载全页粒子宿主（model3d 且未失败时）。
 assert.match(page, /<WorkParticleHost\b/);
 
-// 滚动解构：overview 进入视口驱动 setMorphProgress（onUpdate 直写，无 scrub 迟滞）。
+// 两段式页面:hero + 单一 #work-media 分节(视频/图集合并在内),无 overview/story/spec。
+assert.match(page, /id="work-hero"/, "hero section must stay");
+assert.match(page, /id="work-media"/, "media section must exist");
+assert.doesNotMatch(page, /id="work-overview"|id="work-story"|id="work-spec"/,
+  "overview/story/spec sections must be removed");
+assert.doesNotMatch(page, /ark-wnav/, "legacy prev/next nav block must be removed");
+// 上一件/下一件由 WorkEdgeNav(固定左右视口边缘、decrypt 揭示)承担。
+assert.match(page, /const prevWork = works\.length > 1/, "prevWork computation must stay in the page");
+assert.match(page, /const nextWork = works\.length > 1/, "nextWork computation must stay in the page");
+assert.match(page, /<WorkEdgeNav\b/, "edge nav must be wired into the page");
+assert.match(page, /prev=\{\{ id: prevWork\.exhibitId/, "edge nav prev must get the previous exhibit");
+assert.match(page, /next=\{\{ id: nextWork\.exhibitId/, "edge nav next must get the next exhibit");
+assert.doesNotMatch(page, /data-prev-work/, "interim data-attribute wiring must be gone");
+// 边缘导航不使用玻璃拟态。
+const edgeNav = readProjectFile("apps/web/src/pages/works/WorkEdgeNav.tsx");
+assert.doesNotMatch(edgeNav, /ArkGlassTile/, "edge nav must not use the glass tile");
+// 顶栏锚点:仅保留到媒体段的一个锚点。
+assert.match(page, /\{ id: "work-media", label: "MED" \}/, "only the media anchor should remain");
+
+// 滚动解构:锚定 #work-media(无媒体数据退化为页尾 footer),onUpdate 直写 setMorphProgress。
 assert.match(host, /setMorphProgress/);
-assert.match(host, /trigger:\s*["']#work-overview["']/);
+assert.match(host, /getElementById\("work-media"\)/, "morph must anchor to #work-media");
+assert.match(host, /\.ark-footer/, "morph anchor must degrade to the page footer when media is absent");
+assert.doesNotMatch(host, /work-overview/, "morph must no longer anchor to #work-overview");
 
 // 壳层背景默认保持 dotgrid（Profile/DevStories 行为不变），works 详情页显式关闭。
 assert.match(shell, /background\s*=\s*"dotgrid"/, "shell background must default to dotgrid");
