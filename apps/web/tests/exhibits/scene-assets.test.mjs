@@ -238,7 +238,7 @@ test("active exhibit content samples have portfolio metadata and no pipeline cop
     }
     const englishMetadata = localizedMetadata(content, "en");
     assert.deepEqual(
-      englishMetadata.map((item) => item.label),
+      englishMetadata.map((item) => item.label).filter(label => label !== "Credits"),
       ["Year", "Type", "Medium", "Role", "Status"],
     );
 

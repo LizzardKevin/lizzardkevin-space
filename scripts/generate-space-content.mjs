@@ -527,6 +527,32 @@ function buildOutputs(rows) {
     zh: buildProfileBundle("zh", identityRows, linkRows, profileRows),
   };
 
+  // Profile rows own identity, experience and contacts on both platforms.
+  // Mobile UI-copy rows provide only presentation labels and commands.
+  for (const language of ["en", "zh"]) {
+    const profile = profileByLanguage[language];
+    const mobile = mobileTerminalCopy[language];
+    mobile.soul = {
+      ...mobile.soul,
+      bio: profile.identity.bio,
+      sections: profile.sections.map((section) => ({
+        title: section.title,
+        meta: section.subtitle,
+        summary: section.summary,
+        details: [...section.details, ...section.fill],
+      })),
+    };
+    mobile.contact = {
+      ...mobile.contact,
+      name: profile.identity.displayName,
+      roleLine: profile.identity.roles.join(" / "),
+      lines: profile.links.map((link) => ({
+        label: link.label,
+        values: [{ text: link.value, ...(link.href ? { href: link.href } : {}) }],
+      })),
+    };
+  }
+
   return {
     contentByExhibit,
     devStoriesByLanguage,
