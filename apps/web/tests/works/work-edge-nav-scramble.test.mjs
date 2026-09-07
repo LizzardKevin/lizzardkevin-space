@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import vm from "node:vm";
+import ts from "typescript";
+import React from "react";
+import { readSourceFile } from "../helpers/projectPaths.mjs";
+import * as scramble from "../../src/pages/works/workEdgeNavScramble.ts";
 import {
   WORK_EDGE_NAV_ARROW_ROWS,
   WORK_EDGE_NAV_CIPHER_CHARS,
@@ -22,6 +27,28 @@ import {
   scrambleText,
   stepHintClock,
 } from "../../src/pages/works/workEdgeNavScramble.ts";
+
+test("shared edge links reveal for retained keyboard focus and do not hide on pointer leave", () => {
+  const parsed=ts.createSourceFile("edge.tsx",readSourceFile("pages/works/WorkEdgeNav.tsx"),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+  const fn=parsed.statements.find(s=>ts.isFunctionDeclaration(s)&&s.name?.text==="AsciiEdgeLink");
+  const js=ts.transpileModule(fn.getText(parsed).replace("export function","function"),{compilerOptions:{target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.React}}).outputText;
+  const refs=[],effects=[],events=new Map(),frames=new Map();let phase="idle",now=100,seq=0;
+  const link={matches:selector=>selector.includes("focus-visible"),addEventListener:(t,f)=>events.set(t,f),removeEventListener:t=>events.delete(t)};
+  const Component=vm.runInNewContext(`${js}; AsciiEdgeLink;`,{
+    ...scramble,React,Link:"a",initialCipherChar:()=>"#",prefersReducedMotion:()=>false,
+    useMemo:fn=>fn(),useState:initial=>[initial,value=>phase=value],useRef:initial=>{const r={current:initial};refs.push(r);return r;},useEffect:fn=>effects.push(fn),
+    performance:{now:()=>now},requestAnimationFrame:fn=>{frames.set(++seq,fn);return seq;},cancelAnimationFrame:id=>frames.delete(id),
+    document:{visibilityState:"visible",addEventListener(){},removeEventListener(){}},
+  });
+  Component({side:"right",target:{href:"/devstories",title:"Dev Stories"}});refs[0].current=link;
+  refs[1].current=Array.from({length:31},()=>({textContent:"",style:{},dataset:{}}));
+  refs[2].current=Array.from({length:11},()=>({textContent:"",style:{},dataset:{}}));
+  const cleanup=effects[0]();
+  for(let i=0;i<50;i++){now+=20;const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn(now));}
+  assert.equal(phase,"revealed","new route retains focus, so its destination should reveal");
+  events.get("pointerleave")();assert.equal(phase,"revealed");
+  cleanup();assert.equal(frames.size,0);assert.equal(events.size,0);
+});
 
 test("the cipher arrow bitmap is a 7-row arrowhead with a shaft", () => {
   assert.equal(WORK_EDGE_NAV_ARROW_ROWS.length, 7);

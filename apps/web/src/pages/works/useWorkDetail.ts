@@ -12,6 +12,7 @@ import type { SupportedLanguage } from "../../i18n/resolveInitialLanguage";
 
 export type WorkDetailReady = {
   status: "ready";
+  pending?: boolean;
   exhibit: ExhibitManifestItem;
   /** null = manifest-only 模式（content.json 缺失或解析失败） */
   content: Partial<ExhibitContent> | null;
@@ -80,5 +81,6 @@ export function useWorkDetail(
   if (loaded?.key === key) return loaded.value;
   // Keep the same work mounted during a language fetch to preserve reading position.
   if (loaded?.key.split("|")[0] === validId) return loaded.value;
+  if (loaded?.value.status === "ready") return { ...loaded.value, pending: true };
   return { status: "loading" };
 }

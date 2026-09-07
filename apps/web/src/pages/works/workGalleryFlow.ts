@@ -8,6 +8,16 @@
 /** 自动流速度:线性恒定,~24-40px/s 取中档 */
 export const WORK_GALLERY_FLOW_SPEED_PX_S = 32;
 
+/** Exact exponential integration: drag release and flow share one continuous velocity. */
+export function advanceGalleryMotion(velocity: number, seconds: number, target: number) {
+  const tau = 0.8;
+  const decay = Math.exp(-Math.max(0, seconds) / tau);
+  return {
+    velocity: target + (velocity - target) * decay,
+    distance: target * seconds + (velocity - target) * tau * (1 - decay),
+  };
+}
+
 /**
  * 环绕 scrollLeft 到 [0, period):同一周期相位处内容完全相同,环绕在视觉上无缝。
  * period <= 0(未测量/自动流关闭)时原样返回,退化为普通硬端滚动。

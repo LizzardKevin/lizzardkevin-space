@@ -27,7 +27,20 @@ function component(file, name) {
   }).outputText + `; ${name};`;
 }
 
-test("leaving a work clears its modal and autoplay, while a language rerender keeps them", () => {
+test("a requested work preserves the last ready content while loading its replacement", () => {
+  const previous = { status: "ready", exhibit: { exhibitId: "tree" }, content: { title: "Tree" }, works: [], index: 0 };
+  const hook = vm.runInNewContext(component("pages/works/useWorkDetail.ts", "useWorkDetail"), {
+    isKnownExhibitId: () => true, useEffect: () => {},
+    useState: () => [{ key: "tree|en", value: previous }, () => {}],
+  });
+  const next = hook("uabb", "en");
+  assert.equal(next.status, "ready", "a loading-only hero would unmount the live canvas");
+  assert.equal(next.exhibit.exhibitId, "tree");
+  assert.equal(next.pending, true);
+  assert.equal(hook("tree", "zh").exhibit.exhibitId, "tree");
+});
+
+test("leaving a work clears its modal, while a language rerender keeps it", () => {
   const source=readSourceFile("pages/works/WorkDetailPage.tsx");
   const start=source.indexOf("  const [imageSelection,");
   const end=source.indexOf("  // 粒子宿主失败",start);
@@ -41,10 +54,10 @@ test("leaving a work clears its modal and autoplay, while a language rerender ke
       return [states[slot],value=>{states[slot]=value;}];
     }});
   };
-  render('tree'); states[0]={exhibitId:'tree',src:'drawing.webp',alt:'Drawing'}; states[1]='tree';
+  render('tree'); states[0]={exhibitId:'tree',src:'drawing.webp',alt:'Drawing'};
   assert.ok(render('tree'),"same work language change retains an open modal");
   assert.equal(render('uabb'),null);
-  assert.equal(states[0],null); assert.equal(states[1],null);
+  assert.equal(states[0],null);
   assert.equal(render('tree'),null,"Back must not reopen the departed modal");
 });
 

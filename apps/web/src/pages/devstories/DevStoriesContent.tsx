@@ -4,7 +4,7 @@ import { getDevStories } from "../../content/devStories";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { useSectionReadProgress } from "../../scroll/useSectionReadProgress";
-import { Reveal } from "../../scroll/Reveal";
+import { AsciiText } from "../../scroll/AsciiText";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { DataStrip, TagRow } from "../../scroll/primitives";
 
@@ -12,7 +12,7 @@ import { DataStrip, TagRow } from "../../scroll/primitives";
  * 开发日志内容（ArchiveHub 的 devstories 面板）。
  * 数据全部来自 generatedDevStoriesByLanguage（xlsx 内容管线生成）。
  */
-export function DevStoriesContent() {
+export function DevStoriesContent({ titleEpoch = "initial" }: { titleEpoch?: string }) {
   const language = usePageLanguage();
   const copy = getScrollPagesCopy(language);
   const stories = useMemo(() => getDevStories(language), [language]);
@@ -25,9 +25,9 @@ export function DevStoriesContent() {
   return (
     <>
       <section className="ark-hero" id="devstories-hero">
-        <p className="ark-hero__eyebrow">{copy.devStories.eyebrow}</p>
-        <MosaicTitle text="Dev Stories" className="ark-hero__title" as="h1" />
-        <p className="ark-hero__subtitle">{language === "zh" ? "这些手记记录了 SPACE 的早期开发与架构取舍，内容截至 2026 年 7 月 15 日。" : "Notes on the early development and architecture of SPACE, recorded through July 15, 2026."}</p>
+        <p className="ark-hero__eyebrow"><AsciiText text={copy.devStories.eyebrow} /></p>
+        <MosaicTitle key={titleEpoch} accent="#e8d44d" text="Dev Stories" className="ark-hero__title" as="h1" />
+        <p className="ark-hero__subtitle"><AsciiText text={language === "zh" ? "这些手记记录了 SPACE 的早期开发与架构取舍，内容截至 2026 年 7 月 15 日。" : "Notes on the early development and architecture of SPACE, recorded through July 15, 2026."} /></p>
         <DataStrip
           className="ark-hero__meta"
           items={[
@@ -35,42 +35,42 @@ export function DevStoriesContent() {
             { label: copy.devStories.spanLabel, value: `${firstPeriod} — ${lastPeriod}` },
           ]}
         />
-        <span className="ark-hero__scrollHint">{copy.scrollHint}</span>
+        <span className="ark-hero__scrollHint"><AsciiText text={copy.scrollHint} /></span>
       </section>
 
       {stories.map((story) => (
         <section className="ark-dentry" id={story.id} key={story.id}>
           <div className="ark-dentry__index">
             <div className="ark-dentry__indexInner">
-              <span className="ark-dentry__number">{story.number}</span>
-              <span className="ark-dentry__period">{story.period}</span>
+              <span className="ark-dentry__number"><AsciiText text={story.number} /></span>
+              <span className="ark-dentry__period"><AsciiText text={story.period} /></span>
               <span className="ark-dentry__railBar" aria-hidden="true" />
             </div>
           </div>
 
           <div className="ark-dentry__body">
             <div className="ark-dentry__main">
-              <Reveal>
-                <h2 className="ark-dentry__title">{story.title}</h2>
-              </Reveal>
-              <Reveal>
-                <p className="ark-dentry__summary">{story.summary}</p>
-              </Reveal>
+              <>
+                <h2 className="ark-dentry__title"><AsciiText text={story.title} /></h2>
+              </>
+              <>
+                <p className="ark-dentry__summary"><AsciiText text={story.summary} /></p>
+              </>
               <div className="ark-dentry__tags">
                 <TagRow tags={story.tags} />
               </div>
             </div>
 
-            <Reveal>
+            <>
               <div className="ark-dentry__grid">
                 {story.built.length > 0 ? (
                   <ArkGlassTile className="ark-dentry__panel" variant="panel">
                     <span className="ark-dentry__panelLabel">
-                      {copy.devStories.builtLabel}
+                      <AsciiText text={copy.devStories.builtLabel} />
                     </span>
                     <ul>
                       {story.built.map((line) => (
-                        <li key={line}>{line}</li>
+                        <li key={line}><AsciiText text={line} /></li>
                       ))}
                     </ul>
                   </ArkGlassTile>
@@ -81,11 +81,11 @@ export function DevStoriesContent() {
                     variant="panel"
                   >
                     <span className="ark-dentry__panelLabel">
-                      {copy.devStories.troubleLabel}
+                      <AsciiText text={copy.devStories.troubleLabel} />
                     </span>
                     <ul>
                       {story.trouble.map((line) => (
-                        <li key={line}>{line}</li>
+                        <li key={line}><AsciiText text={line} /></li>
                       ))}
                     </ul>
                   </ArkGlassTile>
@@ -96,13 +96,13 @@ export function DevStoriesContent() {
                     variant="panel"
                   >
                     <span className="ark-dentry__panelLabel">
-                      {copy.devStories.nextLabel}
+                      <AsciiText text={copy.devStories.nextLabel} />
                     </span>
-                    <p>{story.next}</p>
+                    <p><AsciiText text={story.next} /></p>
                   </ArkGlassTile>
                 ) : null}
               </div>
-            </Reveal>
+            </>
           </div>
         </section>
       ))}

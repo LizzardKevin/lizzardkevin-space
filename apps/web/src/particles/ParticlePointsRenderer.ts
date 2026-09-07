@@ -34,7 +34,15 @@ const FALLBACK_RAND_SEED = 0x5eed03;
  */
 export class ParticlePointsRenderer {
   /** 标定参数集中在这里;外部只改 `.value`。 */
-  readonly uniforms: ParticleUniforms = createParticleUniforms();
+  uniforms: ParticleUniforms = createParticleUniforms();
+
+  private outgoing: {
+    scene: Scene; camera: PerspectiveCamera; points: Sprite;
+    material: PointsNodeMaterial; uniforms: ParticleUniforms;
+  } | null = null;
+  private preparing = false;
+  private transitionSec = 0;
+  private settled: Array<() => void> = [];
 
   private renderer: WebGPURenderer | null = null;
   private resolution: RendererResolution | null = null;
@@ -118,6 +126,7 @@ export class ParticlePointsRenderer {
   setParticleData(data: ParticleCacheData): void {
     if (this.points) {
       this.scene.remove(this.points);
+      this.points.geometry.dispose();
       this.material?.dispose();
       this.points = null;
       this.material = null;
@@ -171,6 +180,9 @@ export class ParticlePointsRenderer {
       alts: merged.alts,
     });
     const points = new Sprite(material);
+    // Three associates node attribute buffer cleanup with geometry disposal.
+    // Each live layer owns a small quad clone; never dispose the shared Sprite quad.
+    points.geometry = points.geometry.clone();
     points.count = totalCount;
     // 实例位置在着色器里注入,sprite 自身包围球覆盖不到整片点云。
     points.frustumCulled = false;
@@ -208,6 +220,58 @@ export class ParticlePointsRenderer {
 
     // 新数据落地 = 组装态,重置解构进度(setFallbackField 之后再次拿到真实缓存的场景)。
     this.uniforms.morphProgress.value = 0;
+  }
+
+  whenSettled(): Promise<void> {
+    if (!this.outgoing || this.disposed) return Promise.resolve();
+    return new Promise(resolve => this.settled.push(resolve));
+  }
+
+  /** Keep rendering the old layer while the new material compiles on either backend. */
+  async prepareTransition(data: ParticleCacheData): Promise<void> {
+    if (this.disposed) return;
+    this.preparing = true;
+    if (this.points && this.material) {
+      const scene = new Scene();
+      scene.add(this.points);
+      this.outgoing = { scene, camera: this.camera.clone(), points: this.points, material: this.material, uniforms: this.uniforms };
+      this.points = null; this.material = null;
+      this.uniforms = createParticleUniforms();
+    }
+    this.setParticleData(data);
+    this.uniforms.introProgress.value = 0;
+    await this.renderer?.compileAsync(this.scene, this.camera);
+  }
+
+  cancelPreparedTransition(): void {
+    if (!this.preparing || this.disposed) return;
+    if (this.points) {
+      this.scene.remove(this.points);
+      this.points.geometry.dispose();
+    }
+    this.material?.dispose();
+    this.points = null; this.material = null;
+    if (this.outgoing) {
+      const old = this.outgoing;
+      this.scene.add(old.points);
+      this.points = old.points; this.material = old.material; this.uniforms = old.uniforms;
+      this.camera.copy(old.camera);
+      // Do not recompute the restored camera using the rejected model's framing.
+      this.baseDistance = 0;
+      this.outgoing = null;
+    }
+    this.preparing = false;
+    this.settled.splice(0).forEach(resolve => resolve());
+  }
+
+  private releaseOutgoing(): void {
+    if (this.outgoing) {
+      this.outgoing.scene.remove(this.outgoing.points);
+      this.outgoing.points.geometry.dispose();
+      this.outgoing.material.dispose();
+      this.outgoing = null;
+    }
+    this.settled.splice(0).forEach(resolve => resolve());
   }
 
   /** 解构 morph 进度 0..1(clamp;只写 uniform,0=模型形态,1=ambient 散布)。 */
@@ -293,7 +357,27 @@ export class ParticlePointsRenderer {
       }
     }
 
-    this.renderer?.render(this.scene, this.camera);
+    const renderer = this.renderer;
+    if (!renderer) return;
+    if (this.outgoing) {
+      const old = this.outgoing;
+      old.uniforms.time.value = this.elapsedSec;
+      if (!this.preparing) this.transitionSec += dt;
+      // The old field stays legible until the new intro has begun, then dissolves.
+      const t = MathUtils.clamp((this.transitionSec - .2) / 1.4, 0, 1);
+      old.uniforms.layerOpacity.value = 1 - t * t * (3 - 2 * t);
+      renderer.autoClear = true;
+      renderer.render(old.scene, old.camera);
+      if (!this.preparing) {
+        renderer.autoClear = false;
+        renderer.clearDepth();
+        renderer.render(this.scene, this.camera);
+        renderer.autoClear = true;
+      }
+      if (t === 1) this.releaseOutgoing();
+    } else if (!this.preparing) {
+      renderer.render(this.scene, this.camera);
+    }
   }
 
   /** 按当前视差角把球面坐标写到相机;viewOffsetFactor 让点云在画面中右移,始终看向偏移后的焦点。 */
@@ -314,6 +398,8 @@ export class ParticlePointsRenderer {
    * 播完自动停止写入;重复调用即重播。宿主在 setParticleData 成功后调用。
    */
   startIntro(durationSec: number = INTRO_DURATION_SEC): void {
+    this.preparing = false;
+    this.transitionSec = 0;
     this.introDurationSec = Math.max(durationSec, 0.01);
     this.introElapsedSec = 0;
     this.uniforms.introProgress.value = 0;
@@ -321,6 +407,7 @@ export class ParticlePointsRenderer {
 
   /** 跳过入场揭示(测试钩子 ?wpIntro=0:无头截图需要稳定终态)。 */
   skipIntro(): void {
+    this.releaseOutgoing();
     this.introElapsedSec = -1;
     this.uniforms.introProgress.value = 1;
   }
@@ -357,15 +444,21 @@ export class ParticlePointsRenderer {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    if (this.outgoing) {
+      this.outgoing.camera.aspect = w / h;
+      this.outgoing.camera.updateProjectionMatrix();
+    }
   }
 
   dispose(): void {
     this.disposed = true;
+    this.releaseOutgoing();
     if (this.points) {
       this.scene.remove(this.points);
+      this.points.geometry.dispose();
       this.points = null;
     }
-    // sprite 几何是 three 内部共享的,不 dispose;只释放自己的材质与 renderer。
+    // Only owned quad clones, layer materials and this renderer are released.
     this.material?.dispose();
     this.material = null;
     this.renderer?.dispose();

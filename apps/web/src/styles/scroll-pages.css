@@ -1033,7 +1033,7 @@
   width: 100%;
   max-width: var(--ark-content-frame);
   margin-inline: auto;
-  padding-inline: var(--ark-gutter);
+  padding-inline: max(var(--ark-gutter), 112px);
 }
 
 .ark-wgallery {
@@ -1063,6 +1063,8 @@
   scroll-snap-type: none;
   scrollbar-width: none;
   cursor: grab;
+  touch-action: pan-y;
+  overflow-anchor: none;
   padding-bottom: var(--ark-gap-1);
 }
 
@@ -1072,9 +1074,10 @@
 .ark-wgallery__item {
   flex: 0 0 auto;
   width: min(68vw, 880px);
-  height: 72vh;
-  border: 1px solid var(--ark-line);
-  background: var(--ark-bg-deep);
+  height: min(64vh, 620px);
+  margin: 0;
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .ark-wgallery__item img {
@@ -1082,7 +1085,7 @@
   width: 100%;
   height: 100%;
   max-height: 72vh;
-  object-fit: contain;
+  object-fit: cover;
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -1170,45 +1173,6 @@ video.ark-wvideo__player {
 
 /* ---------- 交互层挂载点（JS/GSAP 驱动，CSS 仅提供初始形态） ---------- */
 
-/* 左缘竖向切换条（profile→devstories 时在右缘）；
-   hover：微放大 + 对方页面强调色 halo（--ark-switch-accent 由壳层注入） */
-.ark-switchstrip {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%) scale(1);
-  transform-origin: left center;
-  z-index: 20;
-  writing-mode: vertical-rl;
-  font-family: var(--ark-mono);
-  font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ark-dim);
-  background: rgba(20, 20, 22, 0.78);
-  border: 1px solid var(--ark-line);
-  border-left: 4px solid var(--ark-accent);
-  padding: 24px 16px;
-  cursor: pointer;
-  transition: transform 200ms ease, box-shadow 200ms ease, color 160ms ease, border-color 200ms ease;
-}
-
-.ark-switchstrip:hover {
-  color: var(--ark-bright);
-  transform: translateY(-50%) scale(1.07);
-  border-color: var(--ark-switch-accent, var(--ark-accent));
-  box-shadow: 0 0 28px 4px color-mix(in srgb, var(--ark-switch-accent, var(--ark-accent)) 42%, transparent);
-}
-
-.ark-switchstrip--right {
-  left: auto;
-  right: 0;
-  transform-origin: right center;
-  border-left: 1px solid var(--ark-line);
-  border-right: 4px solid var(--ark-accent);
-}
-
-.ark-switchstrip__code { color: var(--ark-accent); }
 
 /* 顶栏下方迷你标题：显隐由 JS 切 [data-visible] */
 .ark-minititle {
@@ -1312,7 +1276,6 @@ video.ark-wvideo__player {
   .ark-top__back,
   .ark-links__item,
   .ark-footer__cta { transition: none; }
-  .ark-switchstrip,
   .ark-minititle { transition: none; }
 }
 .ark-work-summary {
@@ -1327,8 +1290,14 @@ video.ark-wvideo__player {
 #profile-hero .ark-hero__title { font-size: clamp(40px, 5.8vw, 94px); overflow-wrap: anywhere; }
 .ark-linelist li, .ark-dentry__panel li { font-size: 16px; font-weight: 400; line-height: 1.85; color: #c9cbce; }
 .work-edge-nav__hint { display: block; color: #eee; font: 14px/1.5 var(--ark-mono); white-space: nowrap; }
-.work-edge-nav__edge[data-phase="idle"] .work-edge-nav__arrow,
 .work-edge-nav__edge[data-phase="idle"] .work-edge-nav__title { visibility: hidden; }
+
+@media (min-width: 850px) {
+  .ark-page:has(.ark-hub) { --ark-gutter: max(112px, 4.5vw); }
+}
+@media (max-width: 849px) {
+  .ark-wgallery-zone { padding-inline: var(--ark-gutter); }
+}
 .ark-work-page .ark-wgallery__head { align-items: flex-start; gap: 24px; flex-wrap: wrap; }
 @media (max-width: 900px) {
   .ark-work-summary { max-width: 80vw; }

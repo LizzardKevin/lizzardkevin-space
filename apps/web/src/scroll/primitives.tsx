@@ -1,3 +1,4 @@
+import { AsciiText } from "./AsciiText";
 /** 警戒斜纹细分隔线（舟味工业节奏线，克制使用）。 */
 export function HazardRule({ className }: { className?: string }) {
   return <div className={`ark-hazard${className ? ` ${className}` : ""}`} aria-hidden="true" />;
@@ -15,10 +16,10 @@ export function SectionHeader({
 }) {
   return (
     <header className="ark-section-head">
-      {number ? <span className="ark-section-head__number">{number}</span> : null}
+      {number ? <span className="ark-section-head__number"><AsciiText text={number} /></span> : null}
       <div className="ark-section-head__text">
-        <h2 className="ark-section-head__title">{title}</h2>
-        {subtitle ? <p className="ark-section-head__subtitle">{subtitle}</p> : null}
+        <h2 className="ark-section-head__title"><AsciiText text={title} /></h2>
+        {subtitle ? <p className="ark-section-head__subtitle"><AsciiText text={subtitle} /></p> : null}
       </div>
     </header>
   );
@@ -26,7 +27,7 @@ export function SectionHeader({
 
 /** 标签芯片：直角、细框、等宽。 */
 export function TagChip({ label }: { label: string }) {
-  return <span className="ark-chip">{label}</span>;
+  return <span className="ark-chip"><AsciiText text={label} /></span>;
 }
 
 export function TagRow({ tags }: { tags: string[] }) {
@@ -53,8 +54,8 @@ export function DataStrip({
     <dl className={`ark-datastrip${className ? ` ${className}` : ""}`}>
       {items.map((item) => (
         <div className="ark-datastrip__item" key={`${item.label}-${item.value}`}>
-          <dt>{item.label}</dt>
-          <dd>{item.value}</dd>
+          <dt><AsciiText text={item.label} /></dt>
+          <dd><AsciiText text={item.value} /></dd>
         </div>
       ))}
     </dl>

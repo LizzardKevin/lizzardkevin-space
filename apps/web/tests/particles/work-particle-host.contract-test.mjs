@@ -49,19 +49,13 @@ assert.match(host, /getElementById\("work-media"\)/, "morph must anchor to #work
 assert.match(host, /\.ark-footer/, "morph anchor must degrade to the page footer when media is absent");
 assert.doesNotMatch(host, /work-overview/, "morph must no longer anchor to #work-overview");
 
-// 加载失败只会让组件渲染 null，不会自动卸载 effect；失败路径必须主动走与卸载相同的
-// teardown，释放 renderer、rAF、ScrollTrigger 与全局 listeners。
-assert.match(host, /const teardown = \(\) => \{/, "particle host must centralize idempotent teardown");
-assert.match(
-  host,
-  /catch \(error\) \{[\s\S]*?teardown\(\);[\s\S]*?setFailed\(true\)/,
-  "particle host init failure must release owned runtime resources before rendering null",
-);
-assert.match(
-  host,
-  /return \(\) => teardown\(\)/,
-  "particle host unmount must share the same teardown path",
-);
+// Initial failure releases the unused renderer; subsequent cache failures retain the last live field.
+assert.match(host, /if \(!hasFrame\) teardown\(\)/);
+assert.match(host, /return \(\) => teardown\(\)/);
+assert.doesNotMatch(page, /key=\{`particles-/);
+const session = readProjectFile("apps/web/src/pages/works/WorkParticleSession.ts");
+assert.match(session, /current\(\)/);
+assert.match(session, /cancelPreparedTransition/);
 
 // 壳层背景默认保持 dotgrid（Profile/DevStories 行为不变），works 详情页显式关闭。
 assert.match(shell, /background\s*=\s*"dotgrid"/, "shell background must default to dotgrid");

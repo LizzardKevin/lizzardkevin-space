@@ -12,7 +12,8 @@ import {
 import { usePageLanguage } from "../../scroll/usePageLanguage";
 import { useScrubSections } from "../../scroll/useScrubSections";
 import { prefersReducedMotion } from "../../scroll/useLenisScroll";
-import { useGalleryEntrance } from "../../scroll/useGalleryEntrance";
+import { AsciiText } from "../../scroll/AsciiText";
+import { AsciiContext } from "../../scroll/asciiContext";
 import { Reveal } from "../../scroll/Reveal";
 import { MosaicTitle } from "../../scroll/MosaicTitle";
 import { ImageLightbox } from "../../scroll/ImageLightbox";
@@ -20,7 +21,6 @@ import { DataStrip, SectionHeader } from "../../scroll/primitives";
 import { gsap } from "../../scroll/scrollGsap";
 import "../../styles/scroll-lightbox.css";
 import { useWorkDetail } from "./useWorkDetail";
-import { useDragScroll } from "./useDragScroll";
 import { useGalleryAutoFlow } from "./useGalleryAutoFlow";
 import { WorkParticleHost } from "./WorkParticleHost";
 import { WorkEdgeNav } from "./WorkEdgeNav";
@@ -82,28 +82,22 @@ export default function WorkDetailPage({
 }: {
   onNavigateToSpace: SpaceReturnHandler;
 }) {
-  const { exhibitId } = useParams<{ exhibitId: string }>();
+  const { exhibitId: requestedId } = useParams<{ exhibitId: string }>();
   const language = usePageLanguage();
   const copy = getScrollPagesCopy(language);
-  const state = useWorkDetail(exhibitId, language);
-  // 图集:拖拽 + 自动流(marquee)。环绕周期由自动流测量后经 ref 回流给拖拽 hook。
-  const galleryWrapPeriodRef = useRef(0);
-  const { ref: galleryRef, interaction: galleryInteraction } = useDragScroll<HTMLDivElement>({
-    getWrapPeriod: () => galleryWrapPeriodRef.current,
-  });
+  const state = useWorkDetail(requestedId, language);
+  const exhibitId = state.status === "ready" ? state.exhibit.exhibitId : requestedId;
   const heroTitleRef = useRef<HTMLDivElement | null>(null);
   const [imageSelection, setSelectedImage] = useState<{ exhibitId: string; src: string; alt: string } | null>(null);
   const selectedImage = imageSelection?.exhibitId === exhibitId ? imageSelection : null;
-  const [playingExhibitId, setPlayingExhibitId] = useState<string | null>(null);
-  const galleryPlaying = playingExhibitId === exhibitId;
   const [galleryExhibitId, setGalleryExhibitId] = useState(exhibitId);
   if (galleryExhibitId !== exhibitId) {
     setGalleryExhibitId(exhibitId);
     setSelectedImage(null);
-    setPlayingExhibitId(null);
   }
   // 粒子宿主失败按展品 id 记录：切到下一个展品（同路由换参数）时自动重置重试。
   const [particleFailedId, setParticleFailedId] = useState<string | null>(null);
+  const handleParticleReady = useCallback(() => setParticleFailedId(null), []);
   const handleParticleError = useCallback(
     (message: string) => {
       if (import.meta.env.DEV) console.warn("[WorkDetailPage] particle host failed:", message);
@@ -120,18 +114,13 @@ export default function WorkDetailPage({
     return hasMedia ? [{ id: "work-media", label: "MED" }] : [];
   }, [state]);
 
-  const ready = state.status === "ready";
+  const ready = state.status === "ready" && !state.pending;
   const galleryImageCount =
     state.status === "ready" ? (state.exhibit.media?.imageUrls ?? []).length : 0;
-  // 自动流:hover/拖拽/惯性/页面隐藏/lightbox 打开时暂停,惯性结束恢复;
-  // reduced-motion 与 ?wpGalleryFlow=0 下关闭(单份渲染、静态可拖)。
-  const galleryCopies = useGalleryAutoFlow({
-    trackRef: galleryRef,
+  const { galleryRef, galleryCopies } = useGalleryAutoFlow({
     itemCount: galleryImageCount,
-    interaction: galleryInteraction,
     paused: selectedImage !== null,
-    enabled: galleryPlaying,
-    wrapPeriodRef: galleryWrapPeriodRef,
+    identity: state.status === "ready" ? state.exhibit.exhibitId : undefined,
   });
   useScrubSections(
     [
@@ -141,7 +130,6 @@ export default function WorkDetailPage({
     [ready, exhibitId],
   );
   useHeroTitleShrink(heroTitleRef, "work-hero", [ready, exhibitId]);
-  useGalleryEntrance(galleryRef, galleryImageCount >= 2, [ready, exhibitId]);
 
   // dev-only 测试钩子:?wpGoto=<sectionId> 直接跳到目标分节(无头截图/调试用)。
   useEffect(() => {
@@ -169,7 +157,7 @@ export default function WorkDetailPage({
         onNavigateToSpace={onNavigateToSpace}
       >
         <section className="ark-hero">
-          <p className="ark-hero__eyebrow">{copy.work.eyebrow}</p>
+          <p className="ark-hero__eyebrow"><AsciiText text={copy.work.eyebrow} /></p>
           <h1 className="ark-hero__title">
             {resolveWorkTitle(exhibitId, null, language)}
           </h1>
@@ -184,7 +172,7 @@ export default function WorkDetailPage({
   const hasMedia = Boolean(videoUrl) || images.length > 0;
   // model3d 展品的展台由全页粒子点云承担；粒子失败时回退 video/poster 静态块。
   const particleFailed = particleFailedId === exhibitId;
-  const showParticles = exhibit.type === "model3d" && !particleFailed;
+  const showParticles = exhibit.type === "model3d";
 
   const title = resolveWorkTitle(exhibitId, content, language);
   const subtitle = content?.subtitle;
@@ -199,6 +187,7 @@ export default function WorkDetailPage({
       pageCode={copy.work.pageCode}
       anchors={anchors}
       rememberScroll
+      scrollReady={ready}
       background="none"
       footerMeta={[title, `${index + 1} / ${works.length}`]}
       miniTitle={title}
@@ -207,34 +196,34 @@ export default function WorkDetailPage({
       onNavigateToSpace={onNavigateToSpace}
     >
       {showParticles ? (
-        <WorkParticleHost key={`particles-${exhibitId}`} exhibitId={exhibitId} onError={handleParticleError} />
+        <WorkParticleHost exhibitId={exhibitId} onReady={handleParticleReady} onError={handleParticleError} />
       ) : null}
       {prevWork && nextWork ? (
         <WorkEdgeNav
-          key={`edge-${exhibitId}`}
           prev={{ id: prevWork.exhibitId, title: resolveWorkTitle(prevWork.exhibitId, null, language), hint: copy.work.prevWork }}
           next={{ id: nextWork.exhibitId, title: resolveWorkTitle(nextWork.exhibitId, null, language), hint: copy.work.nextWork }}
         />
       ) : null}
       {/* 粒子背景下的去框体样式作用域(display:contents 不改变布局) */}
+      <AsciiContext.Provider value={{ phase: "enter", epoch: `${exhibitId}|${language}` }}>
       <div
         className="ark-work-page"
         style={{ display: "contents" }}
       >
       <section className="ark-hero" id="work-hero">
         <p className="ark-hero__eyebrow">
-          {copy.work.eyebrow}
+          <AsciiText text={copy.work.eyebrow} />
         </p>
         <div ref={heroTitleRef}>
-          <MosaicTitle text={title} className="ark-hero__title" as="h1" />
+          <MosaicTitle key={title} text={title} className="ark-hero__title" as="h1" />
         </div>
-        {subtitle ? <p className="ark-hero__subtitle">{subtitle}</p> : null}
+        {subtitle ? <p className="ark-hero__subtitle"><AsciiText text={subtitle} /></p> : null}
         <DataStrip
           className="ark-hero__meta"
           items={(content?.metadata ?? []).filter(item => ["Year", "Role", "年份", "角色"].includes(item.label))}
         />
-        {content?.overview ? <p className="ark-work-summary">{content.overview}</p> : null}
-        <span className="ark-hero__scrollHint">{copy.scrollHint}</span>
+        {content?.overview ? <p className="ark-work-summary"><AsciiText text={content.overview} /></p> : null}
+        <span className="ark-hero__scrollHint"><AsciiText text={copy.scrollHint} /></span>
       </section>
 
       {particleFailed ? (
@@ -288,20 +277,9 @@ export default function WorkDetailPage({
               <section className="ark-wgallery" id="work-gallery">
                 <div className="ark-wgallery__head">
                   <SectionHeader number={sectionNo(Boolean(videoUrl), 1)} title={copy.work.galleryLabel} />
-                  <div className="ark-wgallery__controls">
-                    <button type="button" onClick={() => {
-                      setPlayingExhibitId(null);
-                      galleryRef.current?.scrollBy({ left: -(galleryRef.current.clientWidth * 0.85), behavior: "instant" });
-                    }}>{language === "zh" ? "← 向左翻阅" : "← Scroll left"}</button>
-                    <span>{images.length} {language === "zh" ? "张 · 点击放大" : "images · Select to enlarge"}</span>
-                    <button type="button" onClick={() => {
-                      setPlayingExhibitId(null);
-                      galleryRef.current?.scrollBy({ left: galleryRef.current.clientWidth * 0.85, behavior: "instant" });
-                    }}>{language === "zh" ? "向右翻阅 →" : "Scroll right →"}</button>
-                    <button type="button" aria-pressed={galleryPlaying} onClick={() => setPlayingExhibitId(galleryPlaying ? null : exhibitId)}>
-                      {galleryPlaying ? (language === "zh" ? "暂停自动流" : "Pause flow") : (language === "zh" ? "播放自动流" : "Play flow")}
-                    </button>
-                  </div>
+                  <span className="ark-wgallery__hint">
+                    {images.length} {language === "zh" ? "张 · 拖动浏览 / 点击放大" : "images · Drag to explore / Select to enlarge"}
+                  </span>
                 </div>
                 <div className="ark-wgallery__track" ref={galleryRef}>
                   {/* 自动流:内容按份复制实现无缝循环,复制份仅视觉用(aria-hidden) */}
@@ -370,6 +348,7 @@ export default function WorkDetailPage({
         />
       ) : null}
       </div>
+      </AsciiContext.Provider>
     </ScrollPageShell>
   );
 }

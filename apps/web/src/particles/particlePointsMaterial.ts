@@ -39,6 +39,7 @@ export function createParticleUniforms() {
   return {
     /** 秒,由渲染闭环累加(暂停时冻结,恢复不跳变)。 */
     time: uniform(0),
+    layerOpacity: uniform(1),
     /** 光标 NDC(-1..1);默认放到视野外,避免未移动鼠标时的增亮。 */
     cursorNdc: uniform(new Vector2(10, 10)),
     /** 光标增亮强度。 */
@@ -280,7 +281,8 @@ export function createParticlePointsMaterial(
   material.opacityNode = smoothstep(float(0.32), float(0.5), uv().sub(vec2(0.5)).length())
     .oneMinus()
     .mul(mix(float(1.0), float(0.5), uniforms.morphProgress))
-    .mul(smoothstep(float(0.0), float(0.4), introT));
+    .mul(smoothstep(float(0.0), float(0.4), introT))
+    .mul(uniforms.layerOpacity);
   material.transparent = false;
   material.depthWrite = true;
   material.depthTest = true;

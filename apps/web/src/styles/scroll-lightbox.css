@@ -4,9 +4,6 @@
  *   prefers-reduced-motion 下去掉过渡直接显隐。
  */
 
-.ark-wgallery__controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; color: #ddd; font-size: 14px; }
-.ark-wgallery__controls button { border: 1px solid #666; color: #eee; background: #202020; padding: 10px 14px; cursor: pointer; font: inherit; }
-.ark-wgallery__controls button:focus-visible { outline: 2px solid #e8d44d; outline-offset: 3px; }
 
 /* ---------- 图片灯箱 ---------- */
 

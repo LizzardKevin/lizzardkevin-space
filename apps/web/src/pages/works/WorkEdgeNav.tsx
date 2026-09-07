@@ -46,7 +46,7 @@ function initialCipherChar(index: number) {
   return chars[(index * 7 + 11) % chars.length];
 }
 
-function WorkEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: WorkEdgeNavTarget }) {
+export function AsciiEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: { href: string; title: string; hint?: string } }) {
   const grid = useMemo(() => resolveArrowGrid(side), [side]);
   const titleChars = useMemo(() => Array.from(target.title), [target.title]);
   const revealOrder = useMemo(
@@ -179,7 +179,7 @@ function WorkEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: WorkEdg
       }
 
       // idle 且 reduced-motion 时停 rAF;hover 解密仍由 ensureLoop 拉起
-      if (phaseValue !== "idle") {
+      if (phaseValue === "decrypting" || phaseValue === "encrypting") {
         rafId = requestAnimationFrame(tick);
       }
     };
@@ -191,6 +191,9 @@ function WorkEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: WorkEdg
 
     const onEnter = () => {
       if (phaseValue === "decrypting" || phaseValue === "revealed") return;
+      if (prefersReducedMotion()) {
+        applyTitleFrame(titleChars.length); changePhase("revealed"); return;
+      }
       changePhase("decrypting");
       // 从当前已揭示数量续播,避免反复进出 hover 时文本跳变
       phaseStartAtMs -=
@@ -198,7 +201,11 @@ function WorkEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: WorkEdg
       ensureLoop();
     };
     const onLeave = () => {
+      if (link.matches(":hover") || link.matches(":focus-visible")) return;
       if (phaseValue === "idle" || phaseValue === "encrypting") return;
+      if (prefersReducedMotion()) {
+        applyTitleFrame(0); changePhase("idle"); restoreArrow(); return;
+      }
       revealedAtPhaseStart = revealedCount;
       changePhase("encrypting");
       ensureLoop();
@@ -221,7 +228,8 @@ function WorkEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: WorkEdg
     link.addEventListener("focus", onEnter);
     link.addEventListener("blur", onLeave);
     document.addEventListener("visibilitychange", onVisibilityChange);
-    rafId = requestAnimationFrame(tick);
+    if (link.matches(":hover") || link.matches(":focus-visible")) onEnter();
+    else rafId = requestAnimationFrame(tick);
 
     return () => {
       destroyed = true;
@@ -237,12 +245,12 @@ function WorkEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: WorkEdg
   return (
     <Link
       ref={linkRef}
-      to={workRoute(target.id)}
+      to={target.href}
       className={`work-edge-nav__edge work-edge-nav__edge--${side}`}
       data-phase={phase}
-      aria-label={`${target.hint}: ${target.title}`}
+      aria-label={target.hint ? `${target.hint}: ${target.title}` : target.title}
     >
-      <span className="work-edge-nav__hint">{side === "left" ? "← " : ""}{target.hint}{side === "right" ? " →" : ""}</span>
+      {target.hint ? <span className="work-edge-nav__hint">{target.hint}</span> : null}
       <span className="work-edge-nav__title" aria-hidden="true">
         {titleChars.map((char, index) => (
           <span
@@ -296,8 +304,8 @@ export function WorkEdgeNav({ prev = null, next = null, accent }: WorkEdgeNavPro
       aria-label="EXHIBITS"
       style={accent ? ({ "--work-edge-nav-accent": accent } as CSSProperties) : undefined}
     >
-      {prev ? <WorkEdgeLink side="left" target={prev} /> : null}
-      {next ? <WorkEdgeLink side="right" target={next} /> : null}
+      {prev ? <AsciiEdgeLink side="left" target={{ ...prev, href: workRoute(prev.id) }} /> : null}
+      {next ? <AsciiEdgeLink side="right" target={{ ...next, href: workRoute(next.id) }} /> : null}
     </nav>
   );
 }

@@ -1,214 +1,135 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { loadParticleCache, particleCacheUrlFor } from "../../particles/particleCacheLoader.ts";
 import { ParticlePointsRenderer } from "../../particles/ParticlePointsRenderer.ts";
 import { ScrollTrigger } from "../../scroll/scrollGsap";
+import { prefersReducedMotion } from "../../scroll/useLenisScroll";
+import { WorkParticleSession } from "./WorkParticleSession";
 
-/**
- * 作品详情页全页粒子宿主：固定定位全视口点云背景（Hero 即展台，点云承担原舞台角色），
- * 滚到 #work-media(无媒体数据时退化为页尾)时按滚动进度把模型点云线性解构为 ambient 散布。
- * 渲染闭环照 dev 标定页模板：init → loadParticleCache → setParticleData → rAF，
- * 初始化后不再碰缓冲，每帧只写 uniform。canvas 铺满视口但 pointer-events:none，
- * 光标经 window pointermove 喂 NDC；z-index -1 压在壳层滚动内容之下
- * （.ark-scroll 自身是 z-index:2 的堆叠上下文且无背景，负层级子元素仍盖在页面底色之上）。
- * 加载/初始化失败：onError 上报并渲染 null，静态降级由页面 DOM 层负责。
- */
-export function WorkParticleHost({
-  exhibitId,
-  onReady,
-  onError,
-}: {
-  exhibitId: string;
-  onReady?: () => void;
-  onError?: (message: string) => void;
+/** A persistent canvas/renderer. Only the latest generation may commit a compiled layer. */
+export function WorkParticleHost({ exhibitId, onReady, onError }: {
+  exhibitId: string; onReady?: () => void; onError?: (message: string) => void;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [failed, setFailed] = useState(false);
+  const hostRef = useRef<HTMLDivElement>(null);
+  const sessionRef = useRef<WorkParticleSession | null>(null);
+  const [bootEpoch, setBootEpoch] = useState(0);
+  const callbacks = useRef({ exhibitId, onReady, onError });
+  useLayoutEffect(() => { callbacks.current = { exhibitId, onReady, onError }; }, [exhibitId, onReady, onError]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
+    const host = hostRef.current;
+    if (!host) return;
+    // StrictMode may retire an async init after its replacement has started.
+    // Separate DOM canvases prevent the retired WebGL context from losing the live one.
+    const canvas = document.createElement("canvas");
     canvas.dataset.workParticleState = "pending";
-
+    canvas.setAttribute("aria-hidden", "true");
+    Object.assign(canvas.style, { width: "100%", height: "100%", display: "block" });
+    host.appendChild(canvas);
     const renderer = new ParticlePointsRenderer();
-    let disposed = false;
-    let rafId = 0;
-    let running = false;
-    let tornDown = false;
-    let lastMs: number | null = null;
+    renderer.viewOffsetFactor = .33;
+    let disposed = false, running = false, hasFrame = false;
+    let raf = 0, lastAt = 0;
+    const perf = import.meta.env.DEV && new URLSearchParams(location.search).get("wpPerf") === "1";
+    let perfFrames = 0, perfMs = 0;
     let morphTrigger: ScrollTrigger | null = null;
-    // dev-only:?wpPerf=1 时每 2s 输出平均帧耗时(rAF 间隔),辅助真机滚动 60fps 验证。
-    const perfEnabled =
-      import.meta.env.DEV &&
-      new URLSearchParams(window.location.search).get("wpPerf") === "1";
-    let perfFrames = 0;
-    let perfAccumMs = 0;
-    let perfWindowStartMs = 0;
-
-    const renderFrame = (nowMs: number) => {
-      rafId = window.requestAnimationFrame(renderFrame);
-      const dt = lastMs === null ? 0 : Math.min((nowMs - lastMs) / 1000, 0.1);
-      if (perfEnabled && lastMs !== null) {
-        perfFrames += 1;
-        perfAccumMs += nowMs - lastMs;
-        if (perfWindowStartMs === 0) perfWindowStartMs = lastMs;
-        const windowMs = nowMs - perfWindowStartMs;
-        if (windowMs >= 2000) {
-          const avgMs = perfAccumMs / perfFrames;
-          console.info(
-            `[wpPerf] avg frame ${avgMs.toFixed(2)}ms ≈ ${(1000 / avgMs).toFixed(1)}fps ` +
-              `(${perfFrames} frames / ${windowMs.toFixed(0)}ms)`,
-          );
-          perfFrames = 0;
-          perfAccumMs = 0;
-          perfWindowStartMs = nowMs;
+    const frame = (now: number) => {
+      if (disposed) return;
+      if (perf && lastAt) {
+        perfFrames++; perfMs += now - lastAt;
+        if (perfMs >= 2000) {
+          console.info(`[wpPerf] avg frame ${(perfMs / perfFrames).toFixed(2)}ms (${perfFrames} frames / ${perfMs.toFixed(0)}ms)`);
+          perfFrames = 0; perfMs = 0;
         }
       }
-      lastMs = nowMs;
-      renderer.update(dt);
+      renderer.update(lastAt ? Math.min((now - lastAt) / 1000, .05) : 0);
+      lastAt = now;
+      raf = requestAnimationFrame(frame);
     };
-    const startLoop = () => {
-      if (running || disposed) return;
-      running = true;
-      lastMs = null; // 恢复时 dt 从 0 起，time 不跳变。
-      rafId = window.requestAnimationFrame(renderFrame);
+    const resume = () => {
+      if (document.hidden || !hasFrame || disposed) {
+        cancelAnimationFrame(raf); running = false; lastAt = 0;
+        perfFrames = 0; perfMs = 0;
+      } else if (!running) {
+        running = true; lastAt = 0; raf = requestAnimationFrame(frame);
+      }
     };
-    const stopLoop = () => {
-      if (!running) return;
-      running = false;
-      window.cancelAnimationFrame(rafId);
+    const resize = () => renderer.resize(window.innerWidth, window.innerHeight, devicePixelRatio || 1);
+    const pointer = (event: PointerEvent) => renderer.setCursor(
+      event.clientX / window.innerWidth * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1,
+    );
+    const bindMorph = () => {
+      morphTrigger?.kill(); morphTrigger = null;
+      const scroller = document.querySelector<HTMLElement>(".ark-scroll");
+      const anchor = document.getElementById("work-media") ?? scroller?.querySelector<HTMLElement>(".ark-footer");
+      if (scroller && anchor) {
+        const end = () => Math.max(anchor.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - scroller.clientHeight * .25, 1);
+        renderer.setMorphProgress(scroller.scrollTop / end());
+        morphTrigger = ScrollTrigger.create({
+          trigger: anchor, scroller, start: 0, end, invalidateOnRefresh: true,
+          onUpdate: self => renderer.setMorphProgress(self.progress),
+        });
+      }
     };
-    const onVisibilityChange = () => {
-      if (document.hidden) stopLoop();
-      else startLoop();
-    };
-    const onPointerMove = (event: PointerEvent) => {
-      renderer.setCursor(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1,
-      );
-    };
-    const onResize = () => {
-      renderer.resize(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
-    };
+    const initialized = renderer.init(canvas).then(() => { if (!disposed) resize(); });
+    const session = new WorkParticleSession(
+      renderer, id => loadParticleCache(particleCacheUrlFor(id)), initialized,
+      (id, state, message) => {
+        if (disposed || callbacks.current.exhibitId !== id) return;
+        canvas.dataset.workParticleState = state;
+        canvas.dataset.workParticleExhibit = id;
+        if (state === "pending") { morphTrigger?.kill(); morphTrigger = null; }
+        if (state === "ready") {
+          hasFrame = true;
+          bindMorph();
+          if (prefersReducedMotion()) renderer.skipIntro();
+          if (import.meta.env.DEV) {
+            const query = new URLSearchParams(window.location.search);
+            const intro = query.get("wpIntro");
+            if (intro === "0") renderer.skipIntro();
+            else if (intro !== null && Number.isFinite(Number(intro))) renderer.setIntroProgress(Number(intro));
+            const morph = query.get("wpMorph");
+            if (morph !== null && Number.isFinite(Number(morph))) {
+              morphTrigger?.kill(); morphTrigger = null; renderer.setMorphProgress(Number(morph));
+            }
+            const px = Number.parseFloat(query.get("px") ?? ""), py = Number.parseFloat(query.get("py") ?? "");
+            if (Number.isFinite(px) || Number.isFinite(py)) {
+              renderer.setCursor(Number.isFinite(px) ? px : 0, Number.isFinite(py) ? py : 0);
+              renderer.snapCursorToTarget();
+            }
+          }
+          renderer.update(0);
+          resume();
+          callbacks.current.onReady?.();
+        } else if (state === "failed") {
+          if (!hasFrame) teardown();
+          callbacks.current.onError?.(message ?? "Particle field unavailable");
+        }
+      },
+    );
+    sessionRef.current = session;
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", pointer, { passive: true });
     const teardown = () => {
-      if (tornDown) return;
-      tornDown = true;
-      disposed = true;
-      stopLoop();
-      morphTrigger?.kill();
-      morphTrigger = null;
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("resize", onResize);
+      if (disposed) return;
+      disposed = true; session.dispose(); sessionRef.current = null;
+      cancelAnimationFrame(raf); morphTrigger?.kill();
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", pointer);
       renderer.dispose();
+      canvas.remove();
     };
-
-    const boot = async () => {
-      try {
-        await renderer.init(canvas);
-        if (disposed) return;
-        const data = await loadParticleCache(particleCacheUrlFor(exhibitId));
-        if (disposed) return;
-        // 视觉中心右移约 1/3 半径,给左上标题栏让位(标定页保持居中)。
-        // 必须先于 setParticleData 落地:取景时的首次 updateCameraPose 就用它,
-        // 否则视差收敛优化会跳过位姿重写,首次动鼠标时模型从居中瞬跳到右移。
-        renderer.viewOffsetFactor = 0.33;
-        renderer.setParticleData(data);
-        // 入场揭示:远→近波浪生成播放一次(key={exhibitId} 重挂载天然重播;
-        // 播完 introProgress 停在 1,着色/透明度与之前一致)。
-        renderer.startIntro();
-        onResize();
-        startLoop();
-        // 滚动解构：进度只由 scroller 绝对滚动位置驱动——scrollTop=0 恒为 0(成形),
-        // 媒体段顶走到 25% 视口处恒为 1(解构),区间线性、可逆。
-        // 不用 "top bottom" 相对起点:hero 仅 86vh,媒体段加载即在视口内,
-        // 相对起点 + 创建时序/刷新顺序会让初始进度非零(首屏半解体模糊柱)。
-        // 锚点退化为页尾:无多媒体数据的作品不渲染 #work-media,滚到页尾完成解构。
-        const scroller = document.querySelector<HTMLElement>(".ark-scroll");
-        const morphAnchor =
-          document.getElementById("work-media") ??
-          scroller?.querySelector<HTMLElement>(".ark-footer") ??
-          null;
-        if (scroller && morphAnchor) {
-          morphTrigger = ScrollTrigger.create({
-            trigger: morphAnchor,
-            scroller,
-            start: 0,
-            end: () => {
-              const elTop =
-                morphAnchor.getBoundingClientRect().top -
-                scroller.getBoundingClientRect().top +
-                scroller.scrollTop;
-              return Math.max(elTop - scroller.clientHeight * 0.25, 1);
-            },
-            invalidateOnRefresh: true,
-            onUpdate: (self) => renderer.setMorphProgress(self.progress),
-          });
-        }
-        canvas.dataset.workParticleState = "ready";
-        onReady?.();
-        // dev-only 测试钩子:?wpMorph=0..1 强制解构进度;?px=&py= 固定光标 NDC;
-        // ?wpIntro=0 跳过入场揭示,?wpIntro=0..1 定点落地 introProgress(无头截图/调试用,
-        // 真机上 pointermove 会覆盖 px/py)。
-        if (import.meta.env.DEV) {
-          const query = new URLSearchParams(window.location.search);
-          const wpIntro = query.get("wpIntro");
-          if (wpIntro === "0") {
-            renderer.skipIntro();
-          } else if (wpIntro !== null) {
-            const introAt = Number.parseFloat(wpIntro);
-            if (Number.isFinite(introAt)) renderer.setIntroProgress(introAt);
-          }
-          const px = Number.parseFloat(query.get("px") ?? "");
-          const py = Number.parseFloat(query.get("py") ?? "");
-          if (Number.isFinite(px) || Number.isFinite(py)) {
-            renderer.setCursor(
-              Number.isFinite(px) ? px : 0,
-              Number.isFinite(py) ? py : 0,
-            );
-            renderer.snapCursorToTarget();
-          }
-          const forced = Number.parseFloat(query.get("wpMorph") ?? "");
-          if (Number.isFinite(forced)) {
-            morphTrigger?.kill();
-            morphTrigger = null;
-            renderer.setMorphProgress(forced);
-          }
-        }
-      } catch (error) {
-        if (disposed) return;
-        const message = error instanceof Error ? error.message : String(error);
-        if (import.meta.env.DEV) console.warn("[WorkParticleHost] init failed:", error);
-        teardown();
-        setFailed(true);
-        onError?.(message);
-      }
-    };
-    void boot();
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("resize", onResize);
-
     return () => teardown();
-  }, [exhibitId, onReady, onError]);
+  }, [bootEpoch]);
 
-  if (failed) return null;
+  useEffect(() => {
+    if (sessionRef.current) sessionRef.current.request(exhibitId);
+    else setBootEpoch(epoch => epoch + 1);
+  }, [exhibitId, bootEpoch]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      data-work-particle-state="pending"
-      aria-hidden="true"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: -1,
-        width: "100%",
-        height: "100%",
-        display: "block",
-        pointerEvents: "none",
-      }}
-    />
-  );
+  return <div ref={hostRef} aria-hidden="true" style={{
+    position: "fixed", inset: 0, zIndex: -1, width: "100%", height: "100%",
+    display: "block", pointerEvents: "none",
+  }} />;
 }

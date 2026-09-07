@@ -122,9 +122,7 @@
 
 .work-edge-nav__edge--right .work-edge-nav__title { right: 14px; text-align: right; }
 
-.work-edge-nav__hint { align-self: flex-end; padding: 6px 8px; background: rgb(20 24 26 / 0.92); text-shadow: 0 1px 6px #111; }
-.work-edge-nav__edge[data-phase="idle"] .work-edge-nav__arrow { display: none; }
-.work-edge-nav__edge:not([data-phase="idle"]) .work-edge-nav__hint { transform: translateY(32px); }
+.work-edge-nav__hint { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); font-size: 10px; white-space: nowrap; text-shadow: 0 1px 6px #111; }
 
 .work-edge-nav__edge[data-phase="decrypting"] .work-edge-nav__title,
 .work-edge-nav__edge[data-phase="revealed"] .work-edge-nav__title,
@@ -156,10 +154,12 @@
 
 /* ---- 响应式与动效降级 ---- */
 
-@media (max-width: 720px) {
+@media (max-width: 849px) {
   .work-edge-nav__edge {
-    padding: 12px 10px;
+    top: 118px;
+    padding: 8px;
   }
+  .work-edge-nav__arrow { font-size: 8px; line-height: 1; }
   .work-edge-nav__title {
     font-size: 11px;
     letter-spacing: 0.1em;
