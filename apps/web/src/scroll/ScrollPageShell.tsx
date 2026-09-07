@@ -22,6 +22,7 @@ import { setDotGridArrow } from "./dotGridArrowBus";
 import { CursorDot } from "./CursorDot";
 import { HazardRule } from "./primitives";
 import { gsap } from "./scrollGsap";
+import { useRouteScrollPosition } from "./useRouteScrollPosition";
 
 export type ScrollPageAnchor = { id: string; label: string };
 export type SpaceReturnHandler = (options?: { fromEscape?: boolean }) => void;
@@ -114,6 +115,8 @@ export function ScrollPageShell({
   miniTitleAfterId,
   blankDoubleClickToSpace = false,
   background = "dotgrid",
+  scrollReady = true,
+  rememberScroll = false,
   onNavigateToSpace,
   children,
 }: {
@@ -130,6 +133,8 @@ export function ScrollPageShell({
   blankDoubleClickToSpace?: boolean;
   /** 背景层：默认点阵；"none" 时不挂 DotGrid（works 详情页背景由全页粒子点云承担） */
   background?: "dotgrid" | "none";
+  scrollReady?: boolean;
+  rememberScroll?: boolean;
   onNavigateToSpace: SpaceReturnHandler;
   children: ReactNode;
 }) {
@@ -143,6 +148,7 @@ export function ScrollPageShell({
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [content, setContent] = useState<HTMLDivElement | null>(null);
   const lenisRef = useLenisScroll(scroller, content);
+  useRouteScrollPosition(scroller, rememberScroll && scrollReady);
   const [activeAnchor, setActiveAnchor] = useState<string | null>(null);
   const activeAnchorRef = useRef<string | null>(null);
   const [miniTitleVisible, setMiniTitleVisible] = useState(false);

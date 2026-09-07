@@ -92,7 +92,16 @@ export default function WorkDetailPage({
     getWrapPeriod: () => galleryWrapPeriodRef.current,
   });
   const heroTitleRef = useRef<HTMLDivElement | null>(null);
-  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+  const [imageSelection, setSelectedImage] = useState<{ exhibitId: string; src: string; alt: string } | null>(null);
+  const selectedImage = imageSelection?.exhibitId === exhibitId ? imageSelection : null;
+  const [playingExhibitId, setPlayingExhibitId] = useState<string | null>(null);
+  const galleryPlaying = playingExhibitId === exhibitId;
+  const [galleryExhibitId, setGalleryExhibitId] = useState(exhibitId);
+  if (galleryExhibitId !== exhibitId) {
+    setGalleryExhibitId(exhibitId);
+    setSelectedImage(null);
+    setPlayingExhibitId(null);
+  }
   // 粒子宿主失败按展品 id 记录：切到下一个展品（同路由换参数）时自动重置重试。
   const [particleFailedId, setParticleFailedId] = useState<string | null>(null);
   const handleParticleError = useCallback(
@@ -121,6 +130,7 @@ export default function WorkDetailPage({
     itemCount: galleryImageCount,
     interaction: galleryInteraction,
     paused: selectedImage !== null,
+    enabled: galleryPlaying,
     wrapPeriodRef: galleryWrapPeriodRef,
   });
   useScrubSections(
@@ -152,6 +162,8 @@ export default function WorkDetailPage({
         accent="yellow"
         pageCode={copy.work.pageCode}
         anchors={[]}
+        scrollReady={false}
+        rememberScroll
         background="none"
         blankDoubleClickToSpace
         onNavigateToSpace={onNavigateToSpace}
@@ -186,6 +198,7 @@ export default function WorkDetailPage({
       accent="yellow"
       pageCode={copy.work.pageCode}
       anchors={anchors}
+      rememberScroll
       background="none"
       footerMeta={[exhibitId, `${index + 1} / ${works.length}`]}
       miniTitle={title}
@@ -281,11 +294,34 @@ export default function WorkDetailPage({
               <section className="ark-wgallery" id="work-gallery">
                 <div className="ark-wgallery__head">
                   <SectionHeader number={sectionNo(Boolean(videoUrl), 1)} title={copy.work.galleryLabel} />
-                  <span className="ark-wgallery__hint">{copy.work.dragHint} ↔</span>
+                  <div className="ark-wgallery__controls">
+                    <button type="button" onClick={() => {
+                      setPlayingExhibitId(null);
+                      galleryRef.current?.scrollBy({ left: -(galleryRef.current.clientWidth * 0.85), behavior: "instant" });
+                    }}>{language === "zh" ? "← 向左翻阅" : "← Scroll left"}</button>
+                    <span>{images.length} {language === "zh" ? "张 · 点击放大" : "images · Select to enlarge"}</span>
+                    <button type="button" onClick={() => {
+                      setPlayingExhibitId(null);
+                      galleryRef.current?.scrollBy({ left: galleryRef.current.clientWidth * 0.85, behavior: "instant" });
+                    }}>{language === "zh" ? "向右翻阅 →" : "Scroll right →"}</button>
+                    <button type="button" aria-pressed={galleryPlaying} onClick={() => setPlayingExhibitId(galleryPlaying ? null : exhibitId)}>
+                      {galleryPlaying ? (language === "zh" ? "暂停自动流" : "Pause flow") : (language === "zh" ? "播放自动流" : "Play flow")}
+                    </button>
+                  </div>
                 </div>
                 <div className="ark-wgallery__track" ref={galleryRef}>
                   {/* 自动流:内容按份复制实现无缝循环,复制份仅视觉用(aria-hidden) */}
                   {Array.from({ length: galleryCopies }, (_, copyIndex) =>
+                        <button
+                          type="button"
+                          className="ark-wgallery__zoom"
+                          aria-label={`${language === "zh" ? "放大" : "Enlarge"} ${title} — ${i + 1}`}
+                          tabIndex={copyIndex > 0 ? -1 : 0}
+                          onClick={(event) => {
+                            event.currentTarget.focus({ preventScroll: true });
+                            setSelectedImage({ exhibitId, src: url, alt: `${title} — ${i + 1}` });
+                          }}
+                        >
                     images.map((url, i) => (
                       <figure
                         className="ark-wgallery__item"
@@ -293,18 +329,25 @@ export default function WorkDetailPage({
                         aria-hidden={copyIndex > 0 || undefined}
                       >
                         <img
+                        </button>
                           src={url}
                           alt={`${title} — ${i + 1}`}
                           loading="lazy"
                           draggable={false}
-                          onClick={() =>
-                            setSelectedImage({ src: url, alt: `${title} — ${i + 1}` })
-                          }
                           style={{ cursor: "zoom-in" }}
                         />
                       </figure>
                     )),
                   )}
+                <button
+                  type="button"
+                  className="ark-wgallery__zoom"
+                  aria-label={`${language === "zh" ? "放大" : "Enlarge"} ${title}`}
+                  onClick={(event) => {
+                    event.currentTarget.focus({ preventScroll: true });
+                    setSelectedImage({ exhibitId, src: images[0], alt: title });
+                  }}
+                >
                 </div>
               </section>
             </div>
@@ -312,11 +355,11 @@ export default function WorkDetailPage({
             <section className="ark-wgallery" id="work-gallery">
               <div className="ark-wgallery__single">
                 <img
+                </button>
                   src={images[0]}
                   alt={title}
                   loading="lazy"
                   draggable={false}
-                  onClick={() => setSelectedImage({ src: images[0], alt: title })}
                   style={{ cursor: "zoom-in" }}
                 />
               </div>

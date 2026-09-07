@@ -451,7 +451,7 @@ button {
   --terminal-header-height: 82px;
   --terminal-brand-height: 58px;
   --terminal-nav-top: 82px;
-  --terminal-shell-top: 194px;
+  --terminal-shell-top: 100%;
   --terminal-space-size: 36px;
   --terminal-space-x: 0px;
   --terminal-space-y: 0px;
@@ -839,6 +839,7 @@ button {
   position: absolute;
   inset: var(--terminal-shell-top) 0 0;
   overflow: auto;
+  overflow-anchor: none;
   padding: 0 16px max(28px, env(safe-area-inset-bottom));
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;

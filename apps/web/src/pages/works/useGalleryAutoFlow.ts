@@ -11,7 +11,8 @@ import type { DragScrollInteraction } from "./useDragScroll";
  * 图集轨道自动流(marquee):缓慢恒速横向滚动,内容复制实现无缝循环。
  *
  * - 暂停条件:hover(仅 hover 能力指针)、拖拽中、惯性滑移中、页面不可见、
- *   lightbox 打开(paused);惯性结束自动恢复。
+ *   lightbox 打开(paused)、键盘焦点在图集中时暂停。
+ * - 默认静止；只有访问者明确启用 enabled 才创建自动流。
  * - 只在没有用户交互时推进 scrollLeft,与 useDragScroll 的写入不打架;
  *   环绕周期经 wrapPeriodRef 回流给拖拽 hook,拖拽/惯性写入同样无缝。
  * - reduced-motion 与 dev 钩子 ?wpGalleryFlow=0 下完全关闭:内容不复制、
@@ -42,6 +43,7 @@ export type UseGalleryAutoFlowOptions = Readonly<{
   interaction: DragScrollInteraction;
   /** lightbox 打开等外部暂停 */
   paused: boolean;
+  enabled?: boolean;
   /** 测得的环绕周期(px)回流给 useDragScroll 的 getWrapPeriod */
   wrapPeriodRef: RefObject<number>;
 }>;
@@ -52,10 +54,11 @@ export function useGalleryAutoFlow({
   itemCount,
   interaction,
   paused,
+  enabled = false,
   wrapPeriodRef,
 }: UseGalleryAutoFlowOptions): number {
   const flowEnabled =
-    itemCount >= 2 && !prefersReducedMotion() && !isFlowDisabledByQuery();
+    enabled && itemCount >= 2 && !prefersReducedMotion() && !isFlowDisabledByQuery();
   const [measuredCopies, setMeasuredCopies] = useState(2);
 
   useEffect(() => {
@@ -115,6 +118,7 @@ export function useGalleryAutoFlow({
         return;
       }
       if (document.hidden) return;
+      if (el.contains(document.activeElement)) return;
       if (hoverPointer.matches && el.matches(":hover")) return;
       position = wrapGalleryScrollLeft(
         position + (WORK_GALLERY_FLOW_SPEED_PX_S * dt) / 1000,

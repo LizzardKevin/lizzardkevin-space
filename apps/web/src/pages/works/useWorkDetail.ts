@@ -78,5 +78,7 @@ export function useWorkDetail(
 
   if (validId === null) return { status: "not-found" };
   if (loaded?.key === key) return loaded.value;
+  // Keep the same work mounted during a language fetch to preserve reading position.
+  if (loaded?.key.split("|")[0] === validId) return loaded.value;
   return { status: "loading" };
 }

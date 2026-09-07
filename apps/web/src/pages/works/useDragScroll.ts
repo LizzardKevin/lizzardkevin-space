@@ -176,6 +176,7 @@ export function useDragScroll<T extends HTMLElement>(
     el.addEventListener("pointerup", endDrag);
     el.addEventListener("pointercancel", endDrag);
     el.addEventListener("click", onClickCapture, true);
+    el.addEventListener("focusin", stopMomentum);
     return () => {
       stopMomentum();
       interaction.dragging = false;
@@ -184,6 +185,7 @@ export function useDragScroll<T extends HTMLElement>(
       el.removeEventListener("pointerup", endDrag);
       el.removeEventListener("pointercancel", endDrag);
       el.removeEventListener("click", onClickCapture, true);
+      el.removeEventListener("focusin", stopMomentum);
     };
   }, [el, interaction]);
 

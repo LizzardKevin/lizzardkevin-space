@@ -60,7 +60,7 @@ test("work detail page wires the auto-flow without breaking drag or lightbox sem
   assert.match(page, /aria-hidden=\{copyIndex > 0 \|\| undefined\}/);
   // 拖拽 hook 拿到环绕周期;点击开 lightbox 的逻辑保留
   assert.match(page, /getWrapPeriod: \(\) => galleryWrapPeriodRef\.current/);
-  assert.match(page, /setSelectedImage\(\{ src: url/);
+  assert.match(page, /setSelectedImage\(\{ exhibitId, src: url/);
 
   const flow = readFileSync(
     new URL("../../src/pages/works/useGalleryAutoFlow.ts", import.meta.url),
