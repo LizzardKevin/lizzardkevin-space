@@ -11,12 +11,12 @@
   },
   "totals": {
     "assets": {
-      "files": 96,
-      "bytes": 210231878
+      "files": 95,
+      "bytes": 208831842
     },
     "publicShipping": {
-      "files": 93,
-      "bytes": 176467532
+      "files": 92,
+      "bytes": 175067496
     },
     "sourceOnly": {
       "files": 14,
@@ -139,8 +139,8 @@
         "bytes": 42958
       },
       "shared/other": {
-        "files": 9,
-        "bytes": 5606335
+        "files": 8,
+        "bytes": 4206299
       },
       "source-only": {
         "files": 14,
@@ -149,8 +149,8 @@
     },
     "byType": {
       "3d": {
-        "files": 18,
-        "bytes": 118447990
+        "files": 17,
+        "bytes": 117047954
       },
       "audio": {
         "files": 8,
@@ -1786,6 +1786,17 @@
       }
     },
     {
+      "path": "apps/web/public/particles/arch_3d_printing_architecture.particles.bin",
+      "type": "3d",
+      "phase": "shared/other",
+      "bytes": 1400036,
+      "sha256": "d0ed035ed2db8b84cc283b784752295c2e9b0173d33475f8f9f0eab8335fb003",
+      "public": true,
+      "sourceOnly": false,
+      "shipping": true,
+      "exclusionCandidate": false
+    },
+    {
       "path": "apps/web/public/particles/arch_treehabitat.particles.bin",
       "type": "3d",
       "phase": "shared/other",
@@ -1797,29 +1808,7 @@
       "exclusionCandidate": false
     },
     {
-      "path": "apps/web/public/particles/particles/arch_3d_printing_architecture.particles.bin",
-      "type": "3d",
-      "phase": "shared/other",
-      "bytes": 1400036,
-      "sha256": "d0ed035ed2db8b84cc283b784752295c2e9b0173d33475f8f9f0eab8335fb003",
-      "public": true,
-      "sourceOnly": false,
-      "shipping": true,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "apps/web/public/particles/particles/arch_treehabitat.particles.bin",
-      "type": "3d",
-      "phase": "shared/other",
-      "bytes": 1400036,
-      "sha256": "852902e8366032c96c120102067c68f85f72c65a3ba1615b3c502191a33684a4",
-      "public": true,
-      "sourceOnly": false,
-      "shipping": true,
-      "exclusionCandidate": false
-    },
-    {
-      "path": "apps/web/public/particles/particles/arch_uabb_exhibit.particles.bin",
+      "path": "apps/web/public/particles/arch_uabb_exhibit.particles.bin",
       "type": "3d",
       "phase": "shared/other",
       "bytes": 1400036,
@@ -1845,33 +1834,41 @@
     "available": true,
     "manifest": null,
     "entrypoints": [
-      "apps/web/dist/assets/index-BFhH1uLA.css",
-      "apps/web/dist/assets/index-DI3Wn3Z8.js"
+      "apps/web/dist/assets/index-CUuwBWN_.css",
+      "apps/web/dist/assets/index-q0gaIV03.js"
     ],
     "files": [
       {
-        "path": "apps/web/dist/assets/ArchiveHub-BKPneFsA.js",
+        "path": "apps/web/dist/assets/ArchiveHub-C4IWfshE.css",
+        "type": "stylesheet",
+        "phase": "shared/other",
+        "bytes": 5715,
+        "gzipBytes": 973,
+        "sha256": "bad4c2b485c66bc76c9aaf1923a987e55673007afa13150af9e66d299c26a198"
+      },
+      {
+        "path": "apps/web/dist/assets/ArchiveHub-CZc3WEX8.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 52229,
-        "gzipBytes": 21166,
-        "sha256": "0a59adaf4c37e5c884f1f862f417d469e1af5e9695b67eaeb5f6e912a25203f9"
+        "bytes": 64207,
+        "gzipBytes": 25058,
+        "sha256": "2cdeb8ecc8823d320d607212ce6b5dcaa0b34f738e60bd86192d20a88d12380e"
       },
       {
-        "path": "apps/web/dist/assets/DesktopApp-Dh4GGn78.js",
+        "path": "apps/web/dist/assets/DesktopApp-Ce1DIREj.js",
         "type": "javascript",
         "phase": "shared/app-shell",
-        "bytes": 10433,
-        "gzipBytes": 3522,
-        "sha256": "c22cc16c53be97f839e19d23a5550306b8353a2a771b742f3946d71d6c4de2cc"
+        "bytes": 10323,
+        "gzipBytes": 3488,
+        "sha256": "27d5328eba9d14f154215d706c5d5eac401c96698b294920171a73a7116b58f6"
       },
       {
-        "path": "apps/web/dist/assets/DesktopTopBar-D6jNWnxH.js",
+        "path": "apps/web/dist/assets/DesktopTopBar-BpSPSrRy.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 2971,
-        "gzipBytes": 1120,
-        "sha256": "df0fc24e4e4ebcabbf637fe4b5a9fe81b1666e7b61901ab2a38b11f9641b3389"
+        "gzipBytes": 1119,
+        "sha256": "4b4f999c1348f39a78a41c45bec905505cdfb4c292a6a11cb73a87e712033a91"
       },
       {
         "path": "apps/web/dist/assets/MobileApp-BJx_-ILK.css",
@@ -1882,100 +1879,76 @@
         "sha256": "2464b024cd33f11a6aa77446a53fd5cf128d475314cc12d60ea8b05cb9ea9920"
       },
       {
-        "path": "apps/web/dist/assets/MobileApp-BmUhrVtY.js",
+        "path": "apps/web/dist/assets/MobileApp-CoL5_HsY.js",
         "type": "javascript",
         "phase": "mobile/cold",
         "bytes": 48992,
-        "gzipBytes": 16452,
-        "sha256": "df628ec526ed41d2cca6f19c69c5f6a3c21698701295616e8695272619bb002d"
+        "gzipBytes": 16451,
+        "sha256": "59b25c219f68aee379b5e2da7bbf58806b2422a1d2300a3bdf45eb9b5f85cbae"
       },
       {
-        "path": "apps/web/dist/assets/MosaicTitle-C4IWfshE.css",
-        "type": "stylesheet",
-        "phase": "shared/other",
-        "bytes": 5715,
-        "gzipBytes": 973,
-        "sha256": "bad4c2b485c66bc76c9aaf1923a987e55673007afa13150af9e66d299c26a198"
-      },
-      {
-        "path": "apps/web/dist/assets/MosaicTitle-S9HM-V0w.js",
+        "path": "apps/web/dist/assets/MosaicTitle-DecTQuRI.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 162995,
-        "gzipBytes": 59396,
-        "sha256": "5a45eb73c5c55f9bf3743e8da1ec03e89a1b2f45764f75deb0ddc7e46e67d480"
+        "bytes": 150879,
+        "gzipBytes": 55919,
+        "sha256": "6a6f8881d5b171724d6d5f56e2803d6ff1cf8332d2dbf72b808a2e6d3f9eed76"
       },
       {
-        "path": "apps/web/dist/assets/ParticleCalibratorPage-B70w_f-w.js",
-        "type": "javascript",
-        "phase": "shared/other",
-        "bytes": 4855,
-        "gzipBytes": 2087,
-        "sha256": "43d2e2a9cbf72683a2c0a61eafedee0c2d26da5eda0d46ef31e1a1e6bc525af6"
-      },
-      {
-        "path": "apps/web/dist/assets/ParticlePointsRenderer-tOFh3fHH.js",
-        "type": "javascript",
-        "phase": "shared/other",
-        "bytes": 8821,
-        "gzipBytes": 3545,
-        "sha256": "de58507e5000abf5606442e7a06f5de3e5b321b7da243b1c736935be6858df67"
-      },
-      {
-        "path": "apps/web/dist/assets/SpaceHost-D8yuCTQz.js",
+        "path": "apps/web/dist/assets/SpaceHost-BWa68LI4.js",
         "type": "javascript",
         "phase": "boot/world",
-        "bytes": 85933,
-        "gzipBytes": 28159,
-        "sha256": "ebe9541c9a1f62218ca70c8c7c883546d1836a5ecd4f36d367d54e792aeb793c"
+        "bytes": 85897,
+        "gzipBytes": 28141,
+        "sha256": "fae0cf18d96c1531f718bb25c4ff29fa6f4ea878df5eb2f8901e71ec86aef5e6"
       },
       {
-        "path": "apps/web/dist/assets/SpacePage--SWMxNcn.js",
+        "path": "apps/web/dist/assets/SpacePage-CNUmIk4S.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 14642,
-        "gzipBytes": 6111,
-        "sha256": "053d62d810d6854c401c2c4170f876109428972abd78b90fb903c009627a584c"
+        "bytes": 21611,
+        "gzipBytes": 8449,
+        "sha256": "d6a0721fe901f6119b6ec3dadba511054f23773add52b6c3da204f69df301b3c"
       },
       {
-        "path": "apps/web/dist/assets/SpacePage-BwYzyoYc.css",
+        "path": "apps/web/dist/assets/SpacePage-lzKvgVV4.css",
         "type": "stylesheet",
         "phase": "shared/other",
-        "bytes": 3558,
-        "gzipBytes": 1259,
-        "sha256": "f994f5fc2c26c0af603215c397b7f526102bbcac9c828e88e1f18a47e9db8fd9"
+        "bytes": 3891,
+        "gzipBytes": 1321,
+        "sha256": "dbebc1eb11c8b365abc2f484aba8e08f4bd4253e95ab08c3a821358415c52083"
       },
       {
-        "path": "apps/web/dist/assets/WorkDetailPage-6D5cVisB.js",
+        "path": "apps/web/dist/assets/WorkDetailPage-CJfI2QyA.css",
+        "type": "stylesheet",
+        "phase": "shared/other",
+        "bytes": 4487,
+        "gzipBytes": 1320,
+        "sha256": "c1f1dce613f0ea57ce38bf738d86c3683aae6976332d31e77c3a9989a5a55069"
+      },
+      {
+        "path": "apps/web/dist/assets/WorkDetailPage-cz1gu26h.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 13654,
-        "gzipBytes": 4644,
-        "sha256": "b4b8681dee5f778372ce3fe48d87eea5c9c256fd5cd87be4ec21bb211e245618"
+        "bytes": 29643,
+        "gzipBytes": 10660,
+        "sha256": "3ab56ffad6968c53b1657b6ec8832a14ffcbc8aea2c6a81f0065d47b5f45050a"
       },
       {
-        "path": "apps/web/dist/assets/WorkDetailPage-CINfbjLE.css",
-        "type": "stylesheet",
-        "phase": "shared/other",
-        "bytes": 1127,
-        "gzipBytes": 576,
-        "sha256": "856b977787df3f132e98717c86bc35ee8f77e5b7d44595ffd5d4f5671f188214"
-      },
-      {
-        "path": "apps/web/dist/assets/appRoutes-CIbvlLBn.js",
+        "path": "apps/web/dist/assets/appRoutes-Bsd7MJTf.js",
         "type": "javascript",
         "phase": "shared/app-shell",
         "bytes": 634,
-        "gzipBytes": 388,
-        "sha256": "ced5691a250162f93308b416b1fb4a3632551b685680873a05efa97f778127bd"
+        "gzipBytes": 384,
+        "sha256": "830d3cc858b47274e894458bdb890eac386d529073e7c07a4c12204f6038bb1a"
       },
       {
-        "path": "apps/web/dist/assets/createWebGPURenderer-ByS0FSJo.js",
+        "path": "apps/web/dist/assets/createWebGPURenderer-CZUltQHV.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 4381,
-        "gzipBytes": 2122,
-        "sha256": "b9c81e04ed1d64b34428a9a14f63e7388f55ff9350dd33794276976a246bbac8"
+        "bytes": 5538,
+        "gzipBytes": 2617,
+        "sha256": "d7bd93aa2b1d91b898e70ab87c2d8fb9c9c00595f71d45ccb03d794b2698741a"
       },
       {
         "path": "apps/web/dist/assets/helvetiker_bold.typeface-DtA4BcQz.json",
@@ -1986,28 +1959,20 @@
         "sha256": "bd68159ee0b8d10fe24b9daa2e32f19686f9d8269a79dc8d44203a66298bfa2f"
       },
       {
-        "path": "apps/web/dist/assets/index-BFhH1uLA.css",
+        "path": "apps/web/dist/assets/index-CUuwBWN_.css",
         "type": "stylesheet",
         "phase": "shared/app-shell",
-        "bytes": 60504,
-        "gzipBytes": 11483,
-        "sha256": "17714021de6a337b1f9fe2458ab260338da05c67e6ef47d32cd96248f9b55746"
+        "bytes": 59516,
+        "gzipBytes": 11348,
+        "sha256": "2d9174f0104a6ddfd5d1735d029d00d25e3003de3eb6f8cfcb1e815e8d4d5fe2"
       },
       {
-        "path": "apps/web/dist/assets/index-DI3Wn3Z8.js",
+        "path": "apps/web/dist/assets/index-q0gaIV03.js",
         "type": "javascript",
         "phase": "shared/app-shell",
         "bytes": 148976,
-        "gzipBytes": 46258,
-        "sha256": "8659b7c6a4a69a17230d2b900acd252e9d680d4834a74cfa6233b0f65a258841"
-      },
-      {
-        "path": "apps/web/dist/assets/manifest-MrVMmJfG.js",
-        "type": "javascript",
-        "phase": "shared/other",
-        "bytes": 1205,
-        "gzipBytes": 629,
-        "sha256": "1969f5e69ae22fc002f31af87e1f5bb1133df77c4f3d0354bce63e792abe1f9a"
+        "gzipBytes": 46256,
+        "sha256": "42a2740e3ed78788aa47121837f24f79c07be79087ae95367802d2a4bb087dc5"
       },
       {
         "path": "apps/web/dist/assets/rapier-vendor-D4dnSEhk.js",
@@ -2026,12 +1991,12 @@
         "sha256": "d46ab70118bfdbb8b139f9d124625c9cf6b7dcc628a6c3cdffff9a876613bf5a"
       },
       {
-        "path": "apps/web/dist/assets/requestSpacePointerLock-DY7YgRgb.js",
+        "path": "apps/web/dist/assets/requestSpacePointerLock-YbXubu0X.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 2836,
-        "gzipBytes": 1106,
-        "sha256": "8727f536f8680546abbca29f2ac6fc1b4d374ebf1dc1ceadde389db2cfbf1371"
+        "bytes": 3006,
+        "gzipBytes": 1141,
+        "sha256": "56836eab6c7757533b954ab2a13c982d0c7353e29fb643cc76b9c4bded21cfc2"
       },
       {
         "path": "apps/web/dist/assets/rolldown-runtime-QTnfLwEv.js",
@@ -2178,12 +2143,12 @@
         "sha256": "1b2fcca9a4773ffccf89d0dd806dc9a5451db6e7fc800c56f5b4823fd75872c0"
       },
       {
-        "path": "apps/web/dist/assets/useTranslation-jKo0wZvE.js",
+        "path": "apps/web/dist/assets/useTranslation-DlJ3ffyh.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 3929,
         "gzipBytes": 1681,
-        "sha256": "25a8d650111e3b2d61b32edc1780565bc8cf07f442ea4f0923f23f3b3b347612"
+        "sha256": "3050fe6524bcaf1e75fea3f1480a3d19ae2d5b59a990fe6cfc3385d8762c9cae"
       },
       {
         "path": "apps/web/dist/assets/vite-preload-helper-CwQZjUKM.js",
@@ -2197,19 +2162,19 @@
         "path": "apps/web/dist/index.html",
         "type": "html",
         "phase": "shared/other",
-        "bytes": 1025,
-        "gzipBytes": 579,
-        "sha256": "9facdcd16cc3ea02ccaef4e6477f5444fd18743ddf15eb151aeaeb0d881862b8"
+        "bytes": 992,
+        "gzipBytes": 571,
+        "sha256": "5a7ceaa2a80e6e7960ceaf64f4614e1a9354cbc2740f697727bfb135d9df81c0"
       }
     ],
     "totals": {
-      "files": 44,
-      "bytes": 4756287,
-      "gzipBytes": 1571438,
+      "files": 41,
+      "bytes": 4768079,
+      "gzipBytes": 1575079,
       "byPhase": {
         "boot/world": {
           "files": 2,
-          "bytes": 164700
+          "bytes": 164664
         },
         "mobile/cold": {
           "files": 2,
@@ -2221,11 +2186,11 @@
         },
         "shared/app-shell": {
           "files": 5,
-          "bytes": 410193
+          "bytes": 409095
         },
         "shared/other": {
-          "files": 34,
-          "bytes": 1869027
+          "files": 31,
+          "bytes": 1881953
         }
       }
     }
