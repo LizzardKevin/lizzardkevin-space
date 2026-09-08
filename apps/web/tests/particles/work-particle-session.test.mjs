@@ -82,7 +82,7 @@ function rendererFixture() {
     sampleProjectedDensity:(a)=>({...a,pointCount:a.rands.length,pointSize:.05}),
   });
   const renderer=new Renderer();
-  const renders=[],gpu={compileAsync:async()=>{},render:(scene)=>renders.push({scene, opacity:renderer.outgoing?.uniforms.layerOpacity.value, intro:renderer.uniforms.introProgress.value}),clearDepth(){},dispose(){}};
+  const renders=[],gpu={compileAsync:async()=>{},render:(scene)=>renders.push({scene, opacity:renderer.outgoing?.uniforms.layerOpacity.value, intro:renderer.uniforms.introProgress.value}),clearDepth(){},dispose(){},setPixelRatio(){},setSize(){}};
   renderer.renderer=gpu;
   const data={pointCount:2,boundsMin:[-1,-1,-1],boundsMax:[1,1,1],positions:new Float32Array(6),normals:new Float32Array(6),rands:new Float32Array(2)};
   renderer.setParticleData(data);
@@ -109,6 +109,19 @@ test("particle layers own their buffer geometry and release outgoing resources a
   assert.ok(renderer.uniforms.introProgress.value > 0);
   const current=renderer.points;let finalDisposed=0;current.geometry.addEventListener("dispose",()=>finalDisposed++);
   renderer.dispose();assert.equal(finalDisposed,1);
+});
+
+test("aspect changes reframe both live and outgoing layers without rebuilding particle membership",async()=>{
+  const {renderer,data}=rendererFixture();renderer.resize(1440,900,1);
+  const wide=renderer.baseDistance,points=renderer.points;
+  renderer.resize(700,900,1);
+  assert.ok(renderer.baseDistance > wide*1.2,'narrow horizontal FOV needs greater view distance');
+  assert.equal(renderer.points,points,'resize must not resample or recreate particles');
+  await renderer.prepareTransition(data);
+  const oldDistance=renderer.outgoing.distance;
+  renderer.resize(1920,1080,1);
+  assert.ok(renderer.outgoing.distance < oldDistance,'outgoing framing follows aspect changes too');
+  renderer.dispose();
 });
 
 test("slow compilation waits on real readiness after the outgoing layer has disappeared", async()=>{

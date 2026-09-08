@@ -41,6 +41,7 @@ export class ParticlePointsRenderer {
   private outgoing: {
     scene: Scene; camera: PerspectiveCamera; points: Sprite;
     material: PointsNodeMaterial; uniforms: ParticleUniforms;
+    radius: number; distance: number;
   } | null = null;
   private preparing = false;
   private transitionSec = 0;
@@ -154,8 +155,7 @@ export class ParticlePointsRenderer {
     const radius = Math.max(Math.hypot(max[0] - cx, max[1] - cy, max[2] - cz), 1e-3);
     const vFov = MathUtils.degToRad(CAMERA_FOV);
     const aspect = this.camera.aspect > 0.2 ? this.camera.aspect : 16 / 9;
-    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
-    const distance = (radius * FRAME_PADDING) / Math.tan(Math.min(vFov, hFov) / 2);
+    const distance = this.distanceForAspect(radius, aspect);
 
     const sampled = sampleProjectedDensity(
       { positions: centeredPositions, normals: data.normals, rands: data.rands },
@@ -244,7 +244,7 @@ export class ParticlePointsRenderer {
     if (this.points && this.material) {
       const scene = new Scene();
       scene.add(this.points);
-      this.outgoing = { scene, camera: this.camera.clone(), points: this.points, material: this.material, uniforms: this.uniforms };
+      this.outgoing = { scene, camera: this.camera.clone(), points: this.points, material: this.material, uniforms: this.uniforms, radius: this.baseRadius, distance: this.baseDistance };
       this.points = null; this.material = null;
       this.uniforms = createParticleUniforms();
     }
@@ -281,6 +281,15 @@ export class ParticlePointsRenderer {
       this.outgoing = null;
     }
     this.settled.splice(0).forEach(resolve => resolve());
+  }
+
+  private distanceForAspect(radius: number, aspect: number): number {
+    const vertical = MathUtils.degToRad(CAMERA_FOV);
+    const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * Math.max(aspect, .2));
+    // In portrait windows the intentional title offset also consumes horizontal
+    // space. Include it in the fit while preserving the approved desktop frame.
+    const padding = FRAME_PADDING + (aspect < 1 ? Math.abs(this._viewOffsetFactor) : 0);
+    return radius * padding / Math.tan(Math.min(vertical, horizontal) / 2);
   }
 
   /** 解构 morph 进度 0..1(clamp;只写 uniform,0=模型形态,1=ambient 散布)。 */
@@ -448,10 +457,30 @@ export class ParticlePointsRenderer {
     this.renderer.setPixelRatio(Math.min(dpr || 1, maxDpr));
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
+    if (this.baseDistance > 0) {
+      this.baseDistance = this.distanceForAspect(this.baseRadius, w / h);
+      this.updateCameraPose();
+      this.camera.near = Math.max(this.baseDistance / 100, .05);
+      this.camera.far = this.baseDistance * 10;
+      this.uniforms.depthFadeNear.value = Math.max(this.baseDistance - this.baseRadius, .01);
+      this.uniforms.depthFadeFar.value = this.baseDistance + this.baseRadius;
+    }
     this.camera.updateProjectionMatrix();
     if (this.outgoing) {
-      this.outgoing.camera.aspect = w / h;
-      this.outgoing.camera.updateProjectionMatrix();
+      const old = this.outgoing;
+      const distance = this.distanceForAspect(old.radius, w / h);
+      const offset = this._viewOffsetFactor * old.radius;
+      // Scale about the old look-at target without changing its particle buffers.
+      old.camera.position.x += offset;
+      old.camera.position.multiplyScalar(distance / old.distance);
+      old.camera.position.x -= offset;
+      old.distance = distance;
+      old.camera.aspect = w / h;
+      old.camera.near = Math.max(distance / 100, .05);
+      old.camera.far = distance * 10;
+      old.uniforms.depthFadeNear.value = Math.max(distance - old.radius, .01);
+      old.uniforms.depthFadeFar.value = distance + old.radius;
+      old.camera.updateProjectionMatrix();
     }
   }
 
