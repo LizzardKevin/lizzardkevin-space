@@ -24,7 +24,6 @@ const POINTER_DOT_FIELD_RADIUS_PX = 300;
 const POINTER_DOT_MAX_PULL_PX = 30;
 const POINTER_DOT_MAX_RADIUS_PX = 3;
 const FIELD_DOT_BASE_RADIUS_PX = 0.58;
-const POINTER_CORE_RADIUS_PX = 4.5;
 const STREAM_VIEWPORT_PADDING_PX = 64;
 const MAX_FRAGMENT_COUNT = 120;
 
@@ -74,6 +73,7 @@ function resolveLanguage(language: string | undefined) {
 
 function createBarrageRuntime(
   canvas: HTMLCanvasElement,
+  pointerElement: HTMLDivElement,
   entries: readonly StartLobbyExhibitTextEntry[],
   reducedMotionQuery: MediaQueryList,
 ): BarrageRuntime | null {
@@ -368,16 +368,8 @@ function createBarrageRuntime(
   }
 
   function drawPointerCore() {
-    if (!pointer.active) return;
-    context.strokeStyle = "rgba(24, 43, 45, 0.5)";
-    context.lineWidth = 1;
-    context.beginPath();
-    context.arc(pointer.x, pointer.y, 11, 0, Math.PI * 2);
-    context.stroke();
-    context.fillStyle = "rgba(7, 13, 14, 0.9)";
-    context.beginPath();
-    context.arc(pointer.x, pointer.y, POINTER_CORE_RADIUS_PX, 0, Math.PI * 2);
-    context.fill();
+    pointerElement.style.visibility = pointer.active ? "visible" : "hidden";
+    pointerElement.style.transform = `translate(${pointer.x}px, ${pointer.y}px)`;
   }
 
   function draw(nowMs: number, deltaSeconds: number) {
@@ -452,19 +444,22 @@ function createBarrageRuntime(
 
   return {
     setPointer(clientX, clientY) {
-      if (destroyed || reducedMotionQuery.matches) return;
+      if (destroyed) return;
       const bounds = canvas.getBoundingClientRect();
       pointer.x = clientX - bounds.left;
       pointer.y = clientY - bounds.top;
       pointer.active =
         pointer.x >= 0 && pointer.x <= bounds.width && pointer.y >= 0 && pointer.y <= bounds.height;
+      drawPointerCore();
     },
     resetPointer() {
       pointer.active = false;
+      drawPointerCore();
     },
     destroy() {
       if (destroyed) return;
       destroyed = true;
+      pointerElement.style.visibility = "hidden";
       stopFrame();
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", syncMotion);
@@ -480,6 +475,7 @@ function createBarrageRuntime(
 export const StartLobbyBarrage = forwardRef<StartLobbyBarrageHandle, StartLobbyBarrageProps>(
   function StartLobbyBarrage(_props: StartLobbyBarrageProps, forwardedRef) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const pointerRef = useRef<HTMLDivElement>(null);
     const runtimeRef = useRef<BarrageRuntime | null>(null);
     const { i18n } = useTranslation();
     const language = resolveLanguage(i18n.resolvedLanguage ?? i18n.language);
@@ -499,10 +495,11 @@ export const StartLobbyBarrage = forwardRef<StartLobbyBarrageHandle, StartLobbyB
 
     useEffect(() => {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      const pointerElement = pointerRef.current;
+      if (!canvas || !pointerElement) return;
       const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       const languageEntries = generatedStartLobbyExhibitText[language] as readonly StartLobbyExhibitTextEntry[];
-      const runtime = createBarrageRuntime(canvas, languageEntries, reducedMotionQuery);
+      const runtime = createBarrageRuntime(canvas, pointerElement, languageEntries, reducedMotionQuery);
       runtimeRef.current = runtime;
       return () => {
         if (runtimeRef.current === runtime) runtimeRef.current = null;
@@ -511,12 +508,15 @@ export const StartLobbyBarrage = forwardRef<StartLobbyBarrageHandle, StartLobbyB
     }, [language]);
 
     return (
-      <canvas
-        ref={canvasRef}
-        className="start-lobby__barrage"
-        aria-hidden="true"
-        data-stream-count={generatedStartLobbyExhibitText[language].length > 0 ? START_LOBBY_STREAM_COUNT : 0}
-      />
+      <>
+        <canvas
+          ref={canvasRef}
+          className="start-lobby__barrage"
+          aria-hidden="true"
+          data-stream-count={generatedStartLobbyExhibitText[language].length > 0 ? START_LOBBY_STREAM_COUNT : 0}
+        />
+        <div ref={pointerRef} className="start-lobby__pointer" aria-hidden="true" />
+      </>
     );
   },
 );
