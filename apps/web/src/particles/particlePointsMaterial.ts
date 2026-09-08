@@ -49,8 +49,7 @@ export function createParticleUniforms() {
     /** 光标附近的额外粒径放大系数:1 + cursorSizeGain × falloff,0.15 即最多放大到 1.15×。 */
     cursorSizeGain: uniform(0.15),
     /**
-     * 点粒径(世界单位直径)。渲染闭环按"平均粒子间距 × 0.5"自动写入
-     * (Tree Habitat ≈0.05,即标定值);小模型自动收小,不再按固定世界单位放大。
+     * 点粒径(世界单位直径)。按统一参考视口的投影粒径写入,随模型视距缩放。
      */
     pointSizeBase: uniform(0.05),
     /** 粒径补偿系数(默认 1);DPR 本身由材质内建 screenDPR 处理,不要在此重复计入。 */
@@ -98,7 +97,7 @@ export function createParticleUniforms() {
     /** 入场生成色(页面提示黄 #e8d44d):单点生成瞬间着色,随后混回灰阶白。 */
     introColor: uniform(new Color(0xe8d44d)),
     /**
-     * 入场高度归一化区间(局部 y,含地面下限到模型顶):intro reveal 的
+     * 入场高度归一化区间(局部 y,模型最低点到模型顶):intro reveal 的
      * "从下往上"轴按 (y − introYMin) / (introYMax − introYMin) 归一化。
      * 由渲染闭环 setParticleData 写入,此处只是占位初值(退化为全 0..1 区间)。
      */
@@ -116,7 +115,7 @@ export type ParticleAttributeArrays = {
   normals: Float32Array;
   /** 每点 0..1,N。 */
   rands: Float32Array;
-  /** 每点亮度衰减 0..1(模型点为 1,地面点为径向衰减),N。 */
+  /** 每点亮度衰减 0..1(模型点为 1),N。 */
   fades: Float32Array;
   /** 每点解构(ambient)目标位置 xyz 交错,3N;morphProgress=1 时的落点。 */
   alts: Float32Array;

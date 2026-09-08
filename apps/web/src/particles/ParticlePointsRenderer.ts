@@ -1,18 +1,20 @@
 import { MathUtils, PerspectiveCamera, Scene, Spherical } from "three";
 import { Sprite, WebGPURenderer } from "three/webgpu";
 import { createWebGPURenderer } from "../rendering/createWebGPURenderer.ts";
-import type { RendererResolution } from "../rendering/rendererProfile.ts";
+import type { RendererProfileId, RendererResolution } from "../rendering/rendererProfile.ts";
 import type { ParticleCacheData } from "./particleCacheLoader.ts";
 import {
   createParticlePointsMaterial,
   createParticleUniforms,
   type ParticleUniforms,
 } from "./particlePointsMaterial.ts";
-import { createGroundPointField, GROUND_DEFAULTS, groundRadiusForViewDistance, mulberry32 } from "./groundPointField.ts";
+import { mulberry32 } from "./seededRandom.ts";
 import { createAmbientPointField, AMBIENT_DEFAULTS } from "./ambientPointField.ts";
-import { mergeModelAndGround } from "./mergeParticleArrays.ts";
+import { buildModelParticleArrays } from "./mergeParticleArrays.ts";
+import { sampleProjectedDensity } from "./projectedParticleDensity.ts";
 import { INTRO_DURATION_SEC } from "./introReveal.ts";
 import type { PointsNodeMaterial } from "three/webgpu";
+import { particleDeadline } from "./particleDeadline.ts";
 
 const CAMERA_FOV = 45;
 const FRAME_PADDING = 1.15;
@@ -42,11 +44,13 @@ export class ParticlePointsRenderer {
   } | null = null;
   private preparing = false;
   private transitionSec = 0;
+  reducedMotion = false;
   private settled: Array<() => void> = [];
 
   private renderer: WebGPURenderer | null = null;
   private resolution: RendererResolution | null = null;
   private disposed = false;
+  get unavailable(): boolean { return this.disposed; }
   private readonly scene = new Scene();
   private readonly camera = new PerspectiveCamera(CAMERA_FOV, 1, 0.1, 1000);
   private points: Sprite | null = null;
@@ -73,8 +77,6 @@ export class ParticlePointsRenderer {
   /** 视差角上限(rad):方位默认 30°,俯仰 15°。 */
   parallaxMaxAzimuth = MathUtils.degToRad(30);
   parallaxMaxElevation = MathUtils.degToRad(15);
-  /** 程序化粒子地面开关(默认开)。 */
-  groundEnabled = true;
   /**
    * 视觉中心水平偏移(占包围球半径的比例):>0 时点云在画面中向右移,
    * 给左侧标题栏让位(WorkDetail 用);默认 0 = 居中(标定页)。
@@ -94,11 +96,13 @@ export class ParticlePointsRenderer {
   async init(
     canvas: HTMLCanvasElement,
     onResolved?: (resolution: RendererResolution) => void,
+    requestedProfile?: RendererProfileId,
   ): Promise<RendererResolution> {
     if (this.disposed) throw new Error("Particle renderer initialization cancelled after dispose");
     let resolved: RendererResolution | null = null;
     const candidateRenderer = await createWebGPURenderer({
       canvas,
+      requestedProfile,
       alpha: true,
       onResolved: (resolution) => {
         resolved = resolution;
@@ -145,7 +149,7 @@ export class ParticlePointsRenderer {
       centeredPositions[i + 2] = data.positions[i + 2] - cz;
     }
 
-    // 包围球取景(computeStageFrame 思路)先算:地面半径随视距归一化依赖它。
+    // 包围球取景,不改变源模型的几何与构图。
     // 半径 → 视距,看向原点。
     const radius = Math.max(Math.hypot(max[0] - cx, max[1] - cy, max[2] - cz), 1e-3);
     const vFov = MathUtils.degToRad(CAMERA_FOV);
@@ -153,21 +157,16 @@ export class ParticlePointsRenderer {
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
     const distance = (radius * FRAME_PADDING) / Math.tan(Math.min(vFov, hFov) / 2);
 
-    // 粒子地面:贴在模型最低点(局部坐标),与模型点合并进同一批 instanced buffer,
-    // 仍是一次 draw call;地面点共享全部 shader 微动与光标效果,额外带径向渐暗。
-    // 半径随取景视距归一化(groundRadiusForViewDistance):小模型不再被 60 单位大盘
-    // 稀释到近乎不可见,三件作品的屏幕空间地面密度一致(见 groundPointField 模块注释)。
-    const groundY = min[1] - cy - 0.01;
-    const ground = this.groundEnabled
-      ? createGroundPointField(groundY, GROUND_DEFAULTS.pointCount, groundRadiusForViewDistance(distance))
-      : null;
-    const modelCount = data.pointCount;
+    const sampled = sampleProjectedDensity(
+      { positions: centeredPositions, normals: data.normals, rands: data.rands },
+      (radius * FRAME_PADDING) / Math.tan(vFov / 2),
+    );
+    const modelCount = sampled.pointCount;
     // 模型点的解构目标 = ambient 大范围散布(确定性,与数据一同只生成一次)。
     const ambient = createAmbientPointField(modelCount);
-    const merged = mergeModelAndGround(
-      { positions: centeredPositions, normals: data.normals, rands: data.rands },
+    const merged = buildModelParticleArrays(
+      sampled,
       modelCount,
-      ground,
       ambient,
     );
     const totalCount = merged.totalCount;
@@ -202,21 +201,19 @@ export class ParticlePointsRenderer {
     this.uniforms.depthFadeNear.value = Math.max(distance - radius, 0.01);
     this.uniforms.depthFadeFar.value = distance + radius;
 
-    // 入场高度归一化区间(局部 y):含地面下限(无地面时退化为模型最低点)到模型顶,
+    // 入场高度归一化区间(局部 y):模型最低点到模型顶,
     // intro reveal 的"从下往上"波浪按它归一化;区间过窄时撑开防除零。
-    const introYMin = ground ? groundY : min[1] - cy;
+    const introYMin = min[1] - cy;
     this.uniforms.introYMin.value = introYMin;
     this.uniforms.introYMax.value = Math.max(max[1] - cy, introYMin + 1e-3);
 
     // 光标随机偏移上限:平均相邻粒子间距 ∛(体积/N) 去零头(截断到一位有效数)的 2 倍。
     const volume = Math.max((max[0] - min[0]) * (max[1] - min[1]) * (max[2] - min[2]), 1e-6);
-    const spacing = Math.cbrt(volume / data.pointCount);
+    const spacing = Math.cbrt(volume / Math.max(modelCount, 1));
     const order = 10 ** Math.floor(Math.log10(spacing));
     this.uniforms.cursorJitterAmp.value = 2 * ((Math.floor((spacing / order) * 10) / 10) * order);
 
-    // 粒径按模型自适应:平均粒子间距 × 0.5(Tree Habitat ≈0.05,即标定值;
-    // 小模型不再按固定世界单位被放大成一片糊)。
-    this.uniforms.pointSizeBase.value = spacing * 0.5;
+    this.uniforms.pointSizeBase.value = sampled.pointSize;
 
     // 新数据落地 = 组装态,重置解构进度(setFallbackField 之后再次拿到真实缓存的场景)。
     this.uniforms.morphProgress.value = 0;
@@ -227,10 +224,23 @@ export class ParticlePointsRenderer {
     return new Promise(resolve => this.settled.push(resolve));
   }
 
+  /** Read-only diagnostics used by the development host's opt-in frame trace. */
+  getTransitionState() {
+    return {
+      outgoingOpacity: this.outgoing?.uniforms.layerOpacity.value ?? 0,
+      incomingProgress: !this.outgoing && !this.preparing ? this.uniforms.introProgress.value : 0,
+      preparing: this.preparing,
+      points: this.points?.count ?? 0,
+      backend: this.resolution?.backend,
+    };
+  }
+
   /** Keep rendering the old layer while the new material compiles on either backend. */
   async prepareTransition(data: ParticleCacheData): Promise<void> {
     if (this.disposed) return;
     this.preparing = true;
+    this.introElapsedSec = -1;
+    this.transitionSec = 0;
     if (this.points && this.material) {
       const scene = new Scene();
       scene.add(this.points);
@@ -240,7 +250,13 @@ export class ParticlePointsRenderer {
     }
     this.setParticleData(data);
     this.uniforms.introProgress.value = 0;
-    await this.renderer?.compileAsync(this.scene, this.camera);
+    try {
+      await particleDeadline(this.renderer?.compileAsync(this.scene, this.camera) ?? Promise.resolve());
+    } catch (error) {
+      // Retire this session before a late compiler can touch a subsequent layer.
+      this.dispose();
+      throw error;
+    }
   }
 
   cancelPreparedTransition(): void {
@@ -251,17 +267,10 @@ export class ParticlePointsRenderer {
     }
     this.material?.dispose();
     this.points = null; this.material = null;
-    if (this.outgoing) {
-      const old = this.outgoing;
-      this.scene.add(old.points);
-      this.points = old.points; this.material = old.material; this.uniforms = old.uniforms;
-      this.camera.copy(old.camera);
-      // Do not recompute the restored camera using the rejected model's framing.
-      this.baseDistance = 0;
-      this.outgoing = null;
-    }
+    // An exit is irreversible: cancelled/failed incoming work must never flash
+    // the old model back to full opacity. Its existing fade may finish normally.
     this.preparing = false;
-    this.settled.splice(0).forEach(resolve => resolve());
+    if (!this.outgoing) this.settled.splice(0).forEach(resolve => resolve());
   }
 
   private releaseOutgoing(): void {
@@ -285,9 +294,9 @@ export class ParticlePointsRenderer {
   }
 
   /**
-   * 无粒子缓存时的静态降级:纯 ambient 散布 + 程序化地面。
+   * 无粒子缓存时的静态降级:纯 ambient 散布。
    * 构造 positions=ambient 的伪数据走正常 setParticleData 路径
-   * (alts 由 setParticleData 用同一种子再生成,与 positions 逐字节一致),
+   * 经过统一采样后生成确定性 ambient 目标,
    * 然后直接把 morphProgress 置 1,呈现解构完成态。
    */
   setFallbackField(pointCount: number = FALLBACK_POINT_COUNT): void {
@@ -362,18 +371,13 @@ export class ParticlePointsRenderer {
     if (this.outgoing) {
       const old = this.outgoing;
       old.uniforms.time.value = this.elapsedSec;
-      if (!this.preparing) this.transitionSec += dt;
-      // The old field stays legible until the new intro has begun, then dissolves.
-      const t = MathUtils.clamp((this.transitionSec - .2) / 1.4, 0, 1);
+      this.transitionSec += dt;
+      const t = this.reducedMotion ? 1 : MathUtils.clamp(this.transitionSec / .8, 0, 1);
       old.uniforms.layerOpacity.value = 1 - t * t * (3 - 2 * t);
       renderer.autoClear = true;
       renderer.render(old.scene, old.camera);
-      if (!this.preparing) {
-        renderer.autoClear = false;
-        renderer.clearDepth();
-        renderer.render(this.scene, this.camera);
-        renderer.autoClear = true;
-      }
+      // This is the only draw for this frame, including the zero-opacity final
+      // frame. The incoming layer cannot render until this layer is released.
       if (t === 1) this.releaseOutgoing();
     } else if (!this.preparing) {
       renderer.render(this.scene, this.camera);
@@ -398,6 +402,7 @@ export class ParticlePointsRenderer {
    * 播完自动停止写入;重复调用即重播。宿主在 setParticleData 成功后调用。
    */
   startIntro(durationSec: number = INTRO_DURATION_SEC): void {
+    if (this.outgoing || this.disposed) return;
     this.preparing = false;
     this.transitionSec = 0;
     this.introDurationSec = Math.max(durationSec, 0.01);

@@ -4,6 +4,7 @@ import { ParticlePointsRenderer } from "../../particles/ParticlePointsRenderer.t
 import { ScrollTrigger } from "../../scroll/scrollGsap";
 import { prefersReducedMotion } from "../../scroll/useLenisScroll";
 import { WorkParticleSession } from "./WorkParticleSession";
+import { particleDeadline } from "../../particles/particleDeadline";
 
 /** A persistent canvas/renderer. Only the latest generation may commit a compiled layer. */
 export function WorkParticleHost({ exhibitId, onReady, onError }: {
@@ -27,8 +28,10 @@ export function WorkParticleHost({ exhibitId, onReady, onError }: {
     host.appendChild(canvas);
     const renderer = new ParticlePointsRenderer();
     renderer.viewOffsetFactor = .33;
+    renderer.reducedMotion = prefersReducedMotion();
     let disposed = false, running = false, hasFrame = false;
     let raf = 0, lastAt = 0;
+    const trace = import.meta.env.DEV && new URLSearchParams(location.search).get("wpTrace") === "1";
     const perf = import.meta.env.DEV && new URLSearchParams(location.search).get("wpPerf") === "1";
     let perfFrames = 0, perfMs = 0;
     let morphTrigger: ScrollTrigger | null = null;
@@ -42,6 +45,7 @@ export function WorkParticleHost({ exhibitId, onReady, onError }: {
         }
       }
       renderer.update(lastAt ? Math.min((now - lastAt) / 1000, .05) : 0);
+      if (trace) canvas.dataset.workParticleFrame = JSON.stringify({ at: now, ...renderer.getTransitionState() });
       lastAt = now;
       raf = requestAnimationFrame(frame);
     };
@@ -70,9 +74,10 @@ export function WorkParticleHost({ exhibitId, onReady, onError }: {
         });
       }
     };
-    const initialized = renderer.init(canvas).then(() => { if (!disposed) resize(); });
+    const forcedProfile = import.meta.env.DEV && new URLSearchParams(location.search).get("wpBackend") === "webgl2" ? "simplified" : undefined;
+    const initialized = particleDeadline(renderer.init(canvas, undefined, forcedProfile).then(() => { if (!disposed) resize(); }));
     const session = new WorkParticleSession(
-      renderer, id => loadParticleCache(particleCacheUrlFor(id)), initialized,
+      renderer, (id, signal) => loadParticleCache(particleCacheUrlFor(id), signal), initialized,
       (id, state, message) => {
         if (disposed || callbacks.current.exhibitId !== id) return;
         canvas.dataset.workParticleState = state;
@@ -101,6 +106,7 @@ export function WorkParticleHost({ exhibitId, onReady, onError }: {
           resume();
           callbacks.current.onReady?.();
         } else if (state === "failed") {
+          if (renderer.unavailable) hasFrame = false;
           if (!hasFrame) teardown();
           callbacks.current.onError?.(message ?? "Particle field unavailable");
         }

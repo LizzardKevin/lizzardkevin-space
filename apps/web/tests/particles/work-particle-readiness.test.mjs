@@ -29,7 +29,7 @@ function mount() {
     });
   };
   const renderHost = vm.runInNewContext(`${javascript}; WorkParticleHost;`, {
-    React, Error, WorkParticleSession, prefersReducedMotion:()=>false,
+    React, Error, WorkParticleSession, prefersReducedMotion:()=>false, particleDeadline:work=>work,
     useRef: initial => { const slot=refCursor++; return refs[slot] ??= {current:initial}; },
     useState: initial => [initial, () => {}],
     useEffect:effect, useLayoutEffect:effect,

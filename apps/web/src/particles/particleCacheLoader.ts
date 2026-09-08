@@ -41,10 +41,18 @@ export type ParticleCacheData = Readonly<{
   rands: Float32Array;
 }>;
 
-export async function loadParticleCache(url: string): Promise<ParticleCacheData> {
+// Only completed caches are shared. An aborted request cannot poison a retry.
+const completedCaches = new Map<string, ParticleCacheData>();
+
+export async function loadParticleCache(url: string, signal?: AbortSignal): Promise<ParticleCacheData> {
+  signal?.throwIfAborted();
+  const cached = completedCaches.get(url);
+  if (cached) return cached;
+  const timeout = AbortSignal.timeout(15_000);
+  const requestSignal = signal ? AbortSignal.any([signal, timeout]) : timeout;
   let response: Response;
   try {
-    response = await fetch(url);
+    response = await fetch(url, { signal: requestSignal });
   } catch (error) {
     throw new Error(`Particle cache request failed: ${url}`, { cause: error });
   }
@@ -96,5 +104,9 @@ export async function loadParticleCache(url: string): Promise<ParticleCacheData>
     rands[i] = interleaved[src + 6];
   }
 
-  return { pointCount, boundsMin, boundsMax, positions, normals, rands };
+  requestSignal.throwIfAborted();
+  const data = { pointCount, boundsMin, boundsMax, positions, normals, rands };
+  completedCaches.set(url, data);
+  if (completedCaches.size > 3) completedCaches.delete(completedCaches.keys().next().value!);
+  return data;
 }
