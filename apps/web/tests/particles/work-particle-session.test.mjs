@@ -76,9 +76,11 @@ function rendererFixture() {
   const Renderer=vm.runInNewContext(`${js}; ParticlePointsRenderer;`,{
     ...THREE, CAMERA_FOV:45,BASE_ELEVATION:0,FRAME_PADDING:1.15,CURSOR_LERP_PER_SEC:8,PARALLAX_LERP_PER_SEC:3,PARALLAX_SETTLE_EPSILON:1e-6,INTRO_DURATION_SEC:1,
     particleDeadline:work=>work,
-    createParticleUniforms:()=>new Proxy({cursorNdc:{value:new THREE.Vector2(10,10)}},{get:(o,k)=>o[k]??=( {value:1} )}),
+    createParticleUniforms:()=>new Proxy({cursorNdc:{value:new THREE.Vector2(10,10)},groundShift:{value:new THREE.Vector3()},groundScatterShift:{value:new THREE.Vector3()}},{get:(o,k)=>o[k]??=( {value:1} )}),
     createAmbientPointField:()=>({}),createParticlePointsMaterial:()=>new THREE.SpriteMaterial(),
     buildModelParticleArrays:(a,n)=>({...a,totalCount:n}),
+    createGroundPointField:()=>({}),
+    groundFrameTransform:()=>({scale:1,shift:[0,0,0],scatterScale:1,scatterShift:[0,0,0]}),
     sampleProjectedDensity:(a)=>({...a,pointCount:a.rands.length,pointSize:.05}),
   });
   const renderer=new Renderer();

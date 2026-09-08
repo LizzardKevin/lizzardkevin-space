@@ -15,6 +15,7 @@ import { sampleProjectedDensity } from "./projectedParticleDensity.ts";
 import { INTRO_DURATION_SEC } from "./introReveal.ts";
 import type { PointsNodeMaterial } from "three/webgpu";
 import { particleDeadline } from "./particleDeadline.ts";
+import { createGroundPointField, groundFrameTransform } from "./groundPointField.ts";
 
 const CAMERA_FOV = 45;
 const FRAME_PADDING = 1.15;
@@ -42,6 +43,7 @@ export class ParticlePointsRenderer {
     scene: Scene; camera: PerspectiveCamera; points: Sprite;
     material: PointsNodeMaterial; uniforms: ParticleUniforms;
     radius: number; distance: number;
+    groundY: number; groundReferenceDistance: number;
   } | null = null;
   private preparing = false;
   private transitionSec = 0;
@@ -68,6 +70,8 @@ export class ParticlePointsRenderer {
   private parallaxElevation = BASE_ELEVATION;
   private baseDistance = 0;
   private baseRadius = 1;
+  private groundY = 0;
+  private groundReferenceDistance = 1;
   private _viewOffsetFactor = 0;
   /**
    * 相机位姿脏标记:取景参数(目前 viewOffsetFactor)在取景后被改写时置位,
@@ -164,10 +168,15 @@ export class ParticlePointsRenderer {
     const modelCount = sampled.pointCount;
     // 模型点的解构目标 = ambient 大范围散布(确定性,与数据一同只生成一次)。
     const ambient = createAmbientPointField(modelCount);
+    this.groundY = min[1] - cy - radius * .002;
+    this.groundReferenceDistance = distance;
+    this.reframeGround(this.uniforms, this.groundY, distance, distance, this._viewOffsetFactor * radius);
+    const ground = createGroundPointField(this.groundY, distance, this._viewOffsetFactor * radius);
     const merged = buildModelParticleArrays(
       sampled,
       modelCount,
       ambient,
+      ground,
     );
     const totalCount = merged.totalCount;
 
@@ -177,6 +186,7 @@ export class ParticlePointsRenderer {
       rands: merged.rands,
       fades: merged.fades,
       alts: merged.alts,
+      groundWeights: merged.groundWeights,
     });
     const points = new Sprite(material);
     // Three associates node attribute buffer cleanup with geometry disposal.
@@ -231,6 +241,7 @@ export class ParticlePointsRenderer {
       incomingProgress: !this.outgoing && !this.preparing ? this.uniforms.introProgress.value : 0,
       preparing: this.preparing,
       points: this.points?.count ?? 0,
+      morphProgress: this.uniforms.morphProgress.value,
       backend: this.resolution?.backend,
     };
   }
@@ -244,7 +255,7 @@ export class ParticlePointsRenderer {
     if (this.points && this.material) {
       const scene = new Scene();
       scene.add(this.points);
-      this.outgoing = { scene, camera: this.camera.clone(), points: this.points, material: this.material, uniforms: this.uniforms, radius: this.baseRadius, distance: this.baseDistance };
+      this.outgoing = { scene, camera: this.camera.clone(), points: this.points, material: this.material, uniforms: this.uniforms, radius: this.baseRadius, distance: this.baseDistance, groundY: this.groundY, groundReferenceDistance: this.groundReferenceDistance };
       this.points = null; this.material = null;
       this.uniforms = createParticleUniforms();
     }
@@ -290,6 +301,14 @@ export class ParticlePointsRenderer {
     // space. Include it in the fit while preserving the approved desktop frame.
     const padding = FRAME_PADDING + (aspect < 1 ? Math.abs(this._viewOffsetFactor) : 0);
     return radius * padding / Math.tan(Math.min(vertical, horizontal) / 2);
+  }
+
+  private reframeGround(uniforms: ParticleUniforms, y: number, from: number, to: number, offset: number): void {
+    const frame = groundFrameTransform(y, from, to, offset);
+    uniforms.groundScale.value = frame.scale;
+    uniforms.groundShift.value.set(...frame.shift);
+    uniforms.groundScatterScale.value = frame.scatterScale;
+    uniforms.groundScatterShift.value.set(...frame.scatterShift);
   }
 
   /** 解构 morph 进度 0..1(clamp;只写 uniform,0=模型形态,1=ambient 散布)。 */
@@ -459,6 +478,7 @@ export class ParticlePointsRenderer {
     this.camera.aspect = w / h;
     if (this.baseDistance > 0) {
       this.baseDistance = this.distanceForAspect(this.baseRadius, w / h);
+      this.reframeGround(this.uniforms, this.groundY, this.groundReferenceDistance, this.baseDistance, this._viewOffsetFactor * this.baseRadius);
       this.updateCameraPose();
       this.camera.near = Math.max(this.baseDistance / 100, .05);
       this.camera.far = this.baseDistance * 10;
@@ -470,6 +490,7 @@ export class ParticlePointsRenderer {
       const old = this.outgoing;
       const distance = this.distanceForAspect(old.radius, w / h);
       const offset = this._viewOffsetFactor * old.radius;
+      this.reframeGround(old.uniforms, old.groundY, old.groundReferenceDistance, distance, offset);
       // Scale about the old look-at target without changing its particle buffers.
       old.camera.position.x += offset;
       old.camera.position.multiplyScalar(distance / old.distance);
