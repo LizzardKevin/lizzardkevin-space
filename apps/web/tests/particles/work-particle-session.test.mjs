@@ -80,6 +80,7 @@ function rendererFixture() {
     createAmbientPointField:()=>({}),createParticlePointsMaterial:()=>new THREE.SpriteMaterial(),
     buildModelParticleArrays:(a,n)=>({...a,totalCount:n}),
     createGroundPointField:()=>({}),
+    modelProjectionBounds:()=>({}), GROUND_STYLE:{farClipFactor:160},
     groundFrameTransform:()=>({scale:1,shift:[0,0,0],scatterScale:1,scatterShift:[0,0,0]}),
     sampleProjectedDensity:(a)=>({...a,pointCount:a.rands.length,pointSize:.05}),
   });

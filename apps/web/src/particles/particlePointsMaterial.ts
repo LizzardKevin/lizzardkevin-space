@@ -210,12 +210,12 @@ export function createParticlePointsMaterial(
         .mul(float(0.35).add(lambert.mul(0.65)))
         .mul(depthFade)
         .add(twinkle)
-        .add(waveGlow)
-        .add(cursorBoost),
-      float(GROUND_STYLE.brightness).add(twinkle.mul(.25)).add(cursorBoost.mul(.2)),
+        .add(waveGlow),
+      float(GROUND_STYLE.brightness).add(twinkle.mul(.25)),
       groundWeight,
     )
       .mul(instanceFade)
+      .add(cursorBoost)
       // 解构到 ambient 时整体压暗(ambientDim),避免稀疏环境点场亮过模型本体。
       .mul(mix(float(1.0), uniforms.ambientDim, uniforms.morphProgress)),
     0.0,
@@ -232,8 +232,10 @@ export function createParticlePointsMaterial(
   const jitterFlutter = float(0.75).add(
     sin(uniforms.time.mul(2.1).add(instanceRand.mul(TWO_PI))).mul(0.25),
   );
+  const modelViewDistance = uniforms.depthFadeNear.add(uniforms.depthFadeFar).mul(.5);
+  const cursorJitter = uniforms.cursorJitterAmp.mul(mix(float(1), viewDepth.div(modelViewDistance), groundWeight));
   const jittered = displaced.add(
-    jitterDir.mul(mix(uniforms.cursorJitterAmp, viewDepth.mul(.002), groundWeight).mul(cursorFalloff).mul(jitterFlutter)),
+    jitterDir.mul(cursorJitter.mul(cursorFalloff).mul(jitterFlutter)),
   );
 
   // 解构 morph:morphProgress 0→1 时从模型位置滑向 ambient 目标。

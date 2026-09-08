@@ -15,7 +15,7 @@ import { sampleProjectedDensity } from "./projectedParticleDensity.ts";
 import { INTRO_DURATION_SEC } from "./introReveal.ts";
 import type { PointsNodeMaterial } from "three/webgpu";
 import { particleDeadline } from "./particleDeadline.ts";
-import { createGroundPointField, groundFrameTransform } from "./groundPointField.ts";
+import { createGroundPointField, groundFrameTransform, modelProjectionBounds, GROUND_STYLE } from "./groundPointField.ts";
 
 const CAMERA_FOV = 45;
 const FRAME_PADDING = 1.15;
@@ -36,6 +36,7 @@ const FALLBACK_RAND_SEED = 0x5eed03;
  * 每帧只写 uniform `.value`;缓冲初始化后永不再写。
  */
 export class ParticlePointsRenderer {
+  private static densityCache = new WeakMap<ParticleCacheData, ReturnType<typeof sampleProjectedDensity>>();
   /** 标定参数集中在这里;外部只改 `.value`。 */
   uniforms: ParticleUniforms = createParticleUniforms();
 
@@ -161,17 +162,21 @@ export class ParticlePointsRenderer {
     const aspect = this.camera.aspect > 0.2 ? this.camera.aspect : 16 / 9;
     const distance = this.distanceForAspect(radius, aspect);
 
-    const sampled = sampleProjectedDensity(
+    const sampled = ParticlePointsRenderer.densityCache.get(data) ?? sampleProjectedDensity(
       { positions: centeredPositions, normals: data.normals, rands: data.rands },
       (radius * FRAME_PADDING) / Math.tan(vFov / 2),
     );
+    ParticlePointsRenderer.densityCache.set(data, sampled);
     const modelCount = sampled.pointCount;
     // 模型点的解构目标 = ambient 大范围散布(确定性,与数据一同只生成一次)。
     const ambient = createAmbientPointField(modelCount);
     this.groundY = min[1] - cy - radius * .002;
     this.groundReferenceDistance = distance;
     this.reframeGround(this.uniforms, this.groundY, distance, distance, this._viewOffsetFactor * radius);
-    const ground = createGroundPointField(this.groundY, distance, this._viewOffsetFactor * radius);
+    const ground = createGroundPointField(this.groundY, distance, this._viewOffsetFactor * radius, {
+      bounds: modelProjectionBounds(sampled.positions, distance, this._viewOffsetFactor * radius),
+      modelDensity: sampled.projectedDensity,
+    });
     const merged = buildModelParticleArrays(
       sampled,
       modelCount,
@@ -204,7 +209,7 @@ export class ParticlePointsRenderer {
     this.baseRadius = radius;
     this.updateCameraPose();
     this.camera.near = Math.max(distance / 100, 0.05);
-    this.camera.far = distance * 10;
+    this.camera.far = distance * GROUND_STYLE.farClipFactor;
     this.camera.updateProjectionMatrix();
 
     // 深度明暗区间:模型近端面 ≈ 视距 - 半径,远端面 ≈ 视距 + 半径。
@@ -481,7 +486,7 @@ export class ParticlePointsRenderer {
       this.reframeGround(this.uniforms, this.groundY, this.groundReferenceDistance, this.baseDistance, this._viewOffsetFactor * this.baseRadius);
       this.updateCameraPose();
       this.camera.near = Math.max(this.baseDistance / 100, .05);
-      this.camera.far = this.baseDistance * 10;
+      this.camera.far = this.baseDistance * GROUND_STYLE.farClipFactor;
       this.uniforms.depthFadeNear.value = Math.max(this.baseDistance - this.baseRadius, .01);
       this.uniforms.depthFadeFar.value = this.baseDistance + this.baseRadius;
     }
@@ -498,7 +503,7 @@ export class ParticlePointsRenderer {
       old.distance = distance;
       old.camera.aspect = w / h;
       old.camera.near = Math.max(distance / 100, .05);
-      old.camera.far = distance * 10;
+      old.camera.far = distance * GROUND_STYLE.farClipFactor;
       old.uniforms.depthFadeNear.value = Math.max(distance - old.radius, .01);
       old.uniforms.depthFadeFar.value = distance + old.radius;
       old.camera.updateProjectionMatrix();

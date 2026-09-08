@@ -1834,8 +1834,8 @@
     "available": true,
     "manifest": null,
     "entrypoints": [
-      "apps/web/dist/assets/index-DaXDmZ4z.css",
-      "apps/web/dist/assets/index-DkFoHvf-.js"
+      "apps/web/dist/assets/index-BQTDsf3k.js",
+      "apps/web/dist/assets/index-DaXDmZ4z.css"
     ],
     "files": [
       {
@@ -1847,28 +1847,36 @@
         "sha256": "bad4c2b485c66bc76c9aaf1923a987e55673007afa13150af9e66d299c26a198"
       },
       {
-        "path": "apps/web/dist/assets/ArchiveHub-jFAZYt1p.js",
+        "path": "apps/web/dist/assets/ArchiveHub-HEaMB29o.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 59642,
-        "gzipBytes": 23250,
-        "sha256": "26060b8e673551eda6943044823d7e070f9c8982821e66d85f4dcbaf062810cc"
+        "gzipBytes": 23252,
+        "sha256": "bbf4b214ea0a116504aad18209c86a697d8861142a152054885a508f3547be9c"
       },
       {
-        "path": "apps/web/dist/assets/DesktopApp-IB7YkVFr.js",
+        "path": "apps/web/dist/assets/DesktopApp-DLNS9B-i.js",
         "type": "javascript",
         "phase": "shared/app-shell",
         "bytes": 10358,
-        "gzipBytes": 3506,
-        "sha256": "77d32512aee11c12862b9ec998fbc99c67fda30748bbe711a06fa6c7477a2bb8"
+        "gzipBytes": 3507,
+        "sha256": "3315391c0049ea145d886c650220594d93b5e0fc00ad69456413d79395978d1d"
       },
       {
-        "path": "apps/web/dist/assets/DesktopTopBar-C3VHADBF.js",
+        "path": "apps/web/dist/assets/DesktopTopBar-Yon2qR6T.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 2971,
-        "gzipBytes": 1119,
-        "sha256": "a850e1ff4f8a6cd21eb383e339e7b50438d69673eca856e408ea991eee697c04"
+        "gzipBytes": 1120,
+        "sha256": "1c20b859b30791f4479ea31b982edb24dd0f342931fbb1973b5460f55baa47d1"
+      },
+      {
+        "path": "apps/web/dist/assets/MobileApp-BE2lHUan.js",
+        "type": "javascript",
+        "phase": "mobile/cold",
+        "bytes": 47048,
+        "gzipBytes": 15693,
+        "sha256": "8c0a2d6ec06580e2a81adce9297066c611463756e81fc28997d124790fb2f476"
       },
       {
         "path": "apps/web/dist/assets/MobileApp-BJx_-ILK.css",
@@ -1879,20 +1887,12 @@
         "sha256": "2464b024cd33f11a6aa77446a53fd5cf128d475314cc12d60ea8b05cb9ea9920"
       },
       {
-        "path": "apps/web/dist/assets/MobileApp-DDZZ-lto.js",
-        "type": "javascript",
-        "phase": "mobile/cold",
-        "bytes": 47048,
-        "gzipBytes": 15692,
-        "sha256": "9a4f60f38aea1fb0b833cc927d79748aa1b3c4c861f9dd33a589f687d69cfb4f"
-      },
-      {
-        "path": "apps/web/dist/assets/MosaicTitle-AxnS-M-4.js",
+        "path": "apps/web/dist/assets/MosaicTitle-CGOR8e5e.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 156793,
-        "gzipBytes": 57971,
-        "sha256": "d311871efff314d40dc4769a772a02e854ff6ae5f5ec76fc3bc8dbc90075821a"
+        "gzipBytes": 57972,
+        "sha256": "867e3a2bde214136a8f7025cecffe3e2f65097bdc02f79de2db4247c1868bf9f"
       },
       {
         "path": "apps/web/dist/assets/MosaicTitle-Dkg9lKQr.css",
@@ -1903,20 +1903,20 @@
         "sha256": "56ec75e0cc9daa14054f23dae4ecde80b1734d1e2d544887d0bf5d8164b291db"
       },
       {
-        "path": "apps/web/dist/assets/SpaceHost-C1ltWNp2.js",
+        "path": "apps/web/dist/assets/SpaceHost-BaV2uu4S.js",
         "type": "javascript",
         "phase": "boot/world",
         "bytes": 85266,
-        "gzipBytes": 28139,
-        "sha256": "7db09ae4ae45a4fdcdd2d7985e2d147304f27ec2e9d1bb026fd5fdafb6593578"
+        "gzipBytes": 28141,
+        "sha256": "2f13aeb4d80ca919572b1cdbf48980d34b445d13fb53cad6a30c7f02b3d4f955"
       },
       {
-        "path": "apps/web/dist/assets/SpacePage-AmJJENoK.js",
+        "path": "apps/web/dist/assets/SpacePage-CYmHvebD.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 21675,
-        "gzipBytes": 8444,
-        "sha256": "bfb449bcfcbeb95da253d4887faaa11a978928c30d056fc5d97e44f87da4f946"
+        "gzipBytes": 8442,
+        "sha256": "095f3774e23b3625df2d74d8ba802beacfc1a845ce0540ccb6fec026258742f6"
       },
       {
         "path": "apps/web/dist/assets/SpacePage-Hm5ezX3g.css",
@@ -1935,28 +1935,28 @@
         "sha256": "b2448639dc66a76c1744a300cb845d5834ac52dc9d7690c474797bf389620306"
       },
       {
-        "path": "apps/web/dist/assets/WorkDetailPage-ta-YnBmN.js",
+        "path": "apps/web/dist/assets/WorkDetailPage-BNjcl0x5.js",
         "type": "javascript",
         "phase": "shared/other",
-        "bytes": 35293,
-        "gzipBytes": 12300,
-        "sha256": "571e8d6e1ccc8061b5752b83c41265388d6ad68ed13d37312b04bb7243d0de2c"
+        "bytes": 37695,
+        "gzipBytes": 13228,
+        "sha256": "82060d145df2c8e87d516ab1b2a580394b45ebf41a9d21e6d6afe9b9fbeb3e60"
       },
       {
-        "path": "apps/web/dist/assets/appRoutes-CpSJFNOP.js",
+        "path": "apps/web/dist/assets/appRoutes-CPJUyZgs.js",
         "type": "javascript",
         "phase": "shared/app-shell",
         "bytes": 634,
         "gzipBytes": 386,
-        "sha256": "39ddd503b8158aa6eb7ec20740112245833515d780244b544e6874e981c49b8b"
+        "sha256": "5414530d1b6f62b08671d6973273d8330729588c06dd02cce589d269a540f616"
       },
       {
-        "path": "apps/web/dist/assets/createWebGPURenderer-Bvd9AC_7.js",
+        "path": "apps/web/dist/assets/createWebGPURenderer-DsOHv9yK.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 5538,
         "gzipBytes": 2617,
-        "sha256": "f8ae85c8742684fc1c40f851ea7f54b10036d0171490ecc6df4a2ac6e5456f0f"
+        "sha256": "acfd53f19242a6bd0584020372581166d6f19409adf9985b95a4a1014885b407"
       },
       {
         "path": "apps/web/dist/assets/helvetiker_bold.typeface-DtA4BcQz.json",
@@ -1967,20 +1967,20 @@
         "sha256": "bd68159ee0b8d10fe24b9daa2e32f19686f9d8269a79dc8d44203a66298bfa2f"
       },
       {
+        "path": "apps/web/dist/assets/index-BQTDsf3k.js",
+        "type": "javascript",
+        "phase": "shared/app-shell",
+        "bytes": 149036,
+        "gzipBytes": 46269,
+        "sha256": "3083c0112766b20183e0e6f4f5659405c5e6c49be60c36468dc80a18e31f56df"
+      },
+      {
         "path": "apps/web/dist/assets/index-DaXDmZ4z.css",
         "type": "stylesheet",
         "phase": "shared/app-shell",
         "bytes": 57693,
         "gzipBytes": 11154,
         "sha256": "dd7994383bcff99c32bd07777ea85a74f739de1a7be844ff646c1697c54faef0"
-      },
-      {
-        "path": "apps/web/dist/assets/index-DkFoHvf-.js",
-        "type": "javascript",
-        "phase": "shared/app-shell",
-        "bytes": 149036,
-        "gzipBytes": 46270,
-        "sha256": "bf5cfbe63cda973f71c754a514a358faf19cbbe67128fd67d0c5bf450c8e3614"
       },
       {
         "path": "apps/web/dist/assets/rapier-vendor-D4dnSEhk.js",
@@ -2151,12 +2151,12 @@
         "sha256": "1b2fcca9a4773ffccf89d0dd806dc9a5451db6e7fc800c56f5b4823fd75872c0"
       },
       {
-        "path": "apps/web/dist/assets/useTranslation-JYTAe6v9.js",
+        "path": "apps/web/dist/assets/useTranslation-BIZju312.js",
         "type": "javascript",
         "phase": "shared/other",
         "bytes": 3929,
-        "gzipBytes": 1679,
-        "sha256": "10cc1f76da0daf92495be32c6afa7d6e64c3337a9b9dc086a60d9f1c62471b3b"
+        "gzipBytes": 1680,
+        "sha256": "83184d6f2ec43e175a5263ae12d8ff836544640c9ff74bb3dae68ebfc3750a0d"
       },
       {
         "path": "apps/web/dist/assets/vite-preload-helper-CwQZjUKM.js",
@@ -2171,14 +2171,14 @@
         "type": "html",
         "phase": "shared/other",
         "bytes": 992,
-        "gzipBytes": 567,
-        "sha256": "92eaaade0d05501ba50b8a4fa79008e284593a490cb5cc80bf672f85f5fc2c0f"
+        "gzipBytes": 570,
+        "sha256": "3f94018529a990d47a0ffc64a3368b479c4b356cd4ffa033c3838ccd82905d09"
       }
     ],
     "totals": {
       "files": 42,
-      "bytes": 4772719,
-      "gzipBytes": 1576796,
+      "bytes": 4775121,
+      "gzipBytes": 1577733,
       "byPhase": {
         "boot/world": {
           "files": 2,
@@ -2198,7 +2198,7 @@
         },
         "shared/other": {
           "files": 32,
-          "bytes": 1890896
+          "bytes": 1893298
         }
       }
     }
