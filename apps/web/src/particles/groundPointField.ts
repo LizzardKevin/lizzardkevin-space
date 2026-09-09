@@ -1,75 +1,67 @@
-/**
- * 程序化粒子地面(纯平圆盘),运行时确定性生成,不占用离线缓存格式。
- *
- * 设计:半径随取景视距归一化(radius = 视距 × GROUND_RADIUS_VIEW_FACTOR,
- * Tree Habitat 现状 60/12.6 ≈ 4.76),圆盘角大小因此跨作品恒定,远边贴近视线水平线;
- * 点数恒定 25k——角大小恒定时屏幕空间密度 = 点数/角面积,跨作品天然一致
- * (若按世界面积补点数反而会打破屏幕密度一致性);粒径沿用模型点规则
- * (模型间距 × 0.5),模型间距与视距同比例缩放,屏幕上相对密度同样一致。
- * 径向密度中心密远处疏(r = R × rand^0.75),每点 fades 径向衰减 (1-r/R)^1.2,
- * 远缘溶解进黑底,视觉"无限"但点集有限。圆盘以模型中心为圆心,
- * 几何随视距自相似缩放,视差转动(±30°)下左右下三边缘覆盖不变。
- */
+import { mulberry32 } from "./seededRandom.ts";
 
-const GROUND_RADIUS = 60;
-const GROUND_POINT_COUNT = 25_000;
-const GROUND_SEED = 0x5eed01;
-/** 地面半径 / 取景视距:标定自 Tree Habitat(60 ÷ 12.588 ≈ 4.767)。 */
-const GROUND_RADIUS_VIEW_FACTOR = 4.76;
-
-/** mulberry32:与标定页/采样器同款的确定性 PRNG(ambient 点场也共用它,勿再复制)。 */
-export function mulberry32(seed: number) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-export type GroundPointField = {
-  pointCount: number;
-  positions: Float32Array;
-  /** 全部朝上 (0,1,0)。 */
-  normals: Float32Array;
-  rands: Float32Array;
-  /** 径向亮度衰减 0..1(中心 1,边缘 0)。 */
-  fades: Float32Array;
-};
-
-/** 生成以原点为圆心、位于 y = yLevel 的纯平粒子地面。 */
-export function createGroundPointField(
-  yLevel: number,
-  pointCount: number = GROUND_POINT_COUNT,
-  radius: number = GROUND_RADIUS,
-  seed: number = GROUND_SEED,
-): GroundPointField {
-  const rand = mulberry32(seed);
-  const positions = new Float32Array(pointCount * 3);
-  const normals = new Float32Array(pointCount * 3);
-  const rands = new Float32Array(pointCount);
-  const fades = new Float32Array(pointCount);
-  for (let i = 0; i < pointCount; i += 1) {
-    const r = radius * Math.pow(rand(), 0.75);
-    const theta = rand() * Math.PI * 2;
-    positions[i * 3] = r * Math.cos(theta);
-    positions[i * 3 + 1] = yLevel;
-    positions[i * 3 + 2] = r * Math.sin(theta);
-    normals[i * 3 + 1] = 1;
-    rands[i] = rand();
-    fades[i] = Math.pow(1 - r / radius, 1.2);
-  }
-  return { pointCount, positions, normals, rands, fades };
-}
-
-export const GROUND_DEFAULTS = {
-  radius: GROUND_RADIUS,
-  pointCount: GROUND_POINT_COUNT,
+export const GROUND_STYLE = {
+  referenceHeight: 900, spacingPixels: 4, diameterPixels: 1.3, brightness: .32,
+  radiusFactor: 3, extentX: 8, nearLimit: -4, horizon: .35, farClipFactor: 160,
 } as const;
 
-/** 归一化地面半径:视距 × 4.76(Tree Habitat 标定值),小负数/零防护到 0。 */
-export function groundRadiusForViewDistance(viewDistance: number): number {
-  return Math.max(viewDistance, 0) * GROUND_RADIUS_VIEW_FACTOR;
+export function groundDensityAtDistance(distance: number, modelDensity: number, radius = 900): number {
+  const peak = Math.min(1 / GROUND_STYLE.spacingPixels ** 2, Math.max(modelDensity, 0));
+  const t = Math.min(1, Math.max(distance, 0) / Math.max(radius, 1e-6));
+  return peak * Math.exp(-3 * t * t) * (1 - t * t) ** 3;
+}
+
+const smooth01 = (value: number) => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
+
+/** Screen-stratified candidates keep the same visual density across works, but
+ * membership falls radially in the actual XZ ground plane around model (0,0).
+ * The compact cubic profile reaches zero with zero slope at the circular rim. */
+export function createGroundPointField(yLevel: number, viewDistance: number, viewOffset = 0,
+  options: { radius?: number; modelDensity?: number } = {}) {
+  const radius = options.radius ?? viewDistance * 2;
+  const modelDensity = options.modelDensity ?? 1;
+  const spacing = Math.max(GROUND_STYLE.spacingPixels, 1 / Math.sqrt(Math.max(modelDensity, 1e-6)));
+  const step = 2 * spacing / GROUND_STYLE.referenceHeight;
+  const columns = Math.round(GROUND_STYLE.extentX * 2 / step);
+  const rows = Math.round((GROUND_STYLE.horizon - GROUND_STYLE.nearLimit) / step);
+  const positions: number[] = [], normals: number[] = [], rands: number[] = [], fades: number[] = [], alts: number[] = [];
+  const random = mulberry32(0x5eed01), scatter = mulberry32(0x5eed04);
+  const elevation = Math.atan(.15), s = Math.sin(elevation), c = Math.cos(elevation), tangent = Math.tan(Math.PI / 8);
+  const cameraY = viewDistance * s, cameraZ = viewDistance * c;
+  for (let row = 0; row < rows; row++) {
+    for (let column = 0; column < columns; column++) {
+      const u = -GROUND_STYLE.extentX + (column + .1 + random() * .8) * step;
+      const v = GROUND_STYLE.horizon - (row + .1 + random() * .8) * step;
+      const rayY = v * tangent * c - s, depth = (yLevel - cameraY) / rayY;
+      const x = -viewOffset + u * tangent * depth, z = cameraZ + (-v * tangent * s - c) * depth;
+      const radialDistance = Math.hypot(x, z);
+      const keep = groundDensityAtDistance(radialDistance, modelDensity, radius) * spacing ** 2;
+      if (random() >= keep) continue;
+      positions.push(x, yLevel, z);
+      normals.push(0, 1, 0); rands.push(random());
+      fades.push(smooth01((1 - radialDistance / radius) / .3)
+        * smooth01((GROUND_STYLE.extentX - Math.abs(u)) / 3.5)
+        * smooth01((v - GROUND_STYLE.nearLimit) / 2));
+      const targetDepth = viewDistance * (.55 + scatter() * 1.25);
+      const targetX = (scatter() * 2 - 1) * 3.2 * tangent * targetDepth;
+      const targetY = (scatter() * 2 - 1) * 1.5 * tangent * targetDepth;
+      alts.push(-viewOffset + targetX, cameraY + targetY * c - targetDepth * s, cameraZ - targetY * s - targetDepth * c);
+    }
+  }
+  return { positions: new Float32Array(positions), normals: new Float32Array(normals),
+    rands: new Float32Array(rands), fades: new Float32Array(fades), alts: new Float32Array(alts) };
+}
+
+export type GroundPointField = ReturnType<typeof createGroundPointField>;
+
+/** Keep the assembled disk anchored to the model on resize; only scattered
+ * targets reframe with the viewport. Moving the ground would move its center. */
+export function groundFrameTransform(_yLevel: number, fromDistance: number, toDistance: number, offset: number) {
+  const scatterScale = toDistance / fromDistance;
+  return {
+    scale: 1,
+    shift: [0, 0, 0] as const,
+    scatterScale,
+    scatterShift: [-offset * (1 - scatterScale), 0, 0] as const,
+  };
 }

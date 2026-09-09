@@ -1,14 +1,17 @@
-import { Color, InstancedBufferAttribute, Vector2 } from "three";
+import { Color, InstancedBufferAttribute, Vector2, Vector3 } from "three";
 import { PointsNodeMaterial } from "three/webgpu";
 import { INTRO_HEIGHT_WEIGHT, INTRO_RAND_JITTER, INTRO_REVEAL_WINDOW } from "./introReveal.ts";
+import { GROUND_STYLE } from "./groundPointField.ts";
 import {
   cameraProjectionMatrix,
   clamp,
+  exp,
   float,
   instancedBufferAttribute,
   mix,
   modelViewMatrix,
   modelWorldMatrix,
+  screenSize,
   sin,
   smoothstep,
   transformDirection,
@@ -39,6 +42,11 @@ export function createParticleUniforms() {
   return {
     /** 秒,由渲染闭环累加(暂停时冻结,恢复不跳变)。 */
     time: uniform(0),
+    layerOpacity: uniform(1),
+    groundScale: uniform(1),
+    groundShift: uniform(new Vector3()),
+    groundScatterScale: uniform(1),
+    groundScatterShift: uniform(new Vector3()),
     /** 光标 NDC(-1..1);默认放到视野外,避免未移动鼠标时的增亮。 */
     cursorNdc: uniform(new Vector2(10, 10)),
     /** 光标增亮强度。 */
@@ -48,8 +56,7 @@ export function createParticleUniforms() {
     /** 光标附近的额外粒径放大系数:1 + cursorSizeGain × falloff,0.15 即最多放大到 1.15×。 */
     cursorSizeGain: uniform(0.15),
     /**
-     * 点粒径(世界单位直径)。渲染闭环按"平均粒子间距 × 0.5"自动写入
-     * (Tree Habitat ≈0.05,即标定值);小模型自动收小,不再按固定世界单位放大。
+     * 点粒径(世界单位直径)。按统一参考视口的投影粒径写入,随模型视距缩放。
      */
     pointSizeBase: uniform(0.05),
     /** 粒径补偿系数(默认 1);DPR 本身由材质内建 screenDPR 处理,不要在此重复计入。 */
@@ -97,7 +104,7 @@ export function createParticleUniforms() {
     /** 入场生成色(页面提示黄 #e8d44d):单点生成瞬间着色,随后混回灰阶白。 */
     introColor: uniform(new Color(0xe8d44d)),
     /**
-     * 入场高度归一化区间(局部 y,含地面下限到模型顶):intro reveal 的
+     * 入场高度归一化区间(局部 y,模型最低点到模型顶):intro reveal 的
      * "从下往上"轴按 (y − introYMin) / (introYMax − introYMin) 归一化。
      * 由渲染闭环 setParticleData 写入,此处只是占位初值(退化为全 0..1 区间)。
      */
@@ -115,10 +122,12 @@ export type ParticleAttributeArrays = {
   normals: Float32Array;
   /** 每点 0..1,N。 */
   rands: Float32Array;
-  /** 每点亮度衰减 0..1(模型点为 1,地面点为径向衰减),N。 */
+  /** 每点亮度衰减 0..1(模型点为 1),N。 */
   fades: Float32Array;
   /** 每点解构(ambient)目标位置 xyz 交错,3N;morphProgress=1 时的落点。 */
   alts: Float32Array;
+  /** 0=model, 1=ground; styling only, both use exactly the same motion progress. */
+  groundWeights: Float32Array;
 };
 
 /**
@@ -153,6 +162,9 @@ export function createParticlePointsMaterial(
     new InstancedBufferAttribute(arrays.alts, 3),
     "vec3",
   );
+  const groundWeight = instancedBufferAttribute<"float">(
+    new InstancedBufferAttribute(arrays.groundWeights, 1), "float",
+  );
 
   // 世界系基准位置(人浪相位用它,自转时波形在空间稳定;不能用 positionWorld —
   // 那条链取的是 sprite 面片角点 attribute,不是实例位置)。
@@ -162,15 +174,21 @@ export function createParticlePointsMaterial(
   const wave = sin(wavePhase); // -1..1
 
   // 极小 y 位移(模型静止悬浮,local y == world y)。
-  const displaced = instancePosition.add(vec3(0.0, wave.mul(uniforms.waveLift), 0.0));
+  const assembled = mix(instancePosition, instancePosition.mul(uniforms.groundScale).add(uniforms.groundShift), groundWeight);
+  const displaced = assembled.add(vec3(0.0, wave.mul(uniforms.waveLift).mul(groundWeight.oneMinus()), 0.0));
 
   // clip → ndc,与光标 NDC 求距做 soft falloff;同一个 falloff 同时驱动亮度与微放大。
   const viewPosition = modelViewMatrix.mul(vec4(displaced, 1.0));
   const clipPosition = cameraProjectionMatrix.mul(viewPosition);
   const ndc = clipPosition.xy.div(clipPosition.w);
-  const cursorDistance = ndc.distance(uniforms.cursorNdc);
-  const cursorFalloff = smoothstep(float(0.0), uniforms.cursorRadius, cursorDistance).oneMinus();
-  const cursorBoost = uniforms.cursorGain.mul(cursorFalloff);
+  const cursorDelta = ndc.sub(uniforms.cursorNdc).mul(vec2(screenSize.x.div(screenSize.y), 1));
+  const cursorDistance = cursorDelta.length();
+  // Broad Gaussian feather: strong center, long soft tail, smoothly zero at rim.
+  const cursorT = cursorDistance.div(uniforms.cursorRadius.mul(1.8).max(.0001));
+  const cursorFalloff = exp(cursorT.mul(cursorT).mul(-4.5))
+    .mul(smoothstep(float(.65), float(1), cursorT).oneMinus());
+  const cursorResponse = cursorFalloff.mul(mix(float(1), float(.5), groundWeight));
+  const cursorBoost = uniforms.cursorGain.mul(cursorResponse);
 
   // 法线光照:实例法线经 modelWorldMatrix 方向变换,固定灯方向 lambert。
   const lightDirection = vec3(0.35, 0.75, 0.55).normalize();
@@ -194,13 +212,17 @@ export function createParticlePointsMaterial(
   const waveGlow = wave.mul(uniforms.waveAmp);
 
   const brightness = clamp(
-    uniforms.brightnessBase
-      .mul(float(0.35).add(lambert.mul(0.65)))
-      .mul(depthFade)
-      .add(twinkle)
-      .add(waveGlow)
-      .add(cursorBoost)
+    mix(
+      uniforms.brightnessBase
+        .mul(float(0.35).add(lambert.mul(0.65)))
+        .mul(depthFade)
+        .add(twinkle)
+        .add(waveGlow),
+      float(GROUND_STYLE.brightness).add(twinkle.mul(.25)),
+      groundWeight,
+    )
       .mul(instanceFade)
+      .add(cursorBoost)
       // 解构到 ambient 时整体压暗(ambientDim),避免稀疏环境点场亮过模型本体。
       .mul(mix(float(1.0), uniforms.ambientDim, uniforms.morphProgress)),
     0.0,
@@ -217,13 +239,16 @@ export function createParticlePointsMaterial(
   const jitterFlutter = float(0.75).add(
     sin(uniforms.time.mul(2.1).add(instanceRand.mul(TWO_PI))).mul(0.25),
   );
+  const modelViewDistance = uniforms.depthFadeNear.add(uniforms.depthFadeFar).mul(.5);
+  const cursorJitter = uniforms.cursorJitterAmp.mul(mix(float(1), viewDepth.div(modelViewDistance), groundWeight));
   const jittered = displaced.add(
-    jitterDir.mul(uniforms.cursorJitterAmp.mul(cursorFalloff).mul(jitterFlutter)),
+    jitterDir.mul(cursorJitter.mul(cursorResponse).mul(jitterFlutter)),
   );
 
   // 解构 morph:morphProgress 0→1 时从模型位置滑向 ambient 目标。
   // 光标 falloff/增亮/微放大/抖动都基于 morph 前位置(displaced/jittered)计算,保持不变。
-  const finalPos = mix(jittered, positionAlt, uniforms.morphProgress);
+  const scattered = mix(positionAlt, positionAlt.mul(uniforms.groundScatterScale).add(uniforms.groundScatterShift), groundWeight);
+  const finalPos = mix(jittered, scattered, uniforms.morphProgress);
 
   // 入场揭示(introReveal.ts 的 shader 镜像):排序键 = 深度项(morph 后位置的视距深度
   // 归一化,复用 depthFade 区间 = 视距∓包围球半径;远点先出)与高度项(morph 后位置 y 按
@@ -263,9 +288,11 @@ export function createParticlePointsMaterial(
   material.positionNode = finalPos;
   // 世界单位直径 × 标定补偿;内建链再乘 screenDPR 并按 (0.5 × 视口高 / -viewZ) 做透视衰减。
   // 光标附近额外微放大(默认最多 1.15×),只改尺寸、不动位置。
-  material.sizeNode = uniforms.pointSizeBase
+  // Floor dots keep the same projected diameter even as model scale/depth varies.
+  const floorSize = introViewPosition.z.negate().max(.001).mul(2 * GROUND_STYLE.diameterPixels / GROUND_STYLE.referenceHeight);
+  material.sizeNode = mix(uniforms.pointSizeBase, floorSize, groundWeight)
     .mul(uniforms.pixelRatio)
-    .mul(float(1.0).add(uniforms.cursorSizeGain.mul(cursorFalloff)));
+    .mul(float(1.0).add(uniforms.cursorSizeGain.mul(cursorResponse)));
   // 生成瞬间着提示黄(乘 0.5+brightness,微闪/人浪在黄色阶段照常调制),随后混回灰阶白。
   material.colorNode = mix(
     vec3(brightnessV),
@@ -280,7 +307,9 @@ export function createParticlePointsMaterial(
   material.opacityNode = smoothstep(float(0.32), float(0.5), uv().sub(vec2(0.5)).length())
     .oneMinus()
     .mul(mix(float(1.0), float(0.5), uniforms.morphProgress))
-    .mul(smoothstep(float(0.0), float(0.4), introT));
+    .mul(mix(float(1.0), instanceFade, groundWeight))
+    .mul(smoothstep(float(0.0), float(0.4), introT))
+    .mul(uniforms.layerOpacity);
   material.transparent = false;
   material.depthWrite = true;
   material.depthTest = true;

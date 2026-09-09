@@ -321,16 +321,12 @@ export function SpaceDesktopExperience({
   );
 
   const isHovering = exhibitTarget !== null;
-  const pointerControlsEnabled =
-    entered &&
-    !overlay.isOverlayOpen &&
-    !pointerLockUnavailable;
+  const spaceSurfaceVisible = entered && !routeBlocked && !overlay.isOverlayOpen;
   const controlsEnabled =
-    entered &&
-    !overlay.isOverlayOpen &&
-    !pointerLockUnavailable;
+    spaceSurfaceVisible && !pointerLockUnavailable;
+  const pointerControlsEnabled = controlsEnabled;
   const onboardingEnabled =
-    entered && !pointerLockUnavailable && dailyResumePose === null && !onboardingCompleted;
+    controlsEnabled && dailyResumePose === null && !onboardingCompleted;
   const projectorHintVisible =
     pointerLocked &&
     controlsEnabled &&

@@ -76,7 +76,7 @@ const readme = `LizzardKevin Space — 本地试玩包
 ================================
 
 【环境】
-- 浏览器：Chrome 或 Edge（较新版本，需支持 WebGPU）
+- 浏览器：Chrome 或 Edge（较新版本；WebGPU 完整模式不可用时可回退 WebGL2 简化模式）
 - 本包已是编译好的静态网站，无需安装项目依赖
 
 【启动】
@@ -87,14 +87,15 @@ Windows：双击「启动试玩-windows.bat」
 然后浏览器打开 http://127.0.0.1:8080/
 
 【操作】
-- 点击「点击进入 SPACE」进入展厅
+- 点击「Enter」进入展厅
 - WASD 移动，鼠标环顾（需允许指针锁定）
-- 顶部可打开 LizzardKevin / DevStories；双击空白区域退出
-- 对准展品高亮后点击可进入 Focus 特写
+- 顶部可打开 LizzardKevin / DevStories；点击页面「返回 SPACE」或按 Esc 返回展厅
+- 对准展品高亮后点击可进入独立作品页；页面也支持双击非交互空白区域返回 SPACE
 
 【注意】
 - 不要直接双击 index.html（资源路径会失败）
-- 若黑屏或提示 WebGPU 不可用，请换 Chrome/Edge 并更新系统/显卡驱动
+- 若完整模式不可用，使用简化模式；若两种渲染后端都失败，请更新浏览器/显卡驱动后重试
+- Esc 返回展厅后如鼠标未锁定，点击展厅恢复环顾
 `;
 
 const startMacSh = `#!/usr/bin/env bash

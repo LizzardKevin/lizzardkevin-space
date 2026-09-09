@@ -1,0 +1,12 @@
+.ark-ascii { display: inline-grid; position: relative; max-width: 100%; vertical-align: baseline; }
+.ark-ascii__real { grid-area: 1 / 1; }
+.ark-ascii[data-cipher-active="true"] > .ark-ascii__real { color: transparent; text-shadow: none; }
+.ark-ascii__cipher { position: absolute; inset: 0; color: #c9cbcc; font-family: var(--ark-mono, monospace); overflow: hidden; pointer-events: none; user-select: none; overflow-wrap: anywhere; }
+.ark-ascii[data-cipher-active="false"] > .ark-ascii__cipher { display: none; }
+.ark-profile-worklink { display: inline-flex; align-items: center; min-height: 44px; margin-left: 12px; padding: 0 6px; color: #cbd0d0; font: 11px var(--ark-mono, monospace); letter-spacing: .08em; text-decoration: none; white-space: nowrap; }
+.ark-profile-worklink:hover, .ark-profile-worklink:focus-visible { color: #fff; background: #ffffff0d; text-decoration: underline; text-underline-offset: 5px; }
+.ark-profile-worklink:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .ark-ascii[data-cipher-active="true"] > .ark-ascii__real { color: inherit; }
+  .ark-ascii__cipher { display: none; }
+}

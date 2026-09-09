@@ -207,7 +207,8 @@ test("intro wiring: uniforms in material, reveal driven by morph-后 depth+heigh
   assert.match(introBlock, /uniforms\.introProgress\.value/, "update() advances introProgress only");
 
   const host = readSource(hostPath);
-  assert.match(host, /renderer\.startIntro\(\)/, "host must start the intro after setParticleData");
+  const session = readSource(resolve(particlesDir, "../pages/works/WorkParticleSession.ts"));
+  assert.match(session, /await this\.renderer\.prepareTransition\(data\)[\s\S]*?this\.renderer\.startIntro\(\)/, "session starts intro after material compilation and generation validation");
   assert.match(host, /renderer\.setIntroProgress\(/, "host must keep the wpIntro freeze-frame hook");
   assert.match(host, /wpPerf/, "host must keep the dev-only frame-time logging hook");
 });

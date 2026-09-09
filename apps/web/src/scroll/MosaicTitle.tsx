@@ -14,8 +14,10 @@ export function MosaicTitle({
   text,
   className,
   as: Tag = "h1",
+  accent,
 }: {
   text: string;
+  accent?: string;
   className?: string;
   as?: "h1" | "h2" | "span";
 }): JSX.Element {
@@ -71,7 +73,7 @@ export function MosaicTitle({
                   width: "12.5%",
                   height: "25%",
                   background: isAccent
-                    ? "var(--ark-accent, #e8d44d)"
+                    ? accent ?? "var(--ark-accent, #e8d44d)"
                     : "var(--ark-bg, #1b1b1e)",
                   // 0.5px 透明描边 + padding-box 裁剪：块间留出 1px 间隙透出底色
                   backgroundClip: "padding-box",

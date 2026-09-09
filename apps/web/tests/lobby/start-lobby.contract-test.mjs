@@ -106,8 +106,12 @@ test("StartLobby hides the native cursor while the barrage owns the visible poin
     "the native cursor must stay hidden over every StartLobby control",
   );
   assert.match(barrage, /function drawPointerCore\(/);
-  assert.match(barrage, /context\.arc\(pointer\.x, pointer\.y, POINTER_CORE_RADIUS_PX/);
-  assert.match(barrage, /context\.fill\(\)/);
+  assert.match(barrage, /className="start-lobby__pointer"/);
+  const z = selector => Number(declarationValue(cssRule(css, selector), "z-index"));
+  assert.ok(z('.start-lobby__canvas') > z('.start-lobby__pointer'));
+  assert.ok(z('.start-lobby__pointer') > z('.start-lobby__enter'));
+  assert.ok(z('.start-lobby::after') > z('.start-lobby__canvas'));
+  assert.equal(declarationValue(cssRule(css,'.start-lobby__pointer'),'pointer-events'), 'none');
 });
 
 test("StartLobby intro shatters the 3D text model itself instead of sampling 2D type", () => {

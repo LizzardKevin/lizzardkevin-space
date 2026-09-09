@@ -19,7 +19,7 @@ export const generatedSplitArchiveCopy = {
       "overviewSubtitle": "LizzardKevin profile archive",
       "overviewSummary": "Architecture, images, music, culture, AI workflow, and SPACE are kept as one quiet index.",
       "overviewSignal": [
-        "Architecture + creative technology practice between New York and Shanghai.",
+        "Architectural design and AI visual practice based in Shenzhen.",
         "Spatial design, photography, music, AI workflow, and personal culture archive."
       ],
       "overviewLayer": [
@@ -61,7 +61,7 @@ export const generatedSplitArchiveCopy = {
       "overviewSubtitle": "LizzardKevin 个人档案索引",
       "overviewSummary": "建筑、图像、音乐、文化、AI workflow 和 SPACE 被收纳在同一个安静索引里。",
       "overviewSignal": [
-        "位于 New York / Shanghai 之间的建筑 + creative technology 实践。",
+        "现居深圳，从事建筑设计与 AI 视觉创作。",
         "空间设计、摄影、音乐、AI workflow 和个人文化档案。"
       ],
       "overviewLayer": [

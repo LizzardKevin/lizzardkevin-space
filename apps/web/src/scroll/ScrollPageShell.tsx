@@ -4,10 +4,8 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type ReactNode,
 } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getScrollPagesCopy, type ScrollPageAccent } from "../content/scrollPagesCopy";
 import type { SupportedLanguage } from "../i18n/resolveInitialLanguage";
@@ -18,22 +16,20 @@ import { usePageLanguage } from "./usePageLanguage";
 import { useEscapeToSpace } from "./useEscapeToSpace";
 import { useScrollTriggerRefresh } from "./useScrollTriggerRefresh";
 import { DotGridAttractCanvas } from "./DotGridAttractCanvas";
-import { setDotGridArrow } from "./dotGridArrowBus";
+import { AsciiEdgeLink } from "../pages/works/WorkEdgeNav";
 import { CursorDot } from "./CursorDot";
 import { HazardRule } from "./primitives";
 import { gsap } from "./scrollGsap";
+import { useRouteScrollPosition } from "./useRouteScrollPosition";
 
 export type ScrollPageAnchor = { id: string; label: string };
 export type SpaceReturnHandler = (options?: { fromEscape?: boolean }) => void;
 
 export type ScrollPageSwitchTarget = {
   href: string;
-  code: string;
   label: string;
-  /** 切换条所在缘侧与横扫方向：profile→devstories 为 right（01→02 向右），反之为 left */
+  /** ASCII arrow edge: Profile points right to DevStories, and back to the left. */
   side: "left" | "right";
-  /** 对方页面强调色（halo 用）：teal 或 orange */
-  accent: "teal" | "orange";
 };
 
 /** 与 --ark-accent / 切换条 halo 同源的色值。 */
@@ -43,11 +39,6 @@ const PAGE_ACCENT_COLORS: Record<ScrollPageAccent, string> = {
   yellow: "#e8d44d",
 };
 
-/** 与对方页面 --ark-accent 对应的色值（切换条 hover halo）。 */
-const SWITCH_ACCENT_COLORS: Record<"teal" | "orange", string> = {
-  teal: "#67c2be",
-  orange: "#ef8b61",
-};
 
 function writeStoredLanguage(language: SupportedLanguage) {
   try {
@@ -114,6 +105,8 @@ export function ScrollPageShell({
   miniTitleAfterId,
   blankDoubleClickToSpace = false,
   background = "dotgrid",
+  scrollReady = true,
+  rememberScroll = false,
   onNavigateToSpace,
   children,
 }: {
@@ -130,10 +123,11 @@ export function ScrollPageShell({
   blankDoubleClickToSpace?: boolean;
   /** 背景层：默认点阵；"none" 时不挂 DotGrid（works 详情页背景由全页粒子点云承担） */
   background?: "dotgrid" | "none";
+  scrollReady?: boolean;
+  rememberScroll?: boolean;
   onNavigateToSpace: SpaceReturnHandler;
   children: ReactNode;
 }) {
-  const navigate = useNavigate();
   const language = usePageLanguage();
   const copy = useMemo(() => getScrollPagesCopy(language), [language]);
   const pageRef = useRef<HTMLDivElement | null>(null);
@@ -143,6 +137,7 @@ export function ScrollPageShell({
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [content, setContent] = useState<HTMLDivElement | null>(null);
   const lenisRef = useLenisScroll(scroller, content);
+  useRouteScrollPosition(scroller, rememberScroll && scrollReady);
   const [activeAnchor, setActiveAnchor] = useState<string | null>(null);
   const activeAnchorRef = useRef<string | null>(null);
   const [miniTitleVisible, setMiniTitleVisible] = useState(false);
@@ -206,12 +201,6 @@ export function ScrollPageShell({
     return () => root.removeEventListener("dblclick", onDoubleClick);
   }, [blankDoubleClickToSpace, leaveToSpace]);
 
-  const handleSwitch = useCallback(() => {
-    if (!switchTarget) return;
-    // 点击后点阵三角立即进入消失动画（不等 hover 离开）
-    setDotGridArrow(null);
-    navigate(switchTarget.href);
-  }, [navigate, switchTarget]);
 
   const scrollToTarget = useCallback(
     (target: string | HTMLElement) => {
@@ -342,24 +331,9 @@ export function ScrollPageShell({
         </div>
 
         {switchTarget ? (
-          <button
-            type="button"
-            className={`ark-switchstrip${switchTarget.side === "right" ? " ark-switchstrip--right" : ""}`}
-            style={{ "--ark-switch-accent": SWITCH_ACCENT_COLORS[switchTarget.accent] } as CSSProperties}
-            aria-label={`${copy.switchAriaPrefix} ${switchTarget.label}`}
-            onClick={handleSwitch}
-            onMouseEnter={() =>
-              setDotGridArrow(switchTarget.side, SWITCH_ACCENT_COLORS[switchTarget.accent])
-            }
-            onMouseLeave={() => setDotGridArrow(null)}
-            onFocus={() =>
-              setDotGridArrow(switchTarget.side, SWITCH_ACCENT_COLORS[switchTarget.accent])
-            }
-            onBlur={() => setDotGridArrow(null)}
-          >
-            <span className="ark-switchstrip__code">{switchTarget.code}</span>
-            <span>{switchTarget.label}</span>
-          </button>
+          <nav className="work-edge-nav" aria-label={copy.switchAriaPrefix}>
+            <AsciiEdgeLink side={switchTarget.side} target={{ href: switchTarget.href, title: switchTarget.label }} />
+          </nav>
         ) : null}
 
         {miniTitle ? (

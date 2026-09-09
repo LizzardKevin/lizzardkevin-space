@@ -67,12 +67,6 @@ export function switchRendererProfileState<Pose, ResolvedProfile>(
   };
 }
 
-export function resolveFocusRequestedProfile(
-  mainProfile: RendererProfileId,
-): RendererProfileId {
-  return mainProfile === "full" ? "full" : "simplified";
-}
-
 export type RendererResolution = Readonly<{
   backend: RendererBackend;
   profile: RendererProfileId;

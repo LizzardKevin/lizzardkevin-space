@@ -13,6 +13,8 @@ export function registerScrollBusLenis(lenis: Lenis | null) {
 
 export function scrollBusJumpTo(position: number) {
   if (lenisInstance) {
+    // ResizeObserver is debounced: refresh the new work's limit before clamping.
+    lenisInstance.resize();
     lenisInstance.scrollTo(position, { immediate: true, force: true });
     return;
   }

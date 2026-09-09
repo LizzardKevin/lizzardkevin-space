@@ -10,14 +10,14 @@ async function loadContentFixture(content, language = "en") {
   });
 
   try {
-    const { loadExhibitContent } = await importSourceModule("exhibits/exhibitContent.ts");
-    return await loadExhibitContent("sample_exhibit", language);
+    const { loadExhibitContentPartial } = await importSourceModule("exhibits/exhibitContent.ts");
+    return await loadExhibitContentPartial("sample_exhibit", language);
   } finally {
     globalThis.fetch = previousFetch;
   }
 }
 
-test("loadExhibitContent keeps string subtitle and filters tags and metadata entries", async () => {
+test("loadExhibitContentPartial keeps string subtitle and filters tags and metadata entries", async () => {
   const content = await loadContentFixture({
     title: "Sample Exhibit",
     subtitle: "Material study",
@@ -46,7 +46,7 @@ test("loadExhibitContent keeps string subtitle and filters tags and metadata ent
   });
 });
 
-test("loadExhibitContent omits invalid optional subtitle and metadata without rejecting content", async () => {
+test("loadExhibitContentPartial omits invalid optional subtitle and metadata without rejecting content", async () => {
   const content = await loadContentFixture({
     title: "Sample Exhibit",
     subtitle: 42,
@@ -62,7 +62,7 @@ test("loadExhibitContent omits invalid optional subtitle and metadata without re
   });
 });
 
-test("loadExhibitContent resolves bilingual content for the requested language", async () => {
+test("loadExhibitContentPartial resolves bilingual content for the requested language", async () => {
   const content = await loadContentFixture(
     {
       title: { en: "Sample Exhibit", zh: "样本展品" },
@@ -106,7 +106,7 @@ test("loadExhibitContent resolves bilingual content for the requested language",
   });
 });
 
-test("loadExhibitContent falls back to English when localized content is incomplete", async () => {
+test("loadExhibitContentPartial falls back to English when localized content is incomplete", async () => {
   const content = await loadContentFixture(
     {
       title: { en: "Sample Exhibit" },
@@ -132,15 +132,51 @@ test("loadExhibitContent falls back to English when localized content is incompl
   });
 });
 
-test("loadExhibitContent rejects missing or non-string required fields", async () => {
-  const requiredFieldCases = [
-    { title: 42, overview: "Overview", storyHtml: "<p>Story</p>" },
-    { title: "Title", storyHtml: "<p>Story</p>" },
-    { title: "Title", overview: "Overview", storyHtml: null },
+test("partial content keeps independent valid fields when other fields are missing or invalid", async () => {
+  const cases = [
+    [{ title: 42, overview: "Overview", storyHtml: "<p>Story</p>" }, { overview: "Overview", storyHtml: "<p>Story</p>" }],
+    [{ title: "Title", storyHtml: "<p>Story</p>" }, { title: "Title", storyHtml: "<p>Story</p>" }],
+    [{ title: "Title", overview: "Overview", storyHtml: null }, { title: "Title", overview: "Overview" }],
+    [{}, {}],
   ];
+  for (const [input, expected] of cases) {
+    assert.deepEqual(await loadContentFixture(input), expected);
+  }
+});
 
-  for (const invalidContent of requiredFieldCases) {
-    assert.equal(await loadContentFixture(invalidContent), null);
+test("partial content rejects non-object JSON", async () => {
+  for (const input of [null, [], "content", 42, true]) {
+    assert.equal(await loadContentFixture(input), null);
+  }
+});
+
+test("partial content retains English fallback and filters malformed localized arrays", async () => {
+  assert.deepEqual(await loadContentFixture({
+    title: { en: " Title ", zh: "  " },
+    tags: { en: [" model ", "model", null, {}], zh: { invalid: true } },
+    metadata: { en: [{ label: { en: "Year" }, value: { en: "2026" } }, null, { label: "Invalid" }], zh: 42 },
+  }, "zh"), { title: "Title", tags: ["model"], metadata: [{ label: "Year", value: "2026" }] });
+  assert.deepEqual(await loadContentFixture({
+    title: { en: "Title", zh: "标题" },
+    tags: { zh: [null, 42, " 模型 ", "模型"] },
+    metadata: { zh: [null, { label: " 年份 ", value: " 2026 " }, { label: 42, value: "bad" }] },
+  }, "zh"), { title: "标题", tags: ["模型"], metadata: [{ label: "年份", value: "2026" }] });
+});
+
+test("partial content returns null on HTTP, network, and JSON decoding failures", async () => {
+  const previousFetch = globalThis.fetch;
+  const { loadExhibitContentPartial } = await importSourceModule("exhibits/exhibitContent.ts");
+  try {
+    for (const fetchResult of [
+      async () => ({ ok: false, status: 404, json() { assert.fail("404 must not decode a body"); } }),
+      async () => { throw new TypeError("Network unavailable"); },
+      async () => ({ ok: true, json: async () => { throw new SyntaxError("Malformed JSON"); } }),
+    ]) {
+      globalThis.fetch = fetchResult;
+      assert.equal(await loadExhibitContentPartial("missing_exhibit", "zh"), null);
+    }
+  } finally {
+    globalThis.fetch = previousFetch;
   }
 });
 

@@ -4,7 +4,7 @@
  * 运行时确定性生成(mulberry32,与地面点场共用 PRNG),不占离线缓存格式。
  */
 
-import { mulberry32 } from "./groundPointField.ts";
+import { mulberry32 } from "./seededRandom.ts";
 
 const AMBIENT_EXTENT_XZ = 26;
 const AMBIENT_Y_MIN = -4.2;

@@ -42,16 +42,16 @@ export const generatedMobileTerminalCopy = {
       "idle": "Mobile terminal idle"
     },
     "projectDetails": {
-      "currentSignal": "Current Signal",
-      "spaceLayer": "SPACE Layer",
-      "archiveNote": "Archive Note",
+      "currentSignal": "Role / Context",
+      "spaceLayer": "Project context",
+      "archiveNote": "Project status",
       "tags": "tags",
       "media": "media",
       "imageAlt": "image"
     },
     "projects": {
       "command": "$ open Projects",
-      "lede": "A phone-readable index for future exhibition rooms. Project details stay text-first until real media is ready."
+      "lede": "Selected architectural work and academic design studies."
     },
     "skills": {
       "command": "$ cat Skills.md",
@@ -59,58 +59,71 @@ export const generatedMobileTerminalCopy = {
     },
     "soul": {
       "command": "$ cat Soul.md",
-      "bio": "LizzardKevin is an architecture-trained creative technologist working across spatial design, AI image workflows, web experiments, photography, music, and personal culture archives.",
+      "bio": "I am Tianyi WANG / LizzardKevin, a Shenzhen-based architectural designer and AIGC visual creator. My work connects architectural training at Pratt and Columbia with spatial storytelling, visualization and AI production workflows at Aedas.",
       "sections": [
         {
           "title": "Education",
-          "meta": "Pratt Institute / Columbia University",
-          "summary": "Architectural studio training shaped the way I read scale, sequence, model logic, and visual systems.",
+          "meta": "Pratt Institute · Columbia University GSAPP",
+          "summary": "Architectural education spanning building design, interior space and research into public life.",
           "details": [
-            "Built a foundation in drawings, sections, physical models, research boards, and spatial storytelling.",
-            "Moved toward computational and AI-assisted methods through research-led spatial experiments."
+            "2022–2023 · Columbia University GSAPP, Manhattan, New York · M.S. Advanced Architectural Design.",
+            "2017–2022 · Pratt Institute School of Architecture, Brooklyn, New York · Bachelor of Architecture (2022), minor in Interior Design.",
+            "2022 · Sovereignty of Voices · Columbia studio with Wentao LIU; work shown in the Parallel UN exhibition, September 1–30, 2022.",
+            "2022 · Liberation of Antarctica · Individual speculative redevelopment study at McMurdo Station.",
+            "2021 · Tree Habitat · Individual mixed-use tower study in Shenzhen; shortlisted in Skyhive 2021.",
+            "2021 · Three Circles In · Guangzhou urban acupuncture degree project with Tiancheng YE.",
+            "2020 · The Home Alive · Individual modular housing study in Levittown; honorable mention in HOME 2020.",
+            "2019 · Sky Village · Multigenerational housing in Brooklyn with Tiancheng YE.",
+            "2019 · Storyline Studio · Individual film-studio design in Manhattan."
           ]
         },
         {
-          "title": "Professional Practice",
-          "meta": "Professional practice",
-          "summary": "Three years of practice turned spatial ideas into collaboration, delivery, constraints, and presentation logic.",
+          "title": "Professional practice",
+          "meta": "Aedas · Shenzhen · September 2023–present",
+          "summary": "Architectural Designer and AIGC Lead, connecting concept development, visualization and repeatable AI production workflows.",
           "details": [
-            "Worked across concept design, modeling, drawings, visualization, material studies, and presentation packages.",
-            "Public work will be shown through abstracted diagrams and non-confidential process fragments."
+            "Led the in-house AIGC team and built AI rendering and animation workflows with Stable Diffusion WebUI and ComfyUI, later extending to Lovart.",
+            "Developed reusable prompt templates and workflows; produced renders, AI animation and video for more than 20 projects.",
+            "Collaborated on concepts, 3D modeling, post-production and presentations; promoted from Junior Designer to Designer in early 2025.",
+            "2025–2026 · UABB Huaqiangbei study: visual narratives and models examining urban history and possible future city scenarios.",
+            "April 2025 · Game Jam · Lead level design for an in-game city, using urban fabric to organize the environment."
           ]
         },
         {
-          "title": "Persona",
-          "meta": "Personal archive",
-          "summary": "Photography, bass practice, band memory, anime, games, and visual references define the personal side of the archive.",
-          "details": [
-            "Images are treated as observation systems rather than single portfolio shots.",
-            "Music and culture rooms hold sound, posters, references, and original experiment nodes."
-          ]
+          "title": "Photography",
+          "meta": "Urban observation",
+          "summary": "Photography informs how I notice light, scale and everyday spaces.",
+          "details": []
         },
         {
-          "title": "Rule",
-          "meta": "Working principles",
-          "summary": "The work favors fast tests, readable process, precise visual decisions, and tools that serve the idea.",
-          "details": [
-            "Mobile remains text-first and lightweight while desktop SPACE carries heavier media and interaction.",
-            "Unfinished work can stay visible when the process explains why it matters."
-          ]
+          "title": "Music / Band",
+          "meta": "Bass and rhythm",
+          "summary": "Bass and band practice are part of my life beyond architectural work.",
+          "details": []
+        },
+        {
+          "title": "Visual culture",
+          "meta": "Animation and games",
+          "summary": "Animation, games and visual references inform my interest in atmosphere and narrative.",
+          "details": []
+        },
+        {
+          "title": "Experiments",
+          "meta": "SPACE and AI workflows",
+          "summary": "I explore how spatial ideas can become interactive environments and repeatable visual workflows.",
+          "details": []
         }
       ]
     },
     "contact": {
       "command": "$ cat Contact.md",
-      "name": "Wang Tianyi",
-      "roleLine": "AI Visual Creator/ Architect/ Photographer/ Bassist",
+      "note": "mobile terminal only gives brief index. Desktop opens full SPACE experience.",
+      "name": "Tianyi WANG / LizzardKevin",
+      "roleLine": "Architectural designer / AIGC visual creator",
       "lines": [
         {
-          "label": "contact",
+          "label": "Email",
           "values": [
-            {
-              "text": "+86 13682600019",
-              "href": "tel:+8613682600019"
-            },
             {
               "text": "lizzardkevin@gmail.com",
               "href": "mailto:lizzardkevin@gmail.com"
@@ -118,32 +131,41 @@ export const generatedMobileTerminalCopy = {
           ]
         },
         {
-          "label": "location",
+          "label": "Email",
           "values": [
             {
-              "text": "Shenzhen, China"
+              "text": "lizzardkevin@qq.com",
+              "href": "mailto:lizzardkevin@qq.com"
             }
           ]
         },
         {
-          "label": "github",
+          "label": "GitHub",
           "values": [
             {
-              "text": "lizzardkevin",
-              "href": "https://github.com/lizzardkevin"
+              "text": "LizzardKevin",
+              "href": "https://github.com/LizzardKevin"
             }
           ]
         },
         {
-          "label": "practice",
+          "label": "Based in",
           "values": [
             {
-              "text": "(spatial + visual + AI) x Creativity"
+              "text": "Shenzhen / 深圳"
+            }
+          ]
+        },
+        {
+          "label": "Phone",
+          "values": [
+            {
+              "text": "+86 13682600019",
+              "href": "tel:+8613682600019"
             }
           ]
         }
-      ],
-      "note": "mobile terminal only gives brief index. Desktop opens full SPACE experience."
+      ]
     }
   },
   "zh": {
@@ -168,16 +190,16 @@ export const generatedMobileTerminalCopy = {
       "idle": "移动端 terminal 待机"
     },
     "projectDetails": {
-      "currentSignal": "当前信号",
-      "spaceLayer": "SPACE 层级",
-      "archiveNote": "档案备注",
+      "currentSignal": "角色 / 背景",
+      "spaceLayer": "项目语境",
+      "archiveNote": "项目属性",
       "tags": "标签",
       "media": "媒体",
       "imageAlt": "图片"
     },
     "projects": {
       "command": "$ open Projects",
-      "lede": "适合手机快速阅读的展厅索引。真实媒体完成前，项目详情先保持文字优先。"
+      "lede": "建筑作品与学术设计研究。"
     },
     "skills": {
       "command": "$ cat Skills.md",
@@ -185,58 +207,71 @@ export const generatedMobileTerminalCopy = {
     },
     "soul": {
       "command": "$ cat Soul.md",
-      "bio": "我把建筑训练、空间叙事、摄影观察、乐队经验和 AI 创作方法放在同一个个人档案里。",
+      "bio": "我是王天奕 / LizzardKevin，现居深圳，从事建筑设计与 AIGC 视觉创作。从 Pratt、Columbia 的建筑训练到 Aedas 的职业实践，我关注如何用空间叙事、图像和 AI 工作流程表达设计。",
       "sections": [
         {
-          "title": "Education",
-          "meta": "Pratt Institute / Columbia University",
-          "summary": "建筑 studio 训练建立了我理解尺度、叙事、图像和系统的底层方法。",
+          "title": "教育经历",
+          "meta": "Pratt Institute · Columbia University GSAPP",
+          "summary": "从建筑与室内空间设计，到公共生活与空间叙事研究。",
           "details": [
-            "用图纸、剖面、模型、材料和研究板建立空间表达语言。",
-            "把研究型课程、空间原型和 AI 辅助设计放进同一套创作方法里。"
+            "2022–2023 · Columbia University GSAPP，纽约曼哈顿 · M.S. Advanced Architectural Design（高级建筑设计理学硕士）。",
+            "2017–2022 · Pratt Institute School of Architecture，纽约布鲁克林 · 2022 年获建筑学学士，辅修室内设计。",
+            "2022 · Sovereignty of Voices · 与 Wentao LIU 合作的 Columbia studio 作品；于 2022 年 9 月 1–30 日在 Parallel UN 展览中展出。",
+            "2022 · Liberation of Antarctica · 位于麦克默多站的个人推想型更新研究。",
+            "2021 · Tree Habitat · 深圳复合功能塔楼个人研究；入围 Skyhive 2021。",
+            "2021 · Three Circles In · 与 Tiancheng YE 合作的广州城市针灸毕业设计。",
+            "2020 · The Home Alive · Levittown 模块化住宅个人研究；获 HOME 2020 荣誉提名。",
+            "2019 · Sky Village · 与 Tiancheng YE 合作的布鲁克林多代共居设计。",
+            "2019 · Storyline Studio · 曼哈顿电影工作室个人设计。"
           ]
         },
         {
-          "title": "Professional Practice",
-          "meta": "三年职业阶段",
-          "summary": "三年的建筑职业阶段让空间想法进入真实协作、交付和限制条件中。",
+          "title": "职业实践",
+          "meta": "Aedas · 深圳 · 2023 年 9 月至今",
+          "summary": "作为建筑设计师与 AIGC 负责人，将概念设计、视觉表达与可复用的 AI 制作流程连接起来。",
           "details": [
-            "参与概念设计、建模、图纸、渲染、材料研究和汇报材料组织。",
-            "保密内容会用抽象 diagram、模型切片和过程说明替代。"
+            "带领内部 AIGC 团队，以 Stable Diffusion WebUI、ComfyUI 建立 AI 渲染与动画流程，之后扩展至 Lovart。",
+            "开发可复用的提示词模板和工作流程，为 20 多个项目制作渲染、AI 动画与视频。",
+            "参与概念设计、三维建模、后期和汇报；2025 年初由 Junior Designer 晋升为 Designer。",
+            "2025–2026 · UABB 华强北研究：通过视觉叙事与模型呈现城市历史及未来城市情境。",
+            "2025 年 4 月 · Game Jam · 主导游戏城市关卡设计，以城市肌理组织场景。"
           ]
         },
         {
-          "title": "Persona",
-          "meta": "个人档案",
-          "summary": "摄影、贝斯、乐队经验、动画、游戏和视觉参考构成个人档案中更私人的部分。",
-          "details": [
-            "摄影更像持续观察系统，而不是普通相册。",
-            "音乐和文化区域会成为声音、海报、参考和原创实验节点。"
-          ]
+          "title": "摄影",
+          "meta": "城市观察",
+          "summary": "摄影影响我对光线、尺度和日常空间的观察。",
+          "details": []
         },
         {
-          "title": "Rule",
-          "meta": "工作原则",
-          "summary": "创作优先保持快速测试、过程可读、视觉判断明确，以及工具服务于想法。",
-          "details": [
-            "移动端保持文字优先和轻量，桌面 SPACE 承载更重的媒体和完整交互。",
-            "未完成的内容可以保留，只要过程本身说明了它为什么重要。"
-          ]
+          "title": "音乐 / 乐队",
+          "meta": "贝斯与节奏",
+          "summary": "建筑工作之外，贝斯与乐队练习也是我的生活的一部分。",
+          "details": []
+        },
+        {
+          "title": "视觉文化",
+          "meta": "动画与游戏",
+          "summary": "动画、游戏与视觉参考影响我对气氛和叙事的兴趣。",
+          "details": []
+        },
+        {
+          "title": "实验",
+          "meta": "SPACE 与 AI 工作流程",
+          "summary": "我探索空间想法如何转化为交互环境，以及可复用的视觉工作流程。",
+          "details": []
         }
       ]
     },
     "contact": {
       "command": "$ cat Contact.md",
-      "name": "王天奕",
-      "roleLine": "AI视觉创作者 / 建筑师 / 摄影师 / 贝斯手",
+      "note": "移动端 terminal 只提供简要索引。桌面端会打开完整的 SPACE 体验。",
+      "name": "王天奕 / LizzardKevin",
+      "roleLine": "建筑设计师 / AIGC 视觉创作者",
       "lines": [
         {
-          "label": "contact",
+          "label": "邮箱",
           "values": [
-            {
-              "text": "+86 13682600019",
-              "href": "tel:+8613682600019"
-            },
             {
               "text": "lizzardkevin@gmail.com",
               "href": "mailto:lizzardkevin@gmail.com"
@@ -244,32 +279,41 @@ export const generatedMobileTerminalCopy = {
           ]
         },
         {
-          "label": "location",
+          "label": "邮箱",
           "values": [
             {
-              "text": "深圳，中国"
+              "text": "lizzardkevin@qq.com",
+              "href": "mailto:lizzardkevin@qq.com"
             }
           ]
         },
         {
-          "label": "github",
+          "label": "GitHub",
           "values": [
             {
-              "text": "lizzardkevin",
-              "href": "https://github.com/lizzardkevin"
+              "text": "LizzardKevin",
+              "href": "https://github.com/LizzardKevin"
             }
           ]
         },
         {
-          "label": "practice",
+          "label": "现居",
           "values": [
             {
-              "text": "(空间 + 视觉 + AI) x 创造力"
+              "text": "Shenzhen / 深圳"
+            }
+          ]
+        },
+        {
+          "label": "电话",
+          "values": [
+            {
+              "text": "+86 13682600019",
+              "href": "tel:+8613682600019"
             }
           ]
         }
-      ],
-      "note": "移动端 terminal 只提供简要索引。桌面端会打开完整的 SPACE 体验。"
+      ]
     }
   }
 };
@@ -287,16 +331,16 @@ export const generatedMobileProjectItems = [
       "zh": "一个学生阶段建筑作品，研究高密度塔楼如何借由红树林结构、复合功能、动线和空中绿化，成为一种城市栖居系统。"
     },
     "signal": {
-      "en": "The project should read as academic architecture and spatial design research, with the model and images serving the concept rather than claiming finished delivery.",
-      "zh": "这个项目应被读作 academic architecture 和 spatial design research；模型与图片服务于概念，而不是包装成成熟交付项目。"
+      "en": "Concept, design, model, presentation",
+      "zh": "概念、设计、建模、表达"
     },
     "spaceLayer": {
-      "en": "Education layer / Student Room entry for architecture studio work, image boards, model views, and concept notes.",
-      "zh": "Education layer / Student Room 条目，用于承载建筑 studio 作品、图像板、模型视角和概念说明。"
+      "en": "student work/mixed use highrise",
+      "zh": "学生作品 / 复合功能高层"
     },
     "archiveNote": {
-      "en": "Mobile keeps this entry text-and-image first. The 3D model remains a desktop Focus artifact and is not shown in the phone view.",
-      "zh": "移动端保持文字和图片优先。3D 模型保留给桌面端 Focus，不在手机页面展示。"
+      "en": "Student portfolio exhibit",
+      "zh": "学生作品集展品"
     },
     "mediaKind": "image",
     "mediaStatus": {
@@ -347,24 +391,24 @@ export const generatedMobileProjectItems = [
     "id": "arch_uabb_exhibit",
     "title": "UABB Exhibit",
     "indexLabel": "Student Room / Urban Research",
-    "category": "Study",
-    "stageId": "stage-student",
-    "stageLabel": "Education",
+    "category": "Architecture",
+    "stageId": "stage-work",
+    "stageLabel": "Professional Practice",
     "summary": {
       "en": "An architecture-school research project that turns Shenzhen field observation, public interfaces, informal economies, and mapping work into a spatial exhibition model.",
       "zh": "一个建筑学习阶段的研究项目，把深圳现场观察、公共界面、非正式经济和 mapping 工作转译成一个空间展览模型。"
     },
     "signal": {
-      "en": "The work should read as research translated into space: observation, mapping, model logic, and exhibition language working together.",
-      "zh": "这个作品应被读作被转译为空间的研究：观察、mapping、模型逻辑和展览语言共同工作。"
+      "en": "Research, mapping, modeling, exhibition narrative",
+      "zh": "研究、mapping、建模、展览叙事"
     },
     "spaceLayer": {
-      "en": "Education layer / Urban research entry for model-based exhibition thinking and future research boards.",
-      "zh": "Education layer / Urban research 条目，用于承载基于模型的展览思考和未来研究板内容。"
+      "en": "UABB exhibition proposal / urban typology research",
+      "zh": "UABB 展览方案 / 城市类型研究"
     },
     "archiveNote": {
-      "en": "Mobile keeps the project text-first while desktop SPACE carries the heavier model artifact.",
-      "zh": "移动端先保持文字优先；较重的模型展品由桌面端 SPACE 承载。"
+      "en": "Biennale exhibit archive",
+      "zh": "双年展展品档案"
     },
     "mediaKind": "model",
     "mediaStatus": {
@@ -410,16 +454,16 @@ export const generatedMobileProjectItems = [
       "zh": "一个 2021 年学生作品：通过桌面端模型与建筑动画，模拟吊车辅助、3D 打印水泥、0.9 米阶段控制和预制构件协同的建造方式。"
     },
     "signal": {
-      "en": "The work should feel compact and process-led: model first, one animation second, with no extra documentation noise.",
-      "zh": "这个作品应该保持紧凑并以过程为主：先看模型，再看一个动画，不加入多余文档噪音。"
+      "en": "Design, model, fabrication workflow, video presentation",
+      "zh": "设计、建模、制造流程、视频表达"
     },
     "spaceLayer": {
-      "en": "Education layer / Fabrication entry for physical modeling, 3D printing, and process video.",
-      "zh": "Education layer / Fabrication 条目，用于呈现实体模型、3D 打印和过程视频。"
+      "en": "student work / 3D printing architecture animation",
+      "zh": "学生作品 / 3D 打印建筑动画"
     },
     "archiveNote": {
-      "en": "Mobile describes the artifact; desktop Focus shows the rotatable model and MP4 process animation.",
-      "zh": "移动端描述作品；桌面端 Focus 展示可旋转模型和 MP4 过程动画。"
+      "en": "Portfolio exhibit draft",
+      "zh": "作品集展品草案"
     },
     "mediaKind": "video",
     "mediaStatus": {
@@ -441,322 +485,225 @@ export const generatedMobileProjectItems = [
     ]
   },
   {
-    "id": "project-02",
-    "title": "Project 02",
-    "indexLabel": "Student Room / Object 02",
+    "id": "sovereignty-of-voices",
+    "title": "Sovereignty of Voices",
+    "indexLabel": "2022 · Manhattan, New York",
     "category": "Study",
     "stageId": "stage-student",
     "stageLabel": "Education",
     "summary": {
-      "en": "Reserved for Pratt and Columbia work, diagrams, models, and research notes.",
-      "zh": "预留给 Pratt 和 Columbia 阶段的作品、diagram、模型和研究笔记。"
+      "en": "A public landscape and theater proposal for the UN north lawn, connecting underground theaters, an accessible landscape and a roof through a central circulation space.",
+      "zh": "为联合国北草坪提出的公共景观与剧场方案，以中心交通空间连接地下剧场、可进入的地景与屋顶。"
     },
     "signal": {
-      "en": "Academic research, diagram logic, and studio traces can be collected here.",
-      "zh": "学术研究、diagram 逻辑和 studio 过程痕迹会收纳在这里。"
+      "en": "Columbia GSAPP · Summer studio",
+      "zh": "Columbia GSAPP · 夏季 studio"
     },
     "spaceLayer": {
-      "en": "Study wall slot for still images, research boards, and layered notes.",
-      "zh": "Study wall 的对象位，用于静态图像、研究板和分层笔记。"
+      "en": "Site: Manhattan, New York",
+      "zh": "项目地点：纽约曼哈顿"
     },
     "archiveNote": {
-      "en": "Keep this as a second student-stage project position for deeper process material.",
-      "zh": "保留为第二个学生阶段位置，用于更深入的过程材料。"
-    },
-    "mediaKind": "image",
-    "mediaStatus": {
-      "en": "image sequence reserved",
-      "zh": "预留 image sequence"
-    }
-  },
-  {
-    "id": "project-03",
-    "title": "Project 03",
-    "indexLabel": "Work Room / Object 01",
-    "category": "Architecture",
-    "stageId": "stage-work",
-    "stageLabel": "Professional Practice",
-    "summary": {
-      "en": "Reserved for abstracted professional roles, workflows, and delivery logic.",
-      "zh": "预留给抽象化处理后的职业角色、工作流和交付逻辑。"
-    },
-    "signal": {
-      "en": "Professional practice is represented through workflow, responsibility, and delivery logic.",
-      "zh": "职业阶段会通过工作流、职责范围和交付逻辑来呈现。"
-    },
-    "spaceLayer": {
-      "en": "Work room fragment for text-led cases and non-confidential process records.",
-      "zh": "Work room 中的片段，用于文字主导的案例和非保密过程记录。"
-    },
-    "archiveNote": {
-      "en": "Replace with abstracted office-era material that can be shown publicly.",
-      "zh": "之后替换为可以公开展示的抽象化办公室阶段材料。"
+      "en": "Academic design proposal.",
+      "zh": "学术设计方案。"
     },
     "mediaKind": "text",
     "mediaStatus": {
-      "en": "case note reserved",
-      "zh": "预留 case note"
+      "en": "Text study",
+      "zh": "文字研究"
+    },
+    "subtitle": {
+      "en": "2022 · Columbia GSAPP · Summer studio",
+      "zh": "2022 · Columbia GSAPP · 夏季 studio"
+    },
+    "story": {
+      "en": "Columbia GSAPP · Summer studio. Site: Manhattan, New York. Credits: Tianyi WANG; Wentao LIU.",
+      "zh": "Columbia GSAPP · 夏季 studio。项目地点：纽约曼哈顿。作者：Tianyi WANG; Wentao LIU。"
     }
   },
   {
-    "id": "project-04",
-    "title": "Project 04",
-    "indexLabel": "Work Room / Object 02",
-    "category": "Architecture",
-    "stageId": "stage-work",
-    "stageLabel": "Professional Practice",
-    "summary": {
-      "en": "Reserved for non-confidential architecture fragments, spatial diagrams, and visual output.",
-      "zh": "预留给非保密建筑片段、空间 diagram 和视觉产出。"
-    },
-    "signal": {
-      "en": "Built-environment thinking can sit here without exposing restricted project details.",
-      "zh": "这里可以展示建筑环境思考，同时不暴露受限制的项目细节。"
-    },
-    "spaceLayer": {
-      "en": "Practice object slot for spatial diagrams, model shells, and visual output.",
-      "zh": "Practice 对象位，用于空间 diagram、模型外壳和视觉输出。"
-    },
-    "archiveNote": {
-      "en": "Use this entry for architecture material once disclosure boundaries are clear.",
-      "zh": "当公开边界明确后，用这个条目放置建筑相关材料。"
-    },
-    "mediaKind": "model",
-    "mediaStatus": {
-      "en": "model shell reserved",
-      "zh": "预留 model shell"
-    }
-  },
-  {
-    "id": "project-05",
-    "title": "Project 05",
-    "indexLabel": "Music Room / Object 01",
-    "category": "Music",
-    "stageId": "stage-music",
-    "stageLabel": "Personal Archive",
-    "summary": {
-      "en": "Reserved for bass lines, rehearsal recordings, and live fragments.",
-      "zh": "预留给 bass line、排练录音和现场片段。"
-    },
-    "signal": {
-      "en": "Music appears as rhythm, practice memory, and low-frequency personal material.",
-      "zh": "音乐会以节奏、练习记忆和低频个人材料的方式出现。"
-    },
-    "spaceLayer": {
-      "en": "Music room object slot for audio fragments and future playback controls.",
-      "zh": "Music room 的对象位，用于音频片段和之后的播放控制。"
-    },
-    "archiveNote": {
-      "en": "Keep the copy short so sound or score can become the main exhibit later.",
-      "zh": "文字保持短，让声音或谱面之后成为主要展品。"
-    },
-    "mediaKind": "audio",
-    "mediaStatus": {
-      "en": "audio player reserved",
-      "zh": "预留 audio player"
-    }
-  },
-  {
-    "id": "project-06",
-    "title": "Project 06",
-    "indexLabel": "Music Room / Object 02",
-    "category": "Music",
-    "stageId": "stage-music",
-    "stageLabel": "Personal Archive",
-    "summary": {
-      "en": "Reserved for band process, stage memory, instruments, posters, and sound notes.",
-      "zh": "预留给乐队过程、舞台记忆、乐器、海报和声音笔记。"
-    },
-    "signal": {
-      "en": "Performance context, rehearsal traces, and band artifacts can be assembled here.",
-      "zh": "演出语境、排练痕迹和乐队物件可以在这里组合。"
-    },
-    "spaceLayer": {
-      "en": "Music room media slot for video, posters, instruments, and sound notes.",
-      "zh": "Music room 的媒体位，用于 video、poster、乐器和声音笔记。"
-    },
-    "archiveNote": {
-      "en": "Use this for material that needs movement rather than a static index row.",
-      "zh": "用于那些需要动态呈现，而不是只放静态索引行的材料。"
-    },
-    "mediaKind": "video",
-    "mediaStatus": {
-      "en": "video slot reserved",
-      "zh": "预留 video slot"
-    }
-  },
-  {
-    "id": "project-07",
-    "title": "Project 07",
-    "indexLabel": "Culture Room / Object 01",
-    "category": "Culture",
-    "stageId": "stage-culture",
-    "stageLabel": "Personal Archive",
-    "summary": {
-      "en": "Reserved for influence mapping, original studies, and visual references.",
-      "zh": "预留给影响来源 mapping、原创研究和视觉参考。"
-    },
-    "signal": {
-      "en": "Reference culture and personal taste are treated as source material, not decoration.",
-      "zh": "参考文化和个人审美在这里被当作创作材料，而不是装饰。"
-    },
-    "spaceLayer": {
-      "en": "Culture room shelf for influence maps, image studies, and annotated references.",
-      "zh": "Culture room 的 shelf，用于影响图谱、图像研究和带注释的参考。"
-    },
-    "archiveNote": {
-      "en": "Replace with references only when they connect clearly to original work.",
-      "zh": "只有当参考能清楚连接到原创产出时，再替换进这个位置。"
-    },
-    "mediaKind": "image",
-    "mediaStatus": {
-      "en": "image board reserved",
-      "zh": "预留 image board"
-    }
-  },
-  {
-    "id": "project-08",
-    "title": "Project 08",
-    "indexLabel": "Culture Room / Object 02",
-    "category": "Culture",
-    "stageId": "stage-culture",
-    "stageLabel": "Personal Archive",
-    "summary": {
-      "en": "Reserved for original poster experiments, character atmosphere, and image translation.",
-      "zh": "预留给原创 poster 实验、角色氛围和图像转译。"
-    },
-    "signal": {
-      "en": "Graphic studies and character atmosphere can show how references become output.",
-      "zh": "平面研究和角色氛围可以说明参考如何变成自己的输出。"
-    },
-    "spaceLayer": {
-      "en": "Culture room wall slot for poster tests, compositions, and image translation.",
-      "zh": "Culture room 的 wall slot，用于 poster 测试、构图和图像转译。"
-    },
-    "archiveNote": {
-      "en": "Keep this slot for original experiments rather than copied reference material.",
-      "zh": "这个位置保留给原创实验，而不是直接复制参考材料。"
-    },
-    "mediaKind": "image",
-    "mediaStatus": {
-      "en": "poster preview reserved",
-      "zh": "预留 poster preview"
-    }
-  },
-  {
-    "id": "project-09",
-    "title": "Project 09",
-    "indexLabel": "Explore Room / Object 01",
-    "category": "Experiment",
-    "stageId": "stage-explore",
-    "stageLabel": "Explore",
-    "summary": {
-      "en": "Reserved for photography, AI image workflow, and observed urban fragments.",
-      "zh": "预留给摄影、AI image workflow 和城市观察片段。"
-    },
-    "signal": {
-      "en": "Image experiments, observation, and tool-assisted workflows can converge here.",
-      "zh": "图像实验、观察和工具辅助流程可以在这里汇合。"
-    },
-    "spaceLayer": {
-      "en": "Exploration room slot for photo grids, AI process images, and urban fragments.",
-      "zh": "Exploration room 的对象位，用于 photo grid、AI 过程图和城市片段。"
-    },
-    "archiveNote": {
-      "en": "Use this for visual experiments that do not belong to a single life stage.",
-      "zh": "用于那些不属于单一人生阶段的视觉实验。"
-    },
-    "mediaKind": "image",
-    "mediaStatus": {
-      "en": "photo grid reserved",
-      "zh": "预留 photo grid"
-    }
-  },
-  {
-    "id": "project-10",
-    "title": "Project 10",
-    "indexLabel": "Explore Room / Object 02",
-    "category": "Experiment",
-    "stageId": "stage-explore",
-    "stageLabel": "Explore",
-    "summary": {
-      "en": "Reserved for web, WebGPU notes, creative tooling, and unfinished prototypes.",
-      "zh": "预留给 web、WebGPU 笔记、创意工具和未完成 prototype。"
-    },
-    "signal": {
-      "en": "Web prototypes and tool experiments become a visible research surface.",
-      "zh": "Web prototype 和工具实验会成为可见的研究界面。"
-    },
-    "spaceLayer": {
-      "en": "Exploration room interactive slot for web, WebGPU notes, and creative tooling.",
-      "zh": "Exploration room 的交互位，用于 web、WebGPU 笔记和创意工具。"
-    },
-    "archiveNote": {
-      "en": "Keep this lightweight on mobile and reserve heavy interaction for desktop SPACE.",
-      "zh": "移动端保持轻量，重交互留给桌面 SPACE。"
-    },
-    "mediaKind": "model",
-    "mediaStatus": {
-      "en": "interactive preview reserved",
-      "zh": "预留 interactive preview"
-    }
-  },
-  {
-    "id": "project-11",
-    "title": "Project 11",
-    "indexLabel": "Explore Room / Open Slot",
-    "category": "Experiment",
-    "stageId": "stage-explore",
-    "stageLabel": "Explore",
-    "summary": {
-      "en": "An extra project position reserved for work that does not fit the current rooms yet.",
-      "zh": "额外预留的位置，用于暂时不适合当前房间结构的作品。"
-    },
-    "signal": {
-      "en": "Unsorted work can stay visible without forcing it into the wrong room.",
-      "zh": "未分类作品可以保持可见，而不是被强行放进不合适的房间。"
-    },
-    "spaceLayer": {
-      "en": "Open exploration slot for future objects, writing, or hybrid media.",
-      "zh": "开放的 Explore 对象位，用于未来物件、写作或混合媒体。"
-    },
-    "archiveNote": {
-      "en": "Use this as a flexible placeholder when new work changes the room structure.",
-      "zh": "当新作品改变房间结构时，把这里作为弹性占位。"
-    },
-    "mediaKind": "text",
-    "mediaStatus": {
-      "en": "future note reserved",
-      "zh": "预留 future note"
-    }
-  },
-  {
-    "id": "project-12",
-    "title": "Project 12",
-    "indexLabel": "Student Room / Process Slot",
+    "id": "liberation-of-antarctica",
+    "title": "Liberation of Antarctica",
+    "indexLabel": "2022 · McMurdo Station, Antarctica",
     "category": "Study",
     "stageId": "stage-student",
     "stageLabel": "Education",
     "summary": {
-      "en": "Reserved for process scans, physical models, and transitions between learning stages.",
-      "zh": "预留给过程扫描、实体模型和学习阶段之间的转变。"
+      "en": "A speculative phased plan for reducing human occupation in Antarctica, consolidating research stations and eventually shifting toward automated remote observation after 2100.",
+      "zh": "推想分阶段减少人类对南极的占用，整合科考站，并在 2100 年之后逐渐转向自动化远程观测。"
     },
     "signal": {
-      "en": "Process material can show transitions between learning phases and working habits.",
-      "zh": "过程材料可以展示学习阶段和工作习惯之间的过渡。"
+      "en": "Columbia GSAPP · Fall studio · Individual work",
+      "zh": "Columbia GSAPP · 秋季 studio · 个人作品"
     },
     "spaceLayer": {
-      "en": "Student room process slot for scans, physical models, and transition notes.",
-      "zh": "Student room 的过程位，用于扫描件、实体模型和阶段转换笔记。"
+      "en": "Site: McMurdo Station, Antarctica",
+      "zh": "项目地点：南极麦克默多站"
     },
     "archiveNote": {
-      "en": "Keep this entry process-led so finished work does not hide the making logic.",
-      "zh": "保持这个条目以过程为主，避免完成品遮住制作逻辑。"
+      "en": "Academic design proposal.",
+      "zh": "学术设计方案。"
     },
-    "mediaKind": "image",
+    "mediaKind": "text",
     "mediaStatus": {
-      "en": "process preview reserved",
-      "zh": "预留 process preview"
+      "en": "Text study",
+      "zh": "文字研究"
+    },
+    "subtitle": {
+      "en": "2022 · Columbia GSAPP · Fall studio · Individual work",
+      "zh": "2022 · Columbia GSAPP · 秋季 studio · 个人作品"
+    },
+    "story": {
+      "en": "Columbia GSAPP · Fall studio · Individual work. Site: McMurdo Station, Antarctica. Credits: Tianyi WANG.",
+      "zh": "Columbia GSAPP · 秋季 studio · 个人作品。项目地点：南极麦克默多站。作者：Tianyi WANG。"
+    }
+  },
+  {
+    "id": "three-circles-in",
+    "title": "Three Circles In",
+    "indexLabel": "2021 · Guangzhou, China",
+    "category": "Study",
+    "stageId": "stage-student",
+    "stageLabel": "Education",
+    "summary": {
+      "en": "An urban acupuncture study reconnecting buildings, infrastructure and overlooked communal spaces through a continuous system of public landforms.",
+      "zh": "以城市针灸为方法，通过连续的公共地形系统重新连接建筑、基础设施与被忽视的社区公共空间。"
+    },
+    "signal": {
+      "en": "Pratt · Degree project · Group work",
+      "zh": "Pratt · 毕业设计 · 合作作品"
+    },
+    "spaceLayer": {
+      "en": "Site: Guangzhou, China",
+      "zh": "项目地点：中国广州"
+    },
+    "archiveNote": {
+      "en": "Academic design proposal.",
+      "zh": "学术设计方案。"
+    },
+    "mediaKind": "text",
+    "mediaStatus": {
+      "en": "Text study",
+      "zh": "文字研究"
+    },
+    "subtitle": {
+      "en": "2021 · Pratt · Degree project · Group work",
+      "zh": "2021 · Pratt · 毕业设计 · 合作作品"
+    },
+    "story": {
+      "en": "Pratt · Degree project · Group work. Site: Guangzhou, China. Credits: Tianyi WANG; Tiancheng YE.",
+      "zh": "Pratt · 毕业设计 · 合作作品。项目地点：中国广州。作者：Tianyi WANG; Tiancheng YE。"
+    }
+  },
+  {
+    "id": "the-home-alive",
+    "title": "The Home Alive",
+    "indexLabel": "2020 · Levittown",
+    "category": "Study",
+    "stageId": "stage-student",
+    "stageLabel": "Education",
+    "summary": {
+      "en": "A modular housing proposal with an adaptable structural frame and replaceable floor and facade panels, allowing homes to change with the needs of a family. Honorable mention, HOME 2020.",
+      "zh": "以可调整的结构框架及可替换的楼面、立面面板组织模块化住宅，使住宅随家庭需求变化。获 HOME 2020 荣誉提名。"
+    },
+    "signal": {
+      "en": "Pratt ARCH 401 · Individual work",
+      "zh": "Pratt ARCH 401 · 个人作品"
+    },
+    "spaceLayer": {
+      "en": "Site: Levittown",
+      "zh": "项目地点：Levittown"
+    },
+    "archiveNote": {
+      "en": "Academic design proposal.",
+      "zh": "学术设计方案。"
+    },
+    "mediaKind": "text",
+    "mediaStatus": {
+      "en": "Text study",
+      "zh": "文字研究"
+    },
+    "subtitle": {
+      "en": "2020 · Pratt ARCH 401 · Individual work",
+      "zh": "2020 · Pratt ARCH 401 · 个人作品"
+    },
+    "story": {
+      "en": "Pratt ARCH 401 · Individual work. Site: Levittown. Credits: Tianyi WANG.",
+      "zh": "Pratt ARCH 401 · 个人作品。项目地点：Levittown。作者：Tianyi WANG。"
+    }
+  },
+  {
+    "id": "sky-village",
+    "title": "Sky Village",
+    "indexLabel": "2019 · Brooklyn, New York",
+    "category": "Study",
+    "stageId": "stage-student",
+    "stageLabel": "Education",
+    "summary": {
+      "en": "A multigenerational co-housing proposal distributing shared facilities and circulation across a residential complex while retaining private space within each home.",
+      "zh": "多代共居住宅方案，将共享设施和交通路径分布在住区中，同时保留各住宅单元的私密空间。"
+    },
+    "signal": {
+      "en": "Pratt ARCH 301 · Group work",
+      "zh": "Pratt ARCH 301 · 合作作品"
+    },
+    "spaceLayer": {
+      "en": "Site: Brooklyn, New York",
+      "zh": "项目地点：纽约布鲁克林"
+    },
+    "archiveNote": {
+      "en": "Academic design proposal.",
+      "zh": "学术设计方案。"
+    },
+    "mediaKind": "text",
+    "mediaStatus": {
+      "en": "Text study",
+      "zh": "文字研究"
+    },
+    "subtitle": {
+      "en": "2019 · Pratt ARCH 301 · Group work",
+      "zh": "2019 · Pratt ARCH 301 · 合作作品"
+    },
+    "story": {
+      "en": "Pratt ARCH 301 · Group work. Site: Brooklyn, New York. Credits: Tianyi WANG; Tiancheng YE.",
+      "zh": "Pratt ARCH 301 · 合作作品。项目地点：纽约布鲁克林。作者：Tianyi WANG; Tiancheng YE。"
+    }
+  },
+  {
+    "id": "storyline-studio",
+    "title": "Storyline Studio",
+    "indexLabel": "2019 · Manhattan, New York",
+    "category": "Study",
+    "stageId": "stage-student",
+    "stageLabel": "Education",
+    "summary": {
+      "en": "A mid-rise film studio translating parallel cinematic timelines into spatial organization, testing the relationship between narrow circulation spaces and larger rooms for collective activity.",
+      "zh": "将电影中平行时间线的叙事转译为空间组织，研究狭长动线与集体活动大空间之间关系的中层电影工作室设计。"
+    },
+    "signal": {
+      "en": "Pratt ARCH 202 · Individual work",
+      "zh": "Pratt ARCH 202 · 个人作品"
+    },
+    "spaceLayer": {
+      "en": "Site: Manhattan, New York",
+      "zh": "项目地点：纽约曼哈顿"
+    },
+    "archiveNote": {
+      "en": "Academic design proposal.",
+      "zh": "学术设计方案。"
+    },
+    "mediaKind": "text",
+    "mediaStatus": {
+      "en": "Text study",
+      "zh": "文字研究"
+    },
+    "subtitle": {
+      "en": "2019 · Pratt ARCH 202 · Individual work",
+      "zh": "2019 · Pratt ARCH 202 · 个人作品"
+    },
+    "story": {
+      "en": "Pratt ARCH 202 · Individual work. Site: Manhattan, New York. Credits: Tianyi WANG.",
+      "zh": "Pratt ARCH 202 · 个人作品。项目地点：纽约曼哈顿。作者：Tianyi WANG。"
     }
   }
 ];

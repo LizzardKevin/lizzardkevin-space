@@ -3,27 +3,26 @@
 export const generatedProfileByLanguage = {
   "en": {
     "identity": {
-      "name": "LizzardKevin",
-      "displayName": "LizzardKevin",
+      "name": "Tianyi WANG / LizzardKevin",
+      "displayName": "Tianyi WANG / LizzardKevin",
       "roles": [
-        "AI visual creator",
-        "spatial designer",
-        "photographer",
-        "bassist",
-        "etc."
+        "Architectural designer",
+        "AIGC visual creator"
       ],
-      "location": "New York / Shanghai",
-      "status": "Architecture, creative technology, image-making, music, and personal culture archive.",
-      "bio": "I keep architecture training, spatial narrative, photography, band memory, and AI image workflows in the same personal archive. SPACE carries the more immersive exhibits; this page stays closer to a readable profile so visitors can quickly understand who I am, what I have done, and where the archive can grow next."
+      "location": "Shenzhen / 深圳",
+      "status": "Aedas · Architectural Designer / AIGC Lead · since September 2023",
+      "bio": "I am Tianyi WANG / LizzardKevin, a Shenzhen-based architectural designer and AIGC visual creator. My work connects architectural training at Pratt and Columbia with spatial storytelling, visualization and AI production workflows at Aedas."
     },
     "links": [
       {
-        "label": "Contact",
-        "value": "Open for selected collaborations"
+        "label": "Email",
+        "value": "lizzardkevin@gmail.com",
+        "href": "mailto:lizzardkevin@gmail.com"
       },
       {
-        "label": "Location",
-        "value": "New York / Shanghai"
+        "label": "Email",
+        "value": "lizzardkevin@qq.com",
+        "href": "mailto:lizzardkevin@qq.com"
       },
       {
         "label": "GitHub",
@@ -31,16 +30,13 @@ export const generatedProfileByLanguage = {
         "href": "https://github.com/LizzardKevin"
       },
       {
-        "label": "Practice",
-        "value": "Architecture + creative technology"
+        "label": "Based in",
+        "value": "Shenzhen / 深圳"
       },
       {
-        "label": "Archive",
-        "value": "Interactive SPACE in progress"
-      },
-      {
-        "label": "Portfolio",
-        "value": "SPACE-first work archive"
+        "label": "Phone",
+        "value": "+86 13682600019",
+        "href": "tel:+8613682600019"
       }
     ],
     "sections": [
@@ -48,19 +44,22 @@ export const generatedProfileByLanguage = {
         "id": "profile-education",
         "number": "01",
         "title": "Education",
-        "subtitle": "Pratt Institute / Columbia University",
-        "summary": "From Pratt's architecture foundation to Columbia's research-led spatial experiments, school shaped how I read scale, sequence, image, and systems.",
+        "subtitle": "Pratt Institute · Columbia University GSAPP",
+        "summary": "Architectural education spanning building design, interior space and research into public life.",
         "details": [
-          "Built a shared language across drawings, sections, models, material studies, and narrative presentation.",
-          "Connected research studios, spatial prototypes, and AI-assisted design into one working method.",
-          "Focused on how diagrams, model photography, renderings, and walk-throughs can explain a spatial idea together."
+          "2022–2023 · Columbia University GSAPP, Manhattan, New York · M.S. Advanced Architectural Design.",
+          "2017–2022 · Pratt Institute School of Architecture, Brooklyn, New York · Bachelor of Architecture (2022), minor in Interior Design."
         ],
         "fill": [
-          "Pratt becomes a foundation archive for studio intensity, drawing logic, and model language.",
-          "Columbia becomes an experiment archive for spatial research, computation, and AI visual methods.",
-          "Each academic node can connect to SPACE through project images, short statements, and walkable exhibits."
+          "2022 · Sovereignty of Voices · Columbia studio with Wentao LIU; work shown in the Parallel UN exhibition, September 1–30, 2022.",
+          "2022 · Liberation of Antarctica · Individual speculative redevelopment study at McMurdo Station.",
+          "2021 · Tree Habitat · Individual mixed-use tower study in Shenzhen; shortlisted in Skyhive 2021.",
+          "2021 · Three Circles In · Guangzhou urban acupuncture degree project with Tiancheng YE.",
+          "2020 · The Home Alive · Individual modular housing study in Levittown; honorable mention in HOME 2020.",
+          "2019 · Sky Village · Multigenerational housing in Brooklyn with Tiancheng YE.",
+          "2019 · Storyline Studio · Individual film-studio design in Manhattan."
         ],
-        "spaceUse": "In SPACE, this can become two archive walls: Pratt as foundational training, Columbia as research and experimentation.",
+        "spaceUse": "Academic proposals explore spatial relationships through drawings, models and narrative; they are presented as design studies.",
         "tags": [
           "Pratt",
           "Columbia",
@@ -71,20 +70,19 @@ export const generatedProfileByLanguage = {
       {
         "id": "profile-architecture",
         "number": "02",
-        "title": "Architecture",
-        "subtitle": "Three-year professional stage",
-        "summary": "Three years in professional practice brought spatial ideas into collaboration, delivery, constraints, and presentation discipline.",
+        "title": "Professional practice",
+        "subtitle": "Aedas · Shenzhen · September 2023–present",
+        "summary": "Architectural Designer and AIGC Lead, connecting concept development, visualization and repeatable AI production workflows.",
         "details": [
-          "Worked across concept design, modeling, drawings, visualization, material research, and presentation packages.",
-          "Kept spatial narrative and representation standards clear across changing project types, scales, and phases.",
-          "Use anonymized diagrams, abstracted models, and process notes for confidential work, preserving the professional logic without exposing restricted material."
+          "Led the in-house AIGC team and built AI rendering and animation workflows with Stable Diffusion WebUI and ComfyUI, later extending to Lovart.",
+          "Developed reusable prompt templates and workflows; produced renders, AI animation and video for more than 20 projects.",
+          "Collaborated on concepts, 3D modeling, post-production and presentations; promoted from Junior Designer to Designer in early 2025."
         ],
         "fill": [
-          "Professional projects can become a corridor organized by project phase and role.",
-          "Public material can show images, models, detail fragments, and concise responsibility notes.",
-          "Restricted material can appear as abstract spatial slices, explaining working methods rather than showing confidential drawings."
+          "2025–2026 · UABB Huaqiangbei study: visual narratives and models examining urban history and possible future city scenarios.",
+          "April 2025 · Game Jam · Lead level design for an in-game city, using urban fabric to organize the environment."
         ],
-        "spaceUse": "In SPACE, this can become a professional corridor where each architecture project is an exhibit node; confidential projects stay abstract.",
+        "spaceUse": "Concepts, models and images are developed together to make spatial decisions clear across a team.",
         "tags": [
           "Spatial Design",
           "Professional",
@@ -96,19 +94,11 @@ export const generatedProfileByLanguage = {
         "id": "profile-photography",
         "number": "03",
         "title": "Photography",
-        "subtitle": "Image-making and spatial observation",
-        "summary": "Photography is how I practice observation: cities, light, people, speed, and chance feed back into spatial design and AI image work.",
-        "details": [
-          "Look for atmosphere in architecture, streets, night scenes, live shows, and travel fragments.",
-          "Organize images as series, so photography becomes an ongoing observation archive rather than a set of isolated portfolio shots.",
-          "Translate composition, contrast, and color habits from photography into the WebGPU gallery and AI image experiments."
-        ],
-        "fill": [
-          "Photo walls can unfold by series, each with place, time, and a short statement.",
-          "The image room should feel closer to a darkroom or city fragment than a generic album grid.",
-          "Public images can connect outward; private images can appear only as curated fragments inside SPACE."
-        ],
-        "spaceUse": "In SPACE, this can become a photo wall, darkroom, or city-slice zone where images stand as their own exhibit area.",
+        "subtitle": "Urban observation",
+        "summary": "Photography informs how I notice light, scale and everyday spaces.",
+        "details": [],
+        "fill": [],
+        "spaceUse": "Photography informs how I notice light, scale and everyday spaces.",
         "tags": [
           "Photography",
           "City",
@@ -120,19 +110,11 @@ export const generatedProfileByLanguage = {
         "id": "profile-music",
         "number": "04",
         "title": "Music / Band",
-        "subtitle": "Bass, rehearsal, live performance",
-        "summary": "Bass and band memory bring sound, low frequency, and a live-room feeling into the archive; they are also the most natural source for SPACE audio exhibits.",
-        "details": [
-          "Draw a sonic identity from rehearsals, demos, live recordings, and performance photos.",
-          "Care about how bass lines support rhythm, space, and stage atmosphere, not only gear lists.",
-          "Connect audio playback, progress bars, and Focus exhibits so work can be heard and viewed at the same time."
-        ],
-        "fill": [
-          "The music area can feel like a rehearsal corner, holding instruments, posters, and audio fragments.",
-          "Playable exhibits can connect demos, live clips, or low-frequency loops.",
-          "Each sound node should keep simple context: scene, track state, role, and recording time."
-        ],
-        "spaceUse": "In SPACE, this can become a rehearsal corner or sound exhibit where clicking plays a demo, live clip, or bass line.",
+        "subtitle": "Bass and rhythm",
+        "summary": "Bass and band practice are part of my life beyond architectural work.",
+        "details": [],
+        "fill": [],
+        "spaceUse": "Bass and band practice are part of my life beyond architectural work.",
         "tags": [
           "Bass",
           "Band",
@@ -143,20 +125,12 @@ export const generatedProfileByLanguage = {
       {
         "id": "profile-culture",
         "number": "05",
-        "title": "Anime / Culture",
-        "subtitle": "Personal references and visual influence",
-        "summary": "Personal culture enters the archive as aesthetic source and narrative influence, not as a pile of titles; the point is how it changes my spatial, color, and character imagination.",
-        "details": [
-          "Organize animation, manga, games, visual novels, and music projects as personal sources of taste.",
-          "Prioritize original, inspired-by, or experimental work instead of directly reposting official images.",
-          "Track how color, character atmosphere, spatial narrative, and music emotion migrate between media."
-        ],
-        "fill": [
-          "The culture area can behave like a reference archive with original images, posters, AI tests, and text notes.",
-          "Each node explains where an influence comes from and how it enters space, image, or sound work.",
-          "Public presentation should foreground original output; references stay mostly as textual clues."
-        ],
-        "spaceUse": "In SPACE, this can become a cultural influence archive for original work and inspiration notes, not a direct repost wall.",
+        "title": "Visual culture",
+        "subtitle": "Animation and games",
+        "summary": "Animation, games and visual references inform my interest in atmosphere and narrative.",
+        "details": [],
+        "fill": [],
+        "spaceUse": "Animation, games and visual references inform my interest in atmosphere and narrative.",
         "tags": [
           "Anime",
           "Culture",
@@ -167,20 +141,12 @@ export const generatedProfileByLanguage = {
       {
         "id": "profile-experiments",
         "number": "06",
-        "title": "Other / Experiments",
-        "subtitle": "AI, web, writing, and future work",
-        "summary": "This area holds AI, WebGPU, writing, and experiments that do not fit a single category yet; it is the lab where SPACE keeps growing.",
-        "details": [
-          "Collect AI image and video work, spatial concept generation, prompt design, and workflow research.",
-          "Treat Three.js, WebGPU, and interactive portfolio work as real creative media, not just technical demos.",
-          "Keep essays, devlogs, research notes, and failed tests visible, so process becomes part of the archive."
-        ],
-        "fill": [
-          "The lab area can keep gaining exhibits: generated results, process screenshots, and design notes.",
-          "DevStories becomes the technical narrative layer, explaining how each build round changes SPACE.",
-          "Collaboration directions can orbit creative technology, spatial design, image-making, exhibition, music, and AI workflow."
-        ],
-        "spaceUse": "In SPACE, this can stay as a living lab where future work expands directly into new exhibit nodes.",
+        "title": "Experiments",
+        "subtitle": "SPACE and AI workflows",
+        "summary": "I explore how spatial ideas can become interactive environments and repeatable visual workflows.",
+        "details": [],
+        "fill": [],
+        "spaceUse": "I explore how spatial ideas can become interactive environments and repeatable visual workflows.",
         "tags": [
           "AI",
           "WebGPU",
@@ -192,27 +158,26 @@ export const generatedProfileByLanguage = {
   },
   "zh": {
     "identity": {
-      "name": "LizzardKevin",
-      "displayName": "LizzardKevin",
+      "name": "Tianyi WANG / LizzardKevin",
+      "displayName": "王天奕 / LizzardKevin",
       "roles": [
-        "AI 创意设计师",
-        "空间设计师",
-        "摄影师",
-        "贝斯手",
-        "etc."
+        "建筑设计师",
+        "AIGC 视觉创作者"
       ],
-      "location": "New York / Shanghai",
-      "status": "Architecture, creative technology, image-making, music, and personal culture archive.",
-      "bio": "我把建筑训练、空间叙事、摄影观察、乐队经验和 AI 创作方法放在同一个个人档案里。SPACE 会承载更沉浸的展品与作品，而这里保持更传统的简历状态，方便快速理解我是谁、做过什么、还能继续展开什么。"
+      "location": "Shenzhen / 深圳",
+      "status": "Aedas · 建筑设计师 / AIGC 负责人 · 2023 年 9 月起",
+      "bio": "我是王天奕 / LizzardKevin，现居深圳，从事建筑设计与 AIGC 视觉创作。从 Pratt、Columbia 的建筑训练到 Aedas 的职业实践，我关注如何用空间叙事、图像和 AI 工作流程表达设计。"
     },
     "links": [
       {
-        "label": "Contact",
-        "value": "Open for selected collaborations"
+        "label": "邮箱",
+        "value": "lizzardkevin@gmail.com",
+        "href": "mailto:lizzardkevin@gmail.com"
       },
       {
-        "label": "Location",
-        "value": "New York / Shanghai"
+        "label": "邮箱",
+        "value": "lizzardkevin@qq.com",
+        "href": "mailto:lizzardkevin@qq.com"
       },
       {
         "label": "GitHub",
@@ -220,36 +185,36 @@ export const generatedProfileByLanguage = {
         "href": "https://github.com/LizzardKevin"
       },
       {
-        "label": "Practice",
-        "value": "Architecture + creative technology"
+        "label": "现居",
+        "value": "Shenzhen / 深圳"
       },
       {
-        "label": "Archive",
-        "value": "Interactive SPACE in progress"
-      },
-      {
-        "label": "Portfolio",
-        "value": "SPACE-first work archive"
+        "label": "电话",
+        "value": "+86 13682600019",
+        "href": "tel:+8613682600019"
       }
     ],
     "sections": [
       {
         "id": "profile-education",
         "number": "01",
-        "title": "Education",
-        "subtitle": "Pratt Institute / Columbia University",
-        "summary": "从 Pratt 的建筑基础训练到 Columbia 更研究导向的空间实验，教育经历构成了我理解尺度、叙事、图像和系统的底层方法。",
+        "title": "教育经历",
+        "subtitle": "Pratt Institute · Columbia University GSAPP",
+        "summary": "从建筑与室内空间设计，到公共生活与空间叙事研究。",
         "details": [
-          "以建筑 studio 训练建立平面、剖面、模型、材料和叙事表达的共同语言。",
-          "把研究型课程、空间原型和 AI 辅助设计放进同一套创作方法里。",
-          "关注 diagram、模型照片、渲染和 walk-through 之间如何共同讲清一个空间概念。"
+          "2022–2023 · Columbia University GSAPP，纽约曼哈顿 · M.S. Advanced Architectural Design（高级建筑设计理学硕士）。",
+          "2017–2022 · Pratt Institute School of Architecture，纽约布鲁克林 · 2022 年获建筑学学士，辅修室内设计。"
         ],
         "fill": [
-          "Pratt 作为基础档案区，呈现训练强度、图面逻辑和模型语言。",
-          "Columbia 作为实验档案区，呈现空间研究、计算设计和 AI 视觉方法。",
-          "每个学术节点会以项目图像、短 statement 和可漫游展品连接到 SPACE。"
+          "2022 · Sovereignty of Voices · 与 Wentao LIU 合作的 Columbia studio 作品；于 2022 年 9 月 1–30 日在 Parallel UN 展览中展出。",
+          "2022 · Liberation of Antarctica · 位于麦克默多站的个人推想型更新研究。",
+          "2021 · Tree Habitat · 深圳复合功能塔楼个人研究；入围 Skyhive 2021。",
+          "2021 · Three Circles In · 与 Tiancheng YE 合作的广州城市针灸毕业设计。",
+          "2020 · The Home Alive · Levittown 模块化住宅个人研究；获 HOME 2020 荣誉提名。",
+          "2019 · Sky Village · 与 Tiancheng YE 合作的布鲁克林多代共居设计。",
+          "2019 · Storyline Studio · 曼哈顿电影工作室个人设计。"
         ],
-        "spaceUse": "SPACE 中可以做成两段展墙：Pratt 作为基础训练档案，Columbia 作为研究和实验档案。",
+        "spaceUse": "这些学术方案通过图纸、模型与叙事研究空间关系，均以设计研究的属性呈现。",
         "tags": [
           "Pratt",
           "Columbia",
@@ -260,20 +225,19 @@ export const generatedProfileByLanguage = {
       {
         "id": "profile-architecture",
         "number": "02",
-        "title": "Architecture",
-        "subtitle": "Three-year professional stage",
-        "summary": "三年的建筑职业阶段让空间想法进入真实协作、交付和限制条件中；这里强调的是专业判断、表达能力和项目推进方式。",
+        "title": "职业实践",
+        "subtitle": "Aedas · 深圳 · 2023 年 9 月至今",
+        "summary": "作为建筑设计师与 AIGC 负责人，将概念设计、视觉表达与可复用的 AI 制作流程连接起来。",
         "details": [
-          "参与概念设计、建模、图纸、渲染、材料研究和汇报材料组织。",
-          "在项目类型、尺度和阶段变化中保持清晰的空间叙事与表达标准。",
-          "对保密项目采用脱敏 diagram、抽象模型和过程说明，保留专业脉络而不暴露敏感资料。"
+          "带领内部 AIGC 团队，以 Stable Diffusion WebUI、ComfyUI 建立 AI 渲染与动画流程，之后扩展至 Lovart。",
+          "开发可复用的提示词模板和工作流程，为 20 多个项目制作渲染、AI 动画与视频。",
+          "参与概念设计、三维建模、后期和汇报；2025 年初由 Junior Designer 晋升为 Designer。"
         ],
         "fill": [
-          "职业项目会被整理成一条空间走廊，按项目阶段和参与角色组织。",
-          "公开素材会展示图像、模型、局部细节和简短职责说明。",
-          "非公开素材会以抽象空间切片呈现，让访问者理解工作方式而不是浏览机密图纸。"
+          "2025–2026 · UABB 华强北研究：通过视觉叙事与模型呈现城市历史及未来城市情境。",
+          "2025 年 4 月 · Game Jam · 主导游戏城市关卡设计，以城市肌理组织场景。"
         ],
-        "spaceUse": "SPACE 中可以做成一条职业走廊，每个建筑项目是一个展品节点，保密项目用抽象信息呈现。",
+        "spaceUse": "将概念、模型与图像共同推进，使空间判断能在团队协作中清楚传达。",
         "tags": [
           "Spatial Design",
           "Professional",
@@ -284,20 +248,12 @@ export const generatedProfileByLanguage = {
       {
         "id": "profile-photography",
         "number": "03",
-        "title": "Photography",
-        "subtitle": "Image-making and spatial observation",
-        "summary": "摄影是我训练观察的方式：城市、光线、人物、速度和偶然性会反过来影响空间设计与 AI 视觉创作。",
-        "details": [
-          "关注建筑、街头、夜景、演出现场和旅行切片中的空间气氛。",
-          "用系列化方式整理图像，让照片不只是单张漂亮画面，而是持续的观察档案。",
-          "把摄影中的构图、光比和色彩经验转译到 WebGPU 展厅和 AI 图像实验里。"
-        ],
-        "fill": [
-          "照片墙会以系列为单位展开，每组照片保留地点、时间和简短 statement。",
-          "影像展区会更像暗房或城市切片，而不是普通相册网格。",
-          "可公开图像会连接到外部发布渠道，未公开图像只在 SPACE 中以策展方式出现。"
-        ],
-        "spaceUse": "SPACE 中可以做成照片墙、暗房或城市切片区域，让影像成为独立展区。",
+        "title": "摄影",
+        "subtitle": "城市观察",
+        "summary": "摄影影响我对光线、尺度和日常空间的观察。",
+        "details": [],
+        "fill": [],
+        "spaceUse": "摄影影响我对光线、尺度和日常空间的观察。",
         "tags": [
           "Photography",
           "City",
@@ -308,20 +264,12 @@ export const generatedProfileByLanguage = {
       {
         "id": "profile-music",
         "number": "04",
-        "title": "Music / Band",
-        "subtitle": "Bass, rehearsal, live performance",
-        "summary": "贝斯和乐队经验给这个个人档案带来声音、低频和现场感；它也是 SPACE 音频展品系统最自然的内容来源。",
-        "details": [
-          "从排练、demo、live recording 和演出照片中提取声音身份。",
-          "关注贝斯线如何支撑节奏、空间和舞台氛围，而不只展示器材清单。",
-          "把音频播放、进度条和 Focus 展品连接起来，让作品可以被听见也可以被观看。"
-        ],
-        "fill": [
-          "音乐区域会以 rehearsal corner 的方式呈现，保留器材、海报和声音片段。",
-          "可播放展品会连接 demo、live clip 或低频 loop。",
-          "每个声音节点会保留简单背景：场景、曲目状态、参与角色和记录时间。"
-        ],
-        "spaceUse": "SPACE 中可以做成 rehearsal corner 或声音展品，点击后播放 demo、live clip 或 bass line。",
+        "title": "音乐 / 乐队",
+        "subtitle": "贝斯与节奏",
+        "summary": "建筑工作之外，贝斯与乐队练习也是我的生活的一部分。",
+        "details": [],
+        "fill": [],
+        "spaceUse": "建筑工作之外，贝斯与乐队练习也是我的生活的一部分。",
         "tags": [
           "Bass",
           "Band",
@@ -332,20 +280,12 @@ export const generatedProfileByLanguage = {
       {
         "id": "profile-culture",
         "number": "05",
-        "title": "Anime / Culture",
-        "subtitle": "Personal references and visual influence",
-        "summary": "个人文化影响会以审美来源和叙事影响的方式进入档案，而不是直接堆作品名；重点是它们如何改变我的空间、色彩和角色想象。",
-        "details": [
-          "把动画、漫画、游戏、视觉小说和音乐企划作为个人审美来源来整理。",
-          "优先展示原创、inspired-by 或实验性作品，避免直接搬运未经授权的官方图像。",
-          "关注色彩、角色气质、空间叙事和音乐情绪如何在不同媒介之间迁移。"
-        ],
-        "fill": [
-          "文化影响区会更像 reference archive，展示原创图像、poster、AI 实验和文字说明。",
-          "每个节点解释影响来自哪里，以及它如何进入空间、影像或声音创作。",
-          "公开呈现以原创内容为主，引用内容只作为文本层面的线索。"
-        ],
-        "spaceUse": "SPACE 中可以做成文化影响档案区，展示原创内容和灵感说明，而不是直接搬运官方素材。",
+        "title": "视觉文化",
+        "subtitle": "动画与游戏",
+        "summary": "动画、游戏与视觉参考影响我对气氛和叙事的兴趣。",
+        "details": [],
+        "fill": [],
+        "spaceUse": "动画、游戏与视觉参考影响我对气氛和叙事的兴趣。",
         "tags": [
           "Anime",
           "Culture",
@@ -356,20 +296,12 @@ export const generatedProfileByLanguage = {
       {
         "id": "profile-experiments",
         "number": "06",
-        "title": "Other / Experiments",
-        "subtitle": "AI, web, writing, and future work",
-        "summary": "这一段收纳 AI、WebGPU、写作和其他暂时无法归类的实验；它是 SPACE 持续生长的实验室。",
-        "details": [
-          "整理 AI 图像、视频、空间概念生成、prompt design 和 workflow 研究。",
-          "把 Three.js、WebGPU 和 interactive portfolio 当作真实作品载体，而不是技术 demo。",
-          "保留 essay、devlog、研究笔记和实验失败记录，让过程本身成为档案的一部分。"
-        ],
-        "fill": [
-          "实验室区域会持续追加新展品，包含生成结果、过程截图和设计说明。",
-          "DevStories 会成为技术叙事层，解释每轮构建如何改变 SPACE。",
-          "合作方向会围绕创意技术、空间设计、影像、展览、音乐和 AI workflow 展开。"
-        ],
-        "spaceUse": "SPACE 中可以作为持续更新的实验室区域，后续新内容直接扩展为新的展品节点。",
+        "title": "实验",
+        "subtitle": "SPACE 与 AI 工作流程",
+        "summary": "我探索空间想法如何转化为交互环境，以及可复用的视觉工作流程。",
+        "details": [],
+        "fill": [],
+        "spaceUse": "我探索空间想法如何转化为交互环境，以及可复用的视觉工作流程。",
         "tags": [
           "AI",
           "WebGPU",

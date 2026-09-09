@@ -1,9 +1,6 @@
 import { useLayoutEffect } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap } from "./scrollGsap";
 import { prefersReducedMotion } from "./useLenisScroll";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export type ScrubSectionRule = {
   /** 命中需要视差吸附的节（在滚动容器内 querySelectorAll） */

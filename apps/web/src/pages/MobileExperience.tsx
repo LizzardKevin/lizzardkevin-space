@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode, type UIEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode, type UIEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { normalizeSupportedLanguage, readInitialLanguage } from "../i18n/resolveInitialLanguage";
 import {
@@ -23,7 +23,7 @@ import {
 import { publicAssetUrl } from "../platform/publicAssets.ts";
 import type { MobileRouteView } from "../mobile/mobileRouteView";
 
-const BOOT_MIN_DURATION_MS = 3000;
+const BOOT_MIN_DURATION_MS = 0;
 const BOOT_MAX_DURATION_MS = 10000;
 const FONT_LOAD_MAX_RETRIES = 3;
 const FONT_LOAD_RETRY_DELAY_MS = 360;
@@ -32,8 +32,7 @@ const SPACE_INLINE_OFFSET_X_PX = 90;
 const SPACE_INLINE_OFFSET_Y_PX = -16;
 const THEME_REVEAL_DURATION_MS = 620;
 const PROJECT_SNAP_DURATION_MS = 360;
-const SHELL_COLLAPSE_OFFSET_PX = 84;
-const NAV_COLLAPSE_OFFSET_PX = 34;
+const terminalExpandedHeaderHeights = new WeakMap<HTMLElement, number>();
 const DOC_SWIPE_EXIT_RATIO = 0.42;
 const DOC_SWIPE_EXIT_MS = 180;
 const DOC_SWIPE_ENTER_PX = 56;
@@ -152,21 +151,30 @@ async function loadTerminalFonts(language: MobileTerminalLanguage): Promise<Term
 function applyTerminalScrollState(root: HTMLElement | null, scrollTop: number) {
   if (!root) return;
   const progress = Math.min(1, Math.max(0, scrollTop / HEADER_COLLAPSE_DISTANCE_PX));
-  const scrollWithinCollapse = Math.min(scrollTop, HEADER_COLLAPSE_DISTANCE_PX);
-  const contentScrollY = SHELL_COLLAPSE_OFFSET_PX * progress;
-  const navScrollY = NAV_COLLAPSE_OFFSET_PX * progress - scrollWithinCollapse;
 
   root.style.setProperty("--terminal-collapse", progress.toFixed(3));
   root.style.setProperty("--terminal-header-height", `${82 - 34 * progress}px`);
   root.style.setProperty("--terminal-brand-height", `${58 - 36 * progress}px`);
-  root.style.setProperty("--terminal-nav-top", `${82 - 34 * progress}px`);
-  root.style.setProperty("--terminal-shell-top", `${194 - 84 * progress}px`);
   root.style.setProperty("--terminal-space-size", `${36 - 24 * progress}px`);
   root.style.setProperty("--terminal-space-x", `${SPACE_INLINE_OFFSET_X_PX * progress}px`);
   root.style.setProperty("--terminal-space-y", `${SPACE_INLINE_OFFSET_Y_PX * progress}px`);
   root.style.setProperty("--terminal-space-line-height", `${0.96 + 0.24 * progress}`);
+  const header = root.querySelector<HTMLElement>(".mobile-terminal-header");
+  const nav = root.querySelector<HTMLElement>(".mobile-terminal-nav");
+  if (!header || !nav) return;
+  const headerHeight = header.getBoundingClientRect().height;
+  const navHeight = nav.getBoundingClientRect().height;
+  if (progress === 0 || !terminalExpandedHeaderHeights.has(root)) {
+    terminalExpandedHeaderHeights.set(root, headerHeight);
+  }
+  const expandedHeaderHeight = terminalExpandedHeaderHeights.get(root) ?? headerHeight;
+  const contentScrollY = Math.max(0, expandedHeaderHeight - headerHeight);
+  // Follow the measured border boxes: font metrics and safe-area padding may
+  // make either chrome section taller than its nominal collapse dimensions.
+  root.style.setProperty("--terminal-nav-top", `${headerHeight}px`);
+  root.style.setProperty("--terminal-shell-top", `${headerHeight + navHeight}px`);
   root.style.setProperty("--terminal-content-scroll-y", `${contentScrollY}px`);
-  root.style.setProperty("--terminal-nav-scroll-y", `${navScrollY}px`);
+  root.style.setProperty("--terminal-nav-scroll-y", "0px");
 }
 
 function getFoldExpanded(foldState: TerminalFoldState, foldId: string) {
@@ -193,8 +201,8 @@ export function MobileExperience({
   const docSwipeFrameRef = useRef<number | null>(null);
   const suppressSwipeClickRef = useRef(false);
   const [bootLanguage] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
-  const [localActiveTab, setActiveTab] = useState<MobileTabId | null>(null);
-  const [foldState, setFoldState] = useState<TerminalFoldState>({});
+  const [localActiveTab, setActiveTab] = useState<MobileTabId | null>("projects");
+  const [foldState, setFoldState] = useState<TerminalFoldState>({ "projects:Education": true });
   const [localSelectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [viewLoadKey, setViewLoadKey] = useState(0);
   const [language, setLanguageState] = useState<MobileTerminalLanguage>(() => readStoredLanguage());
@@ -264,6 +272,20 @@ export function MobileExperience({
       }
     };
   }, []);
+
+  useLayoutEffect(() => {
+    const root = terminalRootRef.current;
+    const shell = terminalShellRef.current;
+    if (booting || !root || !shell) return;
+    const updateLayout = () => applyTerminalScrollState(root, shell.scrollTop);
+    updateLayout();
+    const observer = new ResizeObserver(updateLayout);
+    const header = root.querySelector(".mobile-terminal-header");
+    const nav = root.querySelector(".mobile-terminal-nav");
+    if (header) observer.observe(header);
+    if (nav) observer.observe(nav);
+    return () => observer.disconnect();
+  }, [booting, language, fontStatus]);
 
   const setLanguage = (next: MobileTerminalLanguage) => {
     setLanguageState(next);
@@ -802,7 +824,7 @@ function ProjectsView({
                 className="mobile-project-line"
                 onClick={() => onSelectProject(project.id)}
               >
-                <span>{project.id}</span>
+                <span aria-hidden="true">↗</span>
                 <strong>{project.title}</strong>
                 <small>{project.indexLabel}</small>
               </button>
@@ -834,7 +856,6 @@ function ProjectDetailView({
         <button type="button" className="mobile-terminal-back" onClick={onBack}>
           cd ..
         </button>
-        <div className="mobile-terminal-command">$ open {project.id}</div>
         <header className="mobile-project-detail__header">
           <span>{project.indexLabel}</span>
           <h1>{project.title}</h1>
@@ -848,9 +869,7 @@ function ProjectDetailView({
           ) : null}
           <p>{project.summary[language]}</p>
         </header>
-        <div className="mobile-project-detail__media" aria-label={`${project.title} ${copy.projectDetails.media}`}>
-          <span>{project.mediaKind}</span>
-          <strong>{project.mediaStatus[language]}</strong>
+        {project.imageUrls?.length ? <div className="mobile-project-detail__media" aria-label={`${project.title} ${copy.projectDetails.media}`}>
           {project.imageUrls?.length ? (
             <div className="mobile-project-detail__imageRail">
               {project.imageUrls?.map((url, index) => (
@@ -864,7 +883,7 @@ function ProjectDetailView({
               ))}
             </div>
           ) : null}
-        </div>
+        </div> : null}
         {story ? <p className="mobile-project-detail__story">{project.story?.[language]}</p> : null}
         <dl className="mobile-project-detail__notes">
           <div>
@@ -988,7 +1007,7 @@ function ContactDocument({ copy }: { copy: typeof mobileTerminalCopy.en.contact 
       </div>
       <div className="mobile-contact-lines">
         {copy.lines.map((line) => (
-          <div key={line.label}>
+          <div key={`${line.label}:${line.values.map(value => value.text).join("|")}`}>
             <span>{line.label}</span>
             {line.values.map((value) => (
               value.href ? (

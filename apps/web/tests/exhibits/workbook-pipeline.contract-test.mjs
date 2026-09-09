@@ -39,7 +39,8 @@ test("SPACE workbook content pipeline is generated and synchronized", () => {
   const profile = fs.readFileSync(PROFILE_PATH, "utf8");
   // 文案经历多轮润色（见 grok/devstories-humanizer），断言锚定稳定片段而非完整句子。
   assert.match(devStories, /Pointer Lock prompt cannot be hidden/);
-  assert.match(profile, /Public images can connect outward; private images/);
+  assert.match(profile, /M\.S\. Advanced Architectural Design/);
+  assert.match(profile, /Aedas/);
 });
 
 test("StartLobby gets separate bilingual title and subtitle entries from exhibit rows", () => {

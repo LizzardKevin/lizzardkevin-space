@@ -1,10 +1,7 @@
 import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger } from "./scrollGsap";
 import Lenis from "lenis";
 import { registerScrollBusLenis } from "./scrollBus";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export function prefersReducedMotion() {
   return (

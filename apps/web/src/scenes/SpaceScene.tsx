@@ -19,6 +19,29 @@ import type { SpaceQualityConfig } from "../space/spaceVisualSettings";
 import type { RendererProfile } from "../rendering/rendererProfile";
 import type { ProjectorSlideCommand } from "./projector/projectorSlides";
 
+type SpaceSceneProps = {
+  exhibitTarget: ExhibitTarget | null;
+  onTargetChange: (target: ExhibitTarget | null) => void;
+  loadExhibits: boolean;
+  projectorExhibits: ExhibitManifestItem[] | null;
+  onEnvironmentReady: () => void;
+  onGalleryReady: () => void;
+  onExhibitReady: (exhibitId: string) => void;
+  onExhibitFailed: (exhibitId: string) => void;
+  onExhibitDeferred: (exhibitId: string) => void;
+  pointerControlsEnabled: boolean;
+  controlsEnabled: boolean;
+  projectorCommand: ProjectorSlideCommand | null;
+  onFocusExhibit: (exhibitId: string) => void;
+  onEmptyClick: () => void;
+  onboardingEnabled: boolean;
+  initialPose?: SpacePlayerPose | null;
+  onPoseSample?: (pose: SpacePlayerPose) => void;
+  onOnboardingCompleted?: () => void;
+  quality: SpaceQualityConfig;
+  profile: RendererProfile;
+};
+
 function SpaceSceneContent({
   exhibitTarget,
   onTargetChange,
@@ -40,28 +63,7 @@ function SpaceSceneContent({
   onOnboardingCompleted,
   quality,
   profile,
-}: {
-  exhibitTarget: ExhibitTarget | null;
-  onTargetChange: (target: ExhibitTarget | null) => void;
-  loadExhibits: boolean;
-  projectorExhibits: ExhibitManifestItem[] | null;
-  onEnvironmentReady: () => void;
-  onGalleryReady: () => void;
-  onExhibitReady: (exhibitId: string) => void;
-  onExhibitFailed: (exhibitId: string) => void;
-  onExhibitDeferred: (exhibitId: string) => void;
-  pointerControlsEnabled: boolean;
-  controlsEnabled: boolean;
-  projectorCommand: ProjectorSlideCommand | null;
-  onFocusExhibit: (exhibitId: string) => void;
-  onEmptyClick: () => void;
-  onboardingEnabled: boolean;
-  initialPose?: SpacePlayerPose | null;
-  onPoseSample?: (pose: SpacePlayerPose) => void;
-  onOnboardingCompleted?: () => void;
-  quality: SpaceQualityConfig;
-  profile: RendererProfile;
-}) {
+}: SpaceSceneProps) {
   const { spawn, safetyGroundY, safetyCenterX, safetyCenterZ } = useGallerySpawn();
 
   return (
@@ -150,100 +152,9 @@ function SpaceSceneContent({
   );
 }
 
-export function SpaceScene({
-  exhibitTarget,
-  onTargetChange,
-  loadExhibits,
-  projectorExhibits,
-  onEnvironmentReady,
-  onGalleryReady,
-  onExhibitReady,
-  onExhibitFailed,
-  onExhibitDeferred,
-  pointerControlsEnabled,
-  controlsEnabled,
-  projectorCommand,
-  onFocusExhibit,
-  onEmptyClick,
-  onboardingEnabled,
-  initialPose,
-  onPoseSample,
-  onOnboardingCompleted,
-  quality,
-  profile,
-}: {
-  exhibitTarget: ExhibitTarget | null;
-  onTargetChange: (target: ExhibitTarget | null) => void;
-  loadExhibits: boolean;
-  projectorExhibits: ExhibitManifestItem[] | null;
-  onEnvironmentReady: () => void;
-  onGalleryReady: () => void;
-  onExhibitReady: (exhibitId: string) => void;
-  onExhibitFailed: (exhibitId: string) => void;
-  onExhibitDeferred: (exhibitId: string) => void;
-  pointerControlsEnabled: boolean;
-  controlsEnabled: boolean;
-  projectorCommand: ProjectorSlideCommand | null;
-  onFocusExhibit: (exhibitId: string) => void;
-  onEmptyClick: () => void;
-  onboardingEnabled: boolean;
-  initialPose?: SpacePlayerPose | null;
-  onPoseSample?: (pose: SpacePlayerPose) => void;
-  onOnboardingCompleted?: () => void;
-  quality: SpaceQualityConfig;
-  profile: RendererProfile;
-}) {
-  if (ENABLE_GALLERY_GLB) {
-    return (
-      <GallerySpawnProvider>
-        <SpaceSceneContent
-          exhibitTarget={exhibitTarget}
-          onTargetChange={onTargetChange}
-          loadExhibits={loadExhibits}
-          projectorExhibits={projectorExhibits}
-          onEnvironmentReady={onEnvironmentReady}
-          onGalleryReady={onGalleryReady}
-          onExhibitReady={onExhibitReady}
-          onExhibitFailed={onExhibitFailed}
-          onExhibitDeferred={onExhibitDeferred}
-          pointerControlsEnabled={pointerControlsEnabled}
-          controlsEnabled={controlsEnabled}
-          projectorCommand={projectorCommand}
-          onFocusExhibit={onFocusExhibit}
-          onEmptyClick={onEmptyClick}
-          onboardingEnabled={onboardingEnabled}
-          initialPose={initialPose}
-          onPoseSample={onPoseSample}
-          onOnboardingCompleted={onOnboardingCompleted}
-          quality={quality}
-          profile={profile}
-        />
-      </GallerySpawnProvider>
-    );
-  }
-
-  return (
-    <SpaceSceneContent
-      exhibitTarget={exhibitTarget}
-      onTargetChange={onTargetChange}
-      loadExhibits={loadExhibits}
-      projectorExhibits={projectorExhibits}
-      onEnvironmentReady={onEnvironmentReady}
-      onGalleryReady={onGalleryReady}
-      onExhibitReady={onExhibitReady}
-      onExhibitFailed={onExhibitFailed}
-      onExhibitDeferred={onExhibitDeferred}
-      pointerControlsEnabled={pointerControlsEnabled}
-      controlsEnabled={controlsEnabled}
-      projectorCommand={projectorCommand}
-      onFocusExhibit={onFocusExhibit}
-      onEmptyClick={onEmptyClick}
-      onboardingEnabled={onboardingEnabled}
-      initialPose={initialPose}
-      onPoseSample={onPoseSample}
-      onOnboardingCompleted={onOnboardingCompleted}
-      quality={quality}
-      profile={profile}
-    />
-  );
+export function SpaceScene(props: SpaceSceneProps) {
+  const content = <SpaceSceneContent {...props} />;
+  return ENABLE_GALLERY_GLB ? (
+    <GallerySpawnProvider>{content}</GallerySpawnProvider>
+  ) : content;
 }

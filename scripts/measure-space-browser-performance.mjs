@@ -5,10 +5,10 @@ import { dirname, resolve } from "node:path";
 import { cpus, freemem, platform, release, totalmem } from "node:os";
 import { fileURLToPath } from "node:url";
 
-const THREE_DIMENSIONAL_REQUEST = /(?:three-vendor|rapier-vendor|SpacePage|SpaceHost|FocusOverlay|\.glb(?:[?#]|$)|draco|\.wasm(?:[?#]|$))/i;
-const PRE_ENTER_FORBIDDEN_REQUEST = /(?:rapier|space_main|focus_[^/]*\.glb|\.glb(?:[?#]|$)|draco|\.wasm(?:[?#]|$)|\/audio\/[^/]+\.(?:wav|mp3|ogg)(?:[?#]|$))/i;
+const THREE_DIMENSIONAL_REQUEST = /(?:three(?:-core)?-vendor|rapier-vendor|SpacePage|SpaceHost|WorkParticleHost|\.glb(?:[?#]|$)|\/particles\/[^/]+\.particles\.bin(?:[?#]|$)|draco|\.wasm(?:[?#]|$))/i;
+const PRE_ENTER_FORBIDDEN_REQUEST = /(?:rapier|space_main|focus_[^/]*\.glb|\.glb(?:[?#]|$)|\/particles\/[^/]+\.particles\.bin(?:[?#]|$)|draco|\.wasm(?:[?#]|$)|\/audio\/[^/]+\.(?:wav|mp3|ogg)(?:[?#]|$))/i;
 const PERSISTENT_CORE_REQUEST = /(?:rapier-vendor|space_main\.glb|space_(?!main)[^/]*\.glb|draco|\.wasm(?:[?#]|$))/i;
-const SELECTED_WORK_REQUEST = /\/exhibits\/arch_treehabitat\/(?:focus_|img\/|content\.json)/i;
+const SELECTED_WORK_REQUEST = /(?:\/exhibits\/arch_treehabitat\/(?:focus_|img\/|content\.json)|\/particles\/arch_treehabitat\.particles\.bin(?:[?#]|$))/i;
 const DEFAULT_OUTPUT = "docs/performance/space-browser-baseline.json";
 const PERF_INIT = () => {
   const state = {
@@ -73,6 +73,22 @@ export function summarizeMetric(samples, path) {
     sample,
   ));
   return summarizeNumbers(values);
+}
+
+// Serialized into the browser by Playwright; do not close over module state.
+export function readWorkParticleState() {
+  if (document.querySelector('[data-work-particle-state="failed"]')) return "failed";
+  if (document.querySelector('canvas[data-work-particle-state="ready"]')) return "ready";
+  return null;
+}
+
+export async function waitForWorkParticleState(page) {
+  const state = await page.waitForFunction(readWorkParticleState, null, { timeout: 90_000 });
+  return state.jsonValue();
+}
+
+export function isSelectedWorkRequest(url) {
+  return SELECTED_WORK_REQUEST.test(url);
 }
 
 export function classifyRequestUrl(url) {
@@ -258,7 +274,7 @@ async function createAudit(context, cacheDisabled) {
         threeDimensionalUrls: unique(urls.filter((url) => classifyRequestUrl(url).threeDimensional)),
         preEnterForbiddenUrls: unique(urls.filter((url) => classifyRequestUrl(url).preEnterForbidden)),
         persistentCoreUrls: urls.filter((url) => classifyRequestUrl(url).persistentCore),
-        selectedWorkUrls: urls.filter((url) => SELECTED_WORK_REQUEST.test(url)),
+        selectedWorkUrls: urls.filter(isSelectedWorkRequest),
       };
     },
   };
@@ -471,14 +487,14 @@ async function measureDesktop(context, baseUrl, cacheDisabled) {
   });
 
   const routeStartNetwork = await audit.snapshot();
-  await audit.page.locator(".topbar__button").nth(0).click();
+  await audit.page.getByRole("button", { name: "LizzardKevin", exact: true }).click();
   await audit.page.waitForURL("**/profile");
-  await audit.page.waitForSelector(".frosted-split", { timeout: 15_000 });
+  await audit.page.waitForSelector(".ark-hub", { timeout: 15_000 });
   await audit.page.goBack();
   await audit.page.waitForSelector(".topbar");
-  await audit.page.locator(".topbar__button").nth(2).click();
+  await audit.page.getByRole("button", { name: "DevStories", exact: true }).click();
   await audit.page.waitForURL("**/devstories");
-  await audit.page.waitForSelector(".frosted-split", { timeout: 15_000 });
+  await audit.page.waitForSelector(".ark-hub", { timeout: 15_000 });
   await audit.page.goBack();
   await audit.page.waitForSelector(".topbar");
   await waitForNetworkIdle(audit.page);
@@ -493,28 +509,22 @@ async function measureDesktop(context, baseUrl, cacheDisabled) {
 
   const firstWorkStart = Date.now();
   await navigateSpa(audit.page, "/works/arch_treehabitat");
-  await audit.page.waitForSelector(".focus-overlay", { timeout: 30_000 });
-  await audit.page.waitForFunction(
-    () => document.querySelectorAll(".focus-media-dot").length >= 24,
-    null,
-    { timeout: 90_000 },
-  );
+  await audit.page.waitForSelector("#work-hero", { timeout: 30_000 });
+  await audit.page.waitForSelector("#work-gallery img", { state: "attached", timeout: 30_000 });
+  const selectedWorkParticleState = await waitForWorkParticleState(audit.page);
   await waitForNetworkIdle(audit.page, 30_000);
   const selectedWorkReadyMs = Date.now() - firstWorkStart;
   const firstWorkNetwork = await audit.snapshot();
   const heapAfterFirstWork = await readPageMetrics(audit);
-  await audit.page.locator(".focus-return-button").click();
+  await audit.page.locator(".ark-top").getByRole("button", { name: /Back to SPACE|返回 SPACE/ }).click();
   await audit.page.waitForURL(`${baseUrl}/`);
   await audit.page.waitForSelector(".topbar");
 
   const secondWorkStart = Date.now();
   await navigateSpa(audit.page, "/works/arch_treehabitat");
-  await audit.page.waitForSelector(".focus-overlay", { timeout: 30_000 });
-  await audit.page.waitForFunction(
-    () => document.querySelectorAll(".focus-media-dot").length >= 24,
-    null,
-    { timeout: 90_000 },
-  );
+  await audit.page.waitForSelector("#work-hero", { timeout: 30_000 });
+  await audit.page.waitForSelector("#work-gallery img", { state: "attached", timeout: 30_000 });
+  const repeatedWorkParticleState = await waitForWorkParticleState(audit.page);
   await waitForNetworkIdle(audit.page, 30_000);
   const repeatedWorkReadyMs = Date.now() - secondWorkStart;
   const secondWorkNetwork = await audit.snapshot();
@@ -523,7 +533,7 @@ async function measureDesktop(context, baseUrl, cacheDisabled) {
     secondWorkNetwork.selectedWorkUrls.length - firstWorkNetwork.selectedWorkUrls.length,
   );
   const heapAfterRepeatedWork = await readPageMetrics(audit);
-  await audit.page.locator(".focus-return-button").click();
+  await audit.page.locator(".ark-top").getByRole("button", { name: /Back to SPACE|返回 SPACE/ }).click();
   let repeatedWorkReturnViaUi = true;
   try {
     await audit.page.waitForURL(`${baseUrl}/`, { timeout: 3_000 });
@@ -542,6 +552,8 @@ async function measureDesktop(context, baseUrl, cacheDisabled) {
     canvasPreserved,
     consoleMessages: audit.consoleMessages,
     finalNetwork,
+    selectedWorkParticleState,
+    repeatedWorkParticleState,
     heapAfterFirstWork: heapAfterFirstWork.jsHeap,
     heapAfterRepeatedWork: heapAfterRepeatedWork.jsHeap,
     heapAfterReturn: heapAfterReturn.jsHeap,

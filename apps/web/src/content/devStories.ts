@@ -18,5 +18,3 @@ const devStoriesByLanguage = generatedDevStoriesByLanguage as Record<SupportedLa
 export function getDevStories(language: SupportedLanguage): DevStory[] {
   return devStoriesByLanguage[language] ?? devStoriesByLanguage.en;
 }
-
-export const devStories: DevStory[] = devStoriesByLanguage.zh;

@@ -45,11 +45,15 @@
       },
       {
         "label": "Role",
-        "value": "Concept, design, model, presentation"
+        "value": "Individual academic project · Pratt ARCH 402"
       },
       {
         "label": "Status",
-        "value": "Student portfolio exhibit"
+        "value": "Academic proposal · Skyhive 2021 shortlist"
+      },
+      {
+        "label": "Credits",
+        "value": "Instructors: Kathleen Dunne, Michael Trencher"
       }
     ],
     "zh": [
@@ -67,11 +71,15 @@
       },
       {
         "label": "角色",
-        "value": "概念、设计、建模、表达"
+        "value": "个人学术作品 · Pratt ARCH 402"
       },
       {
         "label": "状态",
-        "value": "学生作品集展品"
+        "value": "学术方案 · 入围 Skyhive 2021"
+      },
+      {
+        "label": "鸣谢",
+        "value": "指导教师：Kathleen Dunne、Michael Trencher"
       }
     ]
   }

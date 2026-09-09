@@ -6,6 +6,7 @@ import {
   type JSX,
 } from "react";
 import { prefersReducedMotion } from "./useLenisScroll";
+import { usePageLanguage } from "./usePageLanguage";
 
 /** 退场等待时长，与 scroll-lightbox.css 中 180ms 过渡一致。 */
 const CLOSE_MS = 180;
@@ -28,7 +29,9 @@ export function ImageLightbox({
   onClose: () => void;
 }): JSX.Element {
   const [open, setOpen] = useState(false);
+  const language = usePageLanguage();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
   const onCloseRef = useRef(onClose);
   const closingRef = useRef(false);
   const closeTimerRef = useRef(0);
@@ -62,19 +65,51 @@ export function ImageLightbox({
     if (!root) return undefined;
     const trigger =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    root.focus();
-    const stopWheel = (event: WheelEvent) => event.stopPropagation();
-    root.addEventListener("wheel", stopWheel, { passive: true });
+    // Isolate siblings at every ancestor level: the dialog lives inside the
+    // scroll page, while SPACE and page chrome also live outside that subtree.
+    const isolated: { element: HTMLElement; inert: boolean }[] = [];
+    let branch: HTMLElement = root;
+    while (branch.parentElement) {
+      for (const sibling of branch.parentElement.children) {
+        if (sibling !== branch && sibling instanceof HTMLElement) {
+          isolated.push({ element: sibling, inert: sibling.inert });
+          sibling.inert = true;
+        }
+      }
+      branch = branch.parentElement;
+      if (branch === document.body) break;
+    }
+    closeRef.current?.focus({ preventScroll: true });
+    const containFocus = (event: FocusEvent) => {
+      if (event.target instanceof Node && !root.contains(event.target)) {
+        closeRef.current?.focus({ preventScroll: true });
+      }
+    };
+    document.addEventListener("focusin", containFocus);
+    const stopWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    root.addEventListener("wheel", stopWheel, { passive: false });
     return () => {
       root.removeEventListener("wheel", stopWheel);
+      document.removeEventListener("focusin", containFocus);
+      for (const { element, inert } of isolated) element.inert = inert;
       window.clearTimeout(closeTimerRef.current);
-      if (trigger?.isConnected) trigger.focus();
+      if (trigger?.isConnected && !trigger.closest("[inert]")) trigger.focus({ preventScroll: true });
     };
   }, []);
 
   // Escape 关闭：capture 阶段 + stopPropagation，先于壳层的冒泡监听执行。
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      // The visible close button is the dialog's only interactive control.
+      if (event.key === "Tab") {
+        event.preventDefault();
+        event.stopPropagation();
+        closeRef.current?.focus({ preventScroll: true });
+        return;
+      }
       if (event.key !== "Escape") return;
       event.preventDefault();
       event.stopPropagation();
@@ -99,6 +134,9 @@ export function ImageLightbox({
       }}
       onWheel={(event) => event.stopPropagation()}
     >
+      <button ref={closeRef} type="button" className="ark-lightbox__close" onClick={requestClose}>
+        {language === "zh" ? "关闭图片" : "Close image"} ×
+      </button>
       <figure className="ark-lightbox__stage">
         <img className="ark-lightbox__img" src={src} alt={alt} draggable={false} />
         <figcaption className="ark-lightbox__label">{alt}</figcaption>

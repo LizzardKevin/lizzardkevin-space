@@ -112,15 +112,6 @@ export function resumeSpaceFirstPersonWithCursorReturn(requestId?: number) {
   return pointerLockRequestId;
 }
 
-/** 已入场且非全屏 overlay 时恢复第一人称（Focus 退出等场景）。 */
-export function engageSpaceFirstPerson(
-  opts: { entered: boolean; overlayOpen: boolean },
-  requestId?: number,
-) {
-  if (!opts.entered || opts.overlayOpen) return;
-  return resumeSpaceFirstPerson(requestId);
-}
-
 /** ESC 恢复链内部的锁定请求:走 core,不取消自身 pending recovery(pending 保持到锁定成功)。 */
 function engageSpaceFirstPersonNow(
   opts: { entered: boolean; overlayOpen: boolean },

@@ -42,8 +42,6 @@ function readCalibratorParams(searchParams: URLSearchParams) {
     /** 测试钩子:固定光标 NDC(无头截图用,真机上 pointermove 会覆盖)。 */
     px: numeric("px"),
     py: numeric("py"),
-    /** 粒子地面开关:?ground=0 关闭,默认开。 */
-    ground: numeric("ground"),
   };
 }
 
@@ -192,7 +190,6 @@ export default function ParticleCalibratorPage() {
         });
         if (disposed) return;
         const hook = initialParamsRef.current;
-        renderer.groundEnabled = hook.ground !== 0;
         const data = await loadParticleCache(particleCacheUrlFor("arch_treehabitat"));
         if (disposed) return;
         renderer.setParticleData(data);

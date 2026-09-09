@@ -1,10 +1,7 @@
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap } from "./scrollGsap";
 import { useScrollPage } from "./scrollPageContext";
 import { prefersReducedMotion } from "./useLenisScroll";
-
-gsap.registerPlugin(ScrollTrigger);
 
 /**
  * 滚动进入视口时的 reveal 包装（fade + 上移）。

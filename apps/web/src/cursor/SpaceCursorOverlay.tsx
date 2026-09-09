@@ -229,6 +229,7 @@ export function SpaceCursorOverlay({
 
     const onWheel = (e: WheelEvent) => {
       if (document.pointerLockElement || returning) return;
+      if (e.target instanceof Element && e.target.closest(".ark-scroll, [data-ark-lightbox]")) return;
       if (!findWheelScrollable(e)) return;
       const now = performance.now();
       if (now - scrollThrottleRef.current < 90) return;
