@@ -15,7 +15,7 @@ import { sampleProjectedDensity } from "./projectedParticleDensity.ts";
 import { INTRO_DURATION_SEC } from "./introReveal.ts";
 import type { PointsNodeMaterial } from "three/webgpu";
 import { particleDeadline } from "./particleDeadline.ts";
-import { createGroundPointField, groundFrameTransform, modelProjectionBounds, GROUND_STYLE } from "./groundPointField.ts";
+import { createGroundPointField, groundFrameTransform, GROUND_STYLE } from "./groundPointField.ts";
 
 const CAMERA_FOV = 45;
 const FRAME_PADDING = 1.15;
@@ -174,7 +174,7 @@ export class ParticlePointsRenderer {
     this.groundReferenceDistance = distance;
     this.reframeGround(this.uniforms, this.groundY, distance, distance, this._viewOffsetFactor * radius);
     const ground = createGroundPointField(this.groundY, distance, this._viewOffsetFactor * radius, {
-      bounds: modelProjectionBounds(sampled.positions, distance, this._viewOffsetFactor * radius),
+      radius: radius * GROUND_STYLE.radiusFactor,
       modelDensity: sampled.projectedDensity,
     });
     const merged = buildModelParticleArrays(

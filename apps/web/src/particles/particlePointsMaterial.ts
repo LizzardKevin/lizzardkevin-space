@@ -5,11 +5,13 @@ import { GROUND_STYLE } from "./groundPointField.ts";
 import {
   cameraProjectionMatrix,
   clamp,
+  exp,
   float,
   instancedBufferAttribute,
   mix,
   modelViewMatrix,
   modelWorldMatrix,
+  screenSize,
   sin,
   smoothstep,
   transformDirection,
@@ -179,9 +181,14 @@ export function createParticlePointsMaterial(
   const viewPosition = modelViewMatrix.mul(vec4(displaced, 1.0));
   const clipPosition = cameraProjectionMatrix.mul(viewPosition);
   const ndc = clipPosition.xy.div(clipPosition.w);
-  const cursorDistance = ndc.distance(uniforms.cursorNdc);
-  const cursorFalloff = smoothstep(float(0.0), uniforms.cursorRadius, cursorDistance).oneMinus();
-  const cursorBoost = uniforms.cursorGain.mul(cursorFalloff);
+  const cursorDelta = ndc.sub(uniforms.cursorNdc).mul(vec2(screenSize.x.div(screenSize.y), 1));
+  const cursorDistance = cursorDelta.length();
+  // Broad Gaussian feather: strong center, long soft tail, smoothly zero at rim.
+  const cursorT = cursorDistance.div(uniforms.cursorRadius.mul(1.8).max(.0001));
+  const cursorFalloff = exp(cursorT.mul(cursorT).mul(-4.5))
+    .mul(smoothstep(float(.65), float(1), cursorT).oneMinus());
+  const cursorResponse = cursorFalloff.mul(mix(float(1), float(.5), groundWeight));
+  const cursorBoost = uniforms.cursorGain.mul(cursorResponse);
 
   // 法线光照:实例法线经 modelWorldMatrix 方向变换,固定灯方向 lambert。
   const lightDirection = vec3(0.35, 0.75, 0.55).normalize();
@@ -235,7 +242,7 @@ export function createParticlePointsMaterial(
   const modelViewDistance = uniforms.depthFadeNear.add(uniforms.depthFadeFar).mul(.5);
   const cursorJitter = uniforms.cursorJitterAmp.mul(mix(float(1), viewDepth.div(modelViewDistance), groundWeight));
   const jittered = displaced.add(
-    jitterDir.mul(cursorJitter.mul(cursorFalloff).mul(jitterFlutter)),
+    jitterDir.mul(cursorJitter.mul(cursorResponse).mul(jitterFlutter)),
   );
 
   // 解构 morph:morphProgress 0→1 时从模型位置滑向 ambient 目标。
@@ -285,7 +292,7 @@ export function createParticlePointsMaterial(
   const floorSize = introViewPosition.z.negate().max(.001).mul(2 * GROUND_STYLE.diameterPixels / GROUND_STYLE.referenceHeight);
   material.sizeNode = mix(uniforms.pointSizeBase, floorSize, groundWeight)
     .mul(uniforms.pixelRatio)
-    .mul(float(1.0).add(uniforms.cursorSizeGain.mul(cursorFalloff)));
+    .mul(float(1.0).add(uniforms.cursorSizeGain.mul(cursorResponse)));
   // 生成瞬间着提示黄(乘 0.5+brightness,微闪/人浪在黄色阶段照常调制),随后混回灰阶白。
   material.colorNode = mix(
     vec3(brightnessV),

@@ -28,10 +28,25 @@ test("ground density decreases with distance and its peak is capped by model den
   }
 });
 
-test("ground and model share full cursor gain, size gain and jitter response",()=>{
+test("ground uses half of the shared feathered circular cursor response",()=>{
   const material=readFileSync(resolve(particlesDir,'particlePointsMaterial.ts'),'utf8');
-  assert.doesNotMatch(material,/cursorBoost\.mul\(\.2\)|viewDepth\.mul\(\.002\)/);
-  assert.match(material,/cursorJitterAmp/);assert.match(material,/cursorSizeGain/);
+  assert.match(material,/screenSize\.x\.div\(screenSize\.y\)/);
+  assert.match(material,/exp\(/);
+  assert.match(material,/mix\(float\(1\), float\(\.5\), groundWeight\)/);
+  assert.match(material,/cursorGain\.mul\(cursorResponse\)/);
+  assert.match(material,/cursorJitter\.mul\(cursorResponse\)/);
+  assert.match(material,/cursorSizeGain\.mul\(cursorResponse\)/);
+});
+
+test("ground radial density reaches zero and every point belongs to a model-centered disk",async()=>{
+  const {createGroundPointField,groundDensityAtDistance}=await import('../../src/particles/groundPointField.ts');
+  const radius=20;
+  assert.equal(groundDensityAtDistance(radius,.2,radius),0);
+  assert.equal(groundDensityAtDistance(radius*2,.2,radius),0);
+  assert.ok(groundDensityAtDistance(radius*.9,.2,radius)<.001);
+  const field=createGroundPointField(-4.2,12.588,1.5,{radius});
+  assert.ok(field.rands.length>1000);
+  for(let i=0;i<field.rands.length;i++) assert.ok(Math.hypot(field.positions[i*3],field.positions[i*3+2])<radius);
 });
 
 test("projected density uses deterministic spatial sampling instead of equal point counts", async () => {
@@ -69,51 +84,40 @@ test("ground points have deterministic off-plane targets and share the model mor
   assert.ok(merged.groundWeights.subarray(1).every(v=>v===1));
 });
 
-test("ground reframing preserves both projected layouts without regenerating buffers", async()=>{
-  const { createGroundPointField, groundFrameTransform } = await import('../../src/particles/groundPointField.ts');
-  assert.equal(typeof groundFrameTransform,'function');
-  const original=createGroundPointField(-4.2,12.588,1.5);
-  const resized=createGroundPointField(-4.2,21,1.5);
-  const transform=groundFrameTransform(-4.2,12.588,21,1.5);
-  for(let i=0;i<original.rands.length*3;i+=17){
-    const inputMagnitude=Math.abs(original.positions[i]*transform.scale)+Math.abs(transform.shift[i%3])+Math.abs(resized.positions[i])+1;
-    assert.ok(Math.abs(original.positions[i]*transform.scale+transform.shift[i%3]-resized.positions[i])<inputMagnitude*2e-7,'Float32 input error, including cancellation, must stay bounded');
-    assert.ok(Math.abs(original.alts[i]*transform.scatterScale+transform.scatterShift[i%3]-resized.alts[i])<2e-5);
+test("ground reframing leaves the circular center and membership anchored to the model", async()=>{
+  const { groundFrameTransform } = await import('../../src/particles/groundPointField.ts');
+  for(const distance of [8,21,40]){
+    const transform=groundFrameTransform(-4.2,12.588,distance,1.5);
+    assert.equal(transform.scale,1);
+    assert.deepEqual(transform.shift,[0,0,0]);
+    assert.equal(transform.scatterScale,distance/12.588);
   }
 });
 
-test("extended ground boundary dissolves before its finite edge and remains inside the far clip",async()=>{
-  const {createGroundPointField,GROUND_STYLE}=await import('../../src/particles/groundPointField.ts');
-  const field=createGroundPointField(-4.2,12.588,1.5),camera=new PerspectiveCamera(45,1.6,.05,12.588*GROUND_STYLE.farClipFactor),e=Math.atan(.15);
+test("ground circular rim thins smoothly to zero without a clipped far edge",async()=>{
+  const {createGroundPointField,GROUND_STYLE,groundDensityAtDistance}=await import('../../src/particles/groundPointField.ts');
+  const radius=25,field=createGroundPointField(-4.2,12.588,1.5,{radius});
+  const camera=new PerspectiveCamera(45,1.6,.05,12.588*GROUND_STYLE.farClipFactor),e=Math.atan(.15);
   camera.position.set(-1.5,12.588*Math.sin(e),12.588*Math.cos(e));camera.lookAt(-1.5,0,0);camera.updateMatrixWorld();
-  let edgePoints=0,maxU=0;
+  let rim=0;
   for(let i=0;i<field.rands.length;i++){
-    const p=new Vector3().fromArray(field.positions,i*3).project(camera),u=p.x*1.6;
-    maxU=Math.max(maxU,Math.abs(u));assert.ok(p.z<1,'fading points must not hit a hard far clip');
-    if(Math.abs(u)>7||p.y< -3.5){edgePoints++;assert.ok(field.fades[i]<.2);}
+    const p=new Vector3().fromArray(field.positions,i*3);
+    const radial=Math.hypot(p.x,p.z)/radius;
+    assert.ok(p.project(camera).z<1);
+    if(radial>.9){rim++;assert.ok(field.fades[i]<.27);}
   }
-  assert.ok(maxU>7&&edgePoints>0,'coverage must extend well beyond the old 3.2 boundary');
+  assert.ok(rim>0);
+  assert.ok(groundDensityAtDistance(radius*.99,.2,radius)<1e-6);
 });
 
-test("ground projected spacing stays identical across the three works, including scatter", async()=>{
-  assert.ok(existsSync(resolve(particlesDir, 'groundPointField.ts')), 'projected ground sampler required');
-  const { createGroundPointField } = await import('../../src/particles/groundPointField.ts');
-  const works=[{d:12.58784,y:-4.1833},{d:13.35293,y:-1.17925},{d:1.89496,y:-.201737}];
-  let reference;
-  for(const {d,y} of works){
-    const offset=d*.119;
-    const field=createGroundPointField(y,d,offset);
-    const camera=new PerspectiveCamera(45,1440/900,.01,d*10),e=Math.atan(.15);
-    camera.position.set(-offset,d*Math.sin(e),d*Math.cos(e));camera.lookAt(-offset,0,0);camera.updateMatrixWorld();
-    const projected=[];
-    for(let i=0;i<field.rands.length;i+=19){
-      for(const array of [field.positions,field.alts]){
-        const p=new Vector3().fromArray(array,i*3).project(camera);
-        projected.push(p.x,p.y);
-      }
-    }
-    if(reference) projected.forEach((v,i)=>assert.ok(Math.abs(v-reference[i])<1e-5,'ground screen distribution must not depend on model scale/height'));
-    reference=projected;
+test("ground sampling is scale invariant across models with the same relative framing",async()=>{
+  const {createGroundPointField}=await import('../../src/particles/groundPointField.ts');
+  const first=createGroundPointField(-4,12,1.5,{radius:24});
+  const scaled=createGroundPointField(-12,36,4.5,{radius:72});
+  assert.equal(first.rands.length,scaled.rands.length);
+  for(let i=0;i<first.positions.length;i+=19){
+    assert.ok(Math.abs(first.positions[i]*3-scaled.positions[i])<2e-5);
+    assert.ok(Math.abs(first.alts[i]*3-scaled.alts[i])<2e-5);
   }
 });
 
