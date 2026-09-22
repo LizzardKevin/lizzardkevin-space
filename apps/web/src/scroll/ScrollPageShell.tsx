@@ -18,9 +18,9 @@ import { useScrollTriggerRefresh } from "./useScrollTriggerRefresh";
 import { DotGridAttractCanvas } from "./DotGridAttractCanvas";
 import { AsciiEdgeLink } from "../pages/works/WorkEdgeNav";
 import { CursorDot } from "./CursorDot";
-import { HazardRule } from "./primitives";
 import { gsap } from "./scrollGsap";
 import { useRouteScrollPosition } from "./useRouteScrollPosition";
+import { useProfileWheelSnap } from '../pages/profile/useProfileWheelSnap';
 
 export type ScrollPageAnchor = { id: string; label: string };
 export type SpaceReturnHandler = (options?: { fromEscape?: boolean }) => void;
@@ -137,6 +137,7 @@ export function ScrollPageShell({
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
   const [content, setContent] = useState<HTMLDivElement | null>(null);
   const lenisRef = useLenisScroll(scroller, content);
+  useProfileWheelSnap(scroller,lenisRef,anchors.some(anchor=>anchor.id==='profile-education'));
   useRouteScrollPosition(scroller, rememberScroll && scrollReady);
   const [activeAnchor, setActiveAnchor] = useState<string | null>(null);
   const activeAnchorRef = useRef<string | null>(null);
@@ -208,13 +209,15 @@ export function ScrollPageShell({
         typeof target === "string" ? document.getElementById(target) : target;
       if (!el) return;
       const lenis = lenisRef.current;
+      const profileStage = el.hasAttribute('data-profile-stage');
       if (lenis) {
-        lenis.scrollTo(el, { offset: -72, duration: 1.2 });
+        const offset = profileStage ? Math.max(0, (el.clientHeight - (scroller?.clientHeight ?? el.clientHeight)) / 2) : -72;
+        lenis.scrollTo(el, { offset, duration: 1.2 });
       } else {
-        el.scrollIntoView({ block: "start" });
+        el.scrollIntoView({ block: profileStage ? "center" : "start" });
       }
     },
-    [lenisRef],
+    [lenisRef, scroller],
   );
 
   // Scrollspy：以滚动容器为 root 观察各锚点 section。
@@ -307,7 +310,6 @@ export function ScrollPageShell({
             {children}
 
             <footer className="ark-footer">
-              <HazardRule />
               <div className="ark-footer__row">
                 <div className="ark-footer__meta">
                   <span>{copy.brandMain} {copy.brandSub}</span>
@@ -332,7 +334,7 @@ export function ScrollPageShell({
 
         {switchTarget ? (
           <nav className="work-edge-nav" aria-label={copy.switchAriaPrefix}>
-            <AsciiEdgeLink side={switchTarget.side} target={{ href: switchTarget.href, title: switchTarget.label }} />
+            <AsciiEdgeLink side={switchTarget.side} target={{ href: switchTarget.href, title: switchTarget.label, hint: switchTarget.label, hintOnHover: true }} />
           </nav>
         ) : null}
 

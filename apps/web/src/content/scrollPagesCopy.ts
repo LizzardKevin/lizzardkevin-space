@@ -61,8 +61,8 @@ const zh: ScrollPagesCopy = {
   scrollHint: "SCROLL",
   indexLabel: "索引",
   footerNote: "个人档案 · 持续更新",
-  switchToProfile: "个人档案 PROFILE",
-  switchToDevStories: "开发日志 DEV STORIES",
+  switchToProfile: "个人简介",
+  switchToDevStories: "开发日志",
   switchAriaPrefix: "切换到",
   profile: {
     pageCode: "PROFILE / 个人档案",

@@ -1,152 +1,78 @@
 import { useMemo } from "react";
-import { ArkGlassTile } from "../../components/ArkGlassTile";
 import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getScrollPagesCopy } from "../../content/scrollPagesCopy";
 import { usePageLanguage } from "../../scroll/usePageLanguage";
-import { useSectionReadProgress } from "../../scroll/useSectionReadProgress";
-import { AsciiText } from "../../scroll/AsciiText";
-import { Link } from "react-router-dom";
-import { workRoute } from "../../app/routeConfig";
-import { MosaicTitle } from "../../scroll/MosaicTitle";
-import { DataStrip, SectionHeader, TagRow } from "../../scroll/primitives";
+import { profileContactLinks } from '../../content/profileContacts.ts';
+import { ProfileSocialLinks } from './ProfileSocialLinks.tsx';
+import { ContactIcon, ProfileContactPanel } from './ProfileContactPanel.tsx';
+import "./profile-narrative.css";
 
-function ProfileLine({ line, language }: { line: string; language: "zh" | "en" }) {
-  const work = /Tree Habitat/.test(line) ? { id: "arch_treehabitat", title: "Tree Habitat" }
-    : /UABB/.test(line) ? { id: "arch_uabb_exhibit", title: "UABB" } : null;
-  const label = language === "zh" ? "查看作品" : "VIEW WORK";
-  return <li>
-    <AsciiText text={line} />
-    {work ? <Link className="ark-profile-worklink" to={workRoute(work.id)} aria-label={`${label}: ${work.title}`}>
-      <AsciiText text={`[ ${label} ↗ ]`} />
-    </Link> : null}
-  </li>;
-}
+const CHAPTERS = [
+  { id: "profile-education", stage: "student", title: "Student", side: "left" },
+  { id: "profile-architecture", stage: "career", title: "Career", side: "right" },
+  { id: "profile-photography", stage: "photo", title: "Photo", side: "left" },
+  { id: "profile-music", stage: "band", title: "Band", side: "right" },
+  { id: "profile-culture", stage: "culture", title: "Cultural", side: "left" },
+  { id: "profile-experiments", stage: "experiments", title: "Experimental", side: "right" },
+] as const;
 
-/**
- * 个人档案内容（ArchiveHub 的 profile 面板）。
- * 数据全部来自 generatedProfileByLanguage（xlsx 内容管线生成）。
- */
-export function ProfileContent({ titleEpoch = "initial" }: { titleEpoch?: string }) {
+/** Desktop narrative; the complete biography remains in the localized content bundle. */
+export function ProfileContent() {
   const language = usePageLanguage();
   const copy = getScrollPagesCopy(language);
   const profile = useMemo(() => getLizzardKevinProfile(language), [language]);
-  const { identity, links, sections } = profile;
+  const { identity, sections } = profile;
+  const links=useMemo(()=>profileContactLinks(profile.links,language),[profile.links,language]);
+  const [name, handle] = identity.displayName.split(" / ");
+  const contact = links.find(link => link.href?.startsWith("mailto:"));
 
-  useSectionReadProgress(".ark-psection", ".ark-psection__railBar", [sections]);
-
-  return (
-    <>
-      <section className="ark-hero" id="profile-hero">
-        <p className="ark-hero__eyebrow"><AsciiText text={copy.profile.eyebrow} /></p>
-        <MosaicTitle key={titleEpoch} accent="#e8d44d" text={identity.displayName} className="ark-hero__title" as="h1" />
-        <p className="ark-hero__subtitle"><AsciiText text={identity.bio} /></p>
-        <div className="ark-profile-roles">
-          <TagRow tags={identity.roles} />
+  return <article className="profile-narrative" lang={language}>
+    <section className="profile-narrative__stage profile-narrative__hero" id="profile-hero" data-profile-stage="hero">
+      <div className="profile-narrative__identity">
+        <p className="profile-narrative__kicker">{copy.profile.eyebrow}</p>
+        <h1 className="profile-narrative__name">{name}{handle ? <span>{handle}</span> : null}</h1>
+        <p className="profile-narrative__roles">{identity.roles.join(" / ")}</p>
+        <p className="profile-narrative__bio">{identity.bio}</p>
+        <div className="profile-narrative__identityMeta">
+          <span><ContactIcon kind="pin"/>{language==='zh'?'所处 · 深圳':'Base · Shenzhen'}</span>
+          {contact?.href ? <a href={contact.href}><ContactIcon kind="mail"/>{contact.value} <span aria-hidden="true">↗</span></a> : null}
         </div>
-        <DataStrip
-          className="ark-hero__meta"
-          items={[
-            { label: "LOCATION", value: identity.location },
-            { label: "STATUS", value: identity.status },
-          ]}
-        />
-        <span className="ark-hero__scrollHint"><AsciiText text={copy.scrollHint} /></span>
-      </section>
+        <ProfileSocialLinks account="personal" language={language} />
+        <p className="profile-narrative__scrollHint"><span aria-hidden="true">↓</span> {copy.scrollHint}</p>
+      </div>
+    </section>
 
-      {sections.map((section) => (
-        <section className="ark-psection" id={section.id} key={section.id}>
-          <div className="ark-psection__rail">
-            <div className="ark-psection__railInner">
-              <span className="ark-psection__railNumber"><AsciiText text={section.number} /></span>
-              <span className="ark-psection__railTitle"><AsciiText text={section.title} /></span>
-              <span className="ark-psection__railBar" aria-hidden="true" />
-            </div>
-          </div>
-          <div className="ark-psection__body">
-            <>
-              <SectionHeader title={section.title} subtitle={section.subtitle} />
-            </>
-            <>
-              <p className="ark-psection__summary"><AsciiText text={section.summary} /></p>
-            </>
-            {section.details.length > 0 ? (
-              <>
-                <div>
-                  <p className="ark-psection__blockLabel"><AsciiText text={copy.profile.detailLabel} /></p>
-                  <ul className="ark-linelist">
-                    {section.details.map((line) => (
-                      <ProfileLine key={line} line={line} language={language} />
-                    ))}
-                  </ul>
-                </div>
-              </>
-            ) : null}
-            {section.fill.length > 0 ? (
-              <>
-                <div>
-                  <p className="ark-psection__blockLabel"><AsciiText text={copy.profile.fillLabel} /></p>
-                  <ul className="ark-linelist">
-                    {section.fill.map((line) => (
-                      <ProfileLine key={line} line={line} language={language} />
-                    ))}
-                  </ul>
-                </div>
-              </>
-            ) : null}
-            {section.spaceUse && section.spaceUse !== section.summary ? (
-              <>
-                <div>
-                  <p className="ark-psection__blockLabel"><AsciiText text={copy.profile.spaceUseLabel} /></p>
-                  <p className="ark-psection__spaceUse"><AsciiText text={section.spaceUse} /></p>
-                </div>
-              </>
-            ) : null}
-            <TagRow tags={section.tags} />
-          </div>
-        </section>
-      ))}
+    {CHAPTERS.map(chapter => {
+      const section = sections.find(item => item.id === chapter.id);
+      if (!section) return null;
+      // Education and practice keep two factual notes; work inventories belong to the archive.
+      const details = chapter.stage === "student" || chapter.stage === "career" ? section.details.slice(0, 2) : [];
+      return <section key={chapter.id} id={chapter.id}
+        className="profile-narrative__stage profile-narrative__chapter"
+        data-profile-stage={chapter.stage} data-reading-side={chapter.side}
+        aria-labelledby={`${chapter.id}-title`}>
+        <div className="profile-narrative__island">
+          <p className="profile-narrative__kicker"><span>{section.number}</span><span aria-hidden="true">/</span>{chapter.title}</p>
+          <h2 className="profile-narrative__title" id={`${chapter.id}-title`}>
+            {language === "en" ? chapter.title : section.title}
+          </h2>
+          <p className="profile-narrative__subtitle">{section.subtitle}</p>
+          <p className="profile-narrative__summary">{section.summary}</p>
+          {chapter.stage==='band'?<ProfileSocialLinks account="band" language={language} />:null}
+          {details.length > 0 ? <ul className="profile-narrative__details">
+            {details.map(detail => <li key={detail}>{detail}</li>)}
+          </ul> : null}
+        </div>
+      </section>;
+    })}
 
-      {links.length > 0 ? (
-        <section className="ark-links ark-section--lined" id="profile-links">
-          <>
-            <SectionHeader title={copy.profile.linksTitle} />
-          </>
-          <div className="ark-links__grid">
-            {links.map((link) => {
-              const inner = (
-                <>
-                  <span className="ark-links__label"><AsciiText text={link.label} /></span>
-                  <span className="ark-links__value">
-                    <AsciiText text={link.value} />
-                    {link.href ? (
-                      <span className="ark-links__arrow" aria-hidden="true">↗</span>
-                    ) : null}
-                  </span>
-                </>
-              );
-              return link.href ? (
-                <a
-                  key={`${link.label}-${link.value}`}
-                  className="ark-links__item"
-                  href={link.href}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <ArkGlassTile className="ark-links__glass" variant="link">
-                    {inner}
-                  </ArkGlassTile>
-                </a>
-              ) : (
-                <div key={`${link.label}-${link.value}`} className="ark-links__item">
-                  <ArkGlassTile className="ark-links__glass" variant="link">
-                    {inner}
-                  </ArkGlassTile>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      ) : null}
-    </>
-  );
+    <section className="profile-narrative__stage profile-narrative__contacts" id="profile-links"
+      data-profile-stage="links" aria-labelledby="profile-links-title">
+      <div className="profile-narrative__contactBody">
+        <p className="profile-narrative__kicker">07 / {language === "en" ? "Contact" : "联系"}</p>
+        <h2 className="profile-narrative__title" id="profile-links-title">{copy.profile.linksTitle}</h2>
+        <ProfileContactPanel links={links} language={language}/>
+      </div>
+    </section>
+  </article>;
 }

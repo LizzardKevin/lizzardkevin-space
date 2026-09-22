@@ -1,5 +1,7 @@
 # 滚动流三页动效规范（scroll-pages motion spec）
 
+> 2026-09-09 Profile 更新：桌面 `/profile` 的章节结构、滚动粒子和独立微动画以 [Profile 粒子叙事合同](profile-particle-narrative.md) 为准。下文旧的 Profile 列表、sticky 编号轨、Reveal 和禁止持续微动画的描述不再适用于新 Profile；本次不扩展到 DevStories、移动端或 SPACE。
+
 > 适用范围：`/profile`、`/devstories`、`/works/:exhibitId`（`apps/web/src/scroll/` + `src/pages/{profile,devstories,works}/`）。
 > 风格约束：舟味「克制动效」——电影感但不喧宾夺主；结构表达优先，装饰只服务识别与状态。
 > 设计依据：`docs/design/arknights-industrial-flat-design-research.md` §3.6 / §7。

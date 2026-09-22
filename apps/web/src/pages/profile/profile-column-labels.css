@@ -1,0 +1,14 @@
+.profile-column-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  max-width: 170px;
+  padding: 2px 4px;
+  color: #a9dcd6;
+  font: 13px/1.45 var(--ark-mono);
+  letter-spacing: .03em;
+  text-align: center;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+}

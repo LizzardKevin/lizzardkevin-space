@@ -359,23 +359,6 @@
 
 /* ---------- 基础件 ---------- */
 
-.ark-hazard {
-  height: 6px;
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--ark-accent) 0 10px,
-    transparent 10px 20px
-  );
-  opacity: 0.85;
-  animation: ark-hazard-march 1.6s linear infinite;
-}
-
-/* 底部警戒斜纹持续横向平移（画面常驻微动态） */
-@keyframes ark-hazard-march {
-  from { background-position: 0 0; }
-  to { background-position: 28.28px 0; }
-}
-
 .ark-section-head {
   display: flex;
   align-items: baseline;
@@ -1270,7 +1253,6 @@ video.ark-wvideo__player {
 /* ---------- 动效降级 ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .ark-hazard { animation: none; }
   .ark-hero__scrollHint::after { animation: none; }
   .ark-top__anchors button,
   .ark-top__back,

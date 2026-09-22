@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "pointCount": 48000,
+  "count": 6,
+  "sha256": "c4d13424b730dd522b9e88a196330abc7376b6582c9ac06e2f719700c96b0121",
+  "method": "approved penguin retained; original shallow photographic reliefs restored for cultural2\u20136",
+  "scenes": [
+    {
+      "name": "cultural1",
+      "sourceSha256": "b48d0396188afed7be0ca2f65280b55b48409cdb6b8992c5c01d916445639f74",
+      "aspect": 1.5,
+      "pointCount": 48000,
+      "environmentFraction": 0.030000000000000027,
+      "volumeCount": 9,
+      "bounds": [
+        [
+          -1.67900550365448,
+          -1.2541862726211548,
+          -1.998901605606079
+        ],
+        [
+          1.5978379249572754,
+          1.1749998331069946,
+          0.8763289451599121
+        ]
+      ]
+    },
+    {
+      "name": "cultural2",
+      "sourceSha256": "c7dbc670d9a79b22c7a797a6cbebe55d84b2b8ea95b7e81cb5eb0c1bbea6aa3d",
+      "aspect": 0.6666666666666666,
+      "pointCount": 48000,
+      "bounds": [
+        [
+          -0.4962606430053711,
+          -0.7462795376777649,
+          -0.14692087471485138
+        ],
+        [
+          0.4994933307170868,
+          0.7445113658905029,
+          0.13336831331253052
+        ]
+      ],
+      "method": "original shallow photographic relief; smooth foreground and luminance depth"
+    },
+    {
+      "name": "cultural3",
+      "sourceSha256": "94886b5c6e632e034c0250f25a50480ffca1839f0d4a1c1c39326732acd7eb43",
+      "aspect": 1.5,
+      "pointCount": 48000,
+      "bounds": [
+        [
+          -0.9338008761405945,
+          -0.6326327919960022,
+          -0.1550108790397644
+        ],
+        [
+          0.9469179511070251,
+          0.6309103965759277,
+          0.14630700647830963
+        ]
+      ],
+      "method": "original shallow photographic relief; smooth foreground and luminance depth"
+    },
+    {
+      "name": "cultural4",
+      "sourceSha256": "270dc341228d458bd3a9d0c6aa10cdce9853e7aac244d3e3985481e0cfd4eee9",
+      "aspect": 1.7777777777777777,
+      "pointCount": 48000,
+      "bounds": [
+        [
+          -0.9472310543060303,
+          -0.5308436751365662,
+          -0.13282504677772522
+        ],
+        [
+          0.9442435503005981,
+          0.5324787497520447,
+          0.13927140831947327
+        ]
+      ],
+      "method": "original shallow photographic relief; smooth foreground and luminance depth"
+    },
+    {
+      "name": "cultural5",
+      "sourceSha256": "654fab2f898e3ff3bf13e61f25eb3e632c9307aa3e2b2f232c651c073c3f93e1",
+      "aspect": 2.1621621621621623,
+      "pointCount": 48000,
+      "bounds": [
+        [
+          -0.9425134658813477,
+          -0.43654298782348633,
+          -0.07309707254171371
+        ],
+        [
+          0.9412602186203003,
+          0.43467292189598083,
+          0.14161576330661774
+        ]
+      ],
+      "method": "original shallow photographic relief; smooth foreground and luminance depth"
+    },
+    {
+      "name": "cultural6",
+      "sourceSha256": "071036f8880e51cba016a511a44427e84394c2e1dcac5fc02dcf9195f028c611",
+      "aspect": 2.3529411764705883,
+      "pointCount": 48000,
+      "bounds": [
+        [
+          -0.942787766456604,
+          -0.4033370316028595,
+          -0.14306816458702087
+        ],
+        [
+          0.9422184228897095,
+          0.40374231338500977,
+          0.1286139190196991
+        ]
+      ],
+      "method": "original shallow photographic relief; smooth foreground and luminance depth"
+    }
+  ]
+}

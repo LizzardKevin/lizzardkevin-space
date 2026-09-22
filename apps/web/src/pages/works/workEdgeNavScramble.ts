@@ -116,7 +116,7 @@ export function resolveHintCellChars(
   word: string,
 ): Map<number, string> {
   const placements = new Map<number, string>();
-  const chars = Array.from(word).filter((char) => char !== " ");
+  const chars = Array.from(word.trim());
   if (chars.length === 0) return placements;
   const shaftRow = Math.floor(grid.rows.length / 2);
   const shaftCells: number[] = [];

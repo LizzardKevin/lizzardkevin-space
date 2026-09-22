@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, extname, resolve } from "node:path";
+import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -109,7 +109,11 @@ while (pending.length > 0) {
   visited.add(file);
   const source = readFileSync(file, "utf8");
   assert.equal(hasUnresolvedDynamicImport(source), false, `${file} must not hide a non-literal dynamic import`);
-  assert.deepEqual(dynamicSpecifiers(source), [], `${file} must not hide another dynamic import boundary`);
+  // Profile's GPU host is deliberately loaded only after that tab is visited.
+  // Prefetching the shared archive shell must still exclude its runtime graph.
+  const deferred = file.endsWith(`${sep}pages${sep}archive${sep}ArchiveHub.tsx`)
+    ? ["../profile/ProfileParticleHost"] : [];
+  assert.deepEqual(dynamicSpecifiers(source), deferred, `${file} must not hide an unaudited dynamic import boundary`);
   assert.equal(hasSpeculativeMedia(source), false, `${file} must not issue speculative media requests`);
   for (const specifier of staticSpecifiers(source)) {
     if (!specifier.startsWith(".")) {
