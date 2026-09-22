@@ -12,11 +12,11 @@
   "totals": {
     "assets": {
       "files": 100,
-      "bytes": 219995299
+      "bytes": 219986523
     },
     "publicShipping": {
       "files": 97,
-      "bytes": 186230793
+      "bytes": 186222017
     },
     "sourceOnly": {
       "files": 14,
@@ -140,7 +140,7 @@
       },
       "shared/other": {
         "files": 13,
-        "bytes": 15369316
+        "bytes": 15360540
       },
       "source-only": {
         "files": 14,
@@ -158,7 +158,7 @@
       },
       "data/interface": {
         "files": 12,
-        "bytes": 298713
+        "bytes": 289937
       },
       "documentation/license": {
         "files": 5,
@@ -1833,8 +1833,8 @@
       "path": "apps/web/public/particles/profile/cultural.json",
       "type": "data/interface",
       "phase": "shared/other",
-      "bytes": 3561,
-      "sha256": "33a88c1acb4c8f2e84f6fc720be279638df12d8e7dcd6957f9d9fff3c07cc080",
+      "bytes": 3437,
+      "sha256": "7434766083b05fe71e0d74e2da73378412f4481fe3ec5ab10cfcc07f454d4874",
       "public": true,
       "sourceOnly": false,
       "shipping": true,
@@ -1855,8 +1855,8 @@
       "path": "apps/web/public/particles/profile/manifest.json",
       "type": "data/interface",
       "phase": "shared/other",
-      "bytes": 251408,
-      "sha256": "a46158719dfa04efa8e096182b2141b93f75c36ec7a88a67fe02b13d1b12c455",
+      "bytes": 242756,
+      "sha256": "8e928ef1d8320079798f27c6425e7066dcab7052091a4eb3a5e686aa72fc0e39",
       "public": true,
       "sourceOnly": false,
       "shipping": true,
