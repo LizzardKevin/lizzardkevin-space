@@ -1,9 +1,4 @@
 import { AsciiText } from "./AsciiText";
-/** 警戒斜纹细分隔线（舟味工业节奏线，克制使用）。 */
-export function HazardRule({ className }: { className?: string }) {
-  return <div className={`ark-hazard${className ? ` ${className}` : ""}`} aria-hidden="true" />;
-}
-
 /** 章节头：等宽编号 + 衬线大标题 + 副标题。 */
 export function SectionHeader({
   number,

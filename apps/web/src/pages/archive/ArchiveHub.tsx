@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ScrollTrigger } from "../../scroll/scrollGsap";
 import { getLizzardKevinProfile } from "../../content/lizzardKevinProfile";
 import { getDevStories } from "../../content/devStories";
@@ -12,6 +12,9 @@ import { archiveTransition, ASCII_EXIT_SECONDS } from "../../scroll/asciiTransit
 import { ProfileContent } from "../profile/ProfileContent";
 import { DevStoriesContent } from "../devstories/DevStoriesContent";
 
+const ProfileParticleHost = lazy(() => import("../profile/ProfileParticleHost")
+  .then(module => ({ default: module.ProfileParticleHost })));
+
 export type ArchiveHubTab = "profile" | "devstories";
 const HIDDEN = { position: "absolute", inset: 0, visibility: "hidden", overflow: "hidden", pointerEvents: "none" } as const;
 
@@ -23,7 +26,7 @@ export default function ArchiveHub({ tab, onNavigateToSpace }: {
 }) {
   const language = usePageLanguage();
   const copy = getScrollPagesCopy(language);
-  const [view, setView] = useState({ visible: tab, phase: "enter" as "enter" | "exit", epoch: 0 });
+  const [view, setView] = useState({ visible: tab, phase: "enter" as "enter" | "exit", epoch: 0, profileVisited: tab === "profile" });
   const visibleRef = useRef(tab);
   const scrollPos = useRef<Record<ArchiveHubTab, number>>({ profile: 0, devstories: 0 });
 
@@ -37,10 +40,11 @@ export default function ArchiveHub({ tab, onNavigateToSpace }: {
     scrollPos.current[from] = scroller?.scrollTop ?? 0;
     const finish = () => {
       visibleRef.current = tab;
-      setView(current => ({ ...archiveTransition(from, tab, ASCII_EXIT_SECONDS), epoch: current.epoch + 1 }));
+      setView(current => ({ ...archiveTransition(from, tab, ASCII_EXIT_SECONDS), epoch: current.epoch + 1,
+        profileVisited: current.profileVisited || tab === "profile" }));
     };
     if (prefersReducedMotion()) { finish(); return; }
-    setView(current => ({ ...archiveTransition(from, tab, 0), epoch: current.epoch }));
+    setView(current => ({ ...current, ...archiveTransition(from, tab, 0) }));
     const timer = window.setTimeout(finish, ASCII_EXIT_SECONDS * 1000);
     return () => window.clearTimeout(timer);
   }, [tab]);
@@ -60,8 +64,12 @@ export default function ArchiveHub({ tab, onNavigateToSpace }: {
     : { href: "/profile", label: copy.switchToProfile, side: "left" as const };
 
   return <ScrollPageShell accent={isProfile ? "teal" : "orange"}
+    background={isProfile ? "none" : "dotgrid"}
     pageCode={isProfile ? copy.profile.pageCode : copy.devStories.pageCode}
     anchors={anchors} switchTarget={switchTarget} onNavigateToSpace={onNavigateToSpace}>
+    {view.profileVisited ? <Suspense fallback={null}>
+      <ProfileParticleHost active={isProfile} />
+    </Suspense> : null}
     <div className="ark-hub" data-archive-phase={view.phase} data-archive-visible={view.visible}>
       {(["profile", "devstories"] as const).map(panel => {
         const active = view.visible === panel;
@@ -69,7 +77,7 @@ export default function ArchiveHub({ tab, onNavigateToSpace }: {
         return <div key={panel} className="ark-hub__panel" style={active ? undefined : HIDDEN}
           inert={!active || view.phase === "exit"} aria-hidden={!active}>
           <AsciiContext.Provider value={{ phase: active ? view.phase : "hidden", epoch }}>
-            {panel === "profile" ? <ProfileContent titleEpoch={active ? epoch : "hidden"} /> : <DevStoriesContent titleEpoch={active ? epoch : "hidden"} />}
+            {panel === "profile" ? <ProfileContent /> : <DevStoriesContent titleEpoch={active ? epoch : "hidden"} />}
           </AsciiContext.Provider>
         </div>;
       })}

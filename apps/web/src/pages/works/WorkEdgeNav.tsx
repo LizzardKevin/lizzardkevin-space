@@ -46,7 +46,7 @@ function initialCipherChar(index: number) {
   return chars[(index * 7 + 11) % chars.length];
 }
 
-export function AsciiEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: { href: string; title: string; hint?: string } }) {
+export function AsciiEdgeLink({ side, target }: { side: WorkEdgeNavSide; target: { href: string; title: string; hint?: string; hintOnHover?: boolean } }) {
   const grid = useMemo(() => resolveArrowGrid(side), [side]);
   const titleChars = useMemo(() => Array.from(target.title), [target.title]);
   const revealOrder = useMemo(
@@ -121,7 +121,7 @@ export function AsciiEdgeLink({ side, target }: { side: WorkEdgeNavSide; target:
 
     const tick = (nowMs: number) => {
       rafId = null;
-      if (destroyed) return;
+      if (destroyed || document.visibilityState === "hidden") return;
 
       if (phaseValue === "idle") {
         // 常态:密文箭头低频闪烁(逐个随机替换 + 明暗抖动);reduced-motion 下完全不跑。
@@ -179,13 +179,16 @@ export function AsciiEdgeLink({ side, target }: { side: WorkEdgeNavSide; target:
       }
 
       // idle 且 reduced-motion 时停 rAF;hover 解密仍由 ensureLoop 拉起
-      if (phaseValue === "decrypting" || phaseValue === "encrypting") {
+      if (
+        phaseValue === "decrypting" || phaseValue === "encrypting" ||
+        (phaseValue === "idle" && !prefersReducedMotion())
+      ) {
         rafId = requestAnimationFrame(tick);
       }
     };
 
     const ensureLoop = () => {
-      if (destroyed || rafId !== null) return;
+      if (destroyed || rafId !== null || document.visibilityState === "hidden") return;
       rafId = requestAnimationFrame(tick);
     };
 
@@ -248,7 +251,8 @@ export function AsciiEdgeLink({ side, target }: { side: WorkEdgeNavSide; target:
       to={target.href}
       className={`work-edge-nav__edge work-edge-nav__edge--${side}`}
       data-phase={phase}
-      aria-label={target.hint ? `${target.hint}: ${target.title}` : target.title}
+      data-hint-on-hover={target.hintOnHover || undefined}
+      aria-label={target.hint && target.hint !== target.title ? `${target.hint}: ${target.title}` : target.title}
     >
       {target.hint ? <span className="work-edge-nav__hint">{target.hint}</span> : null}
       <span className="work-edge-nav__title" aria-hidden="true">

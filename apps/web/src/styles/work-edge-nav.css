@@ -124,6 +124,10 @@
 
 .work-edge-nav__hint { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); font-size: 10px; white-space: nowrap; text-shadow: 0 1px 6px #111; }
 
+.work-edge-nav__edge[data-hint-on-hover="true"] .work-edge-nav__hint { visibility: hidden; }
+.work-edge-nav__edge[data-hint-on-hover="true"]:hover .work-edge-nav__hint,
+.work-edge-nav__edge[data-hint-on-hover="true"]:focus-visible .work-edge-nav__hint { visibility: visible; }
+
 .work-edge-nav__edge[data-phase="decrypting"] .work-edge-nav__title,
 .work-edge-nav__edge[data-phase="revealed"] .work-edge-nav__title,
 .work-edge-nav__edge[data-phase="encrypting"] .work-edge-nav__title {

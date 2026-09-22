@@ -4,6 +4,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import React from "react";
 import { readSourceFile } from "../helpers/projectPaths.mjs";
+import { getScrollPagesCopy } from "../../src/content/scrollPagesCopy.ts";
 import * as scramble from "../../src/pages/works/workEdgeNavScramble.ts";
 import {
   WORK_EDGE_NAV_ARROW_ROWS,
@@ -27,6 +28,81 @@ import {
   scrambleText,
   stepHintClock,
 } from "../../src/pages/works/workEdgeNavScramble.ts";
+
+function mountIdleEdge(word, { reducedMotion = false } = {}) {
+  const parsed = ts.createSourceFile("edge.tsx", readSourceFile("pages/works/WorkEdgeNav.tsx"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const fn = parsed.statements.find((statement) => ts.isFunctionDeclaration(statement) && statement.name?.text === "AsciiEdgeLink");
+  const js = ts.transpileModule(fn.getText(parsed).replace("export function", "function"), { compilerOptions: { target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React } }).outputText;
+  const refs = [], effects = [], frames = new Map(), events = new Map();
+  let now = 100, sequence = 0;
+  const document = {
+    visibilityState: "visible",
+    addEventListener: (type, handler) => events.set(type, handler),
+    removeEventListener: (type) => events.delete(type),
+  };
+  const Component = vm.runInNewContext(`${js}; AsciiEdgeLink;`, {
+    ...scramble, React, Link: "a", initialCipherChar: () => "#", prefersReducedMotion: () => reducedMotion,
+    useMemo: (callback) => callback(), useState: (value) => [value, () => {}],
+    useRef: (initial) => { const ref = { current: initial }; refs.push(ref); return ref; },
+    useEffect: (callback) => effects.push(callback), performance: { now: () => now }, document,
+    requestAnimationFrame: (callback) => { frames.set(++sequence, callback); return sequence; },
+    cancelAnimationFrame: (id) => frames.delete(id),
+  });
+  Component({ side: "right", target: { href: "/devstories", title: word, hint: word } });
+  refs[0].current = { matches: () => false, addEventListener() {}, removeEventListener() {} };
+  refs[1].current = resolveArrowGrid("right").cells.map(() => ({ textContent: "", style: {}, dataset: {} }));
+  refs[2].current = Array.from(word, () => ({ textContent: "", style: {}, dataset: {} }));
+  const cleanup = effects[0]();
+  return {
+    frames, cleanup,
+    hint: () => refs[1].current.filter((cell) => cell.dataset.hint).map((cell) => cell.textContent).join(""),
+    advance(milliseconds) {
+      for (let elapsed = 0; elapsed < milliseconds; elapsed += 100) {
+        now += 100;
+        const pending = [...frames.values()]; frames.clear(); pending.forEach((callback) => callback(now));
+      }
+    },
+    setVisibility(value) { document.visibilityState = value; events.get("visibilitychange")(); },
+  };
+}
+
+test("archive destinations use exact current-language labels for the shared arrow hints", () => {
+  assert.equal(getScrollPagesCopy("zh").switchToDevStories, "开发日志");
+  assert.equal(getScrollPagesCopy("zh").switchToProfile, "个人简介");
+  assert.equal(getScrollPagesCopy("en").switchToDevStories, "DEV STORIES");
+  assert.equal(getScrollPagesCopy("en").switchToProfile, "PROFILE");
+});
+
+for (const word of ["开发日志", "个人简介", "DEV STORIES", "PROFILE"]) {
+  test(`idle edge repeatedly flashes the complete destination ${word}`, () => {
+    const edge = mountIdleEdge(word);
+    const flashes = [];
+    let previous = "";
+    for (let elapsed = 0; elapsed < 20_000; elapsed += 100) {
+      edge.advance(100);
+      const current = edge.hint();
+      if (current && current !== previous) flashes.push(current);
+      previous = current;
+    }
+    assert.ok(flashes.length >= 2, "idle animation must continue beyond the first frame");
+    assert.ok(flashes.every((text) => text === word), "hint must preserve every character including internal spaces");
+    edge.setVisibility("hidden");
+    assert.equal(edge.frames.size, 0, "hidden tabs stop rendering");
+    edge.setVisibility("visible");
+    edge.advance(100);
+    assert.equal(edge.frames.size, 1, "visible tabs resume the idle loop");
+    edge.cleanup();
+    assert.equal(edge.frames.size, 0, "unmount releases the loop");
+  });
+}
+
+test("reduced-motion idle edges remain static", () => {
+  const edge = mountIdleEdge("DEV STORIES", { reducedMotion: true });
+  edge.advance(10_000);
+  assert.equal(edge.hint(), "");
+  assert.equal(edge.frames.size, 0);
+  edge.cleanup();
+});
 
 test("shared edge links reveal for retained keyboard focus and do not hide on pointer leave", () => {
   const parsed=ts.createSourceFile("edge.tsx",readSourceFile("pages/works/WorkEdgeNav.tsx"),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);

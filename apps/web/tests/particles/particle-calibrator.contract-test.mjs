@@ -65,8 +65,8 @@ const urlReferrers = walkSource(sourceRoot)
   .map((path) => path.slice(sourceRoot.length + 1).replaceAll("\\", "/"));
 assert.deepEqual(
   urlReferrers,
-  ["particles/particleCacheLoader.ts"],
-  "particle cache URL literals must stay inside the loader module",
+  ["particles/particleCacheLoader.ts", "particles/profile/profileCache.ts", "particles/profile/profileCultural.ts"],
+  "particle cache URL literals must stay inside the Work/Profile loader modules",
 );
 assert.doesNotMatch(desktop, /\/particles\//, "eager shell must not reference the particle bin");
 
